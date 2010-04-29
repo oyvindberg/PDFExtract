@@ -1,0 +1,159 @@
+package org.elacin.extract.tree;
+
+import org.elacin.extract.Loggers;
+import org.elacin.extract.text.Style;
+
+import java.awt.*;
+import java.awt.geom.Rectangle2D;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
+/**
+ * Created by IntelliJ IDEA.
+ * User: elacin
+ * Date: Mar 18, 2010
+ * Time: 3:16:53 PM
+ * To change this template use File | Settings | File Templates.
+ */
+public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentType extends AbstractParentNode> extends AbstractNode<ParentType> {
+    // ------------------------------ FIELDS ------------------------------
+
+    /* a cache of group position */
+    protected Rectangle2D posCache;
+    protected Style styleCache;
+
+    /* children nodes */
+    private final List<ChildType> children = new ArrayList<ChildType>();
+
+    // --------------------------- CONSTRUCTORS ---------------------------
+
+    public AbstractParentNode(final ChildType child) {
+        addChild(child);
+    }
+
+    public AbstractParentNode() {
+    }
+
+    // --------------------- GETTER / SETTER METHODS ---------------------
+
+    public List<ChildType> getChildren() {
+        return children;
+    }
+
+    // ------------------------ CANONICAL METHODS ------------------------
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(getClass().getSimpleName()).append("{");
+        if (getPosition() != null) {
+            sb.append("position=").append(getPosition().toString().replace("java.awt.geom.Rectangle2D$Float", "")).append(", ");
+        }
+        final String text = getText();
+        sb.append("'").append(text.substring(0, Math.min(text.length(), 25)));
+        if (text.length() > 25) sb.append("...");
+        sb.append("'}");
+        return sb.toString();
+    }
+
+    // -------------------------- PUBLIC METHODS --------------------------
+
+    public final void addChild(final ChildType child) {
+        child.invalidateThisAndParents();
+        children.add(child);
+        child.parent = this;
+        child.invalidateThisAndParents();
+        Collections.sort(children, getChildComparator());
+        Loggers.getCreateTreeLog().debug(getClass().getSimpleName() + " : " + getText() + ": Added node " + child);
+    }
+
+    public abstract boolean addTextNode(TextNode node);
+
+    public abstract void combineChildren();
+
+    public abstract Comparator<ChildType> getChildComparator();
+
+    public Rectangle2D getPosition() {
+        if (posCache == null) {
+            for (ChildType child : children) {
+                if (posCache == null) {
+                    posCache = child.getPosition();
+                } else {
+                    posCache = posCache.createUnion(child.getPosition());
+                }
+            }
+        }
+
+        if (posCache == null) {
+            posCache = new Rectangle2D.Float();
+        }
+        return posCache;
+    }
+
+    public Style getStyle() {
+        if (styleCache == null) {
+            /* keep the value for the last */
+            for (AbstractNode abstractNode : children) {
+                styleCache = abstractNode.getStyle();
+            }
+        }
+        return styleCache;
+    }
+
+    @Override
+    public String getText() {
+        StringBuilder sb = new StringBuilder();
+
+        if (!children.isEmpty()) {
+            for (ChildType textNode : children) {
+                sb.append(textNode.getText());
+            }
+        }
+
+        return sb.toString();
+    }
+
+    // -------------------------- OTHER METHODS --------------------------
+
+    protected void appendLocalInfo(StringBuilder sb, int indent) {
+        for (int i = 0; i < indent; i++) {
+            sb.append(" ");
+        }
+        sb.append(getClass().getSimpleName()).append(": ");
+        sb.append(getPosition().toString().replace("java.awt.geom.Rectangle2D$Float", "")).append(" ").append(":\n");
+
+        for (ChildType child : children) {
+            child.appendLocalInfo(sb, indent + 4);
+        }
+    }
+
+    protected void invalidateThisAndParents() {
+        posCache = null;
+        styleCache = null;
+
+        if (getParent() != null) {
+            getParent().invalidateThisAndParents();
+        }
+    }
+
+    // -------------------------- INNER CLASSES --------------------------
+
+    /**
+     * This comparator will compare two nodes based on their position within a page
+     * TODO: add page number here
+     */
+    protected class StandardNodeComparator implements Comparator<ChildType>, Serializable {
+        public int compare(final ChildType o1, final ChildType o2) {
+            if (o1.getPosition().getY() < o2.getPosition().getY()) return -1;
+            else if (o1.getPosition().getY() > o2.getPosition().getY()) return 1;
+
+            if (o1.getPosition().getX() < o2.getPosition().getX()) return -1;
+            else if (o1.getPosition().getX() > o2.getPosition().getX()) return 1;
+
+            return 0;
+        }
+    }
+}
