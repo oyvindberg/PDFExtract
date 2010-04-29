@@ -1,0 +1,157 @@
+<?xml version="1.0"?>
+
+<!--                This is an ant build script                   -->
+<!-- You should process this file with ant to compile the project -->
+
+<project name="jarmor" basedir="." default="all">
+
+  <!-- Properties setting -->
+  <target name="init">
+
+    <property name="version"            value="1.1" />
+    <property name="root.package.name"  value="org.spaceroots.jarmor" />
+    <property name="copyright"          value="2005-2009 Luc Maisonobe" />
+
+    <!-- directories -->
+    <property name="src.dir"            value="src" />
+    <property name="lib.dir"            value="lib" />
+    <property name="bin.dir"            value="bin" />
+    <property name="tests.src.dir"      value="tests-src" />
+    <property name="tests.bin.dir"      value="tests-bin" />
+    <property name="doc.dir"            value="doc" />
+
+    <!-- compilation properties -->
+    <property name="debug"              value="true"/>
+    <property name="deprecation"        value="true" />
+    <property name="build.sysclasspath" value="first"/>
+
+    <!-- junit related properties -->
+    <property name="test.class" value="${root.package.name}.AllTests" />
+
+    <!-- documentation related properties -->
+    <condition property="java.api.subdir" value="1.3" >
+      <equals arg1="${ant.java.version}" arg2="j2se/1.3"/>
+    </condition>
+    <condition property="java.api.subdir" value="1.4.2" >
+      <equals arg1="${ant.java.version}" arg2="j2se/1.4"/>
+    </condition>
+    <condition property="java.api.subdir" value="1.5.0" >
+      <equals arg1="${ant.java.version}" arg2="j2se/1.5.0"/>
+    </condition>
+    <property name="java.api.subdir" value="javase/6" />
+ 
+  </target>
+
+  <!-- Directories preparation -->
+  <target name="prepare" depends="init" >
+    <mkdir dir="${bin.dir}"       />
+    <mkdir dir="${tests.bin.dir}" />
+    <mkdir dir="${doc.dir}"       />
+  </target>
+
+  <!-- Compilation -->
+  <target name="compile" depends="init,prepare"
+          description="Compile the library">
+    <javac srcdir="${src.dir}" destdir="${bin.dir}"
+           debug="${debug}" deprecation="${deprecation}" />
+  </target>
+
+  <!-- Tests -->
+  <target name="compile-tests" depends="init,compile"
+          description="Compile the tests">
+    <javac srcdir="${tests.src.dir}" destdir="${tests.bin.dir}"
+           debug="${debug}" deprecation="${deprecation}" >
+      <classpath>
+        <pathelement location="${bin.dir}" />
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="test" depends="init,compile-tests"
+          description="Run the tests">
+    <junit fork="yes">
+      <classpath>
+        <pathelement path="${ant.home}/lib/ant-junit.jar" />
+        <pathelement location="${bin.dir}"       />
+        <pathelement location="${tests.bin.dir}" />
+      </classpath>
+      <formatter type="brief" usefile="false" />
+      <test name="${test.class}" />
+    </junit>
+  </target>
+
+  <!-- Documentation -->
+  <target name="javadoc" depends="init"
+          description="Build the documentation">
+    <javadoc sourcepath="${src.dir}" destdir="${doc.dir}"
+             packagenames="${root.package.name}.*"
+             link="http://java.sun.com/${java.api.subdir}/docs/api/"
+             bottom="&lt;i&gt;Copyright &#169; ${copyright}. All Rights Reserved.&lt;/i&gt;"/>
+  </target>
+
+  <!-- All: compilation and documentation -->
+  <target name="all" depends="init,compile,javadoc"
+          description="Build everything"/>
+
+  <target name="jar" depends="init,compile"
+          description="Build the archive file">
+    <jar jarfile="${ant.project.name}-${version}.jar"
+         compress="true" basedir="${bin.dir}" />
+  </target>
+
+  <!-- Dist : packaging of all -->
+  <target name="dist" depends="init,jar,javadoc"
+          description="Create distribution files">
+
+    <zip zipfile="${ant.project.name}-${version}-doc.zip">
+      <zipfileset dir="${doc.dir}" prefix="${ant.project.name}-${version}-doc" >
+        <exclude name="**/CVS/*" />
+      </zipfileset>
+    </zip>
+
+    <zip zipfile="${ant.project.name}-${version}-src.zip">
+      <zipfileset dir="${basedir}" prefix="${ant.project.name}-${version}-src" >
+        <exclude name="${ant.project.name}-*-src.zip" />
+        <exclude name="${ant.project.name}-*-doc.zip" />
+        <exclude name="${ant.project.name}-*.jar"     />
+        <exclude name="**/CVS/*"  />
+        <exclude name="${bin.dir}/**" />
+        <exclude name="${tests.bin.dir}/**" />
+        <exclude name="${doc.dir}/**" />
+      </zipfileset>
+    </zip>
+
+  </target>
+
+  <!-- Clean targets -->
+  <target name="check-dirs" depends="init">
+    <available file="${bin.dir}"       property="bin.dir.present"       />
+    <available file="${tests.bin.dir}" property="tests.bin.dir.present" />
+    <available file="${doc.dir}"       property="doc.dir.present"       />
+  </target>
+
+  <target name="clean-bin.dir" depends="init,check-dirs" if="bin.dir.present">
+    <delete dir="${bin.dir}" />
+  </target>
+
+  <target name="clean-tests.bin.dir" depends="init,check-dirs" if="tests.bin.dir.present">
+    <delete dir="${tests.bin.dir}" />
+  </target>
+
+  <target name="clean-doc.dir" depends="init,check-dirs" if="doc.dir.present">
+    <delete dir="${doc.dir}" />
+  </target>
+
+  <target name="clean"
+          depends="init,clean-bin.dir,clean-tests.bin.dir,clean-doc.dir"
+          description="Clean everything">
+    <delete>
+      <fileset dir=".">
+        <include name="${ant.project.name}-*-src.zip" />
+        <include name="${ant.project.name}-*-doc.zip" />
+        <include name="${ant.project.name}-*.jar"     />
+      </fileset>
+    </delete>
+  </target>
+
+</project>
