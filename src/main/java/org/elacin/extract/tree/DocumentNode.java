@@ -18,7 +18,7 @@ public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
     private PDDocument pdf;
 
     public final List<AbstractNode> allNodes = new ArrayList<AbstractNode>();
-    public final TreeSet<TextNode> textNodes = new TreeSet<TextNode>();
+    public final List<TextNode> textNodes = new ArrayList<TextNode>();
 
     public DocumentNode(final PDDocument pdf) {
         this.pdf = pdf;

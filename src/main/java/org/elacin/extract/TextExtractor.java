@@ -96,6 +96,7 @@ public class TextExtractor {
         try {
             document = PDDocument.load(pdfFile);
             Pdf2Xml stripper = new Pdf2Xml();
+//            stripper.setSortByPosition(true);
 
 
             if (document.isEncrypted()) {

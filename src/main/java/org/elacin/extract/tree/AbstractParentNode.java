@@ -22,7 +22,7 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
     // ------------------------------ FIELDS ------------------------------
 
     /* a cache of group position */
-    protected Rectangle2D posCache;
+    protected transient Rectangle2D posCache;
     protected Style styleCache;
 
     /* children nodes */
@@ -123,7 +123,9 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
             sb.append(" ");
         }
         sb.append(getClass().getSimpleName()).append(": ");
-        sb.append(getPosition().toString().replace("java.awt.geom.Rectangle2D$Float", "")).append(" ").append(":\n");
+        sb.append(getPosition().toString().replace("java.awt.geom.Rectangle2D$Float", ""));
+        sb.append(" ");
+        sb.append(":\n");
 
         for (ChildType child : children) {
             child.appendLocalInfo(sb, indent + 4);

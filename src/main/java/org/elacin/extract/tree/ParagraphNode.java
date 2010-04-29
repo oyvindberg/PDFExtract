@@ -132,12 +132,17 @@ public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
 
             double widthOfSpace = lastLineNode.getCurrentStyle().widthOfSpace;
 
-            /* if the new node starts at more or less the same X position, accept it */
+            /* if the new node STARTS at more or less the same X position, accept it */
             if (withinNum(widthOfSpace, getPosition().getX(), node.getPosition().getX())) {
                 return true;
             }
 
-            /* also accept it if its X value is contained between current position's lower X and (higher X + widthOfSpace)*/
+            /* if the new node ENDS at more or less the same X position, also accept it */
+            if (withinNum(widthOfSpace, getPosition().getX() + getPosition().getWidth(), node.getPosition().getX() + node.getPosition().getWidth())) {
+                return true;
+            }
+
+            /* also accept it if its X value IS CONTAINED between current position's lower X and (higher X + widthOfSpace)*/
             if (getPosition().getX() < node.getPosition().getX() &&
                     getPosition().getX() + getPosition().getWidth() + widthOfSpace > node.getPosition().getX()) {
                 return true;

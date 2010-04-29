@@ -40,6 +40,8 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
     @Override
     public boolean addTextNode(final TextNode node) {
         Loggers.getCreateTreeLog().debug("Adding new TextNode: " + node);
+        getParent().textNodes.add(node);
+
         for (ParagraphNode paragraph : getChildren()) {
             if (paragraph.addTextNode(node)) return true;
         }

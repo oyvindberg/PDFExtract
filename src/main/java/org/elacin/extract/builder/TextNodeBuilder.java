@@ -1,22 +1,26 @@
 package org.elacin.extract.builder;
 
+import org.apache.pdfbox.util.ICU4JImpl;
+import org.apache.pdfbox.util.TextNormalize;
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.extract.text.Style;
 import org.elacin.extract.tree.PageNode;
 import org.elacin.extract.tree.TextNode;
 
-import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class TextNodeBuilder {
+    // ------------------------------ FIELDS ------------------------------
+
     // --------------------------- CONSTRUCTORS ---------------------------
 
     private TextNodeBuilder() {
     }
+
+    static TextNormalize normalizer = new TextNormalize("UTF-8");
 
     // -------------------------- PUBLIC STATIC METHODS --------------------------
 
@@ -24,8 +28,7 @@ public class TextNodeBuilder {
         //TODO
         List<TextPosition> toBeCombined = new ArrayList<TextPosition>();
         for (final TextPosition newText : textPositions) {
-//            System.out.println("newText = " + newText.getCharacter() + ", dir=" + newText.getDir() + ", x= " + Arrays.toString(newText.getIndividualWidths()) + ", y=" + newText.getYDirAdj() + ", width=" + newText.getWidthDirAdj() + ", height=" + newText.getHeightDir());
-            /* check if the current text position is either first in a new text fragment, or 
+            /* check if the current text position is either first in a new text fragment, or
                 whether it will continue the one we are combining 
              */
             if (toBeCombined.isEmpty() || textContinuesEarlierText(newText, toBeCombined.get(toBeCombined.size() - 1))) {
@@ -48,16 +51,14 @@ public class TextNodeBuilder {
     }
 
     public static boolean withinNum(final double i, final double num1, final double num2) {
-        //        Loggers.getCreateTreeLog().trace("\twithinNum: checking if " + num2 + " is within " + num1 + " +- " + i);
         if (num1 == num2) return true;
 
         return (num1 - i) <= num2 && (num1 + i) >= num2;
     }
 
     // -------------------------- STATIC METHODS --------------------------
-
     static TextNode combineIntoFragment(final List<TextPosition> toBeCombined, StyleFactory sf) throws IOException {
-        StringBuilder text = new StringBuilder();
+        StringBuilder contentBuffer = new StringBuilder();
 
         /* holds the upper left point */
         float maxy = 0.0f, minx = Float.MAX_VALUE;
@@ -65,7 +66,7 @@ public class TextNodeBuilder {
 
         /* compute upper left point, and offsets in X and Y direction */
         for (TextPosition position : toBeCombined) {
-            text.append(position.getCharacter());
+            contentBuffer.append(position.getCharacter());
             if (position.getYDirAdj() > maxy) {
                 maxy = position.getYDirAdj();
             }
@@ -84,21 +85,41 @@ public class TextNodeBuilder {
 
         /* compute the final style and position for the fragment. */
         final TextPosition firstPos = toBeCombined.get(0);
-        float realFontSizeX =  (firstPos.getFontSize() * firstPos.getXScale());
-        float realFontSizeY =  (firstPos.getFontSize() * firstPos.getYScale());
-        Style style = sf.getStyle(realFontSizeX, realFontSizeY, firstPos.getWidthOfSpace(), firstPos.getFont().getBaseFont());
+        float realFontSizeX = (firstPos.getFontSize() * firstPos.getXScale());
+        float realFontSizeY = (firstPos.getFontSize() * firstPos.getYScale());
+
+        /* build a string with fontname / type */
+        final String fontname = (firstPos.getFont().getBaseFont() == null ? "null" : firstPos.getFont().getBaseFont()) + " (" + firstPos.getFont().getSubType() + ")";
+
+        Style style = sf.getStyle(realFontSizeX, realFontSizeY, firstPos.getWidthOfSpace(), fontname);
+
+
+        if (maxheight == 0.0) {
+            maxheight = realFontSizeY;
+        }
         Rectangle2D.Float position = new Rectangle2D.Float(minx, (maxy - maxheight), width, maxheight);
 
+        String content = contentBuffer.toString();
+
+        /* if content looks to be base16 encoded, try to decode it.
+            if this fails, we will just use the original content */
+        if (Base16Converter.isBase16Encoded(content)) {
+            content = Base16Converter.decodeBase16(content);
+
+        }
+
+        /* normalize text, that is fix ligatures and so on */
+        content = new ICU4JImpl().normalizePres(content);
+
         /* create the new fragment */
-        return new TextNode(position, style, text.toString());
+        return new TextNode(position, style, content);
     }
 
     static boolean textContinuesEarlierText(final TextPosition newText, final TextPosition oldText) {
-        final float xFontSize = newText.getFontSize() * newText.getXScale();
         final float yFontSize = newText.getFontSize() * newText.getYScale();
 
         /* check if the new text is at most one character after the end of the previous one */
-        if (!withinNum(oldText.getWidthOfSpace() * 0.5 /*xFontSize*/, newText.getXDirAdj(), oldText.getXDirAdj() + oldText.getWidthDirAdj())) {
+        if (!withinNum(oldText.getWidthOfSpace() * 0.5, newText.getXDirAdj(), oldText.getXDirAdj() + oldText.getWidthDirAdj())) {
             return false;
         }
 

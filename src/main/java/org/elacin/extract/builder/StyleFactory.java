@@ -2,6 +2,9 @@ package org.elacin.extract.builder;
 
 import org.elacin.extract.text.Style;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,9 +16,14 @@ import java.util.Map;
  * To change this template use File | Settings | File Templates.
  */
 public class StyleFactory {
-    // ------------------------------ FIELDS ------------------------------
+// ------------------------------ FIELDS ------------------------------
 
     Map<Style, Style> styles = new HashMap<Style, Style>();
+    private final MathContext mc;
+
+    public StyleFactory() {
+        mc = new MathContext(2, RoundingMode.HALF_UP);
+    }
 
     // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -23,10 +31,13 @@ public class StyleFactory {
         return styles;
     }
 
-    // -------------------------- PUBLIC METHODS --------------------------
+// -------------------------- STATIC METHODS --------------------------
+
+
+// -------------------------- PUBLIC METHODS --------------------------
 
     public Style getStyle(float xSize, float ySize, final float widthOfSpace, String font) {
-        Style style = new Style(font, xSize, ySize, widthOfSpace);
+        Style style = new Style(font, round(xSize), round(ySize), round(widthOfSpace));
         Style existing = styles.get(style);
 
         if (existing != null) {
@@ -35,5 +46,12 @@ public class StyleFactory {
 
         styles.put(style, style);
         return style;
+    }
+
+// -------------------------- OTHER METHODS --------------------------
+
+    private float round(float num) {
+        BigDecimal bd = new BigDecimal(num, mc);
+        return bd.floatValue();
     }
 }

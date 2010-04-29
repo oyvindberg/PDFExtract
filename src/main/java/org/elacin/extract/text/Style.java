@@ -1,5 +1,7 @@
 package org.elacin.extract.text;
 
+import java.io.Serializable;
+
 /**
  * Created by IntelliJ IDEA.
  * User: elacin
@@ -7,7 +9,7 @@ package org.elacin.extract.text;
  * Time: 2:32:20 PM
  * To change this template use File | Settings | File Templates.
  */
-public class Style {
+public class Style implements Serializable {
     // ------------------------------ FIELDS ------------------------------
 
     public final float xSize, ySize, widthOfSpace;
@@ -35,6 +37,9 @@ public class Style {
         if (Float.compare(style.widthOfSpace, widthOfSpace) != 0) return false;
         if (Float.compare(style.xSize, xSize) != 0) return false;
         if (Float.compare(style.ySize, ySize) != 0) return false;
+        if (font == null && style.font == null)
+            return true;
+        
         if (font != null ? !font.equals(style.font) : style.font != null) return false;
 
         return true;
