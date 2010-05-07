@@ -1,3 +1,19 @@
+/*
+ * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
 package org.elacin.extract;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -16,19 +32,25 @@ import java.util.List;
 import java.util.Vector;
 
 public class Pdf2Xml extends PDFTextStripper {
-// ------------------------------ FIELDS ------------------------------
+    // ------------------------------ FIELDS ------------------------------
 
     private StyleFactory styleFactory = new StyleFactory();
     private int currentPage = 0;
     private Style breadtextStyle = null;
     private DocumentNode root;
 
-// --------------------------- CONSTRUCTORS ---------------------------
+    // --------------------------- CONSTRUCTORS ---------------------------
 
     public Pdf2Xml() throws IOException {
+        //        super(ResourceLoader.loadProperties( "Resources/PageDrawer.properties", true ) );
     }
 
-// ------------------------ OVERRIDING METHODS ------------------------
+    public Pdf2Xml(String encoding) throws IOException {
+        this();
+        outputEncoding = encoding;
+    }
+
+    // ------------------------ OVERRIDING METHODS ------------------------
 
     @Override
     protected void endDocument(final PDDocument pdf) throws IOException {
@@ -50,7 +72,7 @@ public class Pdf2Xml extends PDFTextStripper {
         }
     }
 
-// -------------------------- PUBLIC METHODS --------------------------
+    // -------------------------- PUBLIC METHODS --------------------------
 
     //    private void setMargins() {
     //        for (TextNode leafText : concreteTexts) {
@@ -72,7 +94,7 @@ public class Pdf2Xml extends PDFTextStripper {
         root.combineChildren();
     }
 
-// -------------------------- OTHER METHODS --------------------------
+    // -------------------------- OTHER METHODS --------------------------
 
     void parsePage(final List<TextPosition> textPositions) throws IOException {
         final PageNode pageNode = new PageNode(root.getPdf().getPageFormat(currentPage), currentPage);
