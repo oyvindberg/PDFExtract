@@ -20,7 +20,7 @@ import org.elacin.extract.Loggers;
 
 import java.util.Comparator;
 
-import static org.elacin.extract.builder.TextNodeBuilder.withinNum;
+import static org.elacin.extract.util.MathUtils.withinNum;
 
 
 /**

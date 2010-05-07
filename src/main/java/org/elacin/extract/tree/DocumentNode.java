@@ -32,7 +32,6 @@ import java.util.List;
 public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
     private PDDocument pdf;
 
-    public final List<AbstractNode> allNodes = new ArrayList<AbstractNode>();
     public final List<TextNode> textNodes = new ArrayList<TextNode>();
 
     public DocumentNode(final PDDocument pdf) {
@@ -46,7 +45,13 @@ public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
 
     @Override
     public boolean addTextNode(final TextNode node) {
-        //TODO: implement pages and blabla here instead
+        for (PageNode pageNode : getChildren()) {
+            if (pageNode.addTextNode(node)) return true;
+        }
+
+        final PageNode newPage = new PageNode(node.getPageNum());
+        addChild(newPage);
+        newPage.addTextNode(node);
         return false;
     }
 

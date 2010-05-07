@@ -24,7 +24,6 @@ import org.elacin.extract.builder.TextNodeBuilder;
 import org.elacin.extract.operation.RecognizeRoles;
 import org.elacin.extract.text.Style;
 import org.elacin.extract.tree.DocumentNode;
-import org.elacin.extract.tree.PageNode;
 import org.elacin.extract.tree.TextNode;
 
 import java.io.IOException;
@@ -68,8 +67,11 @@ public class Pdf2Xml extends PDFTextStripper {
     @Override
     protected void writePage() throws IOException {
         for (final List<TextPosition> textPositions : (Vector<List<TextPosition>>) charactersByArticle) {
-            parsePage(textPositions);
+            if (!textPositions.isEmpty()) {
+                TextNodeBuilder.fillPage(root, currentPage, textPositions, styleFactory);
+            }
         }
+        currentPage++;
     }
 
     // -------------------------- PUBLIC METHODS --------------------------
@@ -95,15 +97,6 @@ public class Pdf2Xml extends PDFTextStripper {
     }
 
     // -------------------------- OTHER METHODS --------------------------
-
-    void parsePage(final List<TextPosition> textPositions) throws IOException {
-        final PageNode pageNode = new PageNode(root.getPdf().getPageFormat(currentPage), currentPage);
-        if (!textPositions.isEmpty()) {
-            root.addChild(pageNode);
-            TextNodeBuilder.fillPage(pageNode, textPositions, styleFactory);
-        }
-        currentPage++;
-    }
 
     /* for all styles, sum up the number of words which uses it */
     private void findBreadtextStyle() {

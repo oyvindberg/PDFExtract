@@ -31,21 +31,15 @@ import java.util.Comparator;
 public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
     // ------------------------------ FIELDS ------------------------------
 
-    private final PageFormat pageFormat;
     private int pageNumber;
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    public PageNode(final PageFormat pageFormat, int pageNumber) {
+    public PageNode(int pageNumber) {
         this.pageNumber = pageNumber;
-        this.pageFormat = pageFormat;
     }
 
     // --------------------- GETTER / SETTER METHODS ---------------------
-
-    public PageFormat getPageFormat() {
-        return pageFormat;
-    }
 
     public int getPageNumber() {
         return pageNumber;
@@ -53,8 +47,16 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
 
     // -------------------------- PUBLIC METHODS --------------------------
 
+    public boolean accepts(final TextNode node) {
+        return pageNumber == node.getPageNum();
+    }
+
     @Override
     public boolean addTextNode(final TextNode node) {
+        if (!accepts(node)) {
+            return false;
+        }
+
         Loggers.getCreateTreeLog().debug("Adding new TextNode: " + node);
         getParent().textNodes.add(node);
 
@@ -68,16 +70,6 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
         addChild(paragraph);
 
         return true;
-    }
-
-    /**
-     * Returns a Comparator which compares coordinates within a page
-     *
-     * @return
-     */
-    @Override
-    public Comparator<ParagraphNode> getChildComparator() {
-        return new StandardNodeComparator();
     }
 
     @Override
@@ -112,5 +104,19 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
         for (ParagraphNode paragraphNode : getChildren()) {
             paragraphNode.combineChildren();
         }
+    }
+
+    /**
+     * Returns a Comparator which compares coordinates within a page
+     *
+     * @return
+     */
+    @Override
+    public Comparator<ParagraphNode> getChildComparator() {
+        return new StandardNodeComparator();
+    }
+
+    public PageFormat getPageFormat() {
+        return getParent().getPdf().getPageFormat(pageNumber);
     }
 }

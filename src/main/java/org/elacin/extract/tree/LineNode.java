@@ -21,7 +21,7 @@ import org.elacin.extract.text.Style;
 
 import java.util.Comparator;
 
-import static org.elacin.extract.builder.TextNodeBuilder.withinNum;
+import static org.elacin.extract.util.MathUtils.withinNum;
 
 /**
  * Created by IntelliJ IDEA.

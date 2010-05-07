@@ -19,7 +19,6 @@ package org.elacin.extract;
 import org.apache.commons.cli.*;
 import org.apache.pdfbox.pdmodel.PDDocument;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
@@ -56,8 +55,8 @@ public class TextExtractor {
         Writer ret = null;
         if (cmd.getArgs().length == 2) {
             try {
-                ret = new PrintWriter(cmd.getArgs()[1]);
-            } catch (FileNotFoundException e) {
+                ret = new PrintWriter(cmd.getArgs()[1], "UTF-8");
+            } catch (Exception e) {
                 Loggers.getTextExtractorLog().error("Could not open output file", e);
                 System.exit(2);
             }

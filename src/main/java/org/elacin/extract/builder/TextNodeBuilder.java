@@ -17,12 +17,12 @@
 package org.elacin.extract.builder;
 
 import org.apache.pdfbox.util.ICU4JImpl;
-import org.apache.pdfbox.util.TextNormalize;
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.extract.Loggers;
 import org.elacin.extract.text.Style;
-import org.elacin.extract.tree.PageNode;
+import org.elacin.extract.tree.DocumentNode;
 import org.elacin.extract.tree.TextNode;
+import org.elacin.extract.util.MathUtils;
 
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -30,10 +30,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TextNodeBuilder {
-    // ------------------------------ FIELDS ------------------------------
-
-    static TextNormalize normalizer = new TextNormalize("UTF-8");
-
     // --------------------------- CONSTRUCTORS ---------------------------
 
     private TextNodeBuilder() {
@@ -41,7 +37,7 @@ public class TextNodeBuilder {
 
     // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-    public static void fillPage(final PageNode pageNode, final List<TextPosition> textPositions, StyleFactory sf) throws IOException {
+    public static void fillPage(final DocumentNode root, final int pageNum, final List<TextPosition> textPositions, StyleFactory sf) throws IOException {
         //TODO
         List<TextPosition> toBeCombined = new ArrayList<TextPosition>();
         for (final TextPosition newText : textPositions) {
@@ -54,7 +50,7 @@ public class TextNodeBuilder {
             } else {
                 /* if the new text position did not geometrically continue the former text,
                     finish the text fragment we have started building, and start a new one */
-                pageNode.addTextNode(combineIntoFragment(toBeCombined, sf));
+                root.addTextNode(combineIntoFragment(toBeCombined, sf, pageNum));
                 toBeCombined.clear();
                 toBeCombined.add(newText);
             }
@@ -63,19 +59,13 @@ public class TextNodeBuilder {
         /* the loop above is stupidly written and may leave some text not 
         *   combined. finish the previous text fragment here */
         if (!toBeCombined.isEmpty()) {
-            pageNode.addTextNode(combineIntoFragment(toBeCombined, sf));
+            root.addTextNode(combineIntoFragment(toBeCombined, sf, pageNum));
         }
-    }
-
-    public static boolean withinNum(final double i, final double num1, final double num2) {
-        if (num1 == num2) return true;
-
-        return (num1 - i) <= num2 && (num1 + i) >= num2;
     }
 
     // -------------------------- STATIC METHODS --------------------------
 
-    static TextNode combineIntoFragment(final List<TextPosition> toBeCombined, StyleFactory sf) throws IOException {
+    static TextNode combineIntoFragment(final List<TextPosition> toBeCombined, StyleFactory sf, final int pageNum) throws IOException {
         StringBuilder contentBuffer = new StringBuilder();
 
         /* holds the upper left point */
@@ -133,7 +123,7 @@ public class TextNodeBuilder {
         content = new ICU4JImpl().normalizePres(content);
 
         /* create the new fragment */
-        return new TextNode(position, style, content);
+        return new TextNode(position, pageNum, style, content);
     }
 
     private static String getTextPositionString(final TextPosition position) {
@@ -171,11 +161,11 @@ public class TextNodeBuilder {
          */
 
         /* check if the new text is at most one character after the end of the previous one */
-        if (!withinNum(oldText.getWidthOfSpace() * 0.1, newText.getXDirAdj(), oldText.getXDirAdj() + oldText.getWidthDirAdj())) {
+        if (!MathUtils.withinNum(oldText.getWidthOfSpace() * 0.1, newText.getXDirAdj(), oldText.getXDirAdj() + oldText.getWidthDirAdj())) {
             return false;
         }
 
-        if (!withinNum(yFontSize, newText.getYDirAdj(), oldText.getYDirAdj())) {
+        if (!MathUtils.withinNum(yFontSize, newText.getYDirAdj(), oldText.getYDirAdj())) {
             return false;
         }
 
@@ -188,11 +178,11 @@ public class TextNodeBuilder {
         }
 
         final float xFontSize = newText.getFontSize() * newText.getXScale();
-        if (!withinPercent(1, xFontSize, oldText.getFontSize() * oldText.getXScale())) {
+        if (!MathUtils.withinPercent(1, xFontSize, oldText.getFontSize() * oldText.getXScale())) {
             return false;
         }
         final float yFontSize = newText.getFontSize() * newText.getYScale();
-        if (!withinPercent(1, yFontSize, oldText.getFontSize() * oldText.getYScale())) {
+        if (!MathUtils.withinPercent(1, yFontSize, oldText.getFontSize() * oldText.getYScale())) {
             return false;
         }
 
@@ -200,11 +190,5 @@ public class TextNodeBuilder {
             return false;
         }
         return true;
-    }
-
-    static boolean withinPercent(final double i, final double num1, final double num2) {
-        if (num1 == num2) return true;
-
-        return (num1 - (num1 / 100.0 * i)) <= num2 && (num1 + (num1 / 100.0 * i) > num2);
     }
 }

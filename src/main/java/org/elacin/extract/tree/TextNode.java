@@ -33,16 +33,22 @@ public class TextNode extends AbstractNode<LineNode> {
     public final String text;
     protected final Rectangle2D position;
     protected final Style style;
+    private final int pageNum;
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    public TextNode(final Rectangle2D position, final Style style, final String text) {
+    public TextNode(final Rectangle2D position, final int pageNum, final Style style, final String text) {
         this.position = position;
+        this.pageNum = pageNum;
         this.style = style;
         this.text = text;
     }
 
     // --------------------- GETTER / SETTER METHODS ---------------------
+
+    public int getPageNum() {
+        return pageNum;
+    }
 
     public Rectangle2D getPosition() {
         return position;
@@ -72,13 +78,17 @@ public class TextNode extends AbstractNode<LineNode> {
         return sb.toString();
     }
 
-    // -------------------------- OTHER METHODS --------------------------
+    // -------------------------- PUBLIC METHODS --------------------------
 
-    protected void invalidateThisAndParents() {
-        if (getParent() != null) {
-            getParent().invalidateThisAndParents();
-        }
+    public boolean isSpaceBetweenThisAnd(final TextNode nextNode) {
+        if (position.getX() + position.getWidth() + style.widthOfSpace * 0.1 <= nextNode.position.getX()) return true;
+        if (text.endsWith(" ")) return true;
+        if (nextNode.text.startsWith(" ")) return true;
+
+        return false;
     }
+
+    // -------------------------- OTHER METHODS --------------------------
 
     protected void appendLocalInfo(final StringBuilder sb, final int indent) {
         for (int i = 0; i < indent; i++) {
@@ -91,14 +101,11 @@ public class TextNode extends AbstractNode<LineNode> {
         }
         sb.append(", text='").append(text).append('\'');
         sb.append("}\n");
-
     }
 
-    public boolean isSpaceBetweenThisAnd(final TextNode nextNode) {
-        if (position.getX() + position.getWidth() + style.widthOfSpace * 0.1 <= nextNode.position.getX()) return true;
-        if (text.endsWith(" ")) return true;
-        if (nextNode.text.startsWith(" ")) return true;
-
-        return false;
+    protected void invalidateThisAndParents() {
+        if (getParent() != null) {
+            getParent().invalidateThisAndParents();
+        }
     }
 }
