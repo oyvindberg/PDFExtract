@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 Ã˜yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,17 +14,17 @@
  *    limitations under the License.
  */
 
-package org.elacin.extract;
+package org.elacin.pdfextract;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.util.PDFTextStripper;
 import org.apache.pdfbox.util.TextPosition;
-import org.elacin.extract.builder.StyleFactory;
-import org.elacin.extract.builder.TextNodeBuilder;
-import org.elacin.extract.operation.RecognizeRoles;
-import org.elacin.extract.text.Style;
-import org.elacin.extract.tree.DocumentNode;
-import org.elacin.extract.tree.TextNode;
+import org.elacin.pdfextract.builder.StyleFactory;
+import org.elacin.pdfextract.builder.TextNodeBuilder;
+import org.elacin.pdfextract.operation.RecognizeRoles;
+import org.elacin.pdfextract.text.Style;
+import org.elacin.pdfextract.tree.DocumentNode;
+import org.elacin.pdfextract.tree.TextNode;
 
 import java.io.IOException;
 import java.util.List;
@@ -49,6 +49,12 @@ public class Pdf2Xml extends PDFTextStripper {
         outputEncoding = encoding;
     }
 
+    // --------------------- GETTER / SETTER METHODS ---------------------
+
+    public DocumentNode getRoot() {
+        return root;
+    }
+
     // ------------------------ OVERRIDING METHODS ------------------------
 
     @Override
@@ -56,6 +62,7 @@ public class Pdf2Xml extends PDFTextStripper {
         combineTreeNodes();
         findBreadtextStyle();
         new RecognizeRoles(breadtextStyle).doOperation(root);
+
         getOutput().write(root.printTree());
     }
 
@@ -76,22 +83,6 @@ public class Pdf2Xml extends PDFTextStripper {
 
     // -------------------------- PUBLIC METHODS --------------------------
 
-    //    private void setMargins() {
-    //        for (TextNode leafText : concreteTexts) {
-    //            int fragmentsRight = (int) (leafText.getPosition().getX() + leafText.getPosition().getWidth());
-    //            if (fragmentsRight > rightMargin) {
-    //                this.rightMargin = fragmentsRight;
-    //            }
-    //
-    //            int fragmentsLeft = (int) leafText.getPosition().getX();
-    //            if (fragmentsLeft < leftMargin) {
-    //                leftMargin = fragmentsLeft;
-    //            }
-    //        }
-    //        log.warn("Found documents margins: left: " + leftMargin + ", right: " + rightMargin);
-    //    }
-
-
     public void combineTreeNodes() {
         root.combineChildren();
     }
@@ -111,9 +102,9 @@ public class Pdf2Xml extends PDFTextStripper {
                 highestNumberOfCharsInStyle = style.numCharsWithThisStyle;
                 breadtextStyle = style;
             }
-            Loggers.getTextExtractorLog().info("style = " + style + " was used in " + style.numCharsWithThisStyle + " chars");
+            Loggers.getPdfExtractorLog().debug("style = " + style + " was used in " + style.numCharsWithThisStyle + " chars");
         }
 
-        Loggers.getTextExtractorLog().debug("most used style is " + breadtextStyle + " with " + highestNumberOfCharsInStyle + " chars");
+        Loggers.getPdfExtractorLog().info("most used style is " + breadtextStyle + " with " + highestNumberOfCharsInStyle + " chars");
     }
 }

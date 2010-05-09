@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 Ã˜yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,9 +14,10 @@
  *    limitations under the License.
  */
 
-package org.elacin.extract.tree;
+package org.elacin.pdfextract.tree;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.elacin.pdfextract.Loggers;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -36,6 +37,7 @@ public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
 
     public DocumentNode(final PDDocument pdf) {
         this.pdf = pdf;
+        setRoot(this);
     }
 
 
@@ -45,6 +47,15 @@ public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
 
     @Override
     public boolean addTextNode(final TextNode node) {
+
+        if (node.getText().trim().length() == 0) {
+            if (Loggers.getCreateTreeLog().isTraceEnabled()) {
+                Loggers.getCreateTreeLog().trace("Ignoring Textnode " + node + " because it contains no text");
+            }
+            return false;
+        }
+
+
         for (PageNode pageNode : getChildren()) {
             if (pageNode.addTextNode(node)) return true;
         }

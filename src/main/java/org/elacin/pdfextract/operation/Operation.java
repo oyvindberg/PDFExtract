@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 Ã˜yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,26 +14,19 @@
  *    limitations under the License.
  */
 
-package org.elacin.extract.text;
+package org.elacin.pdfextract.operation;
+
+import org.elacin.pdfextract.tree.DocumentNode;
 
 /**
  * Created by IntelliJ IDEA.
  * User: elacin
- * Date: Mar 18, 2010
- * Time: 2:32:32 PM
+ * Date: Mar 23, 2010
+ * Time: 3:09:37 AM
  * To change this template use File | Settings | File Templates.
  */
-public enum Role {
-    MAINTITLE,
-    SECTION,
-    SUBSECTION,
-    FOOTNOTE,
-    HEADNOTE,
-    PAGENUMBER,
-    EMPHASIS,
-    NORMAL,
-    UNKNOWN,
-    INDEXNUMBER,
-    TITLE,
-    IDENTIFIER;
+public interface Operation {
+    // -------------------------- PUBLIC METHODS --------------------------
+
+    void doOperation(DocumentNode root);
 }

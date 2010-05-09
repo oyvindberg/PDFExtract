@@ -23,13 +23,24 @@
     <groupId>org.elacin</groupId>
     <artifactId>TextExtractor</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <!--<repositories>-->
-    <!--<repository>-->
-    <!--<id>jinahya.googlecode.com_svn_maven_2_repo</id>-->
-    <!--<name>Jinahya's maven 2 repository</name>-->
-    <!--<url>http://jinahya.googlecode.com/svn/maven/2/repo</url>-->
-    <!--</repository>-->
-    <!--</repositories>-->
+    <repositories>
+        <!--<repository>-->
+        <!--<id>jinahya.googlecode.com_svn_maven_2_repo</id>-->
+        <!--<name>Jinahya's maven 2 repository</name>-->
+        <!--<url>http://jinahya.googlecode.com/svn/maven/2/repo</url>-->
+        <!--</repository>-->
+        <!--<repository>-->
+        <!--<id>apache</id>-->
+        <!--<name>Apache snapshot repo</name>-->
+        <!--<url>http://repository.apache.org/snapshots/</url>-->
+        <!--</repository>-->
+
+        <repository>
+            <id>www2.ph.ed.ac.uk-releases</id>
+            <url>http://www2.ph.ed.ac.uk/maven2</url>
+        </repository>
+
+    </repositories>
 
     <dependencies>
 
@@ -46,6 +57,24 @@
             <version>1.2.14</version>
         </dependency>
 
+
+        <dependency>
+            <groupId>uk.ac.ed.ph.snuggletex</groupId>
+            <artifactId>snuggletex-core</artifactId>
+            <version>1.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>uk.ac.ed.ph.snuggletex</groupId>
+            <artifactId>snuggletex-upconversion</artifactId>
+            <version>1.2.1</version>
+            <scope>test</scope>
+        </dependency>
+        <!--<dependency>-->
+        <!--<groupId>uk.ac.ed.ph.snuggletex</groupId>-->
+        <!--<artifactId>snuggletex-jeuclid</artifactId>-->
+        <!--<version>1.2.1</version>-->
+        <!--</dependency>-->
+
         <!--<dependency>-->
         <!--<groupId>org.apache.pdfbox</groupId>-->
         <!--<artifactId>pdfbox</artifactId>-->
@@ -55,7 +84,8 @@
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>1.1.0</version>
+            <version>1.2.0-SNAPSHOT</version>
+
         </dependency>
 
         <dependency>
@@ -142,7 +172,7 @@
                     <arguments>
                         <argument>-classpath</argument>
                         <classpath/>
-                        <argument>org.elacin.extract.TextExtractor</argument>
+                        <argument>org.elacin.pdfextract.TextExtractor</argument>
                         <!--<argument>-endpage</argument>-->
                         <!--<argument>5</argument>-->
                         <!--<argument>target/classes/article4.pdf</argument>-->
@@ -163,7 +193,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>org.elacin.extract.TextExtractor</mainClass>
+                            <mainClass>org.elacin.pdfextract.TextExtractor</mainClass>
 
                         </manifest>
                         <manifestEntries>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 Ã˜yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,15 +14,15 @@
  *    limitations under the License.
  */
 
-package org.elacin.extract.builder;
+package org.elacin.pdfextract.builder;
 
 import org.apache.pdfbox.util.ICU4JImpl;
 import org.apache.pdfbox.util.TextPosition;
-import org.elacin.extract.Loggers;
-import org.elacin.extract.text.Style;
-import org.elacin.extract.tree.DocumentNode;
-import org.elacin.extract.tree.TextNode;
-import org.elacin.extract.util.MathUtils;
+import org.elacin.pdfextract.Loggers;
+import org.elacin.pdfextract.text.Style;
+import org.elacin.pdfextract.tree.DocumentNode;
+import org.elacin.pdfextract.tree.TextNode;
+import org.elacin.pdfextract.util.MathUtils;
 
 import java.awt.geom.Rectangle2D;
 import java.io.IOException;
@@ -75,7 +75,9 @@ public class TextNodeBuilder {
         /* compute upper left point, and offsets in X and Y direction */
         Loggers.getTextNodeBuilderLog().info("These textpositions will form one TextNode:");
         for (TextPosition position : toBeCombined) {
-            Loggers.getTextNodeBuilderLog().info(getTextPositionString(position));
+            if (Loggers.getTextNodeBuilderLog().isInfoEnabled()) {
+                Loggers.getTextNodeBuilderLog().info(getTextPositionString(position));
+            }
 
             contentBuffer.append(position.getCharacter());
             if (position.getYDirAdj() > maxy) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 Ã˜yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,19 +14,30 @@
  *    limitations under the License.
  */
 
-package org.elacin.extract.operation;
+package org.elacin.pdfextract;
 
-import org.elacin.extract.tree.DocumentNode;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.elacin.pdfextract.tree.DocumentNode;
+
+import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  * Created by IntelliJ IDEA.
  * User: elacin
- * Date: Mar 23, 2010
- * Time: 3:09:37 AM
+ * Date: May 9, 2010
+ * Time: 12:19:56 AM
  * To change this template use File | Settings | File Templates.
  */
-public interface Operation {
-    // -------------------------- PUBLIC METHODS --------------------------
+public class PDFDocumentLoader {
 
-    void doOperation(DocumentNode root);
+    public static DocumentNode readPDF(String filename, final String outFile) throws IOException {
+        PDDocument document = PDDocument.load(filename);
+        Pdf2Xml stripper = new Pdf2Xml();
+
+        final PrintWriter out = new PrintWriter(outFile, "UTF-8");
+        stripper.writeText(document, out);
+        return stripper.getRoot();
+
+    }
 }

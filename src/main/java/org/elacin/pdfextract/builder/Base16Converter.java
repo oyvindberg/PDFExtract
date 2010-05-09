@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 Ã˜yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package org.elacin.extract.builder;
+package org.elacin.pdfextract.builder;
 
-import org.elacin.extract.Loggers;
+import org.elacin.pdfextract.Loggers;
 import org.spaceroots.jarmor.Base16Decoder;
 
 import java.io.ByteArrayInputStream;
@@ -29,12 +29,12 @@ public final class Base16Converter {
     static final Pattern base16Pattern = Pattern.compile("([Xx][0-9a-fA-F]{2})+", Pattern.MULTILINE);
 
     static String decodeBase16(String encodedInput) {
-        /* remove all the 'x's in the string, and extract the bytes from the resulting string */
+        /* remove all the 'x's in the string, and pdfextract the bytes from the resulting string */
         final byte[] bytes;
         try {
             bytes = encodedInput.replaceAll("[xX]", "").getBytes("UTF-8");
         } catch (UnsupportedEncodingException e) {
-            Loggers.getTextExtractorLog().warn("UTF-8 was not a valid encoding while extracting bytes from encoded input string " + encodedInput, e);
+            Loggers.getPdfExtractorLog().warn("UTF-8 was not a valid encoding while extracting bytes from encoded input string " + encodedInput, e);
             return encodedInput;
         }
 
@@ -50,13 +50,13 @@ public final class Base16Converter {
 
             return sb.toString();
         } catch (IOException e) {
-            Loggers.getTextExtractorLog().warn("Error while decoding string " + encodedInput, e);
+            Loggers.getPdfExtractorLog().warn("Error while decoding string " + encodedInput, e);
             e.printStackTrace();
         } finally {
             try {
                 decodedStream.close();
             } catch (IOException e) {
-                Loggers.getTextExtractorLog().warn("Could not close stream", e);
+                Loggers.getPdfExtractorLog().warn("Could not close stream", e);
             }
         }
         return encodedInput;

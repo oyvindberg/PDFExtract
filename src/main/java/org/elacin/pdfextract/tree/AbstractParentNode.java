@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 Ã˜yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  *    limitations under the License.
  */
 
-package org.elacin.extract.tree;
+package org.elacin.pdfextract.tree;
 
-import org.elacin.extract.Loggers;
-import org.elacin.extract.text.Style;
+import org.elacin.pdfextract.Loggers;
+import org.elacin.pdfextract.text.Style;
 
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
@@ -38,7 +38,6 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
 
     /* a cache of group position */
     protected transient Rectangle2D posCache;
-    protected Style styleCache;
 
     /* children nodes */
     private final List<ChildType> children = new ArrayList<ChildType>();
@@ -62,17 +61,20 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName()).append("{");
-        if (getPosition() != null) {
-            sb.append("position=").append(getPosition().toString().replace("java.awt.geom.Rectangle2D$Float", "")).append(", ");
+        if (toStringCache == null) {
+            final StringBuilder sb = new StringBuilder();
+            sb.append(getClass().getSimpleName()).append("{");
+            if (getPosition() != null) {
+                sb.append("position=").append(getPosition().toString().replace("java.awt.geom.Rectangle2D$Float", "")).append(", ");
+            }
+            final String text = getText();
+            sb.append("'").append(text.substring(0, Math.min(text.length(), 25)));
+            //        sb.append("'").append(text);
+            if (text.length() > 25) sb.append("...");
+            sb.append("'}");
+            toStringCache = sb.toString();
         }
-        final String text = getText();
-        sb.append("'").append(text.substring(0, Math.min(text.length(), 25)));
-        //        sb.append("'").append(text);
-        if (text.length() > 25) sb.append("...");
-        sb.append("'}");
-        return sb.toString();
+        return toStringCache;
     }
 
     // -------------------------- PUBLIC METHODS --------------------------
@@ -83,7 +85,11 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
         child.parent = this;
         child.invalidateThisAndParents();
         Collections.sort(children, getChildComparator());
-        Loggers.getCreateTreeLog().debug(getClass().getSimpleName() + " : " + getText() + ": Added node " + child);
+        if (Loggers.getCreateTreeLog().isDebugEnabled()) {
+            Loggers.getCreateTreeLog().debug(getClass().getSimpleName() + " : " + toString() + ": Added node " + child);
+        }
+
+        child.setRoot(getRoot());
     }
 
     public abstract boolean addTextNode(TextNode node);
@@ -110,26 +116,24 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
     }
 
     public Style getStyle() {
-        if (styleCache == null) {
-            /* keep the value for the last */
-            for (AbstractNode abstractNode : children) {
-                styleCache = abstractNode.getStyle();
-            }
-        }
-        return styleCache;
+        /* keep the value from last child*/
+        return children.get(children.size() - 1).getStyle();
     }
 
     @Override
     public String getText() {
-        StringBuilder sb = new StringBuilder();
+        if (textCache == null) {
+            StringBuilder sb = new StringBuilder();
 
-        if (!children.isEmpty()) {
-            for (ChildType textNode : children) {
-                sb.append(textNode.getText());
+            if (!children.isEmpty()) {
+                for (ChildType textNode : children) {
+                    sb.append(textNode.getText());
+                }
             }
+            textCache = sb.toString();
         }
 
-        return sb.toString();
+        return textCache;
     }
 
     // -------------------------- OTHER METHODS --------------------------
@@ -150,7 +154,8 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
 
     protected void invalidateThisAndParents() {
         posCache = null;
-        styleCache = null;
+        textCache = null;
+        toStringCache = null;
 
         if (getParent() != null) {
             getParent().invalidateThisAndParents();

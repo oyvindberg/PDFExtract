@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 Ã˜yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package org.elacin.extract.tree;
+package org.elacin.pdfextract.tree;
 
 
-import org.elacin.extract.text.Role;
-import org.elacin.extract.text.Style;
+import org.elacin.pdfextract.text.Role;
+import org.elacin.pdfextract.text.Style;
 
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
@@ -37,11 +37,26 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
 
     protected final Map<Role, String> roles = new EnumMap<Role, String>(Role.class);
     protected ParentType parent;
+    protected DocumentNode root;
+
+    /* a cache of current text */
+    protected String textCache;
+
+    /* a cache of current toString-String */
+    protected String toStringCache;
 
     // --------------------- GETTER / SETTER METHODS ---------------------
 
     public ParentType getParent() {
         return parent;
+    }
+
+    public DocumentNode getRoot() {
+        return root;
+    }
+
+    public void setRoot(final DocumentNode root) {
+        this.root = root;
     }
 
     // -------------------------- PUBLIC METHODS --------------------------

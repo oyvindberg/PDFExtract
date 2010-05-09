@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 Ã˜yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.elacin.extract;
+package org.elacin.pdfextract;
 
 import org.apache.commons.cli.*;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -41,6 +41,26 @@ public class TextExtractor {
         return options;
     }
 
+    // -------------------------- PUBLIC STATIC METHODS --------------------------
+
+    public static Writer openOutputWriter(final CommandLine cmd) {
+        Writer ret = null;
+        if (cmd.getArgs().length == 2) {
+            try {
+                final String filename = cmd.getArgs()[1];
+                Loggers.getPdfExtractorLog().info("Opening " + filename + " for output");
+                ret = new PrintWriter(filename, "UTF-8");
+            } catch (Exception e) {
+                Loggers.getPdfExtractorLog().error("Could not open output file", e);
+                System.exit(2);
+            }
+        } else {
+            Loggers.getPdfExtractorLog().info("Using stdout for output");
+            ret = new PrintWriter(System.out);
+        }
+        return ret;
+    }
+
     // -------------------------- STATIC METHODS --------------------------
 
     private static void decrypt(final PDDocument document, final String password) {
@@ -51,21 +71,6 @@ public class TextExtractor {
         }
     }
 
-    private static Writer openOutputWriter(final CommandLine cmd) {
-        Writer ret = null;
-        if (cmd.getArgs().length == 2) {
-            try {
-                ret = new PrintWriter(cmd.getArgs()[1], "UTF-8");
-            } catch (Exception e) {
-                Loggers.getTextExtractorLog().error("Could not open output file", e);
-                System.exit(2);
-            }
-        } else {
-            ret = new PrintWriter(System.out);
-        }
-        return ret;
-    }
-
     private static CommandLine parseParameters(final String[] args) {
         Options options = getOptions();
         CommandLineParser parser = new PosixParser();
@@ -74,7 +79,7 @@ public class TextExtractor {
         try {
             cmd = parser.parse(options, args);
         } catch (ParseException e) {
-            Loggers.getTextExtractorLog().error("Could not parse command line options: " + e.getMessage());
+            Loggers.getPdfExtractorLog().error("Could not parse command line options: " + e.getMessage());
             usage();
             System.exit(1);
         }
@@ -89,7 +94,7 @@ public class TextExtractor {
 
     public static void main(String[] args) {
         /* initialize logger */
-        Loggers.getTextExtractorLog();
+        Loggers.getPdfExtractorLog();
 
         CommandLine cmd = parseParameters(args);
 
@@ -98,10 +103,11 @@ public class TextExtractor {
         if (cmd.getArgs().length > 0) {
             pdfFile = cmd.getArgs()[0];
         } else {
-            Loggers.getTextExtractorLog().error("No PDF file specified.");
+            Loggers.getPdfExtractorLog().error("No PDF file specified.");
             usage();
             return;
         }
+        Loggers.getPdfExtractorLog().error("Opening PDF file " + pdfFile + ".");
 
         /* open output */
         Writer output = openOutputWriter(cmd);
@@ -109,7 +115,9 @@ public class TextExtractor {
         /* read pdf file */
         PDDocument document = null;
         try {
+            long t0 = System.currentTimeMillis();
             document = PDDocument.load(pdfFile);
+            Loggers.getPdfExtractorLog().warn("PDFBox load() took " + (System.currentTimeMillis() - t0) + "ms");
             Pdf2Xml stripper = new Pdf2Xml();
             //            stripper.setSortByPosition(true);
 
@@ -118,7 +126,7 @@ public class TextExtractor {
                 if (cmd.hasOption("password")) {
                     decrypt(document, cmd.getOptionValue("password"));
                 } else {
-                    Loggers.getTextExtractorLog().warn("File claims to be encrypted, a password should be provided");
+                    Loggers.getPdfExtractorLog().warn("File claims to be encrypted, a password should be provided");
                 }
             }
 
@@ -129,22 +137,23 @@ public class TextExtractor {
             if (cmd.hasOption("endpage")) {
                 stripper.setEndPage(Integer.valueOf(cmd.getOptionValue("endpage")));
             }
-
+            t0 = System.currentTimeMillis();
             stripper.writeText(document, output);
+            Loggers.getPdfExtractorLog().warn("Document analysis took " + (System.currentTimeMillis() - t0) + "ms");
         } catch (IOException e) {
-            Loggers.getTextExtractorLog().error("Error while reading " + pdfFile + ".", e);
+            Loggers.getPdfExtractorLog().error("Error while reading " + pdfFile + ".", e);
         } finally {
             try {
                 if (document != null) {
                     document.close();
                 }
             } catch (IOException e) {
-                Loggers.getTextExtractorLog().error("Error while closing file", e);
+                Loggers.getPdfExtractorLog().error("Error while closing file", e);
             }
             try {
                 output.close();
             } catch (IOException e) {
-                Loggers.getTextExtractorLog().error("Error while closing file", e);
+                Loggers.getPdfExtractorLog().error("Error while closing file", e);
             }
         }
     }

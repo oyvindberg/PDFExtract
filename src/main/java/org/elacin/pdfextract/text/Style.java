@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 Ã˜yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.elacin.extract.text;
+package org.elacin.pdfextract.text;
 
 import java.io.Serializable;
 
@@ -74,7 +74,8 @@ public class Style implements Serializable {
         final StringBuilder sb = new StringBuilder();
         sb.append("{");
         sb.append(font);
-        sb.append(":").append(xSize);
+        sb.append(", x=").append(xSize);
+        sb.append(", y=").append(ySize);
         sb.append('}');
         return sb.toString();
     }

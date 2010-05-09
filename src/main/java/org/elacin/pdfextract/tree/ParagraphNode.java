@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 Ã˜yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,13 +14,13 @@
  *    limitations under the License.
  */
 
-package org.elacin.extract.tree;
+package org.elacin.pdfextract.tree;
 
-import org.elacin.extract.Loggers;
+import org.elacin.pdfextract.Loggers;
 
 import java.util.Comparator;
 
-import static org.elacin.extract.util.MathUtils.withinNum;
+import static org.elacin.pdfextract.util.MathUtils.withinNum;
 
 
 /**
@@ -143,6 +143,7 @@ public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
              logically part of the same paragraph. Use the smaller of the two values.
          */
         double ySize = Math.min(lastLineNode.getCurrentStyle().ySize, node.getStyle().ySize);
+        //        double ySize = lastLineNode.getCurrentStyle().ySize;
 
         if (withinNum(ySize, getPosition().getY() + getPosition().getHeight(), node.getPosition().getY())) {
 

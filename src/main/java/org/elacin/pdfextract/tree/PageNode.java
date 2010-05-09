@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 Ã˜yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package org.elacin.extract.tree;
+package org.elacin.pdfextract.tree;
 
-import org.elacin.extract.Loggers;
+import org.elacin.pdfextract.Loggers;
 
 import java.awt.print.PageFormat;
 import java.util.Comparator;

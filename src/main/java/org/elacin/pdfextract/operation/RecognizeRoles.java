@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 Ã˜yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
  *    limitations under the License.
  */
 
-package org.elacin.extract.operation;
+package org.elacin.pdfextract.operation;
 
-import org.elacin.extract.text.Role;
-import org.elacin.extract.text.Style;
-import org.elacin.extract.tree.DocumentNode;
-import org.elacin.extract.tree.TextNode;
+import org.elacin.pdfextract.text.Role;
+import org.elacin.pdfextract.text.Style;
+import org.elacin.pdfextract.tree.DocumentNode;
+import org.elacin.pdfextract.tree.TextNode;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -143,7 +143,7 @@ public class RecognizeRoles implements Operation {
     }
 
     private void checkForTopNote(final TextNode textText) {
-        if (textText.getPosition().getY() < (textText.getPage().getPageFormat().getHeight() * 5 / 100)) {
+        if (textText.getPosition().getY() < (textText.getPage().getPosition().getHeight() * 5 / 100)) {
             /* then check the font. we either want smaller than breadtext, or same size but different type */
             if (textText.getStyle().ySize < breadtext.ySize ||
                     (textText.getStyle().ySize == breadtext.ySize && !textText.getStyle().font.equals(breadtext.font))) textText.addRole(Role.HEADNOTE, "");

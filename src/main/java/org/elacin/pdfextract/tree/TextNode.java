@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 Ã˜yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
  *    limitations under the License.
  */
 
-package org.elacin.extract.tree;
+package org.elacin.pdfextract.tree;
 
-import org.elacin.extract.text.Style;
+import org.elacin.pdfextract.text.Style;
 
 import java.awt.geom.Rectangle2D;
 
@@ -67,15 +67,18 @@ public class TextNode extends AbstractNode<LineNode> {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("{ pos=").append(position.toString().replace("java.awt.geom.Rectangle2D$Float", ""));
-        sb.append(", ").append(style);
-        if (!roles.isEmpty()) {
-            sb.append(", ").append(roles.keySet());
+        if (toStringCache == null) {
+            final StringBuilder sb = new StringBuilder();
+            sb.append("{ pos=").append(position.toString().replace("java.awt.geom.Rectangle2D$Float", ""));
+            sb.append(", ").append(style);
+            if (!roles.isEmpty()) {
+                sb.append(", ").append(roles.keySet());
+            }
+            sb.append(", text='").append(text).append('\'');
+            sb.append('}');
+            toStringCache = sb.toString();
         }
-        sb.append(", text='").append(text).append('\'');
-        sb.append('}');
-        return sb.toString();
+        return toStringCache;
     }
 
     // -------------------------- PUBLIC METHODS --------------------------
@@ -104,6 +107,7 @@ public class TextNode extends AbstractNode<LineNode> {
     }
 
     protected void invalidateThisAndParents() {
+        toStringCache = null;
         if (getParent() != null) {
             getParent().invalidateThisAndParents();
         }
