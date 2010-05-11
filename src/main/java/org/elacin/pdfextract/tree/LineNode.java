@@ -17,9 +17,11 @@
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.Loggers;
+import org.elacin.pdfextract.text.Role;
 import org.elacin.pdfextract.text.Style;
 
 import java.util.Comparator;
+import java.util.Set;
 
 import static org.elacin.pdfextract.util.MathUtils.withinNum;
 
@@ -44,7 +46,13 @@ public class LineNode extends AbstractParentNode<TextNode, ParagraphNode> {
         for (int i = 0; i < indent; i++) {
             sb.append(" ");
         }
-        sb.append(getClass().getSimpleName()).append(": ").append(getText()).append("\n");
+        sb.append(getClass().getSimpleName()).append(": ").append(getText());
+
+        final Set<Role> roles = getRoles();
+        if (!roles.isEmpty()) sb.append(", roles=").append(roles);
+
+        sb.append("\n");
+        ;
     }
 
     // -------------------------- PUBLIC METHODS --------------------------

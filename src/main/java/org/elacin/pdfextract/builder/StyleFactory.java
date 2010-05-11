@@ -16,9 +16,9 @@
 
 package org.elacin.pdfextract.builder;
 
+import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.text.Style;
 
-import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.HashMap;
@@ -52,6 +52,17 @@ public class StyleFactory {
 
     // -------------------------- PUBLIC METHODS --------------------------
 
+    public Style getStyleForTextPosition(TextPosition position) {
+        float realFontSizeX = (position.getFontSize() * position.getXScale());
+        float realFontSizeY = (position.getFontSize() * position.getYScale());
+
+        /* build a string with fontname / type */
+        final String baseFontName = position.getFont().getBaseFont() == null ? "null" : position.getFont().getBaseFont();
+        final String fontname = baseFontName + " (" + position.getFont().getSubType() + ")";
+
+        return getStyle(realFontSizeX, realFontSizeY, position.getWidthOfSpace(), fontname);
+    }
+
     public Style getStyle(float xSize, float ySize, final float widthOfSpace, String font) {
         Style style = new Style(font, round(xSize), round(ySize), round(widthOfSpace));
         Style existing = styles.get(style);
@@ -67,7 +78,9 @@ public class StyleFactory {
     // -------------------------- OTHER METHODS --------------------------
 
     private float round(float num) {
-        BigDecimal bd = new BigDecimal(num, mc);
-        return bd.floatValue();
+        //        //TODO: this was slower than i thought
+        //        BigDecimal bd = new BigDecimal(num, mc);
+        //        return bd.floatValue();
+        return num;
     }
 }

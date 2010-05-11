@@ -70,6 +70,10 @@ public class RecognizeRoles implements Operation {
             return;
         }
 
+        if (textText.getStyle().equals(breadtext)) {
+            return;
+        }
+
         final Matcher matcher = numInParenthesisPattern.matcher(textText.text);
         if (matcher.matches()) {
             mark = matcher.group(1);
@@ -143,7 +147,7 @@ public class RecognizeRoles implements Operation {
     }
 
     private void checkForTopNote(final TextNode textText) {
-        if (textText.getPosition().getY() < (textText.getPage().getPosition().getHeight() * 5 / 100)) {
+        if (textText.getPosition().getY() < (textText.getPage().getPosition().getHeight() * 5.0 / 100)) {
             /* then check the font. we either want smaller than breadtext, or same size but different type */
             if (textText.getStyle().ySize < breadtext.ySize ||
                     (textText.getStyle().ySize == breadtext.ySize && !textText.getStyle().font.equals(breadtext.font))) textText.addRole(Role.HEADNOTE, "");

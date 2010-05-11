@@ -17,14 +17,12 @@
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.Loggers;
+import org.elacin.pdfextract.text.Role;
 import org.elacin.pdfextract.text.Style;
 
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -67,6 +65,7 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
             if (getPosition() != null) {
                 sb.append("position=").append(getPosition().toString().replace("java.awt.geom.Rectangle2D$Float", "")).append(", ");
             }
+            sb.append("Roles=").append(getRoles());
             final String text = getText();
             sb.append("'").append(text.substring(0, Math.min(text.length(), 25)));
             //        sb.append("'").append(text);
@@ -179,4 +178,13 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
             return 0;
         }
     }
+
+    public Set<Role> getRoles() {
+        Set<Role> ret = EnumSet.noneOf(Role.class);
+        for (ChildType child : children) {
+            ret.addAll(child.getRoles());
+        }
+        return ret;
+    }
+
 }

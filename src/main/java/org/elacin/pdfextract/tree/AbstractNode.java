@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.tree;
 
 
+import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.text.Role;
 import org.elacin.pdfextract.text.Style;
 
@@ -24,6 +25,7 @@ import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by IntelliJ IDEA.
@@ -62,6 +64,7 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
     // -------------------------- PUBLIC METHODS --------------------------
 
     public void addRole(Role r, String reason) {
+        Loggers.getCreateTreeLog().warn(this + " got assigned role " + r);
         roles.put(r, reason);
     }
 
@@ -77,6 +80,10 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
     }
 
     public abstract Rectangle2D getPosition();
+
+    public Set<Role> getRoles() {
+        return roles.keySet();
+    }
 
     public abstract Style getStyle();
 

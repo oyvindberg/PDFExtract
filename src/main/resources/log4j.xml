@@ -21,6 +21,7 @@
 
     <appender name="createTree" class="org.apache.log4j.FileAppender">
         <param name="File" value="createTree.log"/>
+        <param name="Append" value="false"/>
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%-5p [%t]: %m%n"/>
         </layout>
@@ -28,12 +29,14 @@
 
     <appender name="pdfExtract" class="org.apache.log4j.FileAppender">
         <param name="File" value="pdfextract.log"/>
+        <param name="Append" value="false"/>
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%-5p [%t]: %m%n"/>
         </layout>
     </appender>
 
     <appender name="textNodeBuilder" class="org.apache.log4j.FileAppender">
+        <param name="Append" value="false"/>
         <param name="File" value="textNodeBuilder.log"/>
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%-5p [%t]: %m%n"/>
@@ -41,6 +44,7 @@
     </appender>
 
     <appender name="pdfbox" class="org.apache.log4j.FileAppender">
+        <param name="Append" value="false"/>
         <param name="File" value="pdfbox.log"/>
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%-5p [%t]: %m%n"/>
@@ -48,7 +52,7 @@
     </appender>
 
     <appender name="console" class="org.apache.log4j.ConsoleAppender">
-        <param name="Threshold" value="INFO"/>
+        <param name="Threshold" value="WARN"/>
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="[%d{MM/dd/yyyy HH:mm:ss.SSS}] %m%n"/>
         </layout>
@@ -56,7 +60,7 @@
 
 
     <logger name="org.elacin.pdfextract.createTree" additivity="false">
-        <level value="WARN"/>
+        <level value="TRACE"/>
         <appender-ref ref="createTree"/>
         <appender-ref ref="console"/>
     </logger>
@@ -70,14 +74,14 @@
     <logger name="org.elacin.pdfextract.textNodeBuilder" additivity="false">
         <!--all incoming TextPositions and generated TextNodes will be written to file if this
             is set to DEBUG -->
-        <level value="WARN"/>
+        <level value="DEBUG"/>
         <appender-ref ref="textNodeBuilder"/>
         <appender-ref ref="console"/>
     </logger>
 
     <logger name="org.apache.pdfbox" additivity="false">
         <!-- set this to DEBUG if PDFBox' logging is wanted -->
-        <level value="INFO"/>
+        <level value="DEBUG"/>
         <appender-ref ref="pdfbox"/>
         <appender-ref ref="console"/>
     </logger>
