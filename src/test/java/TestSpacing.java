@@ -39,7 +39,7 @@ public class TestSpacing {
 
     @BeforeClass(groups = "TestSpacing")
     public void setUp() throws IOException {
-        doc = PDFDocumentLoader.readPDF("spacing.pdf", "spacing_out.xml");
+        doc = PDFDocumentLoader.readPDF("renderX/spacing.pdf", "spacing_out.xml");
         lines = DocumentNavigator.getLineNodes(doc);
     }
 
