@@ -14,9 +14,7 @@
  *    limitations under the License.
  */
 
-import org.elacin.pdfextract.DocumentNavigator;
-import org.elacin.pdfextract.PDFDocumentLoader;
-import org.elacin.pdfextract.tree.DocumentNode;
+package org.elacin.pdfextract;import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.LineNode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
