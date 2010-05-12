@@ -37,6 +37,7 @@ public class PDFDocumentLoader {
 
         final PrintWriter out = new PrintWriter(outFile, "UTF-8");
         stripper.writeText(document, out);
+        out.close();
         return stripper.getRoot();
 
     }

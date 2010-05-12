@@ -16,6 +16,13 @@
 
 package org.elacin.pdfextract;
 
+import org.elacin.pdfextract.tree.DocumentNode;
+import org.elacin.pdfextract.tree.LineNode;
+import org.elacin.pdfextract.tree.PageNode;
+import org.elacin.pdfextract.tree.ParagraphNode;
+
+import java.util.ArrayList;
+
 /**
  * Created by IntelliJ IDEA.
  * User: elacin
@@ -25,5 +32,13 @@ package org.elacin.pdfextract;
  */
 public class DocumentNavigator {
 
-
+    public static ArrayList<LineNode> getLineNodes(DocumentNode doc) {
+        ArrayList<LineNode> ret = new ArrayList<LineNode>();
+        for (PageNode pageNode : doc.getChildren()) {
+            for (ParagraphNode paragraphNode : pageNode.getChildren()) {
+                ret.addAll(paragraphNode.getChildren());
+            }
+        }
+        return ret;
+    }
 }

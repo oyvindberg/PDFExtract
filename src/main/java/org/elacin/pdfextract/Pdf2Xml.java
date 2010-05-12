@@ -19,34 +19,29 @@ package org.elacin.pdfextract;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.util.PDFTextStripper;
 import org.apache.pdfbox.util.TextPosition;
-import org.elacin.pdfextract.builder.StyleFactory;
-import org.elacin.pdfextract.builder.TextNodeBuilder;
+import org.elacin.pdfextract.builder.NewTextNodeBuilder;
 import org.elacin.pdfextract.operation.RecognizeRoles;
-import org.elacin.pdfextract.text.Style;
 import org.elacin.pdfextract.tree.DocumentNode;
-import org.elacin.pdfextract.tree.TextNode;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 public class Pdf2Xml extends PDFTextStripper {
     // ------------------------------ FIELDS ------------------------------
 
-    private StyleFactory styleFactory = new StyleFactory();
-    private int currentPage = 0;
-    private Style breadtextStyle = null;
     private DocumentNode root;
+
+    private Map<Integer, Vector<List<TextPosition>>> textForPages = new HashMap<Integer, Vector<List<TextPosition>>>();
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
     public Pdf2Xml() throws IOException {
-        //        super(ResourceLoader.loadProperties( "Resources/PageDrawer.properties", true ) );
-    }
+        setSortByPosition(true);
 
-    public Pdf2Xml(String encoding) throws IOException {
-        this();
-        outputEncoding = encoding;
+        //        super(ResourceLoader.loadProperties( "Resources/PageDrawer.properties", true ) );
     }
 
     // --------------------- GETTER / SETTER METHODS ---------------------
@@ -59,52 +54,35 @@ public class Pdf2Xml extends PDFTextStripper {
 
     @Override
     protected void endDocument(final PDDocument pdf) throws IOException {
-        combineTreeNodes();
-        findBreadtextStyle();
-        new RecognizeRoles(breadtextStyle).doOperation(root);
+        //        new Analyze(root).analyze(textForPages);
+
+        NewTextNodeBuilder newBuilder = new NewTextNodeBuilder(root);
+        /* iterate through all pages of textpositions and add the information to the tree */
+        for (final Map.Entry<Integer, Vector<List<TextPosition>>> entry : textForPages.entrySet()) {
+            for (final List<TextPosition> textPositions : entry.getValue()) {
+                if (!textPositions.isEmpty()) {
+                    newBuilder.fillPage(entry.getKey(), textPositions);
+                    //                    TextNodeBuilder.fillPage(root, entry.getKey(), textPositions);
+                }
+            }
+        }
+
+
+        root.combineChildren();
+        new RecognizeRoles().doOperation(root);
+
+        textForPages.clear();
 
         getOutput().write(root.printTree());
     }
 
     @Override
     protected void startDocument(final PDDocument pdf) throws IOException {
-        root = new DocumentNode(pdf);
+        root = new DocumentNode();
     }
 
     @Override
     protected void writePage() throws IOException {
-        for (final List<TextPosition> textPositions : (Vector<List<TextPosition>>) charactersByArticle) {
-            if (!textPositions.isEmpty()) {
-                TextNodeBuilder.fillPage(root, currentPage, textPositions, styleFactory);
-            }
-        }
-        currentPage++;
-    }
-
-    // -------------------------- PUBLIC METHODS --------------------------
-
-    public void combineTreeNodes() {
-        root.combineChildren();
-    }
-
-    // -------------------------- OTHER METHODS --------------------------
-
-    /* for all styles, sum up the number of words which uses it */
-    private void findBreadtextStyle() {
-        int highestNumberOfCharsInStyle = 0;
-
-        for (TextNode node : root.textNodes) {
-            node.getStyle().numCharsWithThisStyle += node.text.length();
-        }
-
-        for (Style style : styleFactory.getStyles().keySet()) {
-            if (style.numCharsWithThisStyle > highestNumberOfCharsInStyle) {
-                highestNumberOfCharsInStyle = style.numCharsWithThisStyle;
-                breadtextStyle = style;
-            }
-            Loggers.getPdfExtractorLog().debug("style = " + style + " was used in " + style.numCharsWithThisStyle + " chars");
-        }
-
-        Loggers.getPdfExtractorLog().info("most used style is " + breadtextStyle + " with " + highestNumberOfCharsInStyle + " chars");
+        textForPages.put(getCurrentPageNo(), (Vector<List<TextPosition>>) charactersByArticle.clone());
     }
 }

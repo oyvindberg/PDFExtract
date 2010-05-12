@@ -16,8 +16,8 @@
 
 package org.elacin.pdfextract.tree;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
 import org.elacin.pdfextract.Loggers;
+import org.elacin.pdfextract.builder.StyleFactory;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -31,23 +31,31 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
-    private PDDocument pdf;
+    // ------------------------------ FIELDS ------------------------------
 
     public final List<TextNode> textNodes = new ArrayList<TextNode>();
 
-    public DocumentNode(final PDDocument pdf) {
-        this.pdf = pdf;
+    /**
+     * this contains all the different styles used in the document
+     */
+    protected StyleFactory styles = new StyleFactory();
+
+    // --------------------------- CONSTRUCTORS ---------------------------
+
+    public DocumentNode() {
         setRoot(this);
     }
 
+    // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public PDDocument getPdf() {
-        return pdf;
+    public StyleFactory getStyles() {
+        return styles;
     }
+
+    // -------------------------- PUBLIC METHODS --------------------------
 
     @Override
     public boolean addTextNode(final TextNode node) {
-
         if (node.getText().trim().length() == 0) {
             if (Loggers.getCreateTreeLog().isTraceEnabled()) {
                 Loggers.getCreateTreeLog().trace("Ignoring Textnode " + node + " because it contains no text");
@@ -66,6 +74,13 @@ public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
         return false;
     }
 
+    @Override
+    public void combineChildren() {
+        for (PageNode pageNode : getChildren()) {
+            pageNode.combineChildren();
+        }
+    }
+
     /**
      * Returns a Comparator which will compare pagenumbers of the pages
      *
@@ -81,12 +96,5 @@ public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
                 return 0;
             }
         };
-    }
-
-    @Override
-    public void combineChildren() {
-        for (PageNode pageNode : getChildren()) {
-            pageNode.combineChildren();
-        }
     }
 }

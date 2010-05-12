@@ -60,11 +60,11 @@ public class StyleFactory {
         final String baseFontName = position.getFont().getBaseFont() == null ? "null" : position.getFont().getBaseFont();
         final String fontname = baseFontName + " (" + position.getFont().getSubType() + ")";
 
-        return getStyle(realFontSizeX, realFontSizeY, position.getWidthOfSpace(), fontname);
+        return getStyle(realFontSizeX, realFontSizeY, position.getWidthOfSpace(), fontname, position.getWordSpacing());
     }
 
-    public Style getStyle(float xSize, float ySize, final float widthOfSpace, String font) {
-        Style style = new Style(font, round(xSize), round(ySize), round(widthOfSpace));
+    public Style getStyle(float xSize, float ySize, final float widthOfSpace, String font, float wordSpacing) {
+        Style style = new Style(font, round(xSize), round(ySize), round(widthOfSpace), round(wordSpacing));
         Style existing = styles.get(style);
 
         if (existing != null) {

@@ -18,7 +18,6 @@ package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.Loggers;
 
-import java.awt.print.PageFormat;
 import java.util.Comparator;
 
 /**
@@ -116,7 +115,4 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
         return new StandardNodeComparator();
     }
 
-    public PageFormat getPageFormat() {
-        return getParent().getPdf().getPageFormat(pageNumber);
-    }
 }
