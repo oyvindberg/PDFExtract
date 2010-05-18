@@ -52,7 +52,7 @@ public class TestSpacing {
 
     private void check(final LineNode lineNode, final String s) {
         assertEquals(lineNode.getText(), s, lineNode.toString());
-        assertEquals(lineNode.getChildren().size(), s.split(" ").length, lineNode + " has wrong number of TextNodes." + lineNode.toString());
+        assertEquals(lineNode.getChildren().size(), s.split(" ").length, lineNode + " has wrong number of words." + lineNode.toString());
     }
 
     @Test()

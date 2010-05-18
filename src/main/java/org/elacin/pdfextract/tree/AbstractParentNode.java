@@ -91,7 +91,7 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
         child.setRoot(getRoot());
     }
 
-    public abstract boolean addTextNode(TextNode node);
+    public abstract boolean addWord(WordNode node);
 
     public abstract void combineChildren();
 
@@ -125,8 +125,8 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
             StringBuilder sb = new StringBuilder();
 
             if (!children.isEmpty()) {
-                for (ChildType textNode : children) {
-                    sb.append(textNode.getText());
+                for (ChildType child : children) {
+                    sb.append(child.getText());
                 }
             }
             textCache = sb.toString();

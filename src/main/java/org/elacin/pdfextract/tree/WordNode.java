@@ -25,9 +25,16 @@ import java.awt.geom.Rectangle2D;
  * User: elacin
  * Date: Mar 18, 2010
  * Time: 2:31:58 PM
- * To change this template use File | Settings | File Templates.
  */
-public class TextNode extends AbstractNode<LineNode> {
+
+/**
+ * This class represents one word read from the PDF, and all the information
+ * about that word, including style, position, distance to former word (if
+ * this is not the first word on a line, and the textual representation.
+ * <p/>
+ * Note that all whitespace characters will have been stripped from the text.
+ */
+public class WordNode extends AbstractNode<LineNode> {
     // ------------------------------ FIELDS ------------------------------
 
     public final String text;
@@ -39,7 +46,7 @@ public class TextNode extends AbstractNode<LineNode> {
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    public TextNode(final Rectangle2D position, final int pageNum, final Style style, final String text, final float wordSpacing, final float charSpacing) {
+    public WordNode(final Rectangle2D position, final int pageNum, final Style style, final String text, final float wordSpacing, final float charSpacing) {
         this.position = position;
         this.pageNum = pageNum;
         this.style = style;
@@ -99,15 +106,8 @@ public class TextNode extends AbstractNode<LineNode> {
         for (int i = 0; i < indent; i++) {
             sb.append(" ");
         }
-        sb.append("{pos=").append(position.toString().replace("java.awt.geom.Rectangle2D$Float", ""));
-        sb.append(", ").append(style);
-        sb.append(", ws").append(wordSpacing);
-        sb.append(", cs").append(charSpacing);
-        if (!roles.isEmpty()) {
-            sb.append(", ").append(roles.keySet());
-        }
-        sb.append(", text='").append(text).append('\'');
-        sb.append("}\n");
+        sb.append(toString());
+        sb.append("\n");
     }
 
     protected void invalidateThisAndParents() {

@@ -19,7 +19,7 @@ package org.elacin.pdfextract;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.util.PDFTextStripper;
 import org.apache.pdfbox.util.TextPosition;
-import org.elacin.pdfextract.builder.NewTextNodeBuilder;
+import org.elacin.pdfextract.builder.WordBuilder;
 import org.elacin.pdfextract.operation.RecognizeRoles;
 import org.elacin.pdfextract.tree.DocumentNode;
 
@@ -30,7 +30,7 @@ public class Pdf2Xml extends PDFTextStripper {
     // ------------------------------ FIELDS ------------------------------
 
     private DocumentNode root;
-    private NewTextNodeBuilder newBuilder;
+    private WordBuilder newBuilder;
 
 
     // --------------------------- CONSTRUCTORS ---------------------------
@@ -58,7 +58,7 @@ public class Pdf2Xml extends PDFTextStripper {
     @Override
     protected void startDocument(final PDDocument pdf) throws IOException {
         root = new DocumentNode();
-        newBuilder = new NewTextNodeBuilder(root);
+        newBuilder = new WordBuilder(root);
 
     }
 

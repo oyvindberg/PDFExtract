@@ -33,7 +33,7 @@ import java.util.List;
 public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
     // ------------------------------ FIELDS ------------------------------
 
-    public final List<TextNode> textNodes = new ArrayList<TextNode>();
+    public final List<WordNode> words = new ArrayList<WordNode>();
 
     /**
      * this contains all the different styles used in the document
@@ -55,22 +55,22 @@ public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
     // -------------------------- PUBLIC METHODS --------------------------
 
     @Override
-    public boolean addTextNode(final TextNode node) {
+    public boolean addWord(final WordNode node) {
         if (node.getText().trim().length() == 0) {
             if (Loggers.getCreateTreeLog().isTraceEnabled()) {
-                Loggers.getCreateTreeLog().trace("Ignoring Textnode " + node + " because it contains no text");
+                Loggers.getCreateTreeLog().trace("Ignoring word " + node + " because it contains no text");
             }
             return false;
         }
 
 
         for (PageNode pageNode : getChildren()) {
-            if (pageNode.addTextNode(node)) return true;
+            if (pageNode.addWord(node)) return true;
         }
 
         final PageNode newPage = new PageNode(node.getPageNum());
         addChild(newPage);
-        newPage.addTextNode(node);
+        newPage.addWord(node);
         return false;
     }
 

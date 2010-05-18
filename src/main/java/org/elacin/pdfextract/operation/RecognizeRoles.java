@@ -20,7 +20,7 @@ import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.text.Role;
 import org.elacin.pdfextract.text.Style;
 import org.elacin.pdfextract.tree.DocumentNode;
-import org.elacin.pdfextract.tree.TextNode;
+import org.elacin.pdfextract.tree.WordNode;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,34 +57,34 @@ public class RecognizeRoles implements Operation {
         }
 
         this.root = root;
-        for (TextNode textText : root.textNodes) {
-            checkForIdentifier(textText);
-            checkForTopNote(textText);
-            //            checkForFootNote(textText);
-            checkForPageNumber(textText);
+        for (WordNode word : root.words) {
+            checkForIdentifier(word);
+            checkForTopNote(word);
+            //            checkForFootNote(word);
+            checkForPageNumber(word);
         }
     }
 
     // -------------------------- OTHER METHODS --------------------------
 
-    void checkForIdentifier(final TextNode textText) {
+    void checkForIdentifier(final WordNode word) {
         String mark = null;
 
-        final String trimmedText = textText.text.trim();
+        final String trimmedText = word.text.trim();
         if ("".equals(trimmedText)) {
             return;
         }
 
         //TODO:!
-        if (textText.getStyle().equals(breadtext)) {
+        if (word.getStyle().equals(breadtext)) {
             return;
         }
 
-        final Matcher matcher = numInParenthesisPattern.matcher(textText.text);
+        final Matcher matcher = numInParenthesisPattern.matcher(word.text);
         if (matcher.matches()) {
             mark = matcher.group(1);
         } else {
-            final Matcher matcher2 = refWithDotPattern.matcher(textText.text);
+            final Matcher matcher2 = refWithDotPattern.matcher(word.text);
             if (matcher2.matches()) {
                 mark = matcher2.group(1);
             }
@@ -97,11 +97,11 @@ public class RecognizeRoles implements Operation {
         //        }
 
         if (mark != null) {
-            textText.addRole(Role.IDENTIFIER, mark.trim());
+            word.addRole(Role.IDENTIFIER, mark.trim());
         }
     }
 
-    //    private void checkForFootNote(final TextNode leafText) {
+    //    private void checkForFootNote(final WordNode leafText) {
     //        /* if the following is true for the leafText:
     //            - is in the bottom 50% of a page
     //
@@ -120,7 +120,7 @@ public class RecognizeRoles implements Operation {
     //        }
     //
     //
-    //        TextNode current = leafText;
+    //        WordNode current = leafText;
     //        while (!isFootnote) {
     //            /* if we are at the end of page or document */
     //            if (current == null || current.getPage() !asdasd= leafText.getPage()) {
@@ -137,26 +137,26 @@ public class RecognizeRoles implements Operation {
     //        }
     //    }
 
-    private void checkForPageNumber(final TextNode textText) {
+    private void checkForPageNumber(final WordNode word) {
         boolean isNumber = true;
-        if (textText.text.length() < 5 && textText.hasRole(Role.FOOTNOTE) || textText.hasRole(Role.HEADNOTE)) {
-            for (int i = 0; i < textText.text.length(); i++) {
-                if (!Character.isDigit(textText.text.charAt(i))) {
+        if (word.text.length() < 5 && word.hasRole(Role.FOOTNOTE) || word.hasRole(Role.HEADNOTE)) {
+            for (int i = 0; i < word.text.length(); i++) {
+                if (!Character.isDigit(word.text.charAt(i))) {
                     isNumber = false;
                     break;
                 }
             }
             if (isNumber) {
-                textText.addRole(Role.PAGENUMBER, textText.text);
+                word.addRole(Role.PAGENUMBER, word.text);
             }
         }
     }
 
-    private void checkForTopNote(final TextNode textText) {
-        if (textText.getPosition().getY() < (textText.getPage().getPosition().getHeight() * 5.0 / 100)) {
+    private void checkForTopNote(final WordNode word) {
+        if (word.getPosition().getY() < (word.getPage().getPosition().getHeight() * 5.0 / 100)) {
             /* then check the font. we either want smaller than breadtext, or same size but different type */
-            if (textText.getStyle().ySize < breadtext.ySize ||
-                    (textText.getStyle().ySize == breadtext.ySize && !textText.getStyle().font.equals(breadtext.font))) textText.addRole(Role.HEADNOTE, "");
+            if (word.getStyle().ySize < breadtext.ySize || (word.getStyle().ySize == breadtext.ySize && !word.getStyle().font.equals(breadtext.font)))
+                word.addRole(Role.HEADNOTE, "");
         }
     }
 }

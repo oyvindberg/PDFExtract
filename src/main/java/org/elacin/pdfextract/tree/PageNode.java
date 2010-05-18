@@ -46,28 +46,28 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
 
     // -------------------------- PUBLIC METHODS --------------------------
 
-    public boolean accepts(final TextNode node) {
+    public boolean accepts(final WordNode node) {
         return pageNumber == node.getPageNum();
     }
 
     @Override
-    public boolean addTextNode(final TextNode node) {
+    public boolean addWord(final WordNode node) {
         if (!accepts(node)) {
             return false;
         }
 
         if (Loggers.getCreateTreeLog().isDebugEnabled()) {
-            Loggers.getCreateTreeLog().debug("Adding new TextNode: " + node);
+            Loggers.getCreateTreeLog().debug("Adding new WordNode: " + node);
         }
-        getParent().textNodes.add(node);
+        getParent().words.add(node);
 
         for (ParagraphNode paragraph : getChildren()) {
-            if (paragraph.addTextNode(node)) return true;
+            if (paragraph.addWord(node)) return true;
         }
 
         /* since we couldnt add this node to an existing paragraph, go create a new one :) */
         final ParagraphNode paragraph = new ParagraphNode();
-        paragraph.addTextNode(node);
+        paragraph.addWord(node);
         addChild(paragraph);
 
         return true;

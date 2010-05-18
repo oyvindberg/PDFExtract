@@ -39,7 +39,7 @@ public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
     // -------------------------- PUBLIC METHODS --------------------------
 
     @Override
-    public boolean addTextNode(final TextNode node) {
+    public boolean addWord(final WordNode node) {
         if (getChildren().isEmpty()) {
             if (Loggers.getCreateTreeLog().isDebugEnabled()) {
                 Loggers.getCreateTreeLog().debug(toString() + ": Adding a new LineNode for node " + node);
@@ -50,7 +50,7 @@ public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
 
         /* try the lines already added and see if this fits at the end of one of them */
         for (LineNode line : getChildren()) {
-            if (line.addTextNode(node)) {
+            if (line.addWord(node)) {
                 return true;
             }
         }

@@ -22,7 +22,7 @@ import org.apache.pdfbox.util.TextPositionComparator;
 import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.text.Style;
 import org.elacin.pdfextract.tree.DocumentNode;
-import org.elacin.pdfextract.tree.TextNode;
+import org.elacin.pdfextract.tree.WordNode;
 
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
@@ -35,16 +35,16 @@ import java.util.*;
  * Time: 3:34:09 AM
  * To change this template use File | Settings | File Templates.
  */
-public class NewTextNodeBuilder {
+public class WordBuilder {
     // ------------------------------ FIELDS ------------------------------
 
-    private static final Logger log = Loggers.getTextNodeBuilderLog();
+    private static final Logger log = Loggers.getWordBuilderLog();
     private final DocumentNode root;
     private int pageNum;
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    public NewTextNodeBuilder(final DocumentNode newRoot) {
+    public WordBuilder(final DocumentNode newRoot) {
         root = newRoot;
     }
 
@@ -127,8 +127,8 @@ public class NewTextNodeBuilder {
             state.y = line.getY();
 
             for (Text text : line.texts) {
-                if (Loggers.getTextNodeBuilderLog().isDebugEnabled()) {
-                    Loggers.getTextNodeBuilderLog().debug("in : " + text);
+                if (Loggers.getWordBuilderLog().isDebugEnabled()) {
+                    Loggers.getWordBuilderLog().debug("in : " + text);
                 }
 
                 /* if this is the first text element going into a word */
@@ -352,13 +352,13 @@ public class NewTextNodeBuilder {
 
         public void createWord(final float wordSpacing, final float charSpacing) {
             String wordText = new String(chars, 0, len);
-            final TextNode node = new TextNode(new Rectangle2D.Float(x, y, width, maxHeight), pageNum, currentStyle, wordText, wordSpacing, charSpacing);
+            final WordNode node = new WordNode(new Rectangle2D.Float(x, y, width, maxHeight), pageNum, currentStyle, wordText, wordSpacing, charSpacing);
 
             if (log.isDebugEnabled()) {
                 log.debug("out: " + node);
             }
 
-            root.addTextNode(node);
+            root.addWord(node);
 
             /* then reset state for next word */
             len = 0;

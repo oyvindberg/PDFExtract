@@ -30,10 +30,10 @@ import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
  * Time: 8:29:43 AM
  * To change this template use File | Settings | File Templates.
  */
-public class LineNode extends AbstractParentNode<TextNode, ParagraphNode> {
+public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    public LineNode(final TextNode child) {
+    public LineNode(final WordNode child) {
         super(child);
     }
 
@@ -60,7 +60,7 @@ public class LineNode extends AbstractParentNode<TextNode, ParagraphNode> {
      * @param node
      * @return
      */
-    public boolean accepts(final TextNode node) {
+    public boolean accepts(final WordNode node) {
 
         /* if this line is empty so far, accept anything*/
         if (getChildren().isEmpty()) {
@@ -97,7 +97,7 @@ public class LineNode extends AbstractParentNode<TextNode, ParagraphNode> {
     }
 
     @Override
-    public boolean addTextNode(final TextNode node) {
+    public boolean addWord(final WordNode node) {
         /* check that node belongs to this line, return if it doesn't */
         if (!accepts(node)) {
             return false;
@@ -117,8 +117,8 @@ public class LineNode extends AbstractParentNode<TextNode, ParagraphNode> {
      * @param otherLine
      */
     public void combineWith(final LineNode otherLine) {
-        for (TextNode textNode : otherLine.getChildren()) {
-            addChild(textNode);
+        for (WordNode word : otherLine.getChildren()) {
+            addChild(word);
         }
     }
 
@@ -128,9 +128,9 @@ public class LineNode extends AbstractParentNode<TextNode, ParagraphNode> {
      * @return
      */
     @Override
-    public Comparator<TextNode> getChildComparator() {
-        return new Comparator<TextNode>() {
-            public int compare(final TextNode o1, final TextNode o2) {
+    public Comparator<WordNode> getChildComparator() {
+        return new Comparator<WordNode>() {
+            public int compare(final WordNode o1, final WordNode o2) {
                 if (o1.getPosition().getX() < o2.getPosition().getX()) return -1;
                 else if (o1.getPosition().getX() > o2.getPosition().getX()) return 1;
 
@@ -158,12 +158,12 @@ public class LineNode extends AbstractParentNode<TextNode, ParagraphNode> {
     public String getText() {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < getChildren().size(); i++) {
-            final TextNode textNode = getChildren().get(i);
-            sb.append(textNode.getText().trim());
+            final WordNode word = getChildren().get(i);
+            sb.append(word.getText().trim());
             /* if this node is not the last on this line, add
                 space /if there were a space in the original document/ */
             if (i != getChildren().size() - 1) {
-                //                if (textNode.isSpaceBetweenThisAnd(getChildren().get(i + 1))) {
+                //                if (word.isSpaceBetweenThisAnd(getChildren().get(i + 1))) {
                 sb.append(" ");
                 //                }
             }

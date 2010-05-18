@@ -31,7 +31,7 @@ public class Loggers {
 
     private static final Logger createTreeLog = Logger.getLogger("org.elacin.pdfextract.createTree");
     private static final Logger pdfExtractorLog = Logger.getLogger("org.elacin.pdfextract");
-    private static final Logger textNodeBuilderLog = Logger.getLogger("org.elacin.pdfextract.textNodeBuilder");
+    private static final Logger wordBuilderLog = Logger.getLogger("org.elacin.pdfextract.wordBuilder");
 
     static {
         PropertyConfigurator.configure(Loggers.class.getClassLoader().getResource("log4j.xml"));
@@ -47,8 +47,8 @@ public class Loggers {
         return pdfExtractorLog;
     }
 
-    public static Logger getTextNodeBuilderLog() {
-        return textNodeBuilderLog;
+    public static Logger getWordBuilderLog() {
+        return wordBuilderLog;
     }
 
 }
