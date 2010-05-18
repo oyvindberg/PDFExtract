@@ -14,7 +14,9 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract;import org.elacin.pdfextract.tree.DocumentNode;
+package org.elacin.pdfextract;
+
+import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.LineNode;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
@@ -49,8 +51,8 @@ public class TestSpacing {
     }
 
     private void check(final LineNode lineNode, final String s) {
-        assertEquals(lineNode.getText(), s);
-        assertEquals(lineNode.getChildren().size(), s.split(" ").length, lineNode + " has wrong number of TextNodes");
+        assertEquals(lineNode.getText(), s, lineNode.toString());
+        assertEquals(lineNode.getChildren().size(), s.split(" ").length, lineNode + " has wrong number of TextNodes." + lineNode.toString());
     }
 
     @Test()

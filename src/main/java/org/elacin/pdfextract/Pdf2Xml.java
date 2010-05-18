@@ -24,23 +24,18 @@ import org.elacin.pdfextract.operation.RecognizeRoles;
 import org.elacin.pdfextract.tree.DocumentNode;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Vector;
 
 public class Pdf2Xml extends PDFTextStripper {
     // ------------------------------ FIELDS ------------------------------
 
     private DocumentNode root;
+    private NewTextNodeBuilder newBuilder;
 
-    private Map<Integer, Vector<List<TextPosition>>> textForPages = new HashMap<Integer, Vector<List<TextPosition>>>();
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
     public Pdf2Xml() throws IOException {
-        setSortByPosition(true);
-
         //        super(ResourceLoader.loadProperties( "Resources/PageDrawer.properties", true ) );
     }
 
@@ -54,35 +49,27 @@ public class Pdf2Xml extends PDFTextStripper {
 
     @Override
     protected void endDocument(final PDDocument pdf) throws IOException {
-        //        new Analyze(root).analyze(textForPages);
-
-        NewTextNodeBuilder newBuilder = new NewTextNodeBuilder(root);
-        /* iterate through all pages of textpositions and add the information to the tree */
-        for (final Map.Entry<Integer, Vector<List<TextPosition>>> entry : textForPages.entrySet()) {
-            for (final List<TextPosition> textPositions : entry.getValue()) {
-                if (!textPositions.isEmpty()) {
-                    newBuilder.fillPage(entry.getKey(), textPositions);
-                    //                    TextNodeBuilder.fillPage(root, entry.getKey(), textPositions);
-                }
-            }
-        }
-
 
         root.combineChildren();
         new RecognizeRoles().doOperation(root);
-
-        textForPages.clear();
-
         getOutput().write(root.printTree());
     }
 
     @Override
     protected void startDocument(final PDDocument pdf) throws IOException {
         root = new DocumentNode();
+        newBuilder = new NewTextNodeBuilder(root);
+
     }
 
     @Override
     protected void writePage() throws IOException {
-        textForPages.put(getCurrentPageNo(), (Vector<List<TextPosition>>) charactersByArticle.clone());
+
+        for (final List<TextPosition> textPositions : (List<List<TextPosition>>) charactersByArticle) {
+            if (!textPositions.isEmpty()) {
+                newBuilder.fillPage(getCurrentPageNo(), textPositions);
+            }
+        }
+
     }
 }

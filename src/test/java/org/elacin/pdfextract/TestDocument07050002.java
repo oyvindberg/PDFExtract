@@ -41,7 +41,7 @@ public class TestDocument07050002 extends TestLatexComparison {
         readFiles();
     }
 
-    @Test
+    @Test(enabled = false)
     public void TestMainTitle() {
         //            final Collection<AbstractNode> maintitles = pdfDOM.getNodesWithRole(Role.MAINTITLE);
         boolean found = false;
@@ -54,7 +54,7 @@ public class TestDocument07050002 extends TestLatexComparison {
         assertEquals(found, true, "Could not find the correct title in " + PDFFILENAME + "!");
     }
 
-    @Test
+    @Test(enabled = false)
     void testTopText() {
         //            final Collection<AbstractNode> sections = pdfDOM.getNodesWithRole(Role.SECTION);
         boolean found = false;

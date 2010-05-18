@@ -26,6 +26,7 @@
 
     <appender name="pdfExtract" class="org.apache.log4j.FileAppender">
         <param name="File" value="pdfextract.log"/>
+        <param name="Append" value="false"/>
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%-5p [%t]: %m%n"/>
         </layout>
@@ -38,9 +39,25 @@
         </layout>
     </appender>
 
+    <appender name="textNodeBuilder" class="org.apache.log4j.FileAppender">
+        <param name="Append" value="false"/>
+        <param name="File" value="textNodeBuilder.log"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%-5p [%t]: %m%n"/>
+        </layout>
+    </appender>
+
     <logger name="org.elacin.pdfextract" additivity="false">
-        <level value="WARN"/>
+        <level value="DEBUG"/>
         <appender-ref ref="pdfExtract"/>
+        <appender-ref ref="console"/>
+    </logger>
+
+    <logger name="org.elacin.pdfextract.textNodeBuilder" additivity="false">
+        <!--all incoming TextPositions and generated TextNodes will be written to file if this
+            is set to DEBUG -->
+        <level value="DEBUG"/>
+        <appender-ref ref="textNodeBuilder"/>
         <appender-ref ref="console"/>
     </logger>
 

@@ -68,8 +68,8 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
             sb.append("Roles=").append(getRoles());
             final String text = getText();
             sb.append("'").append(text.substring(0, Math.min(text.length(), 25)));
-            //        sb.append("'").append(text);
-            if (text.length() > 25) sb.append("...");
+            sb.append("'").append(text);
+            //            if (text.length() > 25) sb.append("...");
             sb.append("'}");
             toStringCache = sb.toString();
         }

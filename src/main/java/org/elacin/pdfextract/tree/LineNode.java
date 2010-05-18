@@ -17,13 +17,11 @@
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.Loggers;
-import org.elacin.pdfextract.text.Role;
 import org.elacin.pdfextract.text.Style;
 
 import java.util.Comparator;
-import java.util.Set;
 
-import static org.elacin.pdfextract.util.MathUtils.withinNum;
+import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
 
 /**
  * Created by IntelliJ IDEA.
@@ -41,19 +39,18 @@ public class LineNode extends AbstractParentNode<TextNode, ParagraphNode> {
 
     // ------------------------ OVERRIDING METHODS ------------------------
 
-    @Override
-    protected void appendLocalInfo(final StringBuilder sb, final int indent) {
-        for (int i = 0; i < indent; i++) {
-            sb.append(" ");
-        }
-        sb.append(getClass().getSimpleName()).append(": ").append(getText());
-
-        final Set<Role> roles = getRoles();
-        if (!roles.isEmpty()) sb.append(", roles=").append(roles);
-
-        sb.append("\n");
-        ;
-    }
+    //    @Override
+    //    protected void appendLocalInfo(final StringBuilder sb, final int indent) {
+    //        for (int i = 0; i < indent; i++) {
+    //            sb.append(" ");
+    //        }
+    //        sb.append(getClass().getSimpleName()).append(": ").append(getText());
+    //
+    //        final Set<Role> roles = getRoles();
+    //        if (!roles.isEmpty()) sb.append(", roles=").append(roles);
+    //
+    //        sb.append("\n");
+    //    }
 
     // -------------------------- PUBLIC METHODS --------------------------
 
@@ -63,7 +60,7 @@ public class LineNode extends AbstractParentNode<TextNode, ParagraphNode> {
      * @param node
      * @return
      */
-    public boolean accepts(final AbstractNode node) {
+    public boolean accepts(final TextNode node) {
 
         /* if this line is empty so far, accept anything*/
         if (getChildren().isEmpty()) {
@@ -82,14 +79,19 @@ public class LineNode extends AbstractParentNode<TextNode, ParagraphNode> {
         }
 
 
-        /* find the last used style, we want its widthOfSpace in order to decide */
-        final Style currentStyle = getCurrentStyle();
+        if (getPosition().intersects(node.getPosition())) {
+            return true;
+        }
 
-        final boolean ret = withinNum(currentStyle.widthOfSpace * 2, getPosition().getX() + getPosition().getWidth() + currentStyle.widthOfSpace,
-                node.getPosition().getX());
+        //        /* find the last used style, we want its widthOfSpace in order to decide */
+        //        final Style currentStyle = getCurrentStyle();
+
+        //        final boolean ret = isWithinVariance(getPosition().getX() + getPosition().getWidth() + currentStyle.widthOfSpace, node.getPosition().getX(), currentStyle.widthOfSpace * 2);
+        //        final boolean ret = isWithinVariance(getPosition().getX() + getPosition().getWidth() + currentStyle.widthOfSpace , node.getPosition().getX(), currentStyle.wordSpacing );
+        final boolean ret = isWithinVariance(getPosition().getX() + getPosition().getWidth(), node.getPosition().getX(), node.getWordSpacing());
 
         if (Loggers.getCreateTreeLog().isTraceEnabled()) {
-            Loggers.getCreateTreeLog().trace(toString() + ": accepts() " + node + ret + ": after withinNum");
+            Loggers.getCreateTreeLog().trace(toString() + ": accepts() " + node + ret + ": after isWithinVariance");
         }
         return ret;
     }
@@ -158,13 +160,12 @@ public class LineNode extends AbstractParentNode<TextNode, ParagraphNode> {
         for (int i = 0; i < getChildren().size(); i++) {
             final TextNode textNode = getChildren().get(i);
             sb.append(textNode.getText().trim());
-
             /* if this node is not the last on this line, add
                 space /if there were a space in the original document/ */
             if (i != getChildren().size() - 1) {
-                if (textNode.isSpaceBetweenThisAnd(getChildren().get(i + 1))) {
-                    sb.append(" ");
-                }
+                //                if (textNode.isSpaceBetweenThisAnd(getChildren().get(i + 1))) {
+                sb.append(" ");
+                //                }
             }
         }
 

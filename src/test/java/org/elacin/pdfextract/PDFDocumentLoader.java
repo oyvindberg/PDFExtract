@@ -21,6 +21,7 @@ import org.elacin.pdfextract.tree.DocumentNode;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URL;
 
 /**
  * Created by IntelliJ IDEA.
@@ -32,7 +33,8 @@ import java.io.PrintWriter;
 public class PDFDocumentLoader {
 
     public static DocumentNode readPDF(String filename, final String outFile) throws IOException {
-        PDDocument document = PDDocument.load(filename);
+        final URL url = PDFDocumentLoader.class.getClassLoader().getResource(filename);
+        PDDocument document = PDDocument.load(url);
         Pdf2Xml stripper = new Pdf2Xml();
 
         final PrintWriter out = new PrintWriter(outFile, "UTF-8");

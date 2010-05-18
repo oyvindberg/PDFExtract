@@ -20,7 +20,7 @@ import org.elacin.pdfextract.Loggers;
 
 import java.util.Comparator;
 
-import static org.elacin.pdfextract.util.MathUtils.withinNum;
+import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
 
 
 /**
@@ -145,17 +145,17 @@ public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
         double ySize = Math.min(lastLineNode.getCurrentStyle().ySize, node.getStyle().ySize);
         //        double ySize = lastLineNode.getCurrentStyle().ySize;
 
-        if (withinNum(ySize, getPosition().getY() + getPosition().getHeight(), node.getPosition().getY())) {
+        if (isWithinVariance(getPosition().getY() + getPosition().getHeight(), node.getPosition().getY(), ySize)) {
 
             double widthOfSpace = lastLineNode.getCurrentStyle().widthOfSpace;
 
             /* if the new node STARTS at more or less the same X position, accept it */
-            if (withinNum(widthOfSpace, getPosition().getX(), node.getPosition().getX())) {
+            if (isWithinVariance(getPosition().getX(), node.getPosition().getX(), widthOfSpace)) {
                 return true;
             }
 
             /* if the new node ENDS at more or less the same X position, also accept it */
-            if (withinNum(widthOfSpace, getPosition().getX() + getPosition().getWidth(), node.getPosition().getX() + node.getPosition().getWidth())) {
+            if (isWithinVariance(getPosition().getX() + getPosition().getWidth(), node.getPosition().getX() + node.getPosition().getWidth(), widthOfSpace)) {
                 return true;
             }
 

@@ -56,7 +56,9 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
             return false;
         }
 
-        Loggers.getCreateTreeLog().debug("Adding new TextNode: " + node);
+        if (Loggers.getCreateTreeLog().isDebugEnabled()) {
+            Loggers.getCreateTreeLog().debug("Adding new TextNode: " + node);
+        }
         getParent().textNodes.add(node);
 
         for (ParagraphNode paragraph : getChildren()) {

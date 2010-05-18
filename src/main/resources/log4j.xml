@@ -60,7 +60,7 @@
 
 
     <logger name="org.elacin.pdfextract.createTree" additivity="false">
-        <level value="TRACE"/>
+        <level value="WARN"/>
         <appender-ref ref="createTree"/>
         <appender-ref ref="console"/>
     </logger>
@@ -81,7 +81,7 @@
 
     <logger name="org.apache.pdfbox" additivity="false">
         <!-- set this to DEBUG if PDFBox' logging is wanted -->
-        <level value="DEBUG"/>
+        <level value="WARN"/>
         <appender-ref ref="pdfbox"/>
         <appender-ref ref="console"/>
     </logger>

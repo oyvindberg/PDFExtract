@@ -27,28 +27,15 @@ public class MathUtils {
     /**
      * Returns true if num2 is within num ± i
      *
-     * @param i
      * @param num1
      * @param num2
+     * @param variance
      * @return
      */
-    public static boolean withinNum(final double i, final double num1, final double num2) {
+    public static boolean isWithinVariance(final double num1, final double num2, final double variance) {
         if (num1 == num2) return true;
 
-        return (num1 - i) <= num2 && (num1 + i) >= num2;
+        return (num1 - variance) <= num2 && (num1 + variance) >= num2;
     }
 
-    /**
-     * Returns true if num2 is within i% of num1
-     *
-     * @param i
-     * @param num1
-     * @param num2
-     * @return
-     */
-    public static boolean withinPercent(final double i, final double num1, final double num2) {
-        if (num1 == num2) return true;
-
-        return (num1 - (num1 / 100.0 * i)) <= num2 && (num1 + (num1 / 100.0 * i) > num2);
-    }
 }

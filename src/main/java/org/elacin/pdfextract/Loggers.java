@@ -34,7 +34,7 @@ public class Loggers {
     private static final Logger textNodeBuilderLog = Logger.getLogger("org.elacin.pdfextract.textNodeBuilder");
 
     static {
-        PropertyConfigurator.configure("log4j.xml");
+        PropertyConfigurator.configure(Loggers.class.getClassLoader().getResource("log4j.xml"));
     }
 
     // --------------------- GETTER / SETTER METHODS ---------------------

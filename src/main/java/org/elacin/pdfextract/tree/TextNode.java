@@ -34,17 +34,25 @@ public class TextNode extends AbstractNode<LineNode> {
     protected final Rectangle2D position;
     protected final Style style;
     private final int pageNum;
+    private final float wordSpacing;
+    private final float charSpacing;
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    public TextNode(final Rectangle2D position, final int pageNum, final Style style, final String text) {
+    public TextNode(final Rectangle2D position, final int pageNum, final Style style, final String text, final float wordSpacing, final float charSpacing) {
         this.position = position;
         this.pageNum = pageNum;
         this.style = style;
         this.text = text;
+        this.wordSpacing = wordSpacing;
+        this.charSpacing = charSpacing;
     }
 
     // --------------------- GETTER / SETTER METHODS ---------------------
+
+    public float getCharSpacing() {
+        return charSpacing;
+    }
 
     public int getPageNum() {
         return pageNum;
@@ -61,6 +69,10 @@ public class TextNode extends AbstractNode<LineNode> {
     @Override
     public String getText() {
         return text;
+    }
+
+    public float getWordSpacing() {
+        return wordSpacing;
     }
 
     // ------------------------ CANONICAL METHODS ------------------------
@@ -81,16 +93,6 @@ public class TextNode extends AbstractNode<LineNode> {
         return toStringCache;
     }
 
-    // -------------------------- PUBLIC METHODS --------------------------
-
-    public boolean isSpaceBetweenThisAnd(final TextNode nextNode) {
-        if (position.getX() + position.getWidth() + style.widthOfSpace * 0.1 <= nextNode.position.getX()) return true;
-        if (text.endsWith(" ")) return true;
-        if (nextNode.text.startsWith(" ")) return true;
-
-        return false;
-    }
-
     // -------------------------- OTHER METHODS --------------------------
 
     protected void appendLocalInfo(final StringBuilder sb, final int indent) {
@@ -99,6 +101,8 @@ public class TextNode extends AbstractNode<LineNode> {
         }
         sb.append("{pos=").append(position.toString().replace("java.awt.geom.Rectangle2D$Float", ""));
         sb.append(", ").append(style);
+        sb.append(", ws").append(wordSpacing);
+        sb.append(", cs").append(charSpacing);
         if (!roles.isEmpty()) {
             sb.append(", ").append(roles.keySet());
         }
