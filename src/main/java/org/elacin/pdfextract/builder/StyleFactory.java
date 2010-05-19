@@ -37,6 +37,8 @@ public class StyleFactory {
     Map<Style, Style> styles = new HashMap<Style, Style>();
     private final MathContext mc;
 
+    // --------------------------- CONSTRUCTORS ---------------------------
+
     public StyleFactory() {
         mc = new MathContext(2, RoundingMode.HALF_UP);
     }
@@ -47,23 +49,9 @@ public class StyleFactory {
         return styles;
     }
 
-    // -------------------------- STATIC METHODS --------------------------
-
-
     // -------------------------- PUBLIC METHODS --------------------------
 
-    public Style getStyleForTextPosition(TextPosition position) {
-        float realFontSizeX = (position.getFontSize() * position.getXScale());
-        float realFontSizeY = (position.getFontSize() * position.getYScale());
-
-        /* build a string with fontname / type */
-        final String baseFontName = position.getFont().getBaseFont() == null ? "null" : position.getFont().getBaseFont();
-        final String fontname = baseFontName + " (" + position.getFont().getSubType() + ")";
-
-        return getStyle(realFontSizeX, realFontSizeY, position.getWidthOfSpace(), fontname, position.getWordSpacing());
-    }
-
-    public Style getStyle(float xSize, float ySize, final float widthOfSpace, String font, float wordSpacing) {
+    public Style getStyle(int xSize, int ySize, final int widthOfSpace, String font, int wordSpacing) {
         Style style = new Style(font, round(xSize), round(ySize), round(widthOfSpace), round(wordSpacing));
         Style existing = styles.get(style);
 
@@ -75,13 +63,21 @@ public class StyleFactory {
         return style;
     }
 
-    // -------------------------- OTHER METHODS --------------------------
+    public Style getStyleForTextPosition(TextPosition position) {
+        int realFontSizeX = round(position.getFontSize() * position.getXScale());
+        int realFontSizeY = round(position.getFontSize() * position.getYScale());
 
-    private float round(float num) {
-        //        //TODO: this was slower than i thought
-        //        BigDecimal bd = new BigDecimal(num, mc);
-        //        return bd.floatValue();
-        return num;
+        /* build a string with fontname / type */
+        final String baseFontName = position.getFont().getBaseFont() == null ? "null" : position.getFont().getBaseFont();
+        final String fontname = baseFontName + " (" + position.getFont().getSubType() + ")";
+
+        return getStyle(realFontSizeX, realFontSizeY, round(position.getWidthOfSpace()), fontname, round(position.getWordSpacing()));
     }
 
+    // -------------------------- OTHER METHODS --------------------------
+
+    private int round(float num) {
+        return (int) num;
+        //        return (int) (num * 100f);
+    }
 }

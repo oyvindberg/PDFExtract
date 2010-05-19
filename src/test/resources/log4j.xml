@@ -39,7 +39,7 @@
         </layout>
     </appender>
 
-    <appender name="textNodeBuilder" class="org.apache.log4j.FileAppender">
+    <appender name="wordBuilder" class="org.apache.log4j.FileAppender">
         <param name="Append" value="false"/>
         <param name="File" value="wordBuilder.log"/>
         <layout class="org.apache.log4j.PatternLayout">

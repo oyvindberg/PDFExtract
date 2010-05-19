@@ -28,12 +28,12 @@ import java.io.Serializable;
 public class Style implements Serializable {
     // ------------------------------ FIELDS ------------------------------
 
-    public final float xSize, ySize, widthOfSpace, wordSpacing;
+    public final int xSize, ySize, widthOfSpace, wordSpacing;
     public final String font;
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    public Style(final String font, final float xSize, final float ySize, final float widthOfSpace, final float wordSpacing) {
+    public Style(final String font, final int xSize, final int ySize, final int widthOfSpace, final int wordSpacing) {
         this.font = font;
         this.xSize = xSize;
         this.ySize = ySize;
@@ -43,6 +43,7 @@ public class Style implements Serializable {
 
     // ------------------------ CANONICAL METHODS ------------------------
 
+
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;
@@ -50,8 +51,10 @@ public class Style implements Serializable {
 
         final Style style = (Style) o;
 
-        if (Float.compare(style.xSize, xSize) != 0) return false;
-        if (Float.compare(style.ySize, ySize) != 0) return false;
+        if (widthOfSpace != style.widthOfSpace) return false;
+        if (wordSpacing != style.wordSpacing) return false;
+        if (xSize != style.xSize) return false;
+        if (ySize != style.ySize) return false;
         if (font != null ? !font.equals(style.font) : style.font != null) return false;
 
         return true;
@@ -59,8 +62,10 @@ public class Style implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = (xSize != +0.0f ? Float.floatToIntBits(xSize) : 0);
-        result = 31 * result + (ySize != +0.0f ? Float.floatToIntBits(ySize) : 0);
+        int result = xSize;
+        result = 31 * result + ySize;
+        result = 31 * result + widthOfSpace;
+        result = 31 * result + wordSpacing;
         result = 31 * result + (font != null ? font.hashCode() : 0);
         return result;
     }
