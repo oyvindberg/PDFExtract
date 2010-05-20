@@ -17,8 +17,9 @@
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.text.Style;
+import org.elacin.pdfextract.util.Rectangle;
 
-import java.awt.geom.Rectangle2D;
+import java.io.IOException;
 
 /**
  * Created by IntelliJ IDEA.
@@ -38,15 +39,15 @@ public class WordNode extends AbstractNode<LineNode> {
     // ------------------------------ FIELDS ------------------------------
 
     public final String text;
-    protected final Rectangle2D position;
+    protected final Rectangle position;
     protected final Style style;
     private final int pageNum;
-    private final float wordSpacing;
-    private final float charSpacing;
+    private final int wordSpacing;
+    private final int charSpacing;
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    public WordNode(final Rectangle2D position, final int pageNum, final Style style, final String text, final float wordSpacing, final float charSpacing) {
+    public WordNode(final Rectangle position, final int pageNum, final Style style, final String text, final int wordSpacing, final int charSpacing) {
         this.position = position;
         this.pageNum = pageNum;
         this.style = style;
@@ -65,7 +66,7 @@ public class WordNode extends AbstractNode<LineNode> {
         return pageNum;
     }
 
-    public Rectangle2D getPosition() {
+    public Rectangle getPosition() {
         return position;
     }
 
@@ -78,7 +79,7 @@ public class WordNode extends AbstractNode<LineNode> {
         return text;
     }
 
-    public float getWordSpacing() {
+    public int getWordSpacing() {
         return wordSpacing;
     }
 
@@ -88,13 +89,11 @@ public class WordNode extends AbstractNode<LineNode> {
     public String toString() {
         if (toStringCache == null) {
             final StringBuilder sb = new StringBuilder();
-            sb.append("{ pos=").append(position.toString().replace("java.awt.geom.Rectangle2D$Float", ""));
-            sb.append(", ").append(style);
-            if (!roles.isEmpty()) {
-                sb.append(", ").append(roles.keySet());
+            try {
+                appendLocalInfo(sb, 0);
+            } catch (IOException e) {
+                throw new RuntimeException("Could not write string", e);
             }
-            sb.append(", text='").append(text).append('\'');
-            sb.append('}');
             toStringCache = sb.toString();
         }
         return toStringCache;
@@ -102,15 +101,28 @@ public class WordNode extends AbstractNode<LineNode> {
 
     // -------------------------- OTHER METHODS --------------------------
 
-    protected void appendLocalInfo(final StringBuilder sb, final int indent) {
+    protected void appendLocalInfo(final Appendable out, final int indent) throws IOException {
         for (int i = 0; i < indent; i++) {
-            sb.append(" ");
+            out.append(" ");
         }
-        sb.append(toString());
-        sb.append("\n");
+        out.append("TextNode{");
+        out.append("'").append(text).append("\' ");
+
+        out.append(position.toString());
+        out.append(", wordSpacing=").append(String.valueOf(wordSpacing));
+        out.append(", charSpacing=").append(String.valueOf(charSpacing));
+
+        out.append(", style:").append(style.toString());
+
+        if (roles != null) {
+            out.append(", ").append(roles.keySet().toString());
+        }
+        out.append('}');
+        out.append("\n");
     }
 
     protected void invalidateThisAndParents() {
+        textCache = null;
         toStringCache = null;
         if (getParent() != null) {
             getParent().invalidateThisAndParents();

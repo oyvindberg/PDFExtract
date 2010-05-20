@@ -49,10 +49,12 @@ public class Pdf2Xml extends PDFTextStripper {
 
     @Override
     protected void endDocument(final PDDocument pdf) throws IOException {
+        long t0 = System.currentTimeMillis();
 
         root.combineChildren();
         new RecognizeRoles().doOperation(root);
-        getOutput().write(root.printTree());
+
+        System.out.println("Pdf2Xml.endDocument took " + (System.currentTimeMillis() - t0) + " ms");
     }
 
     @Override

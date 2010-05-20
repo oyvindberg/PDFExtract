@@ -142,12 +142,12 @@ public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
         /* Use the size of the preceding and new text to determine if the two lines are
              logically part of the same paragraph. Use the smaller of the two values.
          */
-        double ySize = Math.min(lastLineNode.getCurrentStyle().ySize, node.getStyle().ySize);
-        //        double ySize = lastLineNode.getCurrentStyle().ySize;
+        //TODO: style!
+        int ySize = Math.min(lastLineNode.getCurrentStyle().ySize, node.getStyle().ySize);
 
         if (isWithinVariance(getPosition().getY() + getPosition().getHeight(), node.getPosition().getY(), ySize)) {
 
-            double widthOfSpace = lastLineNode.getCurrentStyle().widthOfSpace;
+            int widthOfSpace = lastLineNode.getCurrentStyle().widthOfSpace;
 
             /* if the new node STARTS at more or less the same X position, accept it */
             if (isWithinVariance(getPosition().getX(), node.getPosition().getX(), widthOfSpace)) {

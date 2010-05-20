@@ -91,7 +91,9 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
                 ParagraphNode secondParagraph = paragraphNodes[j];
 
                 if (firstParagraph.overlapsWith(secondParagraph)) {
-                    Loggers.getCreateTreeLog().info("combining paragraphs " + firstParagraph + " and " + secondParagraph);
+                    if (Loggers.getCreateTreeLog().isInfoEnabled()) {
+                        Loggers.getCreateTreeLog().info("combining paragraphs " + firstParagraph + " and " + secondParagraph);
+                    }
                     firstParagraph.combineWith(secondParagraph);
 
                     /* remove secondParagraph */

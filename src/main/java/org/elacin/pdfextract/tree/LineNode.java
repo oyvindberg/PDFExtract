@@ -62,14 +62,6 @@ public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
      */
     public boolean accepts(final WordNode node) {
 
-        /* if this line is empty so far, accept anything*/
-        if (getChildren().isEmpty()) {
-            if (Loggers.getCreateTreeLog().isTraceEnabled()) {
-                Loggers.getCreateTreeLog().trace(toString() + ": accepts() " + node + "true: line had noe children");
-            }
-            return true;
-        }
-
         /* assure the node is located vertically on the current line */
         if (!isOnSameLine(node)) {
             if (Loggers.getCreateTreeLog().isTraceEnabled()) {
@@ -79,15 +71,10 @@ public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
         }
 
 
-        if (getPosition().intersects(node.getPosition())) {
+        if (getPosition().intersectsWith(node.getPosition())) {
             return true;
         }
 
-        //        /* find the last used style, we want its widthOfSpace in order to decide */
-        //        final Style currentStyle = getCurrentStyle();
-
-        //        final boolean ret = isWithinVariance(getPosition().getX() + getPosition().getWidth() + currentStyle.widthOfSpace, node.getPosition().getX(), currentStyle.widthOfSpace * 2);
-        //        final boolean ret = isWithinVariance(getPosition().getX() + getPosition().getWidth() + currentStyle.widthOfSpace , node.getPosition().getX(), currentStyle.wordSpacing );
         final boolean ret = isWithinVariance(getPosition().getX() + getPosition().getWidth(), node.getPosition().getX(), node.getWordSpacing());
 
         if (Loggers.getCreateTreeLog().isTraceEnabled()) {

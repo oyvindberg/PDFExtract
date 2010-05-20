@@ -18,10 +18,12 @@ package org.elacin.pdfextract;
 
 import org.apache.commons.cli.*;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.elacin.pdfextract.tree.DocumentNode;
 
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Writer;
+import java.io.PrintStream;
 
 /**
  * Created by IntelliJ IDEA.
@@ -43,20 +45,20 @@ public class TextExtractor {
 
     // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-    public static Writer openOutputWriter(final CommandLine cmd) {
-        Writer ret = null;
+    public static PrintStream openOutputStream(final CommandLine cmd) {
+        PrintStream ret = null;
         if (cmd.getArgs().length == 2) {
             try {
                 final String filename = cmd.getArgs()[1];
                 Loggers.getPdfExtractorLog().info("Opening " + filename + " for output");
-                ret = new PrintWriter(filename, "UTF-8");
+                ret = new PrintStream(new BufferedOutputStream(new FileOutputStream(filename, false), 8192 * 4), false, "UTF-8");
             } catch (Exception e) {
                 Loggers.getPdfExtractorLog().error("Could not open output file", e);
                 System.exit(2);
             }
         } else {
             Loggers.getPdfExtractorLog().info("Using stdout for output");
-            ret = new PrintWriter(System.out);
+            ret = new PrintStream(System.out);
         }
         return ret;
     }
@@ -69,6 +71,50 @@ public class TextExtractor {
         } catch (Exception e) {
             throw new RuntimeException("Error while reading encrypted PDF:", e);
         }
+    }
+
+    private static DocumentNode getDocumentTree(final CommandLine cmd, final String pdfFile) {
+        PDDocument document = null;
+        final DocumentNode root;
+        try {
+            long t0 = System.currentTimeMillis();
+            document = PDDocument.load(pdfFile);
+            Loggers.getPdfExtractorLog().warn("PDFBox load() took " + (System.currentTimeMillis() - t0) + "ms");
+            Pdf2Xml stripper = new Pdf2Xml();
+
+
+            if (document.isEncrypted()) {
+                if (cmd.hasOption("password")) {
+                    decrypt(document, cmd.getOptionValue("password"));
+                } else {
+                    Loggers.getPdfExtractorLog().warn("File claims to be encrypted, a password should be provided");
+                }
+            }
+
+            if (cmd.hasOption("startpage")) {
+                stripper.setStartPage(Integer.valueOf(cmd.getOptionValue("startpage")));
+            }
+
+            if (cmd.hasOption("endpage")) {
+                stripper.setEndPage(Integer.valueOf(cmd.getOptionValue("endpage")));
+            }
+            t0 = System.currentTimeMillis();
+            stripper.writeText(document, null);
+            root = stripper.getRoot();
+            Loggers.getPdfExtractorLog().warn("Document analysis took " + (System.currentTimeMillis() - t0) + "ms");
+        } catch (IOException e) {
+            Loggers.getPdfExtractorLog().error("Error while reading " + pdfFile + ".", e);
+            return null;
+        } finally {
+            try {
+                if (document != null) {
+                    document.close();
+                }
+            } catch (IOException e) {
+                Loggers.getPdfExtractorLog().error("Error while closing file", e);
+            }
+        }
+        return root;
     }
 
     private static CommandLine parseParameters(final String[] args) {
@@ -107,55 +153,15 @@ public class TextExtractor {
             usage();
             return;
         }
+
         Loggers.getPdfExtractorLog().error("Opening PDF file " + pdfFile + ".");
 
         /* open output */
-        Writer output = openOutputWriter(cmd);
+        final DocumentNode root = getDocumentTree(cmd, pdfFile);
 
-        /* read pdf file */
-        PDDocument document = null;
-        try {
-            long t0 = System.currentTimeMillis();
-            document = PDDocument.load(pdfFile);
-            Loggers.getPdfExtractorLog().warn("PDFBox load() took " + (System.currentTimeMillis() - t0) + "ms");
-            Pdf2Xml stripper = new Pdf2Xml();
-            //            stripper.setSortByPosition(true);
-
-
-            if (document.isEncrypted()) {
-                if (cmd.hasOption("password")) {
-                    decrypt(document, cmd.getOptionValue("password"));
-                } else {
-                    Loggers.getPdfExtractorLog().warn("File claims to be encrypted, a password should be provided");
-                }
-            }
-
-            if (cmd.hasOption("startpage")) {
-                stripper.setStartPage(Integer.valueOf(cmd.getOptionValue("startpage")));
-            }
-
-            if (cmd.hasOption("endpage")) {
-                stripper.setEndPage(Integer.valueOf(cmd.getOptionValue("endpage")));
-            }
-            t0 = System.currentTimeMillis();
-            stripper.writeText(document, output);
-            Loggers.getPdfExtractorLog().warn("Document analysis took " + (System.currentTimeMillis() - t0) + "ms");
-        } catch (IOException e) {
-            Loggers.getPdfExtractorLog().error("Error while reading " + pdfFile + ".", e);
-        } finally {
-            try {
-                if (document != null) {
-                    document.close();
-                }
-            } catch (IOException e) {
-                Loggers.getPdfExtractorLog().error("Error while closing file", e);
-            }
-            try {
-                output.close();
-            } catch (IOException e) {
-                Loggers.getPdfExtractorLog().error("Error while closing file", e);
-            }
-        }
+        final PrintStream output = openOutputStream(cmd);
+        root.printTree(output);
+        output.close();
     }
 }
 

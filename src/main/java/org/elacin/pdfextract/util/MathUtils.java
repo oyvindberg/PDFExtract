@@ -24,6 +24,20 @@ package org.elacin.pdfextract.util;
  * To change this template use File | Settings | File Templates.
  */
 public class MathUtils {
+    //    /**
+    //     * Returns true if num2 is within num ± i
+    //     *
+    //     * @param num1
+    //     * @param num2
+    //     * @param variance
+    //     * @return
+    //     */
+    //    public static boolean isWithinVariance(final double num1, final double num2, final double variance) {
+    //        if (num1 == num2) return true;
+    //
+    //        return (num1 - variance) <= num2 && (num1 + variance) >= num2;
+    //    }
+
     /**
      * Returns true if num2 is within num ± i
      *
@@ -32,10 +46,14 @@ public class MathUtils {
      * @param variance
      * @return
      */
-    public static boolean isWithinVariance(final double num1, final double num2, final double variance) {
+    public static boolean isWithinVariance(final int num1, final int num2, final int variance) {
         if (num1 == num2) return true;
 
         return (num1 - variance) <= num2 && (num1 + variance) >= num2;
     }
 
+    public static int round(float num) {
+        //        return (int) num;
+        return (int) (num * 100f) + 1;
+    }
 }

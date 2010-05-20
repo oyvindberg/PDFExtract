@@ -20,9 +20,9 @@ package org.elacin.pdfextract.tree;
 import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.text.Role;
 import org.elacin.pdfextract.text.Style;
+import org.elacin.pdfextract.util.Rectangle;
 
-import java.awt.geom.Rectangle2D;
-import java.io.Serializable;
+import java.io.*;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Set;
@@ -37,7 +37,7 @@ import java.util.Set;
 public abstract class AbstractNode<ParentType extends AbstractParentNode> implements Serializable {
     // ------------------------------ FIELDS ------------------------------
 
-    protected final Map<Role, String> roles = new EnumMap<Role, String>(Role.class);
+    protected Map<Role, String> roles;
     protected ParentType parent;
     protected DocumentNode root;
 
@@ -65,6 +65,9 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
 
     public void addRole(Role r, String reason) {
         Loggers.getCreateTreeLog().warn(this + " got assigned role " + r);
+        if (roles == null) {
+            roles = new EnumMap<Role, String>(Role.class);
+        }
         roles.put(r, reason);
     }
 
@@ -79,9 +82,12 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
         return null;
     }
 
-    public abstract Rectangle2D getPosition();
+    public abstract Rectangle getPosition();
 
     public Set<Role> getRoles() {
+        if (roles == null) {
+            return null;
+        }
         return roles.keySet();
     }
 
@@ -90,22 +96,43 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
     public abstract String getText();
 
     public boolean hasRole(Role r) {
+        if (roles == null) return false;
+
         return roles.containsKey(r);
     }
 
     public boolean overlapsWith(final AbstractNode two) {
-        return getPosition().intersects(two.getPosition());
+        return getPosition().intersectsWith(two.getPosition());
     }
 
-    public String printTree() {
-        StringBuilder sb = new StringBuilder();
-        appendLocalInfo(sb, 0);
-        return sb.toString();
+    public void printTree(String filename) {
+        PrintStream stream = null;
+        try {
+            Loggers.getPdfExtractorLog().info("Opening " + filename + " for output");
+            stream = new PrintStream(new BufferedOutputStream(new FileOutputStream(filename, false), 8192 * 4), false, "UTF-8");
+            printTree(stream);
+        } catch (Exception e) {
+            Loggers.getPdfExtractorLog().error("Could not open output file", e);
+        } finally {
+            if (stream != null) {
+                stream.close();
+            }
+        }
+    }
+
+    public void printTree(final PrintStream output) {
+        long t1 = System.currentTimeMillis();
+        try {
+            appendLocalInfo(output, 0);
+            Loggers.getPdfExtractorLog().warn("printTree took " + (System.currentTimeMillis() - t1) + " ms");
+        } catch (IOException e) {
+            Loggers.getPdfExtractorLog().warn("error while printing tree", e);
+        }
     }
 
     // -------------------------- OTHER METHODS --------------------------
 
-    protected abstract void appendLocalInfo(StringBuilder sb, int indent);
+    protected abstract void appendLocalInfo(Appendable sb, int indent) throws IOException;
 
     protected abstract void invalidateThisAndParents();
 }

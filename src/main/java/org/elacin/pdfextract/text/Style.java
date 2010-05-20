@@ -31,6 +31,9 @@ public class Style implements Serializable {
     public final int xSize, ySize, widthOfSpace, wordSpacing;
     public final String font;
 
+    private boolean toStringCreated = false;
+    private String toStringCache = null;
+
     // --------------------------- CONSTRUCTORS ---------------------------
 
     public Style(final String font, final int xSize, final int ySize, final int widthOfSpace, final int wordSpacing) {
@@ -72,14 +75,19 @@ public class Style implements Serializable {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("{");
-        sb.append(font);
-        sb.append(", x=").append(xSize);
-        sb.append(", y=").append(ySize);
-        //        sb.append(", widthOfSpace=").append(widthOfSpace);
-        //        sb.append(", wordSpacing=").append(wordSpacing);
-        sb.append('}');
-        return sb.toString();
+        if (!toStringCreated) {
+            final StringBuilder sb = new StringBuilder();
+            sb.append("{");
+            sb.append(font);
+            sb.append(", x=").append(xSize);
+            sb.append(", y=").append(ySize);
+            sb.append(", widthOfSpace=").append(widthOfSpace);
+            //            sb.append(", wordSpacing=").append(wordSpacing);
+            sb.append('}');
+            toStringCache = sb.toString();
+            toStringCreated = true;
+        }
+
+        return toStringCache;
     }
 }

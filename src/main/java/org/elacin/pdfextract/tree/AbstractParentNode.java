@@ -19,8 +19,9 @@ package org.elacin.pdfextract.tree;
 import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.text.Role;
 import org.elacin.pdfextract.text.Style;
+import org.elacin.pdfextract.util.Rectangle;
 
-import java.awt.geom.Rectangle2D;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
@@ -35,7 +36,7 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
     // ------------------------------ FIELDS ------------------------------
 
     /* a cache of group position */
-    protected transient Rectangle2D posCache;
+    protected transient Rectangle posCache;
 
     /* children nodes */
     private final List<ChildType> children = new ArrayList<ChildType>();
@@ -61,19 +62,26 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
     public String toString() {
         if (toStringCache == null) {
             final StringBuilder sb = new StringBuilder();
-            sb.append(getClass().getSimpleName()).append("{");
-            if (getPosition() != null) {
-                sb.append("position=").append(getPosition().toString().replace("java.awt.geom.Rectangle2D$Float", "")).append(", ");
+            try {
+                appendLocalInfo(sb, 0);
+            } catch (IOException e) {
+                throw new RuntimeException("Could not write string", e);
             }
-            sb.append("Roles=").append(getRoles());
-            final String text = getText();
-            sb.append("'").append(text.substring(0, Math.min(text.length(), 25)));
-            sb.append("'").append(text);
-            //            if (text.length() > 25) sb.append("...");
-            sb.append("'}");
             toStringCache = sb.toString();
         }
         return toStringCache;
+    }
+
+    // ------------------------ OVERRIDING METHODS ------------------------
+
+    public Set<Role> getRoles() {
+        Set<Role> ret = EnumSet.noneOf(Role.class);
+        for (ChildType child : children) {
+            if (child.getRoles() != null) {
+                ret.addAll(child.getRoles());
+            }
+        }
+        return ret;
     }
 
     // -------------------------- PUBLIC METHODS --------------------------
@@ -97,19 +105,19 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
 
     public abstract Comparator<ChildType> getChildComparator();
 
-    public Rectangle2D getPosition() {
+    public Rectangle getPosition() {
         if (posCache == null) {
             for (ChildType child : children) {
                 if (posCache == null) {
                     posCache = child.getPosition();
                 } else {
-                    posCache = posCache.createUnion(child.getPosition());
+                    posCache = posCache.union(child.getPosition());
                 }
             }
         }
 
         if (posCache == null) {
-            posCache = new Rectangle2D.Float();
+            posCache = new Rectangle(0, 0, 0, 0);
         }
         return posCache;
     }
@@ -137,17 +145,17 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
 
     // -------------------------- OTHER METHODS --------------------------
 
-    protected void appendLocalInfo(StringBuilder sb, int indent) {
+    protected void appendLocalInfo(Appendable out, int indent) throws IOException {
         for (int i = 0; i < indent; i++) {
-            sb.append(" ");
+            out.append(" ");
         }
-        sb.append(getClass().getSimpleName()).append(": ");
-        sb.append(getPosition().toString().replace("java.awt.geom.Rectangle2D$Float", ""));
-        sb.append(" ");
-        sb.append(":\n");
+        out.append(getClass().getSimpleName());
+        out.append("{").append(getPosition().toString());
+
+        out.append(":\n");
 
         for (ChildType child : children) {
-            child.appendLocalInfo(sb, indent + 4);
+            child.appendLocalInfo(out, indent + 4);
         }
     }
 
@@ -178,13 +186,4 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
             return 0;
         }
     }
-
-    public Set<Role> getRoles() {
-        Set<Role> ret = EnumSet.noneOf(Role.class);
-        for (ChildType child : children) {
-            ret.addAll(child.getRoles());
-        }
-        return ret;
-    }
-
 }

@@ -23,12 +23,14 @@ import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.text.Style;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.WordNode;
+import org.elacin.pdfextract.util.Point;
+import org.elacin.pdfextract.util.Rectangle;
 
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static org.elacin.pdfextract.util.MathUtils.round;
 
 /**
  * Created by IntelliJ IDEA.
@@ -88,10 +90,10 @@ public class WordBuilder {
     // -------------------------- OTHER METHODS --------------------------
 
     List<Text> createTextObjects(StyleFactory sf, List<TextPosition> textPositions) {
-        List<Text> ret = new ArrayList<Text>();
+        List<Text> ret = new ArrayList<Text>(textPositions.size() * 2);
         Collections.sort(textPositions, new TextPositionComparator());
 
-        Point2D boundary = null;
+        Point boundary = new Point(0, 0);
         float distance;
 
         StringBuilder contents = new StringBuilder();
@@ -108,11 +110,12 @@ public class WordBuilder {
                     if (!wasWhitespace) {
                         /* here stops current word */
                         if (contents.length() != 0) {
-                            distance = boundary == null ? Float.MIN_VALUE : (float) (x - boundary.getX());
+                            distance = x - boundary.getX();
+                            //                            distance = boundary == null ? Float.MIN_VALUE : x - boundary.getX();
                             ret.add(new Text(distance, textPosition.getHeightDir(), style, contents.toString(), textWidth, x + spaceWidth,
                                     textPosition.getY()));
                             contents.setLength(0);
-                            boundary = new Point2D.Float(x + textWidth, textPosition.getY());
+                            boundary.setPosition(x + textWidth, textPosition.getY());
                             x += textWidth;
                             textWidth = 0f;
                         }
@@ -133,11 +136,13 @@ public class WordBuilder {
 
             /* finally, make a text of what remains */
             if (contents.length() != 0) {
-                distance = boundary == null ? Float.MIN_VALUE : (float) (x - boundary.getX());
+                distance = x - boundary.getX();
+                //                distance = boundary == null ? Float.MIN_VALUE : x - boundary.getX();
                 ret.add(new Text(distance, textPosition.getHeightDir(), style, contents.toString(), textWidth, x, textPosition.getY()));
                 contents.setLength(0);
             }
-            boundary = new Point2D.Float(x + textWidth, textPosition.getY());
+            boundary.setPosition(x + textWidth, textPosition.getY());
+            //            boundary = new Point(x + textWidth, textPosition.getY());
         }
         return ret;
     }
@@ -198,67 +203,68 @@ public class WordBuilder {
     }
 
     void setSpacingForTexts(List<Text> texts) {
-        List<Float> distances = new ArrayList<Float>();
-
         if (texts.isEmpty()) return;
 
+        List<Integer> distances = new ArrayList<Integer>(texts.size() - 1);
 
         /* skip the first, as its set to negative infinity :) */
         float sum = 0f;
         for (int i = 1; i < texts.size(); i++) {
             Text text = texts.get(i);
-            if (text.distanceToPreceeding <= text.style.xSize) {
+            if (text.distanceToPreceeding <= round(text.style.xSize)) {
                 sum += text.distanceToPreceeding;
                 distances.add(text.distanceToPreceeding);
             }
         }
+        float average = sum / distances.size();
+
+        int wordSpacing;
+        int charSpacing = 0;
 
         /* this algorithm wont work with very few elements. if that is the case
-           try what PDFBox guessed
+                  try what PDFBox guessed
         */
-        float wordSpacing;
-        float charSpacing = 0f;
 
         if (distances.isEmpty()) {
-            wordSpacing = texts.get(0).style.wordSpacing;
-            charSpacing = (wordSpacing * 0.6f);
+            wordSpacing = round(texts.get(0).style.wordSpacing);
+            charSpacing = (int) (wordSpacing * 0.6);
             return;
         } else if (distances.size() < 4) {
             wordSpacing = distances.get(distances.size() - 1);
-            charSpacing = (wordSpacing * 0.6f);
+            charSpacing = (int) (wordSpacing * 0.6);
             return;
-        }
+        } else {
 
-        float average = sum / distances.size();
-        Collections.sort(distances);
+            Collections.sort(distances);
 
-        /* iterate backwards - do this because char spacing seems to vary a lot more than
-            does word spacing
-        */
-        wordSpacing = distances.get(distances.size() - 1);
+            /* iterate backwards - do this because char spacing seems to vary a lot more than
+                does word spacing
+            */
+            wordSpacing = distances.get(distances.size() - 1);
 
-        boolean foundCharSpacing = false;
+            boolean foundCharSpacing = false;
 
-        for (int i = distances.size() - 2; i >= 0; i--) {
-            float distance = distances.get(i);
-            if (distance < 0.1 * wordSpacing) {
-                charSpacing = distance;
-                foundCharSpacing = true;
-                break;
-            }
-        }
-
-        float former;
-        if (!foundCharSpacing) {
-            former = distances.get(distances.size() - 1);
             for (int i = distances.size() - 2; i >= 0; i--) {
-                float distance = distances.get(i);
-
-                if (distance < former * 0.90 && distance < average) {
+                int distance = distances.get(i);
+                if (distance < 0.1 * wordSpacing) {
                     charSpacing = distance;
+                    foundCharSpacing = true;
                     break;
                 }
-                former = distance;
+            }
+
+            int former;
+            if (!foundCharSpacing) {
+                former = distances.get(distances.size() - 1);
+                for (int i = distances.size() - 2; i >= 0; i--) {
+                    int distance = distances.get(i);
+
+                    if (distance < former * 0.90 && distance < average) {
+                        charSpacing = distance;
+                        break;
+                    }
+                    former = distance;
+                }
             }
         }
 
@@ -276,20 +282,18 @@ public class WordBuilder {
     // -------------------------- INNER CLASSES --------------------------
 
     private static class Text {
-        float x, y, width, height, distanceToPreceeding;
+        int x, y, width, height, distanceToPreceeding, wordSpacing, charSpacing;
         String content;
         Style style;
-        public float wordSpacing;
-        public float charSpacing;
 
         Text(final float distanceToPreceeding, final float height, final Style style, final String content, final float width, final float x, final float y) {
-            this.distanceToPreceeding = distanceToPreceeding;
-            this.height = height;
+            this.distanceToPreceeding = round(distanceToPreceeding);
+            this.height = round(height);
+            this.width = round(width);
+            this.x = round(x);
+            this.y = round(y);
             this.style = style;
             this.content = content;
-            this.width = width;
-            this.x = x;
-            this.y = y;
         }
 
         @Override
@@ -314,17 +318,17 @@ public class WordBuilder {
     private class WordState {
         private final char[] chars = new char[512];
         private int len = 0;
-        private float maxHeight = 0;
-        private float width = 0;
-        private float x = 0;
-        private float y = 0;
+        private int maxHeight = 0;
+        private int width = 0;
+        private int x = 0;
+        private int y = 0;
         private Style currentStyle = null;
-        public float wordSpacing;
-        public float charSpacing;
+        public int wordSpacing;
+        public int charSpacing;
 
         public WordNode createWord(final int pageNum) {
             String wordText = new String(chars, 0, len);
-            final WordNode word = new WordNode(new Rectangle2D.Float(x, y, width, maxHeight), pageNum, currentStyle, wordText, wordSpacing, charSpacing);
+            final WordNode word = new WordNode(new Rectangle(x, y, width, maxHeight), pageNum, currentStyle, wordText, wordSpacing, charSpacing);
 
             if (log.isDebugEnabled()) {
                 log.debug("out: " + word);
@@ -333,8 +337,8 @@ public class WordBuilder {
             /* then reset state for next word */
             len = 0;
             x += width;
-            maxHeight = 0.0f;
-            width = 0.0f;
+            maxHeight = 0;
+            width = 0;
 
             return word;
         }

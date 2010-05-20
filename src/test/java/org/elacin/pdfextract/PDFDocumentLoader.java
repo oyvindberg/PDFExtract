@@ -20,7 +20,6 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.elacin.pdfextract.tree.DocumentNode;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URL;
 
 /**
@@ -36,11 +35,10 @@ public class PDFDocumentLoader {
         final URL url = PDFDocumentLoader.class.getClassLoader().getResource(filename);
         PDDocument document = PDDocument.load(url);
         Pdf2Xml stripper = new Pdf2Xml();
-
-        final PrintWriter out = new PrintWriter(outFile, "UTF-8");
-        stripper.writeText(document, out);
-        out.close();
-        return stripper.getRoot();
+        stripper.writeText(document, null);
+        final DocumentNode documentNode = stripper.getRoot();
+        documentNode.printTree(outFile);
+        return documentNode;
 
     }
 }

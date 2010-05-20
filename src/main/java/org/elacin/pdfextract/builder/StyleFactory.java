@@ -19,10 +19,10 @@ package org.elacin.pdfextract.builder;
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.text.Style;
 
-import java.math.MathContext;
-import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.elacin.pdfextract.util.MathUtils.round;
 
 /**
  * Created by IntelliJ IDEA.
@@ -34,24 +34,46 @@ import java.util.Map;
 public class StyleFactory {
     // ------------------------------ FIELDS ------------------------------
 
-    Map<Style, Style> styles = new HashMap<Style, Style>();
-    private final MathContext mc;
-
-    // --------------------------- CONSTRUCTORS ---------------------------
-
-    public StyleFactory() {
-        mc = new MathContext(2, RoundingMode.HALF_UP);
-    }
+    Map<Float, Style> styles = new HashMap<Float, Style>();
 
     // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public Map<Style, Style> getStyles() {
+    public Map<Float, Style> getStyles() {
         return styles;
     }
 
     // -------------------------- PUBLIC METHODS --------------------------
 
-    public Style getStyle(int xSize, int ySize, final int widthOfSpace, String font, int wordSpacing) {
+    public Style getStyleForTextPosition(TextPosition position) {
+
+        float result = position.getFontSize();
+        result = 31 * result + position.getXScale();
+        result = 31 * result + position.getYScale();
+        result = 31 * result + position.getFont().hashCode();
+        result = 31 * result + position.getWidthOfSpace();
+        result = 31 * result + position.getWordSpacing();
+
+        Style existing = styles.get(result);
+        if (existing == null) {
+
+            float realFontSizeX = position.getFontSize() * position.getXScale();
+            float realFontSizeY = position.getFontSize() * position.getYScale();
+
+            /* build a string with fontname / type */
+            final String baseFontName = position.getFont().getBaseFont() == null ? "null" : position.getFont().getBaseFont();
+            final String fontname = baseFontName + " (" + position.getFont().getSubType() + ")";
+
+            existing = getStyle(realFontSizeX, realFontSizeY, position.getWidthOfSpace(), fontname, position.getWordSpacing());
+            styles.put(result, existing);
+        }
+
+
+        return existing;
+    }
+
+    // -------------------------- OTHER METHODS --------------------------
+
+    private Style getStyle(float xSize, float ySize, final float widthOfSpace, String font, float wordSpacing) {
         Style style = new Style(font, round(xSize), round(ySize), round(widthOfSpace), round(wordSpacing));
         Style existing = styles.get(style);
 
@@ -59,25 +81,6 @@ public class StyleFactory {
             return existing;
         }
 
-        styles.put(style, style);
         return style;
-    }
-
-    public Style getStyleForTextPosition(TextPosition position) {
-        int realFontSizeX = round(position.getFontSize() * position.getXScale());
-        int realFontSizeY = round(position.getFontSize() * position.getYScale());
-
-        /* build a string with fontname / type */
-        final String baseFontName = position.getFont().getBaseFont() == null ? "null" : position.getFont().getBaseFont();
-        final String fontname = baseFontName + " (" + position.getFont().getSubType() + ")";
-
-        return getStyle(realFontSizeX, realFontSizeY, round(position.getWidthOfSpace()), fontname, round(position.getWordSpacing()));
-    }
-
-    // -------------------------- OTHER METHODS --------------------------
-
-    private int round(float num) {
-        return (int) num;
-        //        return (int) (num * 100f);
     }
 }
