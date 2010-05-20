@@ -16,6 +16,10 @@
 
 package org.elacin.pdfextract.util;
 
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
+
 /**
  * Created by IntelliJ IDEA.
  * User: elacin
@@ -52,8 +56,15 @@ public class MathUtils {
         return (num1 - variance) <= num2 && (num1 + variance) >= num2;
     }
 
+    static MathContext mc = new MathContext(6, RoundingMode.CEILING);
+
     public static int round(float num) {
         //        return (int) num;
-        return (int) (num * 100f) + 1;
+        BigDecimal a = new BigDecimal(num * 100);
+        final BigDecimal bigDecimal = a.round(mc);
+
+        //        return (int) (num * 100f) + 1;
+
+        return bigDecimal.intValue();
     }
 }

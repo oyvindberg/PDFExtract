@@ -56,7 +56,7 @@
     <logger name="org.elacin.pdfextract.wordBuilder" additivity="false">
         <!--all incoming TextPositions and generated TextNodes will be written to file if this
             is set to DEBUG -->
-        <level value="DEBUG"/>
+        <level value="TRACE"/>
         <appender-ref ref="wordBuilder"/>
         <appender-ref ref="console"/>
     </logger>

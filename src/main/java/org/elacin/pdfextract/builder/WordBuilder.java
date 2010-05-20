@@ -142,7 +142,6 @@ public class WordBuilder {
                 contents.setLength(0);
             }
             boundary.setPosition(x + textWidth, textPosition.getY());
-            //            boundary = new Point(x + textWidth, textPosition.getY());
         }
         return ret;
     }
@@ -211,7 +210,7 @@ public class WordBuilder {
         float sum = 0f;
         for (int i = 1; i < texts.size(); i++) {
             Text text = texts.get(i);
-            if (text.distanceToPreceeding <= round(text.style.xSize)) {
+            if (text.distanceToPreceeding <= 2 * text.style.xSize) {
                 sum += text.distanceToPreceeding;
                 distances.add(text.distanceToPreceeding);
             }

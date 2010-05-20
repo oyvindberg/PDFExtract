@@ -75,7 +75,7 @@ public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
             return true;
         }
 
-        final boolean ret = isWithinVariance(getPosition().getX() + getPosition().getWidth(), node.getPosition().getX(), node.getWordSpacing());
+        final boolean ret = isWithinVariance(getPosition().getX() + getPosition().getWidth(), node.getPosition().getX(), (int) (node.getWordSpacing() * 1.01));
 
         if (Loggers.getCreateTreeLog().isTraceEnabled()) {
             Loggers.getCreateTreeLog().trace(toString() + ": accepts() " + node + ret + ": after isWithinVariance");
@@ -147,12 +147,8 @@ public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
         for (int i = 0; i < getChildren().size(); i++) {
             final WordNode word = getChildren().get(i);
             sb.append(word.getText().trim());
-            /* if this node is not the last on this line, add
-                space /if there were a space in the original document/ */
             if (i != getChildren().size() - 1) {
-                //                if (word.isSpaceBetweenThisAnd(getChildren().get(i + 1))) {
                 sb.append(" ");
-                //                }
             }
         }
 
