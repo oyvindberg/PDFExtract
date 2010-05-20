@@ -18,7 +18,6 @@ package org.elacin.pdfextract.builder;
 
 import org.apache.log4j.Logger;
 import org.apache.pdfbox.util.TextPosition;
-import org.apache.pdfbox.util.TextPositionComparator;
 import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.text.Style;
 import org.elacin.pdfextract.tree.DocumentNode;
@@ -91,60 +90,79 @@ public class WordBuilder {
 
     List<Text> createTextObjects(StyleFactory sf, List<TextPosition> textPositions) {
         List<Text> ret = new ArrayList<Text>(textPositions.size() * 2);
-        Collections.sort(textPositions, new TextPositionComparator());
-
-        Point boundary = new Point(0, 0);
-        float distance;
-
+        Point lastWordBoundary = new Point(0, 0);
         StringBuilder contents = new StringBuilder();
+
+        float x, y, width = 0;
+        boolean firstInLine = true;
+
         for (TextPosition textPosition : textPositions) {
-            float x = textPosition.getXDirAdj(), textWidth = 0, spaceWidth = 0;
-            boolean wasWhitespace = false;
+
+            x = textPosition.getXDirAdj();
+            y = textPosition.getYDirAdj();
             final Style style = sf.getStyleForTextPosition(textPosition);
 
-
             for (int j = 0; j < textPosition.getCharacter().length(); j++) {
-                final char currentChar = textPosition.getCharacter().charAt(j);
 
-                if (Character.isWhitespace(currentChar)) {
-                    if (!wasWhitespace) {
-                        /* here stops current word */
-                        if (contents.length() != 0) {
-                            distance = x - boundary.getX();
-                            //                            distance = boundary == null ? Float.MIN_VALUE : x - boundary.getX();
-                            ret.add(new Text(distance, textPosition.getHeightDir(), style, contents.toString(), textWidth, x + spaceWidth,
-                                    textPosition.getY()));
-                            contents.setLength(0);
-                            boundary.setPosition(x + textWidth, textPosition.getY());
-                            x += textWidth;
-                            textWidth = 0f;
+                /* if we found a space */
+                if (Character.isWhitespace(textPosition.getCharacter().charAt(j))) {
+
+                    if (contents.length() != 0) {
+                        /* else just output a new text */
+
+                        final float distance;
+                        if (firstInLine) {
+                            distance = Float.MIN_VALUE;
+                            firstInLine = false;
+                        } else {
+                            distance = x - lastWordBoundary.getX();
                         }
-                        wasWhitespace = true;
-                        spaceWidth += textPosition.getIndividualWidths()[j];
-                    }
-                } else { /* if we now found text */
-                    if (wasWhitespace) {
-                        x += spaceWidth;
-                        spaceWidth = 0;
-                        wasWhitespace = false;
+
+                        ret.add(new Text(distance, textPosition.getHeightDir(), style, contents.toString(), width, x, y));
+                        contents.setLength(0);
+                        x += width;
+                        width = 0;
+                        lastWordBoundary.setPosition(x, y);
                     }
 
-                    contents.append(currentChar);
-                    textWidth += textPosition.getIndividualWidths()[j];
+                    x += textPosition.getIndividualWidths()[j];
+
+                } else {
+                    /* include this character */
+                    width += textPosition.getIndividualWidths()[j];
+                    contents.append(textPosition.getCharacter().charAt(j));
                 }
-            }
 
-            /* finally, make a text of what remains */
-            if (contents.length() != 0) {
-                distance = x - boundary.getX();
-                //                distance = boundary == null ? Float.MIN_VALUE : x - boundary.getX();
-                ret.add(new Text(distance, textPosition.getHeightDir(), style, contents.toString(), textWidth, x, textPosition.getY()));
-                contents.setLength(0);
+
+                /* if this is the last char */
+                if (j == textPosition.getCharacter().length() - 1 && contents.length() != 0) {
+
+                    final float distance;
+                    if (firstInLine) {
+                        distance = Float.MIN_VALUE;
+                        firstInLine = false;
+                    } else {
+                        distance = x - lastWordBoundary.getX();
+                    }
+
+                    if (width == 0) {
+                        width = textPosition.getWidthDirAdj();
+                    }
+
+                    ret.add(new Text(distance, textPosition.getHeightDir(), style, contents.toString(), width, x, y));
+                    contents.setLength(0);
+                    x += width;
+                    width = 0;
+                    lastWordBoundary.setPosition(x, y);
+
+                }
+
             }
-            boundary.setPosition(x + textWidth, textPosition.getY());
         }
+
         return ret;
     }
+
 
     /**
      * This method will process one line worth of TextPositions , and split and/or
@@ -192,7 +210,8 @@ public class WordBuilder {
                 currentState.chars[currentState.len] = newText.content.charAt(textPositionIdx);
                 currentState.len++;
             }
-            currentState.width += newText.width;
+            currentState.width = newText.x + newText.width - currentState.x;
+            //            currentState.width += newText.width;
         }
 
         /* no words can span lines, so yield whatever is read */
@@ -210,7 +229,8 @@ public class WordBuilder {
         float sum = 0f;
         for (int i = 1; i < texts.size(); i++) {
             Text text = texts.get(i);
-            if (text.distanceToPreceeding <= 2 * text.style.xSize) {
+            //            log.trace("text.distanceToPreceeding = " + text.distanceToPreceeding + ", text.style.xSize = " + text.style.xSize);
+            if (text.distanceToPreceeding <= 8 * text.style.xSize) {
                 sum += text.distanceToPreceeding;
                 distances.add(text.distanceToPreceeding);
             }

@@ -105,7 +105,7 @@ public class WordNode extends AbstractNode<LineNode> {
         for (int i = 0; i < indent; i++) {
             out.append(" ");
         }
-        out.append("TextNode{");
+        out.append("WordNode{");
         out.append("'").append(text).append("\' ");
 
         out.append(position.toString());
