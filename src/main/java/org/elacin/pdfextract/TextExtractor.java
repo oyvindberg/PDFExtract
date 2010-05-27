@@ -173,11 +173,13 @@ public class TextExtractor {
             Pdf2Xml stripper = new Pdf2Xml();
 
 
-            if (endPage != -1) {
-                stripper.setEndPage(endPage);
-            }
             if (startPage != -1) {
+                log.warn("Reading from page " + startPage);
                 stripper.setStartPage(startPage);
+            }
+            if (endPage != -1) {
+                log.warn("Reading until page " + endPage);
+                stripper.setEndPage(endPage);
             }
 
             if (document.isEncrypted()) {

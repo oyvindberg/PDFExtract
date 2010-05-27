@@ -24,10 +24,12 @@ import org.elacin.pdfextract.pdfbox.ETextPosition;
 import org.elacin.pdfextract.text.Style;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.WordNode;
+import org.elacin.pdfextract.util.MathUtils;
 import org.elacin.pdfextract.util.Point;
 import org.elacin.pdfextract.util.Rectangle;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -184,7 +186,7 @@ public class WordBuilder {
      * @param textPositions
      * @return
      */
-    List<Text> getTextsFromTextPositions(StyleFactory sf, List<TextPosition> textPositions) {
+    List<Text> getTextsFromTextPositions(DocumentStyles sf, List<TextPosition> textPositions) {
         List<Text> ret = new ArrayList<Text>(textPositions.size() * 2);
 
         Point lastWordBoundary = new Point(0, 0);
@@ -263,18 +265,18 @@ public class WordBuilder {
         if (texts.isEmpty()) return;
 
         /* Start by making a list of all distances, and an average*/
-        float sum = 0f;
-        List<Integer> distances = new ArrayList<Integer>(texts.size() - 1);
+        //        List<Integer> distances = new ArrayList<Integer>(texts.size() - 1);
+        int[] distances = new int[texts.size() - 1];
 
+        int distanceCount = 0;
         for (int i = 0; i < texts.size(); i++) {
             Text text = texts.get(i);
             /* skip the first word fragment, and only include this distance if it is not too big */
             if (i != 0 && text.distanceToPreceeding < text.style.xSize * 6) {
-                sum += text.distanceToPreceeding;
-                distances.add(text.distanceToPreceeding);
+                distances[distanceCount] = text.distanceToPreceeding;
+                distanceCount++;
             }
         }
-        float average = sum / distances.size();
 
         /* spit out some debug information */
         if (log.isDebugEnabled()) {
@@ -292,36 +294,59 @@ public class WordBuilder {
             log.debug("spacing: unsorted: " + distances);
         }
 
-        /**
-         * Then, start to figure out what the most probable char space is.
-         *
-         * There are two special cases:
-         *  - only one text fragment, in which case we set a spacing of 0
-         *  - all distances are the same, in which case we assume it is one continuous word, and
-         *      not a list of single text fragments
-         *
-         *
-         * //TODO: describe algorithm better here :)
-         *
-         */
-        int charSpacing = 0;
-        Collections.sort(distances);
+        int charSpacing = calculateCharspacingForDistances(distances, distanceCount);
 
-        if (distances.isEmpty()) {
+        /* and set the values in all texts */
+        for (Text text : texts) {
+            text.charSpacing = charSpacing;
+        }
+
+        if (log.isDebugEnabled()) {
+            log.debug("spacing: sorted: " + distances);
+            log.debug("spacing: charSpacing=" + charSpacing);
+        }
+    }
+
+    /**
+     * This is the algorithm to find out the most probable charSpacing given a list of integer distances
+     * <p/>
+     * <p/>
+     * There are two special cases:
+     * - only one text fragment, in which case we set a spacing of 0
+     * - all distances are almost the same, in which case we assume it is one continuous word, and not a list of single text fragments
+     * <p/>
+     * The general algorithm consists of these steps:
+     *
+     * @param distances
+     * @param distanceCount
+     * @return
+     */
+    int calculateCharspacingForDistances(final int[] distances, final int distanceCount) {
+        float sum = 0f;
+        for (int i = 0; i < distanceCount; i++) {
+            sum += distances[i];
+        }
+        float average = sum / distanceCount;
+
+        int charSpacing = 0;
+        Arrays.sort(distances);
+
+        if (distanceCount == 0) {
             charSpacing = 0;
-        } else if (distances.get(0) == (int) average) {
-            /* if all distances are the same, set that as character width */
-            charSpacing = (int) average;
+
+        } else if (MathUtils.isWithinPercent(distances[0], distances[distanceCount - 1], 2)) {
+            charSpacing = distances[distanceCount - 1];
             log.debug("spacing: all distances equal, setting as character space");
+
         } else {
-            int minDistance = distances.get(0);
+            int minDistance = distances[0];
 
             /* iterate backwards - do this because char spacing seems to vary a lot more than does word spacing */
             int biggestScore = Integer.MIN_VALUE;
-            int lastDistance = distances.get(distances.size() - 1);
+            int lastDistance = distances[distanceCount - 1];
 
-            for (int i = distances.size() - 1; i >= 0; i--) {
-                int distance = distances.get(i);
+            for (int i = distanceCount - 1; i >= 0; i--) {
+                int distance = distances[i];
 
                 if (distance < average) {
                     int score = (int) ((lastDistance - distance + minDistance) / (Math.max(1, distance + minDistance)) + distance * 0.5);
@@ -343,16 +368,7 @@ public class WordBuilder {
 
         /* correct for rounding */
         charSpacing += 1;
-
-        /* and set the values in all texts */
-        for (Text text : texts) {
-            text.charSpacing = charSpacing;
-        }
-
-        if (log.isDebugEnabled()) {
-            log.debug("spacing: sorted: " + distances);
-            log.debug("spacing: average=" + average + ", charSpacing=" + charSpacing);
-        }
+        return charSpacing;
     }
 
     // -------------------------- INNER CLASSES --------------------------

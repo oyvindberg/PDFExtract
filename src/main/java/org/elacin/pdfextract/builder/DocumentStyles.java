@@ -29,9 +29,12 @@ import static org.elacin.pdfextract.util.MathUtils.round;
  * User: elacin
  * Date: Mar 18, 2010
  * Time: 2:32:39 PM
- * To change this template use File | Settings | File Templates.
+ * <p/>
+ * <p/>
+ * This class is meant to belong to a document, so that all the styles used in a document
+ * will be available here. There is some optimization to avoid excessive object creation.
  */
-public class StyleFactory {
+public class DocumentStyles {
     // ------------------------------ FIELDS ------------------------------
 
     Map<Float, Style> styles = new HashMap<Float, Style>();
@@ -70,7 +73,7 @@ public class StyleFactory {
     }
 
     private Style getStyle(float xSize, float ySize, final float widthOfSpace, String font, float wordSpacing) {
-        Style style = new Style(font, round(xSize), round(ySize), round(widthOfSpace), round(wordSpacing));
+        Style style = new Style(font, round(xSize), round(ySize), round(widthOfSpace));
         Style existing = styles.get(style);
 
         if (existing != null) {

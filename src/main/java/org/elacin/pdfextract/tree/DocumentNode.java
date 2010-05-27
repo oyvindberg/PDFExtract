@@ -17,7 +17,7 @@
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.Loggers;
-import org.elacin.pdfextract.builder.StyleFactory;
+import org.elacin.pdfextract.builder.DocumentStyles;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -38,7 +38,7 @@ public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
     /**
      * this contains all the different styles used in the document
      */
-    protected StyleFactory styles = new StyleFactory();
+    protected DocumentStyles styles = new DocumentStyles();
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -48,7 +48,7 @@ public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
 
     // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public StyleFactory getStyles() {
+    public DocumentStyles getStyles() {
         return styles;
     }
 

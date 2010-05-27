@@ -24,6 +24,7 @@ import org.testng.annotations.Test;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 
 /**
@@ -47,7 +48,8 @@ public class TestC021004 {
         doc = PDFDocumentLoader.readPDF("C02-1004.pdf", "C02-1004_out.xml", 1);
         lines = DocumentNavigator.getLineNodes(doc);
 
-        reader = new BufferedReader(new FileReader("C021004.txt"));
+        final URL url = PDFDocumentLoader.class.getClassLoader().getResource("C021004.txt");
+        reader = new BufferedReader(new FileReader(url.getFile()));
     }
 
 

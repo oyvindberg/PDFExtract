@@ -124,7 +124,7 @@ public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
                 }
                 LineNode secondLine = lineNodes[j];
 
-                if (firstLine.isOnSameLine(secondLine)) {
+                if (firstLine.isOnSameLine(secondLine) || firstLine.getPosition().intersectsWith(secondLine.getPosition())) {
                     if (Loggers.getCreateTreeLog().isDebugEnabled()) {
                         Loggers.getCreateTreeLog().debug("combining lines " + firstLine + " and " + secondLine);
                     }
