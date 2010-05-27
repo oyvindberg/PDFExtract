@@ -19,10 +19,10 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
+    <name>elacins PDFExtract</name>
     <groupId>org.elacin</groupId>
     <artifactId>TextExtractor</artifactId>
-    <version>Milestone0-SNAPSHOT</version>
+    <version>M0-SNAPSHOT</version>
     <repositories>
         <!--<repository>-->
         <!--<id>jinahya.googlecode.com_svn_maven_2_repo</id>-->
