@@ -16,14 +16,19 @@
 
 package org.elacin.pdfextract.util;
 
+import java.io.Serializable;
+
 /**
  * Created by IntelliJ IDEA.
  * User: elacin
  * Date: May 19, 2010
  * Time: 9:43:07 PM
- * To change this template use File | Settings | File Templates.
+ * <p/>
+ * A non-mutable rectangle, with union and intercepts bits stolen
+ * from javas Rectangle2D. The problem with just using that class
+ * was that is isnt available in an integer version.
  */
-public class Rectangle {
+public class Rectangle implements Serializable {
     // ------------------------------ FIELDS ------------------------------
 
     private final int x, y, width, height;
@@ -54,15 +59,6 @@ public class Rectangle {
     public int getY() {
         return y;
     }
-
-    public int getEndX() {
-        return x + width;
-    }
-
-    public int getEndY() {
-        return y + height;
-    }
-
 
     // ------------------------ CANONICAL METHODS ------------------------
 
@@ -122,4 +118,11 @@ public class Rectangle {
         return new Rectangle(x1, y1, x2 - x1, y2 - y1);
     }
 
+    public int getEndX() {
+        return x + width;
+    }
+
+    public int getEndY() {
+        return y + height;
+    }
 }

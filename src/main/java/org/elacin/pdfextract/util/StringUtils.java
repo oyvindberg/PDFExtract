@@ -28,19 +28,13 @@ import java.util.Arrays;
  * To change this template use File | Settings | File Templates.
  */
 public class StringUtils {
+    // -------------------------- PUBLIC STATIC METHODS --------------------------
+
     public static String getTextPositionString(final TextPosition position) {
         StringBuilder sb = new StringBuilder("pos{");
         sb.append("c=\"").append(position.getCharacter()).append("\"");
-        //        sb.append(", X=").append(position.getX());
-        //        sb.append(", XScale=").append(position.getXScale());
-        //        sb.append(", Y=").append(position.getY());
-        //        sb.append(", Dir=").append(position.getDir());
         sb.append(", XDirAdj=").append(position.getXDirAdj());
         sb.append(", YDirAdj=").append(position.getYDirAdj());
-        //        sb.append(", XScale=").append(position.getXScale());
-        //        sb.append(", YScale=").append(position.getYScale());
-        //        sb.append(", Height=").append(position.getHeight());
-        //        sb.append(", Width=").append(position.getWidth());
         sb.append(", endY=").append(position.getYDirAdj() + position.getHeightDir());
         sb.append(", endX=").append(position.getXDirAdj() + position.getWidthDirAdj());
 
@@ -50,7 +44,6 @@ public class StringUtils {
         sb.append(", WidthOfSpace=").append(position.getWidthOfSpace());
         sb.append(", WordSpacing()=").append(position.getWordSpacing());
         sb.append(", FontSize=").append(position.getFontSize());
-        //        sb.append(", FontSizeInPt=").append(position.getFontSizeInPt());
         sb.append(", getIndividualWidths=").append(Arrays.toString(position.getIndividualWidths()));
         sb.append(", font=").append(position.getFont().getBaseFont());
 

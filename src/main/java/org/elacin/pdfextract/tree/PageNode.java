@@ -46,10 +46,6 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
 
     // -------------------------- PUBLIC METHODS --------------------------
 
-    public boolean accepts(final WordNode node) {
-        return pageNumber == node.getPageNum();
-    }
-
     @Override
     public boolean addWord(final WordNode node) {
         if (!accepts(node)) {
@@ -71,6 +67,10 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
         addChild(paragraph);
 
         return true;
+    }
+
+    public boolean accepts(final WordNode node) {
+        return pageNumber == node.getPageNum();
     }
 
     @Override
@@ -118,5 +118,4 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
     public Comparator<ParagraphNode> getChildComparator() {
         return new StandardNodeComparator();
     }
-
 }

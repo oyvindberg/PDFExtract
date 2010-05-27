@@ -42,17 +42,15 @@ public class WordNode extends AbstractNode<LineNode> {
     protected final Rectangle position;
     protected final Style style;
     private final int pageNum;
-    private final int wordSpacing;
     private final int charSpacing;
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    public WordNode(final Rectangle position, final int pageNum, final Style style, final String text, final int wordSpacing, final int charSpacing) {
+    public WordNode(final Rectangle position, final int pageNum, final Style style, final String text, final int charSpacing) {
         this.position = position;
         this.pageNum = pageNum;
         this.style = style;
         this.text = text;
-        this.wordSpacing = wordSpacing;
         this.charSpacing = charSpacing;
     }
 
@@ -79,10 +77,6 @@ public class WordNode extends AbstractNode<LineNode> {
         return text;
     }
 
-    public int getWordSpacing() {
-        return wordSpacing;
-    }
-
     // ------------------------ CANONICAL METHODS ------------------------
 
     @Override
@@ -99,8 +93,6 @@ public class WordNode extends AbstractNode<LineNode> {
         return toStringCache;
     }
 
-    // -------------------------- OTHER METHODS --------------------------
-
     protected void appendLocalInfo(final Appendable out, final int indent) throws IOException {
         for (int i = 0; i < indent; i++) {
             out.append(" ");
@@ -109,7 +101,6 @@ public class WordNode extends AbstractNode<LineNode> {
         out.append("'").append(text).append("\' ");
 
         out.append(position.toString());
-        out.append(", wordSpacing=").append(String.valueOf(wordSpacing));
         out.append(", charSpacing=").append(String.valueOf(charSpacing));
 
         out.append(", style:").append(style.toString());
@@ -120,6 +111,15 @@ public class WordNode extends AbstractNode<LineNode> {
         out.append('}');
         out.append("\n");
     }
+
+    // -------------------------- PUBLIC METHODS --------------------------
+
+    public boolean isPartOfSameWordAs(final WordNode wordNode) {
+        int distance = wordNode.position.getX() - position.getEndX();
+        return distance <= Math.max(charSpacing * 1.01, 3);
+    }
+
+    // -------------------------- OTHER METHODS --------------------------
 
     protected void invalidateThisAndParents() {
         textCache = null;

@@ -1,17 +1,18 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.elacin.pdfextract.pdfbox;
@@ -30,7 +31,6 @@ import org.apache.pdfbox.pdmodel.graphics.color.PDColorSpace;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.PDFOperator;
-import org.apache.pdfbox.util.TextPosition;
 import org.apache.pdfbox.util.operator.OperatorProcessor;
 import org.elacin.pdfextract.Loggers;
 
@@ -119,6 +119,17 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
         }
         validCharCnt = 0;
         totalCharCnt = 0;
+    }
+
+    /**
+     * Register a custom operator processor with the engine.
+     *
+     * @param operator The operator as a string.
+     * @param op       Processor instance.
+     */
+    public final void registerOperatorProcessor(String operator, OperatorProcessor op) {
+        op.setContext(this);
+        operators.put(operator, op);
     }
 
     // --------------------- GETTER / SETTER METHODS ---------------------
@@ -443,6 +454,16 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
     }
 
     /**
+     * A method provided as an event interface to allow a subclass to perform
+     * some specific functionality when text needs to be processed.
+     *
+     * @param text The text to be processed.
+     */
+    protected void processTextPosition(ETextPosition text) {
+        //subclasses can override to provide specific functionality.
+    }
+
+    /**
      * This is used to handle an operation.
      *
      * @param operation The operation to perform.
@@ -454,31 +475,6 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
             PDFOperator oper = PDFOperator.getOperator(operation);
             processOperator(oper, arguments);
         } catch (IOException e) {
-            log.warn(e, e);
-        }
-    }
-
-    /**
-     * This is used to handle an operation.
-     *
-     * @param operator  The operation to perform.
-     * @param arguments The list of arguments.
-     * @throws IOException If there is an error processing the operation.
-     */
-    protected void processOperator(PDFOperator operator, List arguments) throws IOException {
-        try {
-            String operation = operator.getOperation();
-            OperatorProcessor processor = operators.get(operation);
-            if (processor != null) {
-                processor.setContext(this);
-                processor.process(operator, arguments);
-            } else {
-                if (!unsupportedOperators.contains(operation)) {
-                    log.info("unsupported/disabled operation: " + operation);
-                    unsupportedOperators.add(operation);
-                }
-            }
-        } catch (Exception e) {
             log.warn(e, e);
         }
     }
@@ -546,24 +542,28 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
     }
 
     /**
-     * A method provided as an event interface to allow a subclass to perform
-     * some specific functionality when text needs to be processed.
+     * This is used to handle an operation.
      *
-     * @param text The text to be processed.
+     * @param operator  The operation to perform.
+     * @param arguments The list of arguments.
+     * @throws IOException If there is an error processing the operation.
      */
-    protected void processTextPosition(TextPosition text) {
-        //subclasses can override to provide specific functionality.
-    }
-
-    /**
-     * Register a custom operator processor with the engine.
-     *
-     * @param operator The operator as a string.
-     * @param op       Processor instance.
-     */
-    public final void registerOperatorProcessor(String operator, OperatorProcessor op) {
-        op.setContext(this);
-        operators.put(operator, op);
+    protected void processOperator(PDFOperator operator, List arguments) throws IOException {
+        try {
+            String operation = operator.getOperation();
+            OperatorProcessor processor = operators.get(operation);
+            if (processor != null) {
+                processor.setContext(this);
+                processor.process(operator, arguments);
+            } else {
+                if (!unsupportedOperators.contains(operation)) {
+                    log.info("unsupported/disabled operation: " + operation);
+                    unsupportedOperators.add(operation);
+                }
+            }
+        } catch (Exception e) {
+            log.warn(e, e);
+        }
     }
 
     /**

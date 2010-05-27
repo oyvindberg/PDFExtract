@@ -45,7 +45,6 @@ public class StyleFactory {
     // -------------------------- PUBLIC METHODS --------------------------
 
     public Style getStyleForTextPosition(TextPosition position) {
-
         float result = position.getFontSize();
         result = 31 * result + position.getXScale();
         result = 31 * result + position.getYScale();
@@ -55,7 +54,6 @@ public class StyleFactory {
 
         Style existing = styles.get(result);
         if (existing == null) {
-
             float realFontSizeX = position.getFontSize() * position.getXScale();
             float realFontSizeY = position.getFontSize() * position.getYScale();
 
@@ -70,8 +68,6 @@ public class StyleFactory {
 
         return existing;
     }
-
-    // -------------------------- OTHER METHODS --------------------------
 
     private Style getStyle(float xSize, float ySize, final float widthOfSpace, String font, float wordSpacing) {
         Style style = new Style(font, round(xSize), round(ySize), round(widthOfSpace), round(wordSpacing));

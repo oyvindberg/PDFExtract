@@ -50,7 +50,7 @@ public class TestSpacing {
 
     @BeforeClass(groups = "TestSpacing")
     public void setUp() throws IOException {
-        doc = PDFDocumentLoader.readPDF("renderX/spacing.pdf", "spacing_out.xml");
+        doc = PDFDocumentLoader.readPDF("renderX/spacing.pdf", "spacing_out.xml", 4);
         lines = DocumentNavigator.getLineNodes(doc);
     }
 

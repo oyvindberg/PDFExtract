@@ -31,13 +31,15 @@ import java.net.URL;
  */
 public class PDFDocumentLoader {
 
-    public static DocumentNode readPDF(String filename, final String outFile) throws IOException {
+    public static DocumentNode readPDF(String filename, final String outFile, final int endPage) throws IOException {
         final URL url = PDFDocumentLoader.class.getClassLoader().getResource(filename);
         PDDocument document = PDDocument.load(url);
         Pdf2Xml stripper = new Pdf2Xml();
+        stripper.setEndPage(endPage);
         stripper.writeText(document, null);
         final DocumentNode documentNode = stripper.getRoot();
         documentNode.printTree(outFile);
+        document.close();
         return documentNode;
 
     }

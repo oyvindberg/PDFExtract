@@ -49,7 +49,7 @@ public abstract class TestLatexComparison {
     }
 
     protected void readFiles() throws IOException {
-        pdfDOM = PDFDocumentLoader.readPDF(PDFFILENAME, ELCXMLFILENAME);
+        pdfDOM = PDFDocumentLoader.readPDF(PDFFILENAME, ELCXMLFILENAME, 4);
         latexDOMString = LatexDocumentLoader.readLatex(LATEXFILENAME);
         printLatexDOMToFile();
     }

@@ -18,7 +18,9 @@ package org.elacin.pdfextract.builder;
 
 import org.apache.log4j.Logger;
 import org.apache.pdfbox.util.TextPosition;
+import org.apache.pdfbox.util.TextPositionComparator;
 import org.elacin.pdfextract.Loggers;
+import org.elacin.pdfextract.pdfbox.ETextPosition;
 import org.elacin.pdfextract.text.Style;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.WordNode;
@@ -36,7 +38,19 @@ import static org.elacin.pdfextract.util.MathUtils.round;
  * User: elacin
  * Date: May 12, 2010
  * Time: 3:34:09 AM
- * To change this template use File | Settings | File Templates.
+ * <p/>
+ * This class provides a way to convert incoming TextPositions (as created by PDFBox) into
+ * WordNodes, as used by this application. The difference between the two classes are
+ * technical, but also semantic, in that they are defined to be at most a whole word (the
+ * normal case: Word fragments will only occur when a word is split over two lines, or
+ * if the word is formatted with two different styles) instead of arbitrary length.
+ * <p/>
+ * This makes it easier to reason about the information we have, and also reconstructs
+ * some notion of word and character spacing, which will be an important property
+ * for feature recognition.
+ * <p/>
+ * By using fillPage() all this will be done, and the words will be added to the
+ * the provided document tree.
  */
 public class WordBuilder {
     // ------------------------------ FIELDS ------------------------------
@@ -56,26 +70,49 @@ public class WordBuilder {
      * @param pageNum       Page number
      * @param textToBeAdded text which is to be added
      */
-    public void fillPage(DocumentNode root, final int pageNum, List<TextPosition> textToBeAdded) {
+    public void fillPage(DocumentNode root, final int pageNum, List<ETextPosition> textToBeAdded) {
         long t0 = System.currentTimeMillis();
 
         /* iterate through all incoming TextPositions, and process them
             in a line by line fashion. We do this to be able to calculate
             char and word distances for each line
          */
-        float lastY = Float.MIN_VALUE;
+        float lastY = Float.MAX_VALUE;
+        float lastEndY = Float.MIN_VALUE;
+
         List<TextPosition> line = new ArrayList<TextPosition>();
 
-        for (TextPosition textPosition : textToBeAdded) {
+        Collections.sort(textToBeAdded, new TextPositionComparator());
+
+        for (ETextPosition textPosition : textToBeAdded) {
             /* If this not the first text on a line and also not on the same Y coordinate
                 as the existing, complete this line */
-            if (lastY != Float.MIN_VALUE && (lastY != textPosition.getYDirAdj())) {
+
+            /**
+             * Decide whether or not this textPosition is part of the current
+             *  line we are building or not
+             */
+            boolean endLine = false;
+
+            if (lastY == Float.MAX_VALUE) {
+                /* if this is the first text in a line */
+                lastY = textPosition.getY();
+                lastEndY = lastY + textPosition.getHeightDir();
+            } else if (lastY != textPosition.getYDirAdj()) {
+                //            } else if (!isOnSameLine(lastY, lastEndY, textPosition.getYDirAdj(), textPosition.getYDirAdj() + textPosition.getHeightDir())) {
+                /* end the current line if this element is not considered to be part of it */
+                endLine = true;
+            }
+
+            if (endLine) {
                 processLine(root, pageNum, line);
                 line.clear();
+                lastY = Float.MAX_VALUE;
             }
 
             line.add(textPosition);
-            lastY = textPosition.getYDirAdj();
+            lastY = Math.min(textPosition.getYDirAdj(), lastY);
+            lastEndY = Math.max(lastY + textPosition.getHeightDir(), lastEndY);
         }
 
         if (!line.isEmpty()) {
@@ -83,30 +120,89 @@ public class WordBuilder {
             line.clear();
         }
 
-        System.out.println("WordBuilder.fillPage took " + (System.currentTimeMillis() - t0) + " ms");
+        log.debug("WordBuilder.fillPage took " + (System.currentTimeMillis() - t0) + " ms");
     }
 
-    // -------------------------- OTHER METHODS --------------------------
+    /**
+     * This method will process one line worth of TextPositions , and split and/or
+     * combine them as to output words. The words are added directly to the tree
+     *
+     * @param root
+     * @param pageNum
+     * @param line
+     */
+    void processLine(final DocumentNode root, final int pageNum, final List<TextPosition> line) {
+        /* first convert into text elements */
+        final List<Text> lineTexts = getTextsFromTextPositions(root.getStyles(), line);
 
-    List<Text> createTextObjects(StyleFactory sf, List<TextPosition> textPositions) {
+        /* then calculate spacing */
+        setCharSpacingForTexts(lineTexts);
+
+        /* this will be used to keep all the state while combining text fragments into words */
+        WordState currentState = new WordState();
+
+        /* create WordNodes and add them to the tree */
+        for (Text newText : lineTexts) {
+            if (Loggers.getWordBuilderLog().isDebugEnabled()) {
+                Loggers.getWordBuilderLog().debug("in : " + newText);
+            }
+
+            /* if this is the first text element going into a word */
+            if (currentState.len == 0) {
+                currentState.x = newText.x;
+                currentState.y = newText.y;
+                currentState.charSpacing = newText.charSpacing;
+            } else {
+                /* if not, check if this new text means we should finish the current word */
+                if (currentState.isTooFarAway(newText) || currentState.isDifferentStyle(newText.style)) {
+                    root.addWord(currentState.createWord(pageNum));
+                    currentState.x = newText.x;
+                }
+            }
+
+            currentState.currentStyle = newText.style;
+            currentState.maxHeight = Math.max(currentState.maxHeight, newText.height);
+
+            /* copy text from the Text object, and adjust width */
+            for (int textPositionIdx = 0; textPositionIdx < newText.content.length(); textPositionIdx++) {
+                currentState.chars[currentState.len] = newText.content.charAt(textPositionIdx);
+                currentState.len++;
+            }
+            currentState.width = newText.x + newText.width - currentState.x;
+        }
+
+        /* no words can span lines, so yield whatever is read */
+        if (currentState.len != 0) {
+            root.addWord(currentState.createWord(pageNum));
+        }
+    }
+
+    /**
+     * This creates
+     *
+     * @param sf
+     * @param textPositions
+     * @return
+     */
+    List<Text> getTextsFromTextPositions(StyleFactory sf, List<TextPosition> textPositions) {
         List<Text> ret = new ArrayList<Text>(textPositions.size() * 2);
+
         Point lastWordBoundary = new Point(0, 0);
         StringBuilder contents = new StringBuilder();
 
         float x, y, width = 0;
         boolean firstInLine = true;
 
-        for (TextPosition textPosition : textPositions) {
+        Collections.sort(textPositions, new TextPositionComparator());
 
+        for (TextPosition textPosition : textPositions) {
             x = textPosition.getXDirAdj();
             y = textPosition.getYDirAdj();
             final Style style = sf.getStyleForTextPosition(textPosition);
 
             for (int j = 0; j < textPosition.getCharacter().length(); j++) {
-
                 /* if we found a space */
                 if (Character.isWhitespace(textPosition.getCharacter().charAt(j))) {
-
                     if (contents.length() != 0) {
                         /* else just output a new text */
 
@@ -126,7 +222,6 @@ public class WordBuilder {
                     }
 
                     x += textPosition.getIndividualWidths()[j];
-
                 } else {
                     /* include this character */
                     width += textPosition.getIndividualWidths()[j];
@@ -136,7 +231,6 @@ public class WordBuilder {
 
                 /* if this is the last char */
                 if (j == textPosition.getCharacter().length() - 1 && contents.length() != 0) {
-
                     final float distance;
                     if (firstInLine) {
                         distance = Float.MIN_VALUE;
@@ -145,6 +239,7 @@ public class WordBuilder {
                         distance = x - lastWordBoundary.getX();
                     }
 
+                    /* Some times textPosition.getIndividualWidths will contain zero, so work around that here */
                     if (width == 0) {
                         width = textPosition.getWidthDirAdj();
                     }
@@ -154,154 +249,117 @@ public class WordBuilder {
                     x += width;
                     width = 0;
                     lastWordBoundary.setPosition(x, y);
-
                 }
-
             }
         }
 
         return ret;
     }
 
-
     /**
-     * This method will process one line worth of TextPositions , and split and/or
-     * combine them as to output words. The words are added directly to the tree
-     *
-     * @param root
-     * @param pageNum
-     * @param textPositions
+     * @param texts
      */
-    void processLine(final DocumentNode root, final int pageNum, final List<TextPosition> textPositions) {
-        /* first convert into text elements */
-        final List<Text> texts = createTextObjects(root.getStyles(), textPositions);
-
-        /* then calculate spacing */
-        setSpacingForTexts(texts);
-
-        /* this will be used to keep all the state while parsing the text for words */
-        WordState currentState = new WordState();
-
-        /* Then iterate through all the Text objects, and create words */
-        for (Text newText : texts) {
-            if (Loggers.getWordBuilderLog().isDebugEnabled()) {
-                Loggers.getWordBuilderLog().debug("in : " + newText);
-            }
-
-            /* if this is the first text element going into a word */
-            if (currentState.len == 0) {
-                currentState.x = newText.x;
-                currentState.y = newText.y;
-                currentState.wordSpacing = newText.wordSpacing;
-                currentState.charSpacing = newText.charSpacing;
-            } else {
-                /* if not, check if this new text means we should finish the current word */
-                if (currentState.isTooFarAway(newText) || currentState.isDifferentStyle(newText.style)) {
-                    root.addWord(currentState.createWord(pageNum));
-                    currentState.x = newText.x;
-                }
-            }
-
-            currentState.currentStyle = newText.style;
-            currentState.maxHeight = Math.max(currentState.maxHeight, newText.height);
-
-            /* then copy text from the Text object */
-            for (int textPositionIdx = 0; textPositionIdx < newText.content.length(); textPositionIdx++) {
-                currentState.chars[currentState.len] = newText.content.charAt(textPositionIdx);
-                currentState.len++;
-            }
-            currentState.width = newText.x + newText.width - currentState.x;
-            //            currentState.width += newText.width;
-        }
-
-        /* no words can span lines, so yield whatever is read */
-        if (currentState.len != 0) {
-            root.addWord(currentState.createWord(pageNum));
-        }
-    }
-
-    void setSpacingForTexts(List<Text> texts) {
+    void setCharSpacingForTexts(List<Text> texts) {
         if (texts.isEmpty()) return;
 
+        /* Start by making a list of all distances, and an average*/
+        float sum = 0f;
         List<Integer> distances = new ArrayList<Integer>(texts.size() - 1);
 
-        /* skip the first, as its set to negative infinity :) */
-        float sum = 0f;
-        for (int i = 1; i < texts.size(); i++) {
+        for (int i = 0; i < texts.size(); i++) {
             Text text = texts.get(i);
-            //            log.trace("text.distanceToPreceeding = " + text.distanceToPreceeding + ", text.style.xSize = " + text.style.xSize);
-            if (text.distanceToPreceeding <= 8 * text.style.xSize) {
+            /* skip the first word fragment, and only include this distance if it is not too big */
+            if (i != 0 && text.distanceToPreceeding < text.style.xSize * 6) {
                 sum += text.distanceToPreceeding;
                 distances.add(text.distanceToPreceeding);
             }
         }
         float average = sum / distances.size();
 
-        int wordSpacing;
-        int charSpacing = 0;
+        /* spit out some debug information */
+        if (log.isDebugEnabled()) {
+            StringBuilder sb = new StringBuilder();
 
-        /* this algorithm wont work with very few elements. if that is the case
-                  try what PDFBox guessed
-        */
+            for (int i = 0; i < texts.size(); i++) {
+                Text text = texts.get(i);
+                if (i != 0) {
+                    sb.append(">").append(text.distanceToPreceeding).append(">");
+                }
+                sb.append(text.content);
+            }
+            log.debug("spacing: -----------------");
+            log.debug("spacing: content: " + sb);
+            log.debug("spacing: unsorted: " + distances);
+        }
+
+        /**
+         * Then, start to figure out what the most probable char space is.
+         *
+         * There are two special cases:
+         *  - only one text fragment, in which case we set a spacing of 0
+         *  - all distances are the same, in which case we assume it is one continuous word, and
+         *      not a list of single text fragments
+         *
+         *
+         * //TODO: describe algorithm better here :)
+         *
+         */
+        int charSpacing = 0;
+        Collections.sort(distances);
 
         if (distances.isEmpty()) {
-            wordSpacing = round(texts.get(0).style.wordSpacing);
-            charSpacing = (int) (wordSpacing * 0.6);
-            return;
-        } else if (distances.size() < 4) {
-            wordSpacing = distances.get(distances.size() - 1);
-            charSpacing = (int) (wordSpacing * 0.6);
-            return;
+            charSpacing = 0;
+        } else if (distances.get(0) == (int) average) {
+            /* if all distances are the same, set that as character width */
+            charSpacing = (int) average;
+            log.debug("spacing: all distances equal, setting as character space");
         } else {
+            int minDistance = distances.get(0);
 
-            Collections.sort(distances);
+            /* iterate backwards - do this because char spacing seems to vary a lot more than does word spacing */
+            int biggestScore = Integer.MIN_VALUE;
+            int lastDistance = distances.get(distances.size() - 1);
 
-            /* iterate backwards - do this because char spacing seems to vary a lot more than
-                does word spacing
-            */
-            wordSpacing = distances.get(distances.size() - 1);
-
-            boolean foundCharSpacing = false;
-
-            for (int i = distances.size() - 2; i >= 0; i--) {
+            for (int i = distances.size() - 1; i >= 0; i--) {
                 int distance = distances.get(i);
-                if (distance < 0.1 * wordSpacing) {
-                    charSpacing = distance;
-                    foundCharSpacing = true;
-                    break;
-                }
-            }
 
-            int former;
-            if (!foundCharSpacing) {
-                former = distances.get(distances.size() - 1);
-                for (int i = distances.size() - 2; i >= 0; i--) {
-                    int distance = distances.get(i);
+                if (distance < average) {
+                    int score = (int) ((lastDistance - distance + minDistance) / (Math.max(1, distance + minDistance)) + distance * 0.5);
 
-                    if (distance < former * 0.90 && distance < average) {
+                    if (score > biggestScore) {
+                        biggestScore = score;
                         charSpacing = distance;
-                        break;
+                        log.debug("spacing: " + charSpacing + " is now the most probable. score: " + score);
                     }
-                    former = distance;
                 }
+                lastDistance = distance;
             }
         }
 
+        if (charSpacing < 0) {
+            log.debug("spacing: got suspiciously low charSpacing " + charSpacing + " setting to 3");
+            charSpacing = 3;
+        }
+
+        /* correct for rounding */
+        charSpacing += 1;
+
+        /* and set the values in all texts */
         for (Text text : texts) {
-            text.wordSpacing = wordSpacing;
             text.charSpacing = charSpacing;
         }
 
-        if (log.isTraceEnabled()) {
-            log.trace("average=" + average + ", charSpacing=" + charSpacing + ", wordSpacing=" + wordSpacing);
-            log.trace("sorted: " + distances);
+        if (log.isDebugEnabled()) {
+            log.debug("spacing: sorted: " + distances);
+            log.debug("spacing: average=" + average + ", charSpacing=" + charSpacing);
         }
     }
 
     // -------------------------- INNER CLASSES --------------------------
 
     private static class Text {
-        int x, y, width, height, distanceToPreceeding, wordSpacing, charSpacing;
+        final int x, y, width, height, distanceToPreceeding;
+        int charSpacing;
         String content;
         Style style;
 
@@ -328,12 +386,15 @@ public class WordBuilder {
             sb.append(", text='").append(content).append('\'');
             sb.append(", style=").append(style);
             sb.append(", charSpacing=").append(charSpacing);
-            sb.append(", wordSpacing=").append(wordSpacing);
             sb.append('}');
             return sb.toString();
         }
     }
 
+    /**
+     * This class is used while combining Text objects into Words, as a simple way of
+     * grouping all state together.
+     */
     private class WordState {
         private final char[] chars = new char[512];
         private int len = 0;
@@ -342,12 +403,11 @@ public class WordBuilder {
         private int x = 0;
         private int y = 0;
         private Style currentStyle = null;
-        public int wordSpacing;
         public int charSpacing;
 
         public WordNode createWord(final int pageNum) {
             String wordText = new String(chars, 0, len);
-            final WordNode word = new WordNode(new Rectangle(x, y, width, maxHeight), pageNum, currentStyle, wordText, wordSpacing, charSpacing);
+            final WordNode word = new WordNode(new Rectangle(x, y, width, maxHeight), pageNum, currentStyle, wordText, charSpacing);
 
             if (log.isDebugEnabled()) {
                 log.debug("out: " + word);
@@ -364,9 +424,6 @@ public class WordBuilder {
 
         public boolean isTooFarAway(final Text text) {
             if (text.distanceToPreceeding < 0) return false;
-
-            //            if (x + width + text.distanceToPreceeding < text.x + width)
-            //                return false;
 
             if (text.distanceToPreceeding > text.charSpacing) {
                 if (log.isDebugEnabled()) {

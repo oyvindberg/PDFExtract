@@ -47,16 +47,20 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
         addChild(child);
     }
 
-    public AbstractParentNode() {
+    public final void addChild(final ChildType child) {
+        child.invalidateThisAndParents();
+        children.add(child);
+        child.parent = this;
+        child.invalidateThisAndParents();
+        Collections.sort(children, getChildComparator());
+        if (Loggers.getCreateTreeLog().isDebugEnabled()) {
+            Loggers.getCreateTreeLog().debug(getClass().getSimpleName() + " : " + toString() + ": Added node " + child);
+        }
+
+        child.setRoot(getRoot());
     }
 
-    // --------------------- GETTER / SETTER METHODS ---------------------
-
-    public List<ChildType> getChildren() {
-        return children;
-    }
-
-    // ------------------------ CANONICAL METHODS ------------------------
+    public abstract Comparator<ChildType> getChildComparator();
 
     @Override
     public String toString() {
@@ -70,6 +74,29 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
             toStringCache = sb.toString();
         }
         return toStringCache;
+    }
+
+    protected void appendLocalInfo(Appendable out, int indent) throws IOException {
+        for (int i = 0; i < indent; i++) {
+            out.append(" ");
+        }
+        out.append(getClass().getSimpleName());
+        out.append("{").append(getPosition().toString());
+
+        out.append(":\n");
+
+        for (ChildType child : children) {
+            child.appendLocalInfo(out, indent + 4);
+        }
+    }
+
+    public AbstractParentNode() {
+    }
+
+    // --------------------- GETTER / SETTER METHODS ---------------------
+
+    public List<ChildType> getChildren() {
+        return children;
     }
 
     // ------------------------ OVERRIDING METHODS ------------------------
@@ -86,24 +113,9 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
 
     // -------------------------- PUBLIC METHODS --------------------------
 
-    public final void addChild(final ChildType child) {
-        child.invalidateThisAndParents();
-        children.add(child);
-        child.parent = this;
-        child.invalidateThisAndParents();
-        Collections.sort(children, getChildComparator());
-        if (Loggers.getCreateTreeLog().isDebugEnabled()) {
-            Loggers.getCreateTreeLog().debug(getClass().getSimpleName() + " : " + toString() + ": Added node " + child);
-        }
-
-        child.setRoot(getRoot());
-    }
-
     public abstract boolean addWord(WordNode node);
 
     public abstract void combineChildren();
-
-    public abstract Comparator<ChildType> getChildComparator();
 
     public Rectangle getPosition() {
         if (posCache == null) {
@@ -144,20 +156,6 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
     }
 
     // -------------------------- OTHER METHODS --------------------------
-
-    protected void appendLocalInfo(Appendable out, int indent) throws IOException {
-        for (int i = 0; i < indent; i++) {
-            out.append(" ");
-        }
-        out.append(getClass().getSimpleName());
-        out.append("{").append(getPosition().toString());
-
-        out.append(":\n");
-
-        for (ChildType child : children) {
-            child.appendLocalInfo(out, indent + 4);
-        }
-    }
 
     protected void invalidateThisAndParents() {
         posCache = null;

@@ -19,6 +19,7 @@ package org.elacin.pdfextract.tree;
 import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.text.Style;
 
+import java.io.IOException;
 import java.util.Comparator;
 
 import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
@@ -39,20 +40,56 @@ public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
 
     // ------------------------ OVERRIDING METHODS ------------------------
 
-    //    @Override
-    //    protected void appendLocalInfo(final StringBuilder sb, final int indent) {
-    //        for (int i = 0; i < indent; i++) {
-    //            sb.append(" ");
-    //        }
-    //        sb.append(getClass().getSimpleName()).append(": ").append(getText());
-    //
-    //        final Set<Role> roles = getRoles();
-    //        if (!roles.isEmpty()) sb.append(", roles=").append(roles);
-    //
-    //        sb.append("\n");
-    //    }
+    @Override
+    protected void appendLocalInfo(final Appendable out, final int indent) throws IOException {
+        //        super.appendLocalInfo(out, indent);
+
+        for (int i = 0; i < indent; i++) {
+            out.append(" ");
+        }
+        out.append(getClass().getSimpleName());
+        out.append(": \"");
+        writeTextTo(out);
+        out.append("\"");
+
+        //        out.append("{").append(getPosition().toString());
+
+        out.append("\n");
+    }
+
+    private void writeTextTo(final Appendable sb) {
+        try {
+            for (int i = 0; i < getChildren().size(); i++) {
+                final WordNode word = getChildren().get(i);
+                sb.append(word.getText());
+                if (i != getChildren().size() - 1 && !word.isPartOfSameWordAs(getChildren().get(i + 1))) {
+                    sb.append(" ");
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("something went wrong while writing text", e);
+        }
+    }
+
+    @Override
+    public String getText() {
+        StringBuilder sb = new StringBuilder();
+        writeTextTo(sb);
+
+        return sb.toString();
+    }
 
     // -------------------------- PUBLIC METHODS --------------------------
+
+    @Override
+    public boolean addWord(final WordNode node) {
+        /* check that node belongs to this line, return if it doesn't */
+        if (!accepts(node)) {
+            return false;
+        }
+        addChild(node);
+        return true;
+    }
 
     /**
      * Decides whether or not node node belongs to this line
@@ -61,7 +98,6 @@ public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
      * @return
      */
     public boolean accepts(final WordNode node) {
-
         /* assure the node is located vertically on the current line */
         if (!isOnSameLine(node)) {
             if (Loggers.getCreateTreeLog().isTraceEnabled()) {
@@ -75,7 +111,7 @@ public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
             return true;
         }
 
-        final boolean ret = isWithinVariance(getPosition().getX() + getPosition().getWidth(), node.getPosition().getX(), (int) (node.getWordSpacing() * 1.01));
+        final boolean ret = isWithinVariance(getPosition().getX() + getPosition().getWidth(), node.getPosition().getX(), (int) (node.getStyle().xSize * 1.01));
 
         if (Loggers.getCreateTreeLog().isTraceEnabled()) {
             Loggers.getCreateTreeLog().trace(toString() + ": accepts() " + node + ret + ": after isWithinVariance");
@@ -83,14 +119,15 @@ public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
         return ret;
     }
 
-    @Override
-    public boolean addWord(final WordNode node) {
-        /* check that node belongs to this line, return if it doesn't */
-        if (!accepts(node)) {
-            return false;
-        }
-        addChild(node);
-        return true;
+    /**
+     * checks if the the average height of node falls within current line
+     *
+     * @param node
+     * @return
+     */
+    public boolean isOnSameLine(final AbstractNode node) {
+        double otherMiddleY = node.getPosition().getY() + (node.getPosition().getHeight() / 2);
+        return getPosition().getY() <= otherMiddleY && getPosition().getEndY() >= otherMiddleY;
     }
 
     @Override
@@ -128,30 +165,5 @@ public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
 
     public Style getCurrentStyle() {
         return getChildren().get(getChildren().size() - 1).getStyle();
-    }
-
-    /**
-     * checks if the the average height of node falls within current line
-     *
-     * @param node
-     * @return
-     */
-    public boolean isOnSameLine(final AbstractNode node) {
-        double otherMiddleY = node.getPosition().getY() + (node.getPosition().getHeight() / 2);
-        return getPosition().getY() <= otherMiddleY && (getPosition().getY() + getPosition().getHeight()) >= otherMiddleY;
-    }
-
-    @Override
-    public String getText() {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < getChildren().size(); i++) {
-            final WordNode word = getChildren().get(i);
-            sb.append(word.getText().trim());
-            if (i != getChildren().size() - 1) {
-                sb.append(" ");
-            }
-        }
-
-        return sb.toString();
     }
 }

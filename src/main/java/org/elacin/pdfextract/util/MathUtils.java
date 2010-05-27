@@ -16,10 +16,6 @@
 
 package org.elacin.pdfextract.util;
 
-import java.math.BigDecimal;
-import java.math.MathContext;
-import java.math.RoundingMode;
-
 /**
  * Created by IntelliJ IDEA.
  * User: elacin
@@ -28,19 +24,7 @@ import java.math.RoundingMode;
  * To change this template use File | Settings | File Templates.
  */
 public class MathUtils {
-    //    /**
-    //     * Returns true if num2 is within num ± i
-    //     *
-    //     * @param num1
-    //     * @param num2
-    //     * @param variance
-    //     * @return
-    //     */
-    //    public static boolean isWithinVariance(final double num1, final double num2, final double variance) {
-    //        if (num1 == num2) return true;
-    //
-    //        return (num1 - variance) <= num2 && (num1 + variance) >= num2;
-    //    }
+    // -------------------------- PUBLIC STATIC METHODS --------------------------
 
     /**
      * Returns true if num2 is within num ± i
@@ -56,15 +40,7 @@ public class MathUtils {
         return (num1 - variance) <= num2 && (num1 + variance) >= num2;
     }
 
-    static MathContext mc = new MathContext(6, RoundingMode.CEILING);
-
     public static int round(float num) {
-        //        return (int) num;
-        BigDecimal a = new BigDecimal(num * 100);
-        final BigDecimal bigDecimal = a.round(mc);
-
-        //        return (int) (num * 100f) + 1;
-
-        return bigDecimal.intValue();
+        return (int) (100f * num);
     }
 }

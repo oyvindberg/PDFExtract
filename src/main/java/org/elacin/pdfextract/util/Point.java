@@ -21,7 +21,8 @@ package org.elacin.pdfextract.util;
  * User: elacin
  * Date: May 19, 2010
  * Time: 9:56:04 PM
- * To change this template use File | Settings | File Templates.
+ * <p/>
+ * A mutable point
  */
 public class Point {
     // ------------------------------ FIELDS ------------------------------

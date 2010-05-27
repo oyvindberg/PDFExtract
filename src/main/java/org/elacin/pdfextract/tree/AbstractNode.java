@@ -82,8 +82,6 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
         return null;
     }
 
-    public abstract Rectangle getPosition();
-
     public Set<Role> getRoles() {
         if (roles == null) {
             return null;
@@ -105,6 +103,8 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
         return getPosition().intersectsWith(two.getPosition());
     }
 
+    public abstract Rectangle getPosition();
+
     public void printTree(String filename) {
         PrintStream stream = null;
         try {
@@ -124,15 +124,15 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
         long t1 = System.currentTimeMillis();
         try {
             appendLocalInfo(output, 0);
-            Loggers.getPdfExtractorLog().warn("printTree took " + (System.currentTimeMillis() - t1) + " ms");
+            Loggers.getPdfExtractorLog().info("printTree took " + (System.currentTimeMillis() - t1) + " ms");
         } catch (IOException e) {
             Loggers.getPdfExtractorLog().warn("error while printing tree", e);
         }
     }
 
-    // -------------------------- OTHER METHODS --------------------------
-
     protected abstract void appendLocalInfo(Appendable sb, int indent) throws IOException;
+
+    // -------------------------- OTHER METHODS --------------------------
 
     protected abstract void invalidateThisAndParents();
 }

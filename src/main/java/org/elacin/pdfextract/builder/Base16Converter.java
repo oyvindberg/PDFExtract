@@ -25,8 +25,17 @@ import java.io.UnsupportedEncodingException;
 import java.util.regex.Pattern;
 
 public final class Base16Converter {
+    // ------------------------------ FIELDS ------------------------------
 
     static final Pattern base16Pattern = Pattern.compile("([Xx][0-9a-fA-F]{2})+", Pattern.MULTILINE);
+
+    // -------------------------- PUBLIC STATIC METHODS --------------------------
+
+    public static boolean isBase16Encoded(String s) {
+        return base16Pattern.matcher(s).matches();
+    }
+
+    // -------------------------- STATIC METHODS --------------------------
 
     static String decodeBase16(String encodedInput) {
         /* remove all the 'x's in the string, and pdfextract the bytes from the resulting string */
@@ -60,9 +69,5 @@ public final class Base16Converter {
             }
         }
         return encodedInput;
-    }
-
-    public static boolean isBase16Encoded(String s) {
-        return base16Pattern.matcher(s).matches();
     }
 }

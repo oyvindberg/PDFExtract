@@ -39,10 +39,8 @@ public class RecognizeRoles implements Operation {
     static final Pattern id = Pattern.compile("(?:X\\d{1,2}|\\w{1,2})");
     static final Pattern refWithDotPattern = Pattern.compile("\\s*(" + id + "\\s*\\.\\s*\\d?).*", Pattern.DOTALL | Pattern.MULTILINE);
     static final Pattern numInParenthesisPattern = Pattern.compile("(\\(\\s*" + id + "\\s*\\)).*", Pattern.DOTALL | Pattern.MULTILINE);
-    private DocumentNode root;
     Style breadtext = null;
-
-    // --------------------------- CONSTRUCTORS ---------------------------
+    private DocumentNode root;
 
     // ------------------------ INTERFACE METHODS ------------------------
 
@@ -50,7 +48,6 @@ public class RecognizeRoles implements Operation {
     // --------------------- Interface Operation ---------------------
 
     public void doOperation(final DocumentNode root) {
-
         if (breadtext == null) {
             Loggers.getPdfExtractorLog().error("provide breadtext here");
             return;

@@ -48,11 +48,11 @@ public class Loggers {
         return pdfExtractorLog;
     }
 
-    public static Logger getWordBuilderLog() {
-        return wordBuilderLog;
-    }
-
     public static Logger getPdfboxLog() {
         return pdfboxLog;
+    }
+
+    public static Logger getWordBuilderLog() {
+        return wordBuilderLog;
     }
 }

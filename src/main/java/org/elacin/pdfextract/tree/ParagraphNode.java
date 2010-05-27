@@ -67,9 +67,44 @@ public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
         return false;
     }
 
+    public boolean isNewLineInThisParagraph(final AbstractNode node) {
+        LineNode lastLineNode = getChildren().get(getChildren().size() - 1);
+
+        /* if the last line still has no text, accept this */
+        if (lastLineNode.getChildren().isEmpty()) {
+            return true;
+        }
+
+        /* Use the size of the preceding and new text to determine if the two lines are
+             logically part of the same paragraph. Use the smaller of the two values.
+         */
+        //TODO: style!
+        int ySize = Math.min(lastLineNode.getCurrentStyle().ySize, node.getStyle().ySize);
+
+        if (isWithinVariance(getPosition().getY() + getPosition().getHeight(), node.getPosition().getY(), ySize)) {
+            int widthOfSpace = lastLineNode.getCurrentStyle().widthOfSpace;
+
+            /* if the new node STARTS at more or less the same X position, accept it */
+            if (isWithinVariance(getPosition().getX(), node.getPosition().getX(), widthOfSpace)) {
+                return true;
+            }
+
+            /* if the new node ENDS at more or less the same X position, also accept it */
+            if (isWithinVariance(getPosition().getX() + getPosition().getWidth(), node.getPosition().getX() + node.getPosition().getWidth(), widthOfSpace)) {
+                return true;
+            }
+
+            /* also accept it if its X value IS CONTAINED between current position's lower X and (higher X + widthOfSpace)*/
+            if (getPosition().getX() < node.getPosition().getX() &&
+                    getPosition().getX() + getPosition().getWidth() + widthOfSpace > node.getPosition().getX()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public void combineChildren() {
-
         /* combine all contained line nodes which are clearly on the same line.
          *  using array to avoid concurrent modification of iterator */
         LineNode[] lineNodes = getChildren().toArray(new LineNode[getChildren().size()]);
@@ -129,43 +164,4 @@ public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
     public Comparator<LineNode> getChildComparator() {
         return new StandardNodeComparator();
     }
-
-    public boolean isNewLineInThisParagraph(final AbstractNode node) {
-
-        LineNode lastLineNode = getChildren().get(getChildren().size() - 1);
-
-        /* if the last line still has no text, accept this */
-        if (lastLineNode.getChildren().isEmpty()) {
-            return true;
-        }
-
-        /* Use the size of the preceding and new text to determine if the two lines are
-             logically part of the same paragraph. Use the smaller of the two values.
-         */
-        //TODO: style!
-        int ySize = Math.min(lastLineNode.getCurrentStyle().ySize, node.getStyle().ySize);
-
-        if (isWithinVariance(getPosition().getY() + getPosition().getHeight(), node.getPosition().getY(), ySize)) {
-
-            int widthOfSpace = lastLineNode.getCurrentStyle().widthOfSpace;
-
-            /* if the new node STARTS at more or less the same X position, accept it */
-            if (isWithinVariance(getPosition().getX(), node.getPosition().getX(), widthOfSpace)) {
-                return true;
-            }
-
-            /* if the new node ENDS at more or less the same X position, also accept it */
-            if (isWithinVariance(getPosition().getX() + getPosition().getWidth(), node.getPosition().getX() + node.getPosition().getWidth(), widthOfSpace)) {
-                return true;
-            }
-
-            /* also accept it if its X value IS CONTAINED between current position's lower X and (higher X + widthOfSpace)*/
-            if (getPosition().getX() < node.getPosition().getX() &&
-                    getPosition().getX() + getPosition().getWidth() + widthOfSpace > node.getPosition().getX()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
 }

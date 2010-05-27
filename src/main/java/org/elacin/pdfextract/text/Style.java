@@ -46,7 +46,6 @@ public class Style implements Serializable {
 
     // ------------------------ CANONICAL METHODS ------------------------
 
-
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;

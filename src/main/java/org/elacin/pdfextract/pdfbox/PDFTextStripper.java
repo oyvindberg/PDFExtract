@@ -1,17 +1,18 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ *      http://www.apache.org/licenses/LICENSE-2.0
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package org.elacin.pdfextract.pdfbox;
@@ -69,7 +70,7 @@ public class PDFTextStripper extends PDFStreamEngine {
      * <p/>
      * Most PDFs won't have any beads, so charactersByArticle will contain a single entry.
      */
-    protected Vector<List<TextPosition>> charactersByArticle = new Vector<List<TextPosition>>();
+    protected Vector<List<ETextPosition>> charactersByArticle = new Vector<List<ETextPosition>>();
 
     /**
      * The platforms lineseparator.
@@ -131,35 +132,6 @@ public class PDFTextStripper extends PDFStreamEngine {
         normalize = new TextNormalize(this.outputEncoding);
     }
 
-    /**
-     * Instantiate a new PDFTextStripper object.  Loading all of the operator mappings
-     * from the properties object that is passed in.  Does not convert the text
-     * to more encoding-specific output.
-     *
-     * @param props The properties containing the mapping of operators to PDFOperator
-     *              classes.
-     * @throws IOException If there is an error reading the properties.
-     */
-    public PDFTextStripper(Properties props) throws IOException {
-        super(props);
-        this.outputEncoding = null;
-        normalize = new TextNormalize(this.outputEncoding);
-    }
-
-    /**
-     * Instantiate a new PDFTextStripper object. This object will load properties from
-     * Resources/PDFTextStripper.properties and will apply encoding-specific
-     * conversions to the output text.
-     *
-     * @param encoding The encoding that the output will be written in.
-     * @throws IOException If there is an error reading the properties.
-     */
-    public PDFTextStripper(String encoding) throws IOException {
-        super(ResourceLoader.loadProperties("Resources/PDFTextStripper.properties", true));
-        this.outputEncoding = encoding;
-        normalize = new TextNormalize(this.outputEncoding);
-    }
-
     // --------------------- GETTER / SETTER METHODS ---------------------
 
     /**
@@ -192,7 +164,7 @@ public class PDFTextStripper extends PDFStreamEngine {
      *
      * @return A double List of TextPositions for all text strings on the page.
      */
-    protected List<List<TextPosition>> getCharactersByArticle() {
+    protected List<List<ETextPosition>> getCharactersByArticle() {
         return charactersByArticle;
     }
 
@@ -425,7 +397,7 @@ public class PDFTextStripper extends PDFStreamEngine {
      *
      * @param text The text to process.
      */
-    protected void processTextPosition(TextPosition text) {
+    protected void processTextPosition(ETextPosition text) {
         boolean showCharacter = true;
         if (suppressDuplicateOverlappingText) {
             showCharacter = false;
@@ -513,7 +485,7 @@ public class PDFTextStripper extends PDFStreamEngine {
                 articleDivisionIndex = charactersByArticle.size() - 1;
             }
 
-            List<TextPosition> textList = charactersByArticle.get(articleDivisionIndex);
+            List<ETextPosition> textList = charactersByArticle.get(articleDivisionIndex);
 
             /* In the wild, some PDF encoded documents put diacritics (accents on
              * top of characters) into a separate Tj element.  When displaying them
@@ -562,54 +534,6 @@ public class PDFTextStripper extends PDFStreamEngine {
     }
 
     /**
-     * @param doc The document to extract the text from.
-     * @return The document text.
-     * @throws IOException If there is an error extracting the text.
-     * @see PDFTextStripper#getText(PDDocument)
-     * @deprecated
-     */
-    public String getText(COSDocument doc) throws IOException {
-        return getText(new PDDocument(doc));
-    }
-
-    /**
-     * This will tell if the text stripper should separate by beads.
-     *
-     * @return If the text will be grouped by beads.
-     */
-    public boolean shouldSeparateByBeads() {
-        return shouldSeparateByBeads;
-    }
-
-    /**
-     * This will tell if the text stripper should sort the text tokens
-     * before writing to the stream.
-     *
-     * @return true If the text tokens will be sorted before being written.
-     */
-    public boolean shouldSortByPosition() {
-        return sortByPosition;
-    }
-
-    /**
-     * @return Returns the suppressDuplicateOverlappingText.
-     */
-    public boolean shouldSuppressDuplicateOverlappingText() {
-        return suppressDuplicateOverlappingText;
-    }
-
-    /**
-     * @param doc          The document to extract the text.
-     * @param outputStream The stream to write the text to.
-     * @throws IOException If there is an error extracting the text.
-     * @see PDFTextStripper#writeText(PDDocument, Writer)
-     * @deprecated
-     */
-    public void writeText(COSDocument doc, Writer outputStream) throws IOException {
-        writeText(new PDDocument(doc), outputStream);
-    }
-
-    /**
      * This will take a PDDocument and write the text of that document to the print writer.
      *
      * @param doc          The document to get the data from.
@@ -644,95 +568,15 @@ public class PDFTextStripper extends PDFStreamEngine {
         endDocument(document);
     }
 
-    // -------------------------- OTHER METHODS --------------------------
-
-    private int getPageNumber(PDOutlineItem bookmark, List<PDPage> allPages) throws IOException {
-        int pageNumber = -1;
-        PDPage page = bookmark.findDestinationPage(document);
-        if (page != null) {
-            pageNumber = allPages.indexOf(page) + 1;//use one based indexing
-        }
-        return pageNumber;
-    }
-
-    private boolean overlap(float y1, float height1, float y2, float height2) {
-        return within(y1, y2, .1f) || (y2 <= y1 && y2 >= y1 - height1) || (y1 <= y2 && y1 >= y2 - height2);
-    }
-
     /**
-     * This will determine of two floating point numbers are within a specified variance.
-     *
-     * @param first    The first number to compare to.
-     * @param second   The second number to compare to.
-     * @param variance The allowed variance.
-     */
-    private boolean within(float first, float second, float variance) {
-        return second < first + variance && second > first - variance;
-    }
-
-    /**
-     * End an article.  Default implementation is to do nothing.  Subclasses
-     * may provide additional information.
-     *
-     * @throws IOException If there is any error writing to the stream.
-     */
-    protected void endArticle() throws IOException {
-        //default is to do nothing
-    }
-
-    /**
-     * This method is available for subclasses of this class.  It will be called after processing
-     * of the document finishes.
+     * This method is available for subclasses of this class.  It will be called before processing
+     * of the document start.
      *
      * @param pdf The PDF document that is being processed.
      * @throws IOException If an IO error occurs.
      */
-    protected void endDocument(PDDocument pdf) throws IOException {
+    protected void startDocument(PDDocument pdf) throws IOException {
         // no default implementation, but available for subclasses
-    }
-
-    /**
-     * End a page.  Default implementation is to do nothing.  Subclasses
-     * may provide additional information.
-     *
-     * @param page The page we are about to process.
-     * @throws IOException If there is any error writing to the stream.
-     */
-    protected void endPage(PDPage page) throws IOException {
-        //default is to do nothing
-    }
-
-    /**
-     * This will process the contents of a page.
-     *
-     * @param page    The page to process.
-     * @param content The contents of the page.
-     * @throws IOException If there is an error processing the page.
-     */
-    protected void processPage(PDPage page, COSStream content) throws IOException {
-        if (currentPageNo >= startPage && currentPageNo <= endPage && (startBookmarkPageNumber == -1 || currentPageNo >= startBookmarkPageNumber) &&
-                (endBookmarkPageNumber == -1 || currentPageNo <= endBookmarkPageNumber)) {
-            startPage(page);
-            pageArticles = page.getThreadBeads();
-            int numberOfArticleSections = 1 + pageArticles.size() * 2;
-            if (!shouldSeparateByBeads) {
-                numberOfArticleSections = 1;
-            }
-            int originalSize = charactersByArticle.size();
-            charactersByArticle.setSize(numberOfArticleSections);
-            for (int i = 0; i < numberOfArticleSections; i++) {
-                if (numberOfArticleSections < originalSize) {
-                    charactersByArticle.get(i).clear();
-                } else {
-                    charactersByArticle.set(i, new ArrayList<TextPosition>());
-                }
-            }
-
-            characterListMapping.clear();
-            processStream(page, page.findResources(), content);
-            writePage();
-            endPage(page);
-        }
     }
 
     /**
@@ -770,41 +614,46 @@ public class PDFTextStripper extends PDFStreamEngine {
         }
     }
 
-    /**
-     * Start a new article, which is typically defined as a column
-     * on a single page (also referred to as a bead).  This assumes
-     * that the primary direction of text is left to right.
-     * Default implementation is to do nothing.  Subclasses
-     * may provide additional information.
-     *
-     * @throws IOException If there is any error writing to the stream.
-     */
-    protected void startArticle() throws IOException {
-        startArticle(true);
+    private int getPageNumber(PDOutlineItem bookmark, List<PDPage> allPages) throws IOException {
+        int pageNumber = -1;
+        PDPage page = bookmark.findDestinationPage(document);
+        if (page != null) {
+            pageNumber = allPages.indexOf(page) + 1;//use one based indexing
+        }
+        return pageNumber;
     }
 
     /**
-     * Start a new article, which is typically defined as a column
-     * on a single page (also referred to as a bead).
-     * Default implementation is to do nothing.  Subclasses
-     * may provide additional information.
+     * This will process the contents of a page.
      *
-     * @param isltr true if primary direction of text is left to right.
-     * @throws IOException If there is any error writing to the stream.
+     * @param page    The page to process.
+     * @param content The contents of the page.
+     * @throws IOException If there is an error processing the page.
      */
-    protected void startArticle(boolean isltr) throws IOException {
-        //default is to do nothing.
-    }
+    protected void processPage(PDPage page, COSStream content) throws IOException {
+        if (currentPageNo >= startPage && currentPageNo <= endPage && (startBookmarkPageNumber == -1 || currentPageNo >= startBookmarkPageNumber) &&
+                (endBookmarkPageNumber == -1 || currentPageNo <= endBookmarkPageNumber)) {
+            startPage(page);
+            pageArticles = page.getThreadBeads();
+            int numberOfArticleSections = 1 + pageArticles.size() * 2;
+            if (!shouldSeparateByBeads) {
+                numberOfArticleSections = 1;
+            }
+            int originalSize = charactersByArticle.size();
+            charactersByArticle.setSize(numberOfArticleSections);
+            for (int i = 0; i < numberOfArticleSections; i++) {
+                if (numberOfArticleSections < originalSize) {
+                    charactersByArticle.get(i).clear();
+                } else {
+                    charactersByArticle.set(i, new ArrayList<ETextPosition>());
+                }
+            }
 
-    /**
-     * This method is available for subclasses of this class.  It will be called before processing
-     * of the document start.
-     *
-     * @param pdf The PDF document that is being processed.
-     * @throws IOException If an IO error occurs.
-     */
-    protected void startDocument(PDDocument pdf) throws IOException {
-        // no default implementation, but available for subclasses
+            characterListMapping.clear();
+            processStream(page, page.findResources(), content);
+            writePage();
+            endPage(page);
+        }
     }
 
     /**
@@ -816,25 +665,6 @@ public class PDFTextStripper extends PDFStreamEngine {
      */
     protected void startPage(PDPage page) throws IOException {
         //default is to do nothing.
-    }
-
-    /**
-     * Write the string in TextPosition to the output stream.
-     *
-     * @param text The text to write to the stream.
-     * @throws IOException If there is an error when writing the text.
-     */
-    protected void writeCharacters(TextPosition text) throws IOException {
-        output.write(text.getCharacter());
-    }
-
-    /**
-     * Write the line separator value to the output stream.
-     *
-     * @throws IOException If there is a problem writing out the lineseparator to the document.
-     */
-    protected void writeLineSeparator() throws IOException {
-        output.write(getLineSeparator());
     }
 
     /**
@@ -853,7 +683,7 @@ public class PDFTextStripper extends PDFStreamEngine {
         float maxHeightForLine = -1;
         TextPosition lastPosition = null;
 
-        for (List<TextPosition> textList : charactersByArticle) {
+        for (List<ETextPosition> textList : charactersByArticle) {
             if (sortByPosition) {
                 TextPositionComparator comparator = new TextPositionComparator();
                 Collections.sort(textList, comparator);
@@ -877,7 +707,7 @@ public class PDFTextStripper extends PDFStreamEngine {
             int ltrCnt = 0;
             int rtlCnt = 0;
 
-            Iterator<TextPosition> textIter = textList.iterator();
+            Iterator<ETextPosition> textIter = textList.iterator();
 
             while (textIter.hasNext()) {
                 TextPosition position = textIter.next();
@@ -1076,6 +906,63 @@ public class PDFTextStripper extends PDFStreamEngine {
     }
 
     /**
+     * Start a new article, which is typically defined as a column
+     * on a single page (also referred to as a bead).
+     * Default implementation is to do nothing.  Subclasses
+     * may provide additional information.
+     *
+     * @param isltr true if primary direction of text is left to right.
+     * @throws IOException If there is any error writing to the stream.
+     */
+    protected void startArticle(boolean isltr) throws IOException {
+        //default is to do nothing.
+    }
+
+    private boolean overlap(float y1, float height1, float y2, float height2) {
+        return within(y1, y2, .1f) || (y2 <= y1 && y2 >= y1 - height1) || (y1 <= y2 && y1 >= y2 - height2);
+    }
+
+    /**
+     * This will determine of two floating point numbers are within a specified variance.
+     *
+     * @param first    The first number to compare to.
+     * @param second   The second number to compare to.
+     * @param variance The allowed variance.
+     */
+    private boolean within(float first, float second, float variance) {
+        return second < first + variance && second > first - variance;
+    }
+
+    /**
+     * Write the line separator value to the output stream.
+     *
+     * @throws IOException If there is a problem writing out the lineseparator to the document.
+     */
+    protected void writeLineSeparator() throws IOException {
+        output.write(getLineSeparator());
+    }
+
+    /**
+     * Write a Java string to the output stream.
+     *
+     * @param text The text to write to the stream.
+     * @throws IOException If there is an error when writing the text.
+     */
+    protected void writeString(String text) throws IOException {
+        output.write(text);
+    }
+
+    /**
+     * End an article.  Default implementation is to do nothing.  Subclasses
+     * may provide additional information.
+     *
+     * @throws IOException If there is any error writing to the stream.
+     */
+    protected void endArticle() throws IOException {
+        //default is to do nothing
+    }
+
+    /**
      * Write the page separator value to the output stream.
      *
      * @throws IOException If there is a problem writing out the pageseparator to the document.
@@ -1089,13 +976,98 @@ public class PDFTextStripper extends PDFStreamEngine {
     }
 
     /**
-     * Write a Java string to the output stream.
+     * End a page.  Default implementation is to do nothing.  Subclasses
+     * may provide additional information.
+     *
+     * @param page The page we are about to process.
+     * @throws IOException If there is any error writing to the stream.
+     */
+    protected void endPage(PDPage page) throws IOException {
+        //default is to do nothing
+    }
+
+    /**
+     * This method is available for subclasses of this class.  It will be called after processing
+     * of the document finishes.
+     *
+     * @param pdf The PDF document that is being processed.
+     * @throws IOException If an IO error occurs.
+     */
+    protected void endDocument(PDDocument pdf) throws IOException {
+        // no default implementation, but available for subclasses
+    }
+
+    /**
+     * @param doc The document to extract the text from.
+     * @return The document text.
+     * @throws IOException If there is an error extracting the text.
+     * @see PDFTextStripper#getText(PDDocument)
+     * @deprecated
+     */
+    public String getText(COSDocument doc) throws IOException {
+        return getText(new PDDocument(doc));
+    }
+
+    /**
+     * This will tell if the text stripper should separate by beads.
+     *
+     * @return If the text will be grouped by beads.
+     */
+    public boolean shouldSeparateByBeads() {
+        return shouldSeparateByBeads;
+    }
+
+    /**
+     * This will tell if the text stripper should sort the text tokens
+     * before writing to the stream.
+     *
+     * @return true If the text tokens will be sorted before being written.
+     */
+    public boolean shouldSortByPosition() {
+        return sortByPosition;
+    }
+
+    /**
+     * @return Returns the suppressDuplicateOverlappingText.
+     */
+    public boolean shouldSuppressDuplicateOverlappingText() {
+        return suppressDuplicateOverlappingText;
+    }
+
+    /**
+     * @param doc          The document to extract the text.
+     * @param outputStream The stream to write the text to.
+     * @throws IOException If there is an error extracting the text.
+     * @see PDFTextStripper#writeText(PDDocument, Writer)
+     * @deprecated
+     */
+    public void writeText(COSDocument doc, Writer outputStream) throws IOException {
+        writeText(new PDDocument(doc), outputStream);
+    }
+
+    // -------------------------- OTHER METHODS --------------------------
+
+    /**
+     * Start a new article, which is typically defined as a column
+     * on a single page (also referred to as a bead).  This assumes
+     * that the primary direction of text is left to right.
+     * Default implementation is to do nothing.  Subclasses
+     * may provide additional information.
+     *
+     * @throws IOException If there is any error writing to the stream.
+     */
+    protected void startArticle() throws IOException {
+        startArticle(true);
+    }
+
+    /**
+     * Write the string in TextPosition to the output stream.
      *
      * @param text The text to write to the stream.
      * @throws IOException If there is an error when writing the text.
      */
-    protected void writeString(String text) throws IOException {
-        output.write(text);
+    protected void writeCharacters(TextPosition text) throws IOException {
+        output.write(text.getCharacter());
     }
 
     /**

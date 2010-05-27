@@ -18,9 +18,9 @@ package org.elacin.pdfextract;
 
 import org.apache.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.builder.WordBuilder;
 import org.elacin.pdfextract.operation.RecognizeRoles;
+import org.elacin.pdfextract.pdfbox.ETextPosition;
 import org.elacin.pdfextract.pdfbox.PDFTextStripper;
 import org.elacin.pdfextract.tree.DocumentNode;
 
@@ -33,7 +33,6 @@ public class Pdf2Xml extends PDFTextStripper {
     private DocumentNode root;
     private WordBuilder newBuilder;
     private final Logger log = Loggers.getPdfExtractorLog();
-
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -51,30 +50,22 @@ public class Pdf2Xml extends PDFTextStripper {
 
     @Override
     protected void endDocument(final PDDocument pdf) throws IOException {
-        long t0 = System.currentTimeMillis();
-
         root.combineChildren();
         new RecognizeRoles().doOperation(root);
-
-        System.out.println("Pdf2Xml.endDocument took " + (System.currentTimeMillis() - t0) + " ms");
     }
 
     @Override
     protected void startDocument(final PDDocument pdf) throws IOException {
         root = new DocumentNode();
         newBuilder = new WordBuilder();
-
     }
 
     @Override
     protected void writePage() throws IOException {
-
-        for (final List<TextPosition> textPositions : charactersByArticle) {
+        for (final List<ETextPosition> textPositions : charactersByArticle) {
             if (!textPositions.isEmpty()) {
                 newBuilder.fillPage(root, getCurrentPageNo(), textPositions);
             }
         }
-
     }
-
 }
