@@ -290,12 +290,11 @@
         </plugins>
     </reporting>
 
-    <!--scm:git:https://github.com/path_to_repository-->
-
     <scm>
         <connection>scm:git:git://github.com/elacin/PDFExtract</connection>
         <developerConnection>scm:git:git://github.com/elacin/PDFExtract</developerConnection>
         <url>http://github.com/elacin/PDFExtract/blob/master/</url>
+
     </scm>
 
 </project>
