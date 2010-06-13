@@ -27,6 +27,7 @@ import org.elacin.pdfextract.tree.WordNode;
 import org.elacin.pdfextract.util.MathUtils;
 import org.elacin.pdfextract.util.Point;
 import org.elacin.pdfextract.util.Rectangle;
+import org.elacin.pdfextract.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -87,6 +88,13 @@ public class WordBuilder {
         Collections.sort(textToBeAdded, new TextPositionComparator());
 
         for (ETextPosition textPosition : textToBeAdded) {
+            if (log.isTraceEnabled()) {
+                log.trace(StringUtils.getTextPositionString(textPosition));
+            }
+
+            if (textPosition.getX() == 212.31992) {
+                System.out.println("asd");
+            }
             /* If this not the first text on a line and also not on the same Y coordinate
                 as the existing, complete this line */
 
@@ -186,7 +194,7 @@ public class WordBuilder {
      * @param textPositions
      * @return
      */
-    List<Text> getTextsFromTextPositions(DocumentStyles sf, List<TextPosition> textPositions) {
+    static List<Text> getTextsFromTextPositions(DocumentStyles sf, List<TextPosition> textPositions) {
         List<Text> ret = new ArrayList<Text>(textPositions.size() * 2);
 
         Point lastWordBoundary = new Point(0, 0);
@@ -204,7 +212,7 @@ public class WordBuilder {
 
             for (int j = 0; j < textPosition.getCharacter().length(); j++) {
                 /* if we found a space */
-                if (Character.isWhitespace(textPosition.getCharacter().charAt(j))) {
+                if (Character.isSpaceChar(textPosition.getCharacter().charAt(j))) {
                     if (contents.length() != 0) {
                         /* else just output a new text */
 
@@ -269,32 +277,38 @@ public class WordBuilder {
         int[] distances = new int[texts.size() - 1];
 
         int distanceCount = 0;
+        float fontSizeSum = 0;
         for (int i = 0; i < texts.size(); i++) {
             Text text = texts.get(i);
             /* skip the first word fragment, and only include this distance if it is not too big */
             if (i != 0 && text.distanceToPreceeding < text.style.xSize * 6) {
-                distances[distanceCount] = text.distanceToPreceeding;
+                distances[distanceCount] = Math.max(0, text.distanceToPreceeding);
                 distanceCount++;
             }
+            fontSizeSum += text.style.xSize;
         }
 
         /* spit out some debug information */
         if (log.isDebugEnabled()) {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder textWithDistances = new StringBuilder();
+            StringBuilder textOnly = new StringBuilder();
 
             for (int i = 0; i < texts.size(); i++) {
                 Text text = texts.get(i);
                 if (i != 0) {
-                    sb.append(">").append(text.distanceToPreceeding).append(">");
+                    textWithDistances.append("> ").append(text.distanceToPreceeding).append(">");
                 }
-                sb.append(text.content);
+                textWithDistances.append(text.content);
+                textOnly.append(text.content);
             }
             log.debug("spacing: -----------------");
-            log.debug("spacing: content: " + sb);
-            log.debug("spacing: unsorted: " + distances);
+            log.debug("spacing: content: " + textWithDistances);
+            log.debug("spacing: content: " + textOnly);
+            log.debug("spacing: unsorted: " + Arrays.toString(distances));
         }
 
-        int charSpacing = calculateCharspacingForDistances(distances, distanceCount);
+        final float fontSizeAverage = (fontSizeSum / texts.size()) / 100;
+        int charSpacing = calculateCharspacingForDistances(distances, distanceCount, fontSizeAverage);
 
         /* and set the values in all texts */
         for (Text text : texts) {
@@ -302,8 +316,20 @@ public class WordBuilder {
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("spacing: sorted: " + distances);
+            log.debug("spacing: sorted: " + Arrays.toString(distances));
             log.debug("spacing: charSpacing=" + charSpacing);
+
+            StringBuilder out = new StringBuilder();
+
+            for (int i = 0; i < texts.size(); i++) {
+                Text text = texts.get(i);
+                if (i != 0 && text.distanceToPreceeding > charSpacing) {
+                    out.append(" ");
+                }
+                out.append(text.content);
+            }
+            log.debug("spacing: output: " + out.toString());
+
         }
     }
 
@@ -319,22 +345,24 @@ public class WordBuilder {
      *
      * @param distances
      * @param distanceCount
+     * @param averageFontSize
      * @return
      */
-    int calculateCharspacingForDistances(final int[] distances, final int distanceCount) {
+    static int calculateCharspacingForDistances(final int[] distances, final int distanceCount, final float averageFontSize) {
         float sum = 0f;
         for (int i = 0; i < distanceCount; i++) {
             sum += distances[i];
         }
-        float average = sum / distanceCount;
+        float averageDistance = sum / distanceCount;
 
-        int charSpacing = 0;
+        log.debug("averageFontSize = " + averageFontSize + ", averageDistance = " + averageDistance);
+        int charSpacing = Integer.MIN_VALUE;
         Arrays.sort(distances);
 
         if (distanceCount == 0) {
             charSpacing = 0;
 
-        } else if (MathUtils.isWithinPercent(distances[0], distances[distanceCount - 1], 2)) {
+        } else if (MathUtils.isWithinPercent(distances[0], distances[distanceCount - 1], 5)) {
             charSpacing = distances[distanceCount - 1];
             log.debug("spacing: all distances equal, setting as character space");
 
@@ -343,41 +371,61 @@ public class WordBuilder {
 
             /* iterate backwards - do this because char spacing seems to vary a lot more than does word spacing */
             int biggestScore = Integer.MIN_VALUE;
-            int lastDistance = distances[distanceCount - 1];
+            int lastDistance = distances[distanceCount - 1] + 1;
+
+            //            boolean spacingFound = false;
 
             for (int i = distanceCount - 1; i >= 0; i--) {
                 int distance = distances[i];
 
-                if (distance < average) {
+                if (distance == charSpacing || distance == lastDistance) {
+                    continue;
+                }
+
+                if (distance < Math.max(averageFontSize * 3, averageDistance)) {
                     int score = (int) ((lastDistance - distance + minDistance) / (Math.max(1, distance + minDistance)) + distance * 0.5);
+
+                    if (distance > 0f) {
+                        /* then weigh for how close distance is to the current fonts X size */
+                        score *= Math.abs(Math.log(distance) / Math.max(1, Math.log(averageFontSize)) - 1) * 0.4 + 1;
+                        score = score * i / distanceCount;
+                    } else {
+                        score *= 0.5;
+                    }
 
                     if (score > biggestScore) {
                         biggestScore = score;
                         charSpacing = distance;
                         log.debug("spacing: " + charSpacing + " is now the most probable. score: " + score);
+                    } else {
+                        log.debug("spacing: " + distance + " got score " + score);
                     }
                 }
                 lastDistance = distance;
             }
+
         }
 
-        if (charSpacing < 0) {
-            log.debug("spacing: got suspiciously low charSpacing " + charSpacing + " setting to 3");
-            charSpacing = 3;
+        final int expectedMinimum = (int) Math.max(3, averageFontSize / 2);
+        if (charSpacing < expectedMinimum) {
+            log.debug("spacing: got suspiciously low charSpacing " + charSpacing + " setting to " + expectedMinimum);
+            charSpacing = expectedMinimum;
         }
 
         /* correct for rounding */
         charSpacing += 1;
+
         return charSpacing;
     }
+
 
     // -------------------------- INNER CLASSES --------------------------
 
     private static class Text {
         final int x, y, width, height, distanceToPreceeding;
         int charSpacing;
-        String content;
-        Style style;
+        final String content;
+        final Style style;
 
         Text(final float distanceToPreceeding, final float height, final Style style, final String content, final float width, final float x, final float y) {
             this.distanceToPreceeding = round(distanceToPreceeding);
@@ -411,7 +459,7 @@ public class WordBuilder {
      * This class is used while combining Text objects into Words, as a simple way of
      * grouping all state together.
      */
-    private class WordState {
+    private static class WordState {
         private final char[] chars = new char[512];
         private int len = 0;
         private int maxHeight = 0;
