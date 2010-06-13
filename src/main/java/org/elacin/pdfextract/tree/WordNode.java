@@ -16,8 +16,12 @@
 
 package org.elacin.pdfextract.tree;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamConverter;
 import org.elacin.pdfextract.text.Style;
 import org.elacin.pdfextract.util.Rectangle;
+import org.elacin.pdfextract.util.xml.RectangleConverter;
 
 import java.io.IOException;
 
@@ -35,13 +39,19 @@ import java.io.IOException;
  * <p/>
  * Note that all whitespace characters will have been stripped from the text.
  */
+@XStreamAlias("word")
 public class WordNode extends AbstractNode<LineNode> {
     // ------------------------------ FIELDS ------------------------------
-
+    @XStreamAsAttribute
     public final String text;
+    @XStreamAsAttribute
+    @XStreamConverter(RectangleConverter.class)
     protected final Rectangle position;
+    @XStreamAsAttribute
     protected final Style style;
+    @XStreamAsAttribute
     private final int pageNum;
+    @XStreamAsAttribute
     private final int charSpacing;
 
     // --------------------------- CONSTRUCTORS ---------------------------

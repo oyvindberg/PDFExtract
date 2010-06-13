@@ -16,6 +16,8 @@
 
 package org.elacin.pdfextract.tree;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.builder.DocumentStyles;
 
@@ -30,15 +32,17 @@ import java.util.List;
  * Time: 12:17:02 AM
  * To change this template use File | Settings | File Templates.
  */
+@XStreamAlias("document")
 public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
     // ------------------------------ FIELDS ------------------------------
 
+    @XStreamOmitField
     public final List<WordNode> words = new ArrayList<WordNode>();
 
     /**
      * this contains all the different styles used in the document
      */
-    protected DocumentStyles styles = new DocumentStyles();
+    protected final DocumentStyles styles = new DocumentStyles();
 
     // --------------------------- CONSTRUCTORS ---------------------------
 

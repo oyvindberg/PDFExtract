@@ -16,6 +16,9 @@
 
 package org.elacin.pdfextract.tree;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
+import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
+import com.thoughtworks.xstream.annotations.XStreamImplicit;
 import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.text.Role;
 import org.elacin.pdfextract.text.Style;
@@ -36,9 +39,12 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
     // ------------------------------ FIELDS ------------------------------
 
     /* a cache of group position */
-    protected transient Rectangle posCache;
+    @XStreamAlias("pos")
+    @XStreamAsAttribute
+    protected Rectangle posCache;
 
     /* children nodes */
+    @XStreamImplicit()
     private final List<ChildType> children = new ArrayList<ChildType>();
 
     // --------------------------- CONSTRUCTORS ---------------------------
@@ -174,6 +180,8 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
      * TODO: add page number here
      */
     protected class StandardNodeComparator implements Comparator<ChildType>, Serializable {
+        private static final long serialVersionUID = 3903290320365277004L;
+
         public int compare(final ChildType o1, final ChildType o2) {
             if (o1.getPosition().getY() < o2.getPosition().getY()) return -1;
             else if (o1.getPosition().getY() > o2.getPosition().getY()) return 1;

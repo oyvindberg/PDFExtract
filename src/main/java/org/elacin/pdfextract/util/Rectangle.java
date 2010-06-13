@@ -16,6 +16,9 @@
 
 package org.elacin.pdfextract.util;
 
+import com.thoughtworks.xstream.annotations.XStreamConverter;
+import org.elacin.pdfextract.util.xml.RectangleConverter;
+
 import java.io.Serializable;
 
 /**
@@ -28,6 +31,7 @@ import java.io.Serializable;
  * from javas Rectangle2D. The problem with just using that class
  * was that is isnt available in an integer version.
  */
+@XStreamConverter(RectangleConverter.class)
 public class Rectangle implements Serializable {
     // ------------------------------ FIELDS ------------------------------
 

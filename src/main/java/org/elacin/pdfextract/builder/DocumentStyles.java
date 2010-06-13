@@ -16,9 +16,12 @@
 
 package org.elacin.pdfextract.builder;
 
+import com.thoughtworks.xstream.annotations.XStreamImplicit;
+import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.text.Style;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,7 +40,11 @@ import static org.elacin.pdfextract.util.MathUtils.round;
 public class DocumentStyles {
     // ------------------------------ FIELDS ------------------------------
 
-    Map<Float, Style> styles = new HashMap<Float, Style>();
+    @XStreamOmitField
+    final Map<Float, Style> styles = new HashMap<Float, Style>();
+
+    @XStreamImplicit(itemFieldName = "style")
+    final Collection<Style> stylesCollection = styles.values();
 
     // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -64,7 +71,7 @@ public class DocumentStyles {
             final String baseFontName = position.getFont().getBaseFont() == null ? "null" : position.getFont().getBaseFont();
             final String fontname = baseFontName + " (" + position.getFont().getSubType() + ")";
 
-            existing = getStyle(realFontSizeX, realFontSizeY, position.getWidthOfSpace(), fontname, position.getWordSpacing());
+            existing = getStyle(realFontSizeX, realFontSizeY, position.getWidthOfSpace(), fontname);
             styles.put(result, existing);
         }
 
@@ -72,14 +79,7 @@ public class DocumentStyles {
         return existing;
     }
 
-    private Style getStyle(float xSize, float ySize, final float widthOfSpace, String font, float wordSpacing) {
-        Style style = new Style(font, round(xSize), round(ySize), round(widthOfSpace));
-        Style existing = styles.get(style);
-
-        if (existing != null) {
-            return existing;
-        }
-
-        return style;
+    private Style getStyle(float xSize, float ySize, final float widthOfSpace, String font) {
+        return new Style(font, round(xSize), round(ySize), round(widthOfSpace));
     }
 }

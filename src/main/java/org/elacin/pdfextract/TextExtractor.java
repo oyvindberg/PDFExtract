@@ -16,6 +16,7 @@
 
 package org.elacin.pdfextract;
 
+import com.thoughtworks.xstream.XStream;
 import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -24,6 +25,7 @@ import org.elacin.pdfextract.util.FileWalker;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -91,7 +93,7 @@ public class TextExtractor {
             }
         }
 
-        List<Long> timings = new ArrayList<Long>();
+        Collection<Long> timings = new ArrayList<Long>();
         for (File pdfFile : pdfFiles) {
             try {
                 /* open outStream */
@@ -106,6 +108,15 @@ public class TextExtractor {
                 }
 
                 final PrintStream outStream = openOutputStream(output);
+
+                XStream xstream = new XStream();
+                xstream.autodetectAnnotations(true);
+                //                xstream.registerConverter(new RectangleConverter());
+                xstream.setMode(XStream.ID_REFERENCES);
+                //                xstream.setMode(XStream.NO_REFERENCES);
+
+                //                xstream.toXML(root, outStream);
+
                 root.printTree(outStream);
                 outStream.close();
 
