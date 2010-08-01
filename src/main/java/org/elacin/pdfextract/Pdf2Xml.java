@@ -51,6 +51,7 @@ public class Pdf2Xml extends PDFTextStripper {
     @Override
     protected void endDocument(final PDDocument pdf) throws IOException {
         root.combineChildren();
+        //        root.combineChildren();
         new RecognizeRoles().doOperation(root);
     }
 
@@ -63,9 +64,7 @@ public class Pdf2Xml extends PDFTextStripper {
     @Override
     protected void writePage() throws IOException {
         for (final List<ETextPosition> textPositions : charactersByArticle) {
-            if (!textPositions.isEmpty()) {
-                newBuilder.fillPage(root, getCurrentPageNo(), textPositions);
-            }
+            newBuilder.fillPage(root, getCurrentPageNo(), textPositions);
         }
     }
 }

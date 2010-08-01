@@ -38,9 +38,9 @@ public class FileWalker {
      * Files found; the List is sorted using File.compareTo().
      *
      * @param aStartingDir is a valid directory, which can be read.
-     * @param extension
+     * @param extension    asd
      */
-    static public List<File> getFileListing(File aStartingDir, final String extension) throws FileNotFoundException {
+    public static List<File> getFileListing(final File aStartingDir, final String extension) throws FileNotFoundException {
         validateDirectory(aStartingDir);
         List<File> result = getFileListingNoSort(aStartingDir, extension);
         Collections.sort(result);
@@ -50,7 +50,7 @@ public class FileWalker {
     /**
      * Directory is valid if it exists, does not represent a file, and can be read.
      */
-    static void validateDirectory(File aDirectory) throws FileNotFoundException {
+    static void validateDirectory(final File aDirectory) throws FileNotFoundException {
         if (aDirectory == null) {
             throw new IllegalArgumentException("Directory should not be null.");
         }

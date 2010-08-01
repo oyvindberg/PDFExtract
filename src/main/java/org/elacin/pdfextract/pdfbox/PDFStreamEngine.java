@@ -66,13 +66,13 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
     private Matrix textLineMatrix = null;
     private Stack graphicsStack = new Stack();
 
-    private Map<String, OperatorProcessor> operators = new HashMap<String, OperatorProcessor>();
+    private final Map<String, OperatorProcessor> operators = new HashMap<String, OperatorProcessor>();
 
-    private Stack<StreamResources> streamResourcesStack = new Stack<StreamResources>();
+    private final Stack<StreamResources> streamResourcesStack = new Stack<StreamResources>();
 
     private PDPage page;
 
-    private Map documentFontCache = new HashMap();
+    private final Map documentFontCache = new HashMap();
 
     private int validCharCnt;
     private int totalCharCnt;

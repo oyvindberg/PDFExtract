@@ -101,4 +101,13 @@ public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
             }
         };
     }
+
+    public PageNode getPageNumber(final int pageNumber) {
+        for (PageNode pageNode : getChildren()) {
+            if (pageNode.getPageNumber() == pageNumber) {
+                return pageNode;
+            }
+        }
+        throw new RuntimeException("Document didnt have a page with page number " + pageNumber);
+    }
 }

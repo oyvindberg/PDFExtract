@@ -35,7 +35,7 @@ public class Point {
         setPosition(x, y);
     }
 
-    public void setPosition(float x, float y) {
+    public final void setPosition(float x, float y) {
         this.x = x;
         this.y = y;
     }

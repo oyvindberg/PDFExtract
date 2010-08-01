@@ -23,6 +23,7 @@ import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.pdfbox.ETextPosition;
 import org.elacin.pdfextract.text.Style;
 import org.elacin.pdfextract.tree.DocumentNode;
+import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.tree.WordNode;
 import org.elacin.pdfextract.util.MathUtils;
 import org.elacin.pdfextract.util.Point;
@@ -58,7 +59,7 @@ import static org.elacin.pdfextract.util.MathUtils.round;
 public class WordBuilder {
     // ------------------------------ FIELDS ------------------------------
 
-    private static final Logger log = Loggers.getWordBuilderLog();
+    private static final Logger LOG = Loggers.getWordBuilderLog();
 
     // -------------------------- PUBLIC METHODS --------------------------
 
@@ -73,28 +74,25 @@ public class WordBuilder {
      * @param pageNum       Page number
      * @param textToBeAdded text which is to be added
      */
-    public void fillPage(DocumentNode root, final int pageNum, List<ETextPosition> textToBeAdded) {
+    public void fillPage(final DocumentNode root, final int pageNum, final List<ETextPosition> textToBeAdded) {
         long t0 = System.currentTimeMillis();
 
         /* iterate through all incoming TextPositions, and process them
             in a line by line fashion. We do this to be able to calculate
             char and word distances for each line
          */
-        float lastY = Float.MAX_VALUE;
-        float lastEndY = Float.MIN_VALUE;
 
         List<TextPosition> line = new ArrayList<TextPosition>();
 
         Collections.sort(textToBeAdded, new TextPositionComparator());
 
+        float lastY = Float.MAX_VALUE;
+        float lastEndY = Float.MIN_VALUE;
         for (ETextPosition textPosition : textToBeAdded) {
-            if (log.isTraceEnabled()) {
-                log.trace(StringUtils.getTextPositionString(textPosition));
+            if (LOG.isTraceEnabled()) {
+                LOG.trace(StringUtils.getTextPositionString(textPosition));
             }
 
-            if (textPosition.getX() == 212.31992) {
-                System.out.println("asd");
-            }
             /* If this not the first text on a line and also not on the same Y coordinate
                 as the existing, complete this line */
 
@@ -130,7 +128,19 @@ public class WordBuilder {
             line.clear();
         }
 
-        log.debug("WordBuilder.fillPage took " + (System.currentTimeMillis() - t0) + " ms");
+        /* if the page contained no text, create an empty page node and return */
+        boolean foundAddedPage = false;
+        for (PageNode pageNode : root.getChildren()) {
+            if (pageNode.getPageNumber() == pageNum) {
+                foundAddedPage = true;
+            }
+        }
+        if (!foundAddedPage) {
+            root.addChild(new PageNode(pageNum));
+            return;
+        }
+
+        LOG.debug("WordBuilder.fillPage took " + (System.currentTimeMillis() - t0) + " ms");
     }
 
     /**
@@ -153,8 +163,8 @@ public class WordBuilder {
 
         /* create WordNodes and add them to the tree */
         for (Text newText : lineTexts) {
-            if (Loggers.getWordBuilderLog().isDebugEnabled()) {
-                Loggers.getWordBuilderLog().debug("in : " + newText);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("in : " + newText);
             }
 
             /* if this is the first text element going into a word */
@@ -194,25 +204,24 @@ public class WordBuilder {
      * @param textPositions
      * @return
      */
-    static List<Text> getTextsFromTextPositions(DocumentStyles sf, List<TextPosition> textPositions) {
+    static List<Text> getTextsFromTextPositions(final DocumentStyles sf, final List<TextPosition> textPositions) {
         List<Text> ret = new ArrayList<Text>(textPositions.size() * 2);
 
         Point lastWordBoundary = new Point(0, 0);
         StringBuilder contents = new StringBuilder();
 
-        float x, y, width = 0;
-        boolean firstInLine = true;
-
         Collections.sort(textPositions, new TextPositionComparator());
 
+        float width = 0.0f;
+        boolean firstInLine = true;
         for (TextPosition textPosition : textPositions) {
-            x = textPosition.getXDirAdj();
-            y = textPosition.getYDirAdj();
+            float x = textPosition.getXDirAdj();
+            float y = textPosition.getYDirAdj();
             final Style style = sf.getStyleForTextPosition(textPosition);
 
             for (int j = 0; j < textPosition.getCharacter().length(); j++) {
                 /* if we found a space */
-                if (Character.isSpaceChar(textPosition.getCharacter().charAt(j))) {
+                if (Character.isSpaceChar(textPosition.getCharacter().charAt(j)) || isTextPositionTooHigh(textPosition)) {
                     if (contents.length() != 0) {
                         /* else just output a new text */
 
@@ -224,10 +233,10 @@ public class WordBuilder {
                             distance = x - lastWordBoundary.getX();
                         }
 
-                        ret.add(new Text(distance, textPosition.getHeightDir(), style, contents.toString(), width, x, y));
+                        ret.add(new Text(contents.toString(), style, x, y, width, textPosition.getHeightDir(), distance));
                         contents.setLength(0);
                         x += width;
-                        width = 0;
+                        width = 0.0F;
                         lastWordBoundary.setPosition(x, y);
                     }
 
@@ -250,14 +259,14 @@ public class WordBuilder {
                     }
 
                     /* Some times textPosition.getIndividualWidths will contain zero, so work around that here */
-                    if (width == 0) {
+                    if (width == 0.0F) {
                         width = textPosition.getWidthDirAdj();
                     }
 
-                    ret.add(new Text(distance, textPosition.getHeightDir(), style, contents.toString(), width, x, y));
+                    ret.add(new Text(contents.toString(), style, x, y, width, textPosition.getHeightDir(), distance));
                     contents.setLength(0);
                     x += width;
-                    width = 0;
+                    width = 0.0F;
                     lastWordBoundary.setPosition(x, y);
                 }
             }
@@ -267,9 +276,20 @@ public class WordBuilder {
     }
 
     /**
+     * Some times TextPositions will be far, far higher than the font size would allow. this is normally a faulty PDF or a
+     * bug in PDFBox. since they destroy my algorithms ill just drop them
+     *
+     * @param textPosition
+     * @return
+     */
+    private static boolean isTextPositionTooHigh(final TextPosition textPosition) {
+        return textPosition.getHeightDir() > (float) (textPosition.getFontSize() * textPosition.getYScale() * 1.2);
+    }
+
+    /**
      * @param texts
      */
-    void setCharSpacingForTexts(List<Text> texts) {
+    void setCharSpacingForTexts(final List<Text> texts) {
         if (texts.isEmpty()) return;
 
         /* Start by making a list of all distances, and an average*/
@@ -277,7 +297,7 @@ public class WordBuilder {
         int[] distances = new int[texts.size() - 1];
 
         int distanceCount = 0;
-        float fontSizeSum = 0;
+        int fontSizeSum = 0;
         for (int i = 0; i < texts.size(); i++) {
             Text text = texts.get(i);
             /* skip the first word fragment, and only include this distance if it is not too big */
@@ -289,7 +309,7 @@ public class WordBuilder {
         }
 
         /* spit out some debug information */
-        if (log.isDebugEnabled()) {
+        if (LOG.isDebugEnabled()) {
             StringBuilder textWithDistances = new StringBuilder();
             StringBuilder textOnly = new StringBuilder();
 
@@ -301,13 +321,13 @@ public class WordBuilder {
                 textWithDistances.append(text.content);
                 textOnly.append(text.content);
             }
-            log.debug("spacing: -----------------");
-            log.debug("spacing: content: " + textWithDistances);
-            log.debug("spacing: content: " + textOnly);
-            log.debug("spacing: unsorted: " + Arrays.toString(distances));
+            LOG.debug("spacing: -----------------");
+            LOG.debug("spacing: content: " + textWithDistances);
+            LOG.debug("spacing: content: " + textOnly);
+            LOG.debug("spacing: unsorted: " + Arrays.toString(distances));
         }
 
-        final float fontSizeAverage = (fontSizeSum / texts.size()) / 100;
+        final double fontSizeAverage = (double) (fontSizeSum / texts.size()) / 100.0;
         int charSpacing = calculateCharspacingForDistances(distances, distanceCount, fontSizeAverage);
 
         /* and set the values in all texts */
@@ -315,9 +335,9 @@ public class WordBuilder {
             text.charSpacing = charSpacing;
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("spacing: sorted: " + Arrays.toString(distances));
-            log.debug("spacing: charSpacing=" + charSpacing);
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("spacing: sorted: " + Arrays.toString(distances));
+            LOG.debug("spacing: charSpacing=" + charSpacing);
 
             StringBuilder out = new StringBuilder();
 
@@ -328,8 +348,7 @@ public class WordBuilder {
                 }
                 out.append(text.content);
             }
-            log.debug("spacing: output: " + out.toString());
-
+            LOG.debug("spacing: output: " + out);
         }
     }
 
@@ -348,76 +367,88 @@ public class WordBuilder {
      * @param averageFontSize
      * @return
      */
-    static int calculateCharspacingForDistances(final int[] distances, final int distanceCount, final float averageFontSize) {
-        float sum = 0f;
+    static int calculateCharspacingForDistances(final int[] distances, final int distanceCount, final double averageFontSize) {
+        /* calculate the average distance - it will be used below */
+        double sum = 0.0;
         for (int i = 0; i < distanceCount; i++) {
             sum += distances[i];
         }
-        float averageDistance = sum / distanceCount;
+        double averageDistance = sum / (double) distanceCount;
+        LOG.debug("averageFontSize = " + averageFontSize + ", averageDistance = " + averageDistance);
 
-        log.debug("averageFontSize = " + averageFontSize + ", averageDistance = " + averageDistance);
-        int charSpacing = Integer.MIN_VALUE;
+        /* this algorithm depends on that the distances be sorted */
         Arrays.sort(distances);
 
+
+        double charSpacing = Double.MIN_VALUE;
         if (distanceCount == 0) {
-            charSpacing = 0;
-
-        } else if (MathUtils.isWithinPercent(distances[0], distances[distanceCount - 1], 5)) {
+            charSpacing = 0.0;
+        } else if (MathUtils.isWithinPercent(distances[0], distances[distanceCount - 1], 10)) {
             charSpacing = distances[distanceCount - 1];
-            log.debug("spacing: all distances equal, setting as character space");
-
+            LOG.debug("spacing: all distances equal, setting as character space");
         } else {
-            int minDistance = distances[0];
-
             /* iterate backwards - do this because char spacing seems to vary a lot more than does word spacing */
-            int biggestScore = Integer.MIN_VALUE;
-            int lastDistance = distances[distanceCount - 1] + 1;
-
-            //            boolean spacingFound = false;
+            double biggestScore = Double.MIN_VALUE;
+            double lastDistance = (double) (distances[distanceCount - 1] + 1);
 
             for (int i = distanceCount - 1; i >= 0; i--) {
-                int distance = distances[i];
+                double distance = (double) distances[i];
 
+                /* this is just an optimization - dont consider a certain distance if we already did */
                 if (distance == charSpacing || distance == lastDistance) {
                     continue;
                 }
 
-                if (distance < Math.max(averageFontSize * 3, averageDistance)) {
-                    int score = (int) ((lastDistance - distance + minDistance) / (Math.max(1, distance + minDistance)) + distance * 0.5);
 
-                    if (distance > 0f) {
-                        /* then weigh for how close distance is to the current fonts X size */
-                        score *= Math.abs(Math.log(distance) / Math.max(1, Math.log(averageFontSize)) - 1) * 0.4 + 1;
-                        score = score * i / distanceCount;
+                if (distance < Math.max(averageFontSize * 3.0, averageDistance)) {
+                    /* the essential scoring here is based on */
+                    double score = ((lastDistance - distance) / (Math.max(1, distance)) + distance * 0.5);
+
+                    if (distance > 0.0) {
+                        /* weight the score to give some priority to spacings around the same size as the given average font size.
+
+                        * This works by measuring the distance from distance to the given font size as the logarithm of distance with
+                        *   font size as the base.
+                        * One is subtracted from this logarithm to re-base the number around 0, and the absolute value is calculated.
+                        *
+                        * For say distances of 32 or 8 with a font size 16, this number will in both cases be 0.25.
+                        *   The penalty given to the score for that would then be score*(1 + (0.25 * 0.4))
+                        * */
+                        //                        score *= (Math.abs(StrictMath.log(distance) / Math.max(1.0, StrictMath.log(averageFontSize)) - 1.0) * 0.4 + 1.0);
+
+                        final double distanceLog = Math.abs(StrictMath.log(distance) / Math.max(1.0, StrictMath.log(averageDistance))) - 1.0;
+                        score *= (distanceLog * 0.1) + 1;
+
+                        /* and give some priority to bigger distances */
+                        score = score * (double) i / (double) distanceCount;
                     } else {
+                        /* for zero or negative distances, divide the score by two */
                         score *= 0.5;
                     }
 
                     if (score > biggestScore) {
                         biggestScore = score;
                         charSpacing = distance;
-                        log.debug("spacing: " + charSpacing + " is now the most probable. score: " + score);
+                        LOG.debug("spacing: " + charSpacing + " is now the most probable. score: " + score);
                     } else {
-                        log.debug("spacing: " + distance + " got score " + score);
+                        LOG.debug("spacing: " + distance + " got score " + score);
                     }
                 }
                 lastDistance = distance;
             }
-
         }
 
-        final int expectedMinimum = (int) Math.max(3, averageFontSize / 2);
+        final double expectedMinimum = Math.max(3, averageFontSize / 2);
         if (charSpacing < expectedMinimum) {
-            log.debug("spacing: got suspiciously low charSpacing " + charSpacing + " setting to " + expectedMinimum);
+            LOG.debug("spacing: got suspiciously low charSpacing " + charSpacing + " setting to " + expectedMinimum);
             charSpacing = expectedMinimum;
         }
 
-        /* correct for rounding */
-        charSpacing += 1;
-
-        return charSpacing;
+        /* return after converting to int and correcting for rounding */
+        @SuppressWarnings({"NumericCastThatLosesPrecision"}) int ret = (int) charSpacing;
+        ret += 1;
+        return ret;
     }
-
 
     // -------------------------- INNER CLASSES --------------------------
 
@@ -427,7 +458,7 @@ public class WordBuilder {
         final String content;
         final Style style;
 
-        Text(final float distanceToPreceeding, final float height, final Style style, final String content, final float width, final float x, final float y) {
+        Text(final String content, final Style style, final float x, final float y, final float width, final float height, final float distanceToPreceeding) {
             this.distanceToPreceeding = round(distanceToPreceeding);
             this.height = round(height);
             this.width = round(width);
@@ -461,20 +492,21 @@ public class WordBuilder {
      */
     private static class WordState {
         private final char[] chars = new char[512];
-        private int len = 0;
-        private int maxHeight = 0;
-        private int width = 0;
-        private int x = 0;
-        private int y = 0;
-        private Style currentStyle = null;
+        private int len;
+        private int maxHeight;
+        private int width;
+        private int x;
+        private int y;
+        private Style currentStyle;
         public int charSpacing;
 
         public WordNode createWord(final int pageNum) {
             String wordText = new String(chars, 0, len);
-            final WordNode word = new WordNode(new Rectangle(x, y, width, maxHeight), pageNum, currentStyle, wordText, charSpacing);
+            //TODO
+            final WordNode word = new WordNode(new Rectangle(x, y - maxHeight, width, maxHeight), pageNum, currentStyle, wordText, charSpacing);
 
-            if (log.isDebugEnabled()) {
-                log.debug("out: " + word);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("out: " + word);
             }
 
             /* then reset state for next word */
@@ -490,8 +522,8 @@ public class WordBuilder {
             if (text.distanceToPreceeding < 0) return false;
 
             if (text.distanceToPreceeding > text.charSpacing) {
-                if (log.isDebugEnabled()) {
-                    log.debug(this + ": " + text + " is too far away");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug(this + ": " + text + " is too far away");
                 }
                 return true;
             }

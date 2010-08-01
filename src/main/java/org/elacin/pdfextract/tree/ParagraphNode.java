@@ -88,18 +88,24 @@ public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
             return false;
         }
 
+        //TODO:
+        if (!newNode.getStyle().font.equals(getStyle().font) ||
+                newNode.getStyle().ySize != getStyle().ySize) {//|| newNode.getStyle().ySize != getStyle().ySize){
+            return false;
+        }
+
         //        if (isWithinVariance(getPosition().getEndY(), newNode.getPosition().getY(), ySize*2)) {
         if (isWithinVariance(getPosition().getEndY(), newNode.getPosition().getY(), lastLineNode.getCurrentStyle().ySize * 2)) {
             int widthOfSpace = lastLineNode.getCurrentStyle().widthOfSpace;
 
             /* if the new node STARTS at more or less the same X position, accept it */
             if (isWithinVariance(getPosition().getX(), newNode.getPosition().getX(), widthOfSpace)) {
+                //            if (isWithinVariance(lastLineNode.getPosition().getX(), newNode.getPosition().getX(), widthOfSpace)) {
                 return true;
             }
 
             /* if the new node ENDS at more or less the same X position, also accept it */
-            if (isWithinVariance(getPosition().getX() + getPosition().getWidth(), newNode.getPosition().getX() + newNode.getPosition().getWidth(),
-                    widthOfSpace)) {
+            if (isWithinVariance(getPosition().getEndX(), newNode.getPosition().getEndX(), widthOfSpace)) {
                 return true;
             }
 

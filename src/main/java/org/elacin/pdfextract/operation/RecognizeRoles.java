@@ -39,7 +39,7 @@ public class RecognizeRoles implements Operation {
     static final Pattern id = Pattern.compile("(?:X\\d{1,2}|\\w{1,2})");
     static final Pattern refWithDotPattern = Pattern.compile("\\s*(" + id + "\\s*\\.\\s*\\d?).*", Pattern.DOTALL | Pattern.MULTILINE);
     static final Pattern numInParenthesisPattern = Pattern.compile("(\\(\\s*" + id + "\\s*\\)).*", Pattern.DOTALL | Pattern.MULTILINE);
-    Style breadtext = null;
+    final Style breadtext = null;
     private DocumentNode root;
 
     // ------------------------ INTERFACE METHODS ------------------------

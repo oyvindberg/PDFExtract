@@ -123,7 +123,7 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
 
     public abstract void combineChildren();
 
-    public Rectangle getPosition() {
+    public final Rectangle getPosition() {
         if (posCache == null) {
             for (ChildType child : children) {
                 if (posCache == null) {

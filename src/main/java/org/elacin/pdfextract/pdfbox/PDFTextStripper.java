@@ -70,7 +70,7 @@ public class PDFTextStripper extends PDFStreamEngine {
      * <p/>
      * Most PDFs won't have any beads, so charactersByArticle will contain a single entry.
      */
-    protected Vector<List<ETextPosition>> charactersByArticle = new Vector<List<ETextPosition>>();
+    protected final Vector<List<ETextPosition>> charactersByArticle = new Vector<List<ETextPosition>>();
 
     /**
      * The platforms lineseparator.
@@ -107,7 +107,7 @@ public class PDFTextStripper extends PDFStreamEngine {
 
     private List<PDThreadBead> pageArticles = null;
 
-    private Map<String, List<TextPosition>> characterListMapping = new HashMap<String, List<TextPosition>>();
+    private final Map<String, List<TextPosition>> characterListMapping = new HashMap<String, List<TextPosition>>();
     private String pageSeparator = System.getProperty("line.separator");
     private String wordSeparator = " ";
 

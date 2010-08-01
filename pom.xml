@@ -28,11 +28,11 @@
         <!--<name>Jinahya's maven 2 repository</name>-->
         <!--<url>http://jinahya.googlecode.com/svn/maven/2/repo</url>-->
         <!--</repository>-->
-        <!--<repository>-->
-        <!--<id>apache</id>-->
-        <!--<name>Apache snapshot repo</name>-->
-        <!--<url>http://repository.apache.org/snapshots/</url>-->
-        <!--</repository>-->
+        <repository>
+            <id>apache</id>
+            <name>Apache snapshot repo</name>
+            <url>http://repository.apache.org/snapshots/</url>
+        </repository>
 
         <repository>
             <id>www2.ph.ed.ac.uk-releases</id>
@@ -83,7 +83,7 @@
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>1.1.0</version>
+            <version>1.2.0-SNAPSHOT</version>
 
         </dependency>
 
