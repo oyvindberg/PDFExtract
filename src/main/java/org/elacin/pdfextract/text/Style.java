@@ -16,7 +16,6 @@
 
 package org.elacin.pdfextract.text;
 
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 
 import java.io.Serializable;
 
@@ -33,9 +32,7 @@ import java.io.Serializable;
 public class Style implements Serializable {
     // ------------------------------ FIELDS ------------------------------
 
-    @XStreamAsAttribute
     public final int xSize, ySize, widthOfSpace;
-    @XStreamAsAttribute
     public final String font;
 
     private transient boolean toStringCreated = false;

@@ -16,7 +16,6 @@
 
 package org.elacin.pdfextract.tree;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.elacin.pdfextract.Loggers;
 
 import java.util.Comparator;
@@ -31,7 +30,6 @@ import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
  * Time: 8:56:45 AM
  * To change this template use File | Settings | File Templates.
  */
-@XStreamAlias("paragraph")
 public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
     // --------------------------- CONSTRUCTORS ---------------------------
 

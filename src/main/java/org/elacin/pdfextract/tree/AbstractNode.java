@@ -17,8 +17,6 @@
 package org.elacin.pdfextract.tree;
 
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.text.Role;
 import org.elacin.pdfextract.text.Style;
@@ -39,19 +37,14 @@ import java.util.Set;
 public abstract class AbstractNode<ParentType extends AbstractParentNode> implements Serializable {
     // ------------------------------ FIELDS ------------------------------
 
-    @XStreamOmitField
     protected Map<Role, String> roles;
-    @XStreamOmitField
     protected ParentType parent;
-    @XStreamOmitField
     protected DocumentNode root;
 
     /* a cache of current text */
-    @XStreamAlias("text")
     protected String textCache;
 
     /* a cache of current toString-String */
-    @XStreamOmitField
     protected transient String toStringCache;
 
     // --------------------- GETTER / SETTER METHODS ---------------------

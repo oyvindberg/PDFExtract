@@ -16,8 +16,6 @@
 
 package org.elacin.pdfextract.builder;
 
-import com.thoughtworks.xstream.annotations.XStreamImplicit;
-import com.thoughtworks.xstream.annotations.XStreamOmitField;
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.text.Style;
 
@@ -40,10 +38,8 @@ import static org.elacin.pdfextract.util.MathUtils.round;
 public class DocumentStyles {
     // ------------------------------ FIELDS ------------------------------
 
-    @XStreamOmitField
     final Map<Float, Style> styles = new HashMap<Float, Style>();
 
-    @XStreamImplicit(itemFieldName = "style")
     final Collection<Style> stylesCollection = styles.values();
 
     // --------------------- GETTER / SETTER METHODS ---------------------

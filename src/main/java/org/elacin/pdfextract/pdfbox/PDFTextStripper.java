@@ -127,7 +127,7 @@ public class PDFTextStripper extends PDFStreamEngine {
      * @throws IOException If there is an error loading the properties.
      */
     public PDFTextStripper() throws IOException {
-        super(ResourceLoader.loadProperties("Resources/PDFTextStripper.properties", true));
+        super(ResourceLoader.loadProperties("org/apache/pdfbox/resources/PDFTextStripper.properties", true));
         this.outputEncoding = null;
         normalize = new TextNormalize(this.outputEncoding);
     }

@@ -16,7 +16,6 @@
 
 package org.elacin.pdfextract.tree;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
 import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.text.Style;
 
@@ -32,7 +31,6 @@ import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
  * Time: 8:29:43 AM
  * To change this template use File | Settings | File Templates.
  */
-@XStreamAlias("line")
 public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
     // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -128,7 +126,7 @@ public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
      * @return
      */
     public boolean isOnSameLine(final AbstractNode node) {
-        double otherMiddleY = node.getPosition().getY() + (node.getPosition().getHeight() / 2);
+        int otherMiddleY = node.getPosition().getY() + (node.getPosition().getHeight() / 2);
         return getPosition().getY() <= otherMiddleY && getPosition().getEndY() >= otherMiddleY;
     }
 

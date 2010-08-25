@@ -16,8 +16,6 @@
 
 package org.elacin.pdfextract.tree;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
 import org.elacin.pdfextract.Loggers;
 
 import java.util.Comparator;
@@ -29,12 +27,9 @@ import java.util.Comparator;
  * Time: 9:33:52 PM
  * To change this template use File | Settings | File Templates.
  */
-@XStreamAlias("page")
 public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
     // ------------------------------ FIELDS ------------------------------
 
-    @XStreamAlias("page")
-    @XStreamAsAttribute
     private final int pageNumber;
 
     // --------------------------- CONSTRUCTORS ---------------------------

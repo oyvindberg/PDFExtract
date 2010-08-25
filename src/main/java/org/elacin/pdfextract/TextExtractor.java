@@ -16,7 +16,6 @@
 
 package org.elacin.pdfextract;
 
-import com.thoughtworks.xstream.XStream;
 import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -70,13 +69,24 @@ public class TextExtractor {
 
     // -------------------------- OTHER METHODS --------------------------
 
-    private void printXStreamtree(final DocumentNode root, final PrintStream outStream) {
-        XStream xstream = new XStream();
-        xstream.autodetectAnnotations(true);
-        //                xstream.registerConverter(new RectangleConverter());
-        xstream.setMode(XStream.ID_REFERENCES);
-        //                xstream.setMode(XStream.NO_REFERENCES);
-        xstream.toXML(root, outStream);
+    protected void renderPDF(final File pdfFile, final PDDocument doc, final DocumentNode root) throws IOException {
+        long t0 = System.currentTimeMillis();
+
+        List pages = doc.getDocumentCatalog().getAllPages();
+        for (int i = Math.max(0, startPage); i < Math.min(pages.size(), endPage); i++) {
+            final PageRenderer renderer = new PageRenderer(doc, root);
+            BufferedImage image = renderer.renderPage(i);
+
+            /* then write to file */
+            final File output;
+            if (destination.isDirectory()) {
+                output = new File(destination, pdfFile.getName().replace(".pdf", ".elc." + i + ".png"));
+            } else {
+                output = new File(destination.getAbsolutePath().replace(".xml", ".elc." + i + ".png"));
+            }
+            ImageIO.write(image, "png", output);
+        }
+        LOG.warn("Rendering of pdf took " + (System.currentTimeMillis() - t0) + " ms");
     }
 
     // --------------------------- main() method ---------------------------
@@ -189,7 +199,7 @@ public class TextExtractor {
         try {
             final DocumentNode root = getDocumentTree(doc, startPage, endPage);
             printTree(pdfFile, root);
-            renderPDF(pdfFile, doc, root);
+            //            renderPDF(pdfFile, doc, root);
         } finally {
             doc.close();
         }
@@ -255,7 +265,6 @@ public class TextExtractor {
         }
 
         final PrintStream outStream = openOutputStream(output);
-        //                printXStreamtree(root, outStream);
         root.printTree(outStream);
         outStream.close();
     }
@@ -270,27 +279,5 @@ public class TextExtractor {
         }
         return ret;
     }
-
-    protected void renderPDF(final File pdfFile, final PDDocument doc, final DocumentNode root) throws IOException {
-        long t0 = System.currentTimeMillis();
-
-        List pages = doc.getDocumentCatalog().getAllPages();
-        for (int i = Math.max(0, startPage); i < Math.min(pages.size(), endPage); i++) {
-
-            final PageRenderer renderer = new PageRenderer(doc, root);
-            BufferedImage image = renderer.renderPage(i);
-
-            /* then write to file */
-            final File output;
-            if (destination.isDirectory()) {
-                output = new File(destination, pdfFile.getName().replace(".pdf", ".elc." + i + ".png"));
-            } else {
-                output = new File(destination.getAbsolutePath().replace(".xml", ".elc." + i + ".png"));
-            }
-            ImageIO.write(image, "png", output);
-        }
-        LOG.warn("Rendering of pdf took " + (System.currentTimeMillis() - t0) + " ms");
-    }
-
 }
 

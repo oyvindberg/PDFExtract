@@ -16,9 +16,6 @@
 
 package org.elacin.pdfextract.tree;
 
-import com.thoughtworks.xstream.annotations.XStreamAlias;
-import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
-import com.thoughtworks.xstream.annotations.XStreamImplicit;
 import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.text.Role;
 import org.elacin.pdfextract.text.Style;
@@ -39,12 +36,9 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
     // ------------------------------ FIELDS ------------------------------
 
     /* a cache of group position */
-    @XStreamAlias("pos")
-    @XStreamAsAttribute
     protected Rectangle posCache;
 
     /* children nodes */
-    @XStreamImplicit()
     private final List<ChildType> children = new ArrayList<ChildType>();
 
     // --------------------------- CONSTRUCTORS ---------------------------
