@@ -23,31 +23,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: Sep 23, 2010
- * Time: 12:54:21 PM
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Sep 23, 2010 Time: 12:54:21 PM To change this template use File | Settings | File Templates.
  */
 public class ColumnFinder {
-// ------------------------------ FIELDS ------------------------------
+    // ------------------------------ FIELDS ------------------------------
 
     private static final int NUM_WHITESPACES_TO_BE_FOUND = 30;
 
-// -------------------------- PUBLIC STATIC METHODS --------------------------
+    // -------------------------- PUBLIC STATIC METHODS --------------------------
 
     public static List<Rectangle> findColumnsFromWordNodes(final List<WordNode> words, final int width, final int height) {
+        final long t0 = System.currentTimeMillis();
+
         List<Rectangle> obstacles = new ArrayList<Rectangle>();
         for (WordNode word : words) {
             obstacles.add(word.getPosition());
         }
 
-        final List<Rectangle> ret = new VerticalWhitespaceFinder(obstacles, NUM_WHITESPACES_TO_BE_FOUND, width, height).analyze();
+        final VerticalWhitespaceFinder verticalWhitespaceFinder = new VerticalWhitespaceFinder(obstacles, NUM_WHITESPACES_TO_BE_FOUND, width, height);
 
-        obstacles.addAll(ret);
+        final List<Rectangle> ret = verticalWhitespaceFinder.findWhitespace();
+        System.out.println("findColumnsFromWordNodes took " + (System.currentTimeMillis() - t0) + " ms.");
 
-//        AbstractWhitespaceFinder horFinder = new HorizontalWhitespaceFinder(obstacles, 40, width, height);
-//        ret.addAll(horFinder.analyze());
+//        obstacles.addAll(ret);
+
+        //        AbstractWhitespaceFinder horFinder = new HorizontalWhitespaceFinder(obstacles, 40, width, height);
+        //        ret.addAll(horFinder.findWhitespace());
 
         return ret;
     }

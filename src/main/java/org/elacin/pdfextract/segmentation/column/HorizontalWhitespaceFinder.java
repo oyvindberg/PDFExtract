@@ -30,11 +30,14 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 class HorizontalWhitespaceFinder extends AbstractWhitespaceFinder {
+// ------------------------------ FIELDS ------------------------------
+
+    private static final int WHITESPACE_MIN_HEIGHT = 700;
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    HorizontalWhitespaceFinder(final Collection<Rectangle> texts, final int numWhitespacesToBeFound, final int width, final int height) {
+    HorizontalWhitespaceFinder(final List<Rectangle> texts, final int numWhitespacesToBeFound, final int width, final int height) {
         super(texts, numWhitespacesToBeFound, width, height);
-        allObstacles.addAll(texts);
     }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -53,7 +56,7 @@ class HorizontalWhitespaceFinder extends AbstractWhitespaceFinder {
     }
 
     @Override
-    protected List<Rectangle> selectUsefulWhitespace(final List<Rectangle> foundWhitespace) {
+    protected List<Rectangle> selectUsefulWhitespace() {
         List<Rectangle> ret = new ArrayList<Rectangle>();
         for (Rectangle whitespace : foundWhitespace) {
             if (whitespace.getHeight() > WHITESPACE_MIN_HEIGHT) {
