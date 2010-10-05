@@ -70,7 +70,7 @@ public class PhysicalWordSegmentator {
     static List<Text> getTextsFromTextPositions(final DocumentStyles sf, final List<TextPosition> textPositions) {
         List<Text> ret = new ArrayList<Text>(textPositions.size() * 2);
 
-        FloatPoint lastWordBoundary = new FloatPoint(0, 0);
+        FloatPoint lastWordBoundary = new FloatPoint(0.0F, 0.0F);
         StringBuilder contents = new StringBuilder();
 
         Collections.sort(textPositions, new TextPositionComparator());

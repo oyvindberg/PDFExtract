@@ -16,25 +16,18 @@
 
 package org.elacin.pdfextract.util;
 
-import com.infomatiq.jsi.Point;
-
 import java.io.Serializable;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: May 19, 2010
- * Time: 9:43:07 PM
+ * Created by IntelliJ IDEA. User: elacin Date: May 19, 2010 Time: 9:43:07 PM
  * <p/>
- * A non-mutable rectangle, with union and intercepts bits stolen
- * from javas Rectangle2D. The problem with just using that class
- * was that is isnt available in an integer version.
+ * A non-mutable rectangle, with union and intercepts bits stolen from javas Rectangle2D. The problem with just using that class was that is isnt available in
+ * an integer version.
  */
 public class Rectangle implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
     private final int x, y, width, height;
-    private boolean visited = false;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -85,24 +78,6 @@ public class Rectangle implements Serializable {
         return sb.toString();
     }
 
-// -------------------------- PUBLIC STATIC METHODS --------------------------
-
-    /**
-     * @param x1 coordinate of any corner of the rectangle
-     * @param y1 (see x1)
-     * @param x2 coordinate of the opposite corner
-     * @param y2 (see x2)
-     */
-    public static Rectangle getRectangleAlternative(int x1, int y1, int x2, int y2) {
-        int x = Math.min(x1, x2);
-        int y = Math.min(y1, y2);
-
-        int width = Math.max(x1, x2) - x;
-        int height = Math.max(y1, y2) - y;
-        
-        return new Rectangle(x, y, width, height);
-    }
-
 // --------------------- GETTER / SETTER METHODS ---------------------
 
     public int getHeight() {
@@ -121,14 +96,6 @@ public class Rectangle implements Serializable {
         return y;
     }
 
-    public boolean isVisited() {
-        return visited;
-    }
-
-    public void setVisited(final boolean visited) {
-        this.visited = visited;
-    }
-
 // -------------------------- PUBLIC METHODS --------------------------
 
     /**
@@ -140,16 +107,20 @@ public class Rectangle implements Serializable {
         return (float) width / 100.0f * (float) height / 100.0f;
     }
 
-    public FloatPoint centre() {
-        return new FloatPoint(x + (width / 2), y + (height / 2));
+    /**
+     * Determines the centre point of the rectangle
+     *
+     * @return
+     */
+    public IntPoint centre() {
+        return new IntPoint((x + (width / 2)), (y + (height / 2)));
     }
 
     /**
      * Determine whether this rectangle is contained by the passed rectangle
      *
      * @param r The rectangle that might contain this rectangle
-     * @return true if the passed rectangle contains this rectangle, false if
-     *         it does not
+     * @return true if the passed rectangle contains this rectangle, false if it does not
      */
     public boolean containedBy(Rectangle r) {
         return r.getEndX() >= getEndX() && r.x <= x && r.getEndY() >= getEndY() && r.y <= y;
@@ -159,44 +130,38 @@ public class Rectangle implements Serializable {
      * Determine whether this rectangle contains the passed rectangle
      *
      * @param r The rectangle that might be contained by this rectangle
-     * @return true if this rectangle contains the passed rectangle, false if
-     *         it does not
+     * @return true if this rectangle contains the passed rectangle, false if it does not
      */
     public boolean contains(Rectangle r) {
         return getEndX() >= r.getEndX() && x <= r.x && getEndY() >= r.getEndY() && y <= r.y;
     }
 
-      /**
-   * Return the distance between this rectangle and the passed point.
-   * If the rectangle contains the point, the distance is zero.
-   *
-   * @param p Point to find the distance to
-   *
-   * @return distance beween this rectangle and the passed point.
-   */
-  public float distance(FloatPoint p) {
-    float distanceSquared = 0;
+    /**
+     * Return the distance between this rectangle and the passed point. If the rectangle contains the point, the distance is zero.
+     *
+     * @param p Point to find the distance to
+     * @return distance beween this rectangle and the passed point.
+     */
+    public float distance(final IntPoint p) {
+        int temp = x - p.x;
+        if (temp < 0) {
+            temp = p.x - getEndX();
+        }
 
-    float temp = x - p.x;
-    if (temp < 0) {
-      temp = p.x - getEndX();
+        int distanceSquared = Math.max(0, temp * temp);
+
+        int temp2 = (y - p.y);
+        if (temp2 < 0) {
+            temp2 = p.y - getEndY();
+        }
+
+        if (temp2 > 0) {
+            distanceSquared += (temp2 * temp2);
+        }
+
+        //noinspection NumericCastThatLosesPrecision
+        return (float) Math.sqrt((double) distanceSquared);
     }
-
-    if (temp > 0) {
-      distanceSquared += (temp * temp);
-    }
-
-    temp = y - p.y;
-    if (temp < 0) {
-      temp = p.y - getEndY();
-    }
-
-    if (temp > 0) {
-      distanceSquared += (temp * temp);
-    }
-
-    return (float) Math.sqrt(distanceSquared);
-  }
 
     public int getEndX() {
         return x + width;
@@ -204,16 +169,6 @@ public class Rectangle implements Serializable {
 
     public int getEndY() {
         return y + height;
-    }
-
-    /**
-     * Determine whether this rectangle intersects the passed rectangle
-     *
-     * @param other The rectangle that might intersect this rectangle
-     * @return true if the rectangles intersect, false if they do not intersect
-     */
-    public boolean intersects(Rectangle other) {
-        return getEndX() >= other.x && x <= other.getEndX() && getEndY() >= other.y && y <= other.getEndY();
     }
 
     public boolean intersectsWith(Rectangle other) {
@@ -228,8 +183,13 @@ public class Rectangle implements Serializable {
         return (otherX + otherW > x && otherY + otherH > y && otherX < x + width && otherY < y + height);
     }
 
+    /**
+     * Determines if this rectangle has an area of 0
+     *
+     * @return
+     */
     public boolean isEmpty() {
-        return (width <= 0.0f) || (height <= 0.0f);
+        return (width <= 0) || (height <= 0);
     }
 
     /**
