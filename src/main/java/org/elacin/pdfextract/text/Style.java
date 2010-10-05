@@ -30,7 +30,7 @@ import java.io.Serializable;
  * are immutable.
  */
 public class Style implements Serializable {
-    // ------------------------------ FIELDS ------------------------------
+// ------------------------------ FIELDS ------------------------------
 
     public final int xSize, ySize, widthOfSpace;
     public final String font;
@@ -38,7 +38,7 @@ public class Style implements Serializable {
     private transient boolean toStringCreated = false;
     private transient String toStringCache = null;
 
-    // --------------------------- CONSTRUCTORS ---------------------------
+// --------------------------- CONSTRUCTORS ---------------------------
 
     public Style(final String font, final int xSize, final int ySize, final int widthOfSpace) {
         this.font = font;
@@ -47,7 +47,7 @@ public class Style implements Serializable {
         this.widthOfSpace = widthOfSpace;
     }
 
-    // ------------------------ CANONICAL METHODS ------------------------
+// ------------------------ CANONICAL METHODS ------------------------
 
     @Override
     public boolean equals(final Object o) {

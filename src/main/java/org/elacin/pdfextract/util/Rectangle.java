@@ -16,6 +16,8 @@
 
 package org.elacin.pdfextract.util;
 
+import com.infomatiq.jsi.Point;
+
 import java.io.Serializable;
 
 /**
@@ -29,11 +31,12 @@ import java.io.Serializable;
  * was that is isnt available in an integer version.
  */
 public class Rectangle implements Serializable {
-    // ------------------------------ FIELDS ------------------------------
+// ------------------------------ FIELDS ------------------------------
 
     private final int x, y, width, height;
+    private boolean visited = false;
 
-    // --------------------------- CONSTRUCTORS ---------------------------
+// --------------------------- CONSTRUCTORS ---------------------------
 
     public Rectangle(final int x, final int y, final int width, final int height) {
         this.height = height;
@@ -42,7 +45,65 @@ public class Rectangle implements Serializable {
         this.y = y;
     }
 
-    // --------------------- GETTER / SETTER METHODS ---------------------
+// ------------------------ CANONICAL METHODS ------------------------
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        final Rectangle rectangle = (Rectangle) o;
+
+        if (height != rectangle.height) return false;
+        if (width != rectangle.width) return false;
+        if (x != rectangle.x) return false;
+        if (y != rectangle.y) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = x;
+        result = 31 * result + y;
+        result = 31 * result + width;
+        result = 31 * result + height;
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("pos{");
+        sb.append(" x=").append(x);
+        sb.append(", y=").append(y);
+        sb.append(", w=").append(width);
+        sb.append(", h=").append(height);
+        sb.append(", endX=").append(x + width);
+        sb.append(", endY=").append(y + height);
+        sb.append('}');
+        return sb.toString();
+    }
+
+// -------------------------- PUBLIC STATIC METHODS --------------------------
+
+    /**
+     * @param x1 coordinate of any corner of the rectangle
+     * @param y1 (see x1)
+     * @param x2 coordinate of the opposite corner
+     * @param y2 (see x2)
+     */
+    public static Rectangle getRectangleAlternative(int x1, int y1, int x2, int y2) {
+        int x = Math.min(x1, x2);
+        int y = Math.min(y1, y2);
+
+        int width = Math.max(x1, x2) - x;
+        int height = Math.max(y1, y2) - y;
+        
+        return new Rectangle(x, y, width, height);
+    }
+
+// --------------------- GETTER / SETTER METHODS ---------------------
 
     public int getHeight() {
         return height;
@@ -60,23 +121,100 @@ public class Rectangle implements Serializable {
         return y;
     }
 
-    // ------------------------ CANONICAL METHODS ------------------------
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("pos{");
-        sb.append(" x=").append(x);
-        sb.append(", y=").append(y);
-        sb.append(", w=").append(width);
-        sb.append(", h=").append(height);
-        sb.append(", endX=").append(x + width);
-        sb.append(", endY=").append(y + height);
-        sb.append('}');
-        return sb.toString();
+    public boolean isVisited() {
+        return visited;
     }
 
-    // -------------------------- PUBLIC METHODS --------------------------
+    public void setVisited(final boolean visited) {
+        this.visited = visited;
+    }
+
+// -------------------------- PUBLIC METHODS --------------------------
+
+    /**
+     * Compute the area of this rectangle.
+     *
+     * @return The area of this rectangle
+     */
+    public float area() {
+        return (float) width / 100.0f * (float) height / 100.0f;
+    }
+
+    public FloatPoint centre() {
+        return new FloatPoint(x + (width / 2), y + (height / 2));
+    }
+
+    /**
+     * Determine whether this rectangle is contained by the passed rectangle
+     *
+     * @param r The rectangle that might contain this rectangle
+     * @return true if the passed rectangle contains this rectangle, false if
+     *         it does not
+     */
+    public boolean containedBy(Rectangle r) {
+        return r.getEndX() >= getEndX() && r.x <= x && r.getEndY() >= getEndY() && r.y <= y;
+    }
+
+    /**
+     * Determine whether this rectangle contains the passed rectangle
+     *
+     * @param r The rectangle that might be contained by this rectangle
+     * @return true if this rectangle contains the passed rectangle, false if
+     *         it does not
+     */
+    public boolean contains(Rectangle r) {
+        return getEndX() >= r.getEndX() && x <= r.x && getEndY() >= r.getEndY() && y <= r.y;
+    }
+
+      /**
+   * Return the distance between this rectangle and the passed point.
+   * If the rectangle contains the point, the distance is zero.
+   *
+   * @param p Point to find the distance to
+   *
+   * @return distance beween this rectangle and the passed point.
+   */
+  public float distance(FloatPoint p) {
+    float distanceSquared = 0;
+
+    float temp = x - p.x;
+    if (temp < 0) {
+      temp = p.x - getEndX();
+    }
+
+    if (temp > 0) {
+      distanceSquared += (temp * temp);
+    }
+
+    temp = y - p.y;
+    if (temp < 0) {
+      temp = p.y - getEndY();
+    }
+
+    if (temp > 0) {
+      distanceSquared += (temp * temp);
+    }
+
+    return (float) Math.sqrt(distanceSquared);
+  }
+
+    public int getEndX() {
+        return x + width;
+    }
+
+    public int getEndY() {
+        return y + height;
+    }
+
+    /**
+     * Determine whether this rectangle intersects the passed rectangle
+     *
+     * @param other The rectangle that might intersect this rectangle
+     * @return true if the rectangles intersect, false if they do not intersect
+     */
+    public boolean intersects(Rectangle other) {
+        return getEndX() >= other.x && x <= other.getEndX() && getEndY() >= other.y && y <= other.getEndY();
+    }
 
     public boolean intersectsWith(Rectangle other) {
         int otherX = other.x;
@@ -116,13 +254,5 @@ public class Rectangle implements Serializable {
             y2 = t;
         }
         return new Rectangle(x1, y1, x2 - x1, y2 - y1);
-    }
-
-    public int getEndX() {
-        return x + width;
-    }
-
-    public int getEndY() {
-        return y + height;
     }
 }

@@ -36,14 +36,15 @@ import java.io.IOException;
  * Note that all whitespace characters will have been stripped from the text.
  */
 public class WordNode extends AbstractNode<LineNode> {
-    // ------------------------------ FIELDS ------------------------------
+// ------------------------------ FIELDS ------------------------------
+
     public final String text;
     protected final Rectangle position;
     protected final Style style;
     private final int pageNum;
     private final int charSpacing;
 
-    // --------------------------- CONSTRUCTORS ---------------------------
+// --------------------------- CONSTRUCTORS ---------------------------
 
     public WordNode(final Rectangle position, final int pageNum, final Style style, final String text, final int charSpacing) {
         this.position = position;
@@ -53,7 +54,23 @@ public class WordNode extends AbstractNode<LineNode> {
         this.charSpacing = charSpacing;
     }
 
-    // --------------------- GETTER / SETTER METHODS ---------------------
+// ------------------------ CANONICAL METHODS ------------------------
+
+    @Override
+    public String toString() {
+        if (toStringCache == null) {
+            final StringBuilder sb = new StringBuilder();
+            try {
+                appendLocalInfo(sb, 0);
+            } catch (IOException e) {
+                throw new RuntimeException("Could not write string", e);
+            }
+            toStringCache = sb.toString();
+        }
+        return toStringCache;
+    }
+
+// --------------------- GETTER / SETTER METHODS ---------------------
 
     public float getCharSpacing() {
         return charSpacing;
@@ -76,21 +93,14 @@ public class WordNode extends AbstractNode<LineNode> {
         return text;
     }
 
-    // ------------------------ CANONICAL METHODS ------------------------
+// -------------------------- PUBLIC METHODS --------------------------
 
-    @Override
-    public String toString() {
-        if (toStringCache == null) {
-            final StringBuilder sb = new StringBuilder();
-            try {
-                appendLocalInfo(sb, 0);
-            } catch (IOException e) {
-                throw new RuntimeException("Could not write string", e);
-            }
-            toStringCache = sb.toString();
-        }
-        return toStringCache;
+    public boolean isPartOfSameWordAs(final WordNode wordNode) {
+        int distance = wordNode.position.getX() - position.getEndX();
+        return distance <= Math.max(charSpacing * 1.01, 3);
     }
+
+// -------------------------- OTHER METHODS --------------------------
 
     protected void appendLocalInfo(final Appendable out, final int indent) throws IOException {
         for (int i = 0; i < indent; i++) {
@@ -110,15 +120,6 @@ public class WordNode extends AbstractNode<LineNode> {
         out.append('}');
         out.append("\n");
     }
-
-    // -------------------------- PUBLIC METHODS --------------------------
-
-    public boolean isPartOfSameWordAs(final WordNode wordNode) {
-        int distance = wordNode.position.getX() - position.getEndX();
-        return distance <= Math.max(charSpacing * 1.01, 3);
-    }
-
-    // -------------------------- OTHER METHODS --------------------------
 
     protected void invalidateThisAndParents() {
         textCache = null;

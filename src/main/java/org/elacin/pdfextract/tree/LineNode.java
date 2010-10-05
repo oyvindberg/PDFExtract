@@ -32,13 +32,13 @@ import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
  * To change this template use File | Settings | File Templates.
  */
 public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
-    // --------------------------- CONSTRUCTORS ---------------------------
+// --------------------------- CONSTRUCTORS ---------------------------
 
     public LineNode(final WordNode child) {
         super(child);
     }
 
-    // ------------------------ OVERRIDING METHODS ------------------------
+// ------------------------ OVERRIDING METHODS ------------------------
 
     @Override
     protected void appendLocalInfo(final Appendable out, final int indent) throws IOException {
@@ -57,20 +57,6 @@ public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
         out.append("\n");
     }
 
-    private void writeTextTo(final Appendable sb) {
-        try {
-            for (int i = 0; i < getChildren().size(); i++) {
-                final WordNode word = getChildren().get(i);
-                sb.append(word.getText());
-                if (i != getChildren().size() - 1 && !word.isPartOfSameWordAs(getChildren().get(i + 1))) {
-                    sb.append(" ");
-                }
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("something went wrong while writing text", e);
-        }
-    }
-
     @Override
     public String getText() {
         StringBuilder sb = new StringBuilder();
@@ -79,17 +65,7 @@ public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
         return sb.toString();
     }
 
-    // -------------------------- PUBLIC METHODS --------------------------
-
-    @Override
-    public boolean addWord(final WordNode node) {
-        /* check that node belongs to this line, return if it doesn't */
-        if (!accepts(node)) {
-            return false;
-        }
-        addChild(node);
-        return true;
-    }
+// -------------------------- PUBLIC METHODS --------------------------
 
     /**
      * Decides whether or not node node belongs to this line
@@ -119,15 +95,14 @@ public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
         return ret;
     }
 
-    /**
-     * checks if the the average height of node falls within current line
-     *
-     * @param node
-     * @return
-     */
-    public boolean isOnSameLine(final AbstractNode node) {
-        int otherMiddleY = node.getPosition().getY() + (node.getPosition().getHeight() / 2);
-        return getPosition().getY() <= otherMiddleY && getPosition().getEndY() >= otherMiddleY;
+    @Override
+    public boolean addWord(final WordNode node) {
+        /* check that node belongs to this line, return if it doesn't */
+        if (!accepts(node)) {
+            return false;
+        }
+        addChild(node);
+        return true;
     }
 
     @Override
@@ -165,5 +140,32 @@ public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
 
     public Style getCurrentStyle() {
         return getChildren().get(getChildren().size() - 1).getStyle();
+    }
+
+    /**
+     * checks if the the average height of node falls within current line
+     *
+     * @param node
+     * @return
+     */
+    public boolean isOnSameLine(final AbstractNode node) {
+        int otherMiddleY = node.getPosition().getY() + (node.getPosition().getHeight() / 2);
+        return getPosition().getY() <= otherMiddleY && getPosition().getEndY() >= otherMiddleY;
+    }
+
+// -------------------------- OTHER METHODS --------------------------
+
+    private void writeTextTo(final Appendable sb) {
+        try {
+            for (int i = 0; i < getChildren().size(); i++) {
+                final WordNode word = getChildren().get(i);
+                sb.append(word.getText());
+                if (i != getChildren().size() - 1 && !word.isPartOfSameWordAs(getChildren().get(i + 1))) {
+                    sb.append(" ");
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("something went wrong while writing text", e);
+        }
     }
 }

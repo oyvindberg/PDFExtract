@@ -18,38 +18,36 @@ package org.elacin.pdfextract;
 
 import org.apache.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.elacin.pdfextract.builder.WordBuilder;
+import org.elacin.pdfextract.segmentation.word.PhysicalWordSegmentator;
 import org.elacin.pdfextract.operation.RecognizeRoles;
 import org.elacin.pdfextract.pdfbox.ETextPosition;
 import org.elacin.pdfextract.pdfbox.PDFTextStripper;
+import org.elacin.pdfextract.segmentation.column.ColumnFinder;
 import org.elacin.pdfextract.tree.DocumentNode;
+import org.elacin.pdfextract.tree.WordNode;
+import org.elacin.pdfextract.util.Rectangle;
 
 import java.io.IOException;
 import java.util.List;
 
 public class Pdf2Xml extends PDFTextStripper {
-    // ------------------------------ FIELDS ------------------------------
+// ------------------------------ FIELDS ------------------------------
 
     private DocumentNode root;
-    private WordBuilder newBuilder;
+    private PhysicalWordSegmentator wordSegment;
     private final Logger log = Loggers.getPdfExtractorLog();
 
-    // --------------------------- CONSTRUCTORS ---------------------------
+// --------------------------- CONSTRUCTORS ---------------------------
 
     public Pdf2Xml() throws IOException {
         //        super(ResourceLoader.loadProperties( "Resources/PageDrawer.properties", true ) );
     }
 
-    // --------------------- GETTER / SETTER METHODS ---------------------
-
-    public DocumentNode getRoot() {
-        return root;
-    }
-
-    // ------------------------ OVERRIDING METHODS ------------------------
+// ------------------------ OVERRIDING METHODS ------------------------
 
     @Override
     protected void endDocument(final PDDocument pdf) throws IOException {
+        root.combineChildren();
         root.combineChildren();
         //        root.combineChildren();
         new RecognizeRoles().doOperation(root);
@@ -58,13 +56,32 @@ public class Pdf2Xml extends PDFTextStripper {
     @Override
     protected void startDocument(final PDDocument pdf) throws IOException {
         root = new DocumentNode();
-        newBuilder = new WordBuilder();
+        wordSegment = new PhysicalWordSegmentator();
     }
 
     @Override
     protected void writePage() throws IOException {
+        final int width = (int) getCurrentPage().getArtBox().getWidth();
+        final int height = (int) getCurrentPage().getArtBox().getHeight();
+
         for (final List<ETextPosition> textPositions : charactersByArticle) {
-            newBuilder.fillPage(root, getCurrentPageNo(), textPositions);
+            final List<WordNode> words = wordSegment.createWords(root, getCurrentPageNo(), textPositions);
+            final List<Rectangle> whitespaces = ColumnFinder.findColumnsFromWordNodes(words, width, height);
+
+            for (WordNode word : words) {
+                root.addWord(word);
+            }
+            words.get(0).getPage().setWhitespaces(whitespaces);
+
+            if (!words.isEmpty()) {
+                System.out.println("page = " + words.get(0).getPageNum());
+            }
         }
+    }
+
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+    public DocumentNode getRoot() {
+        return root;
     }
 }

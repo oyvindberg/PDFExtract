@@ -157,7 +157,7 @@ public class TestSpacing {
 
     // -------------------------- OTHER METHODS --------------------------
 
-    private void check(final LineNode lineNode, final String s) {
+    private static void check(final LineNode lineNode, final String s) {
         assertEquals(lineNode.getText(), s, lineNode.toString());
         assertEquals(lineNode.getChildren().size(), s.split(" ").length, lineNode + " has wrong number of words." + lineNode.toString());
     }

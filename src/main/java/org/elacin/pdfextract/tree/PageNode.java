@@ -17,8 +17,10 @@
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.Loggers;
+import org.elacin.pdfextract.util.Rectangle;
 
 import java.util.Comparator;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA.
@@ -28,23 +30,36 @@ import java.util.Comparator;
  * To change this template use File | Settings | File Templates.
  */
 public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
-    // ------------------------------ FIELDS ------------------------------
+// ------------------------------ FIELDS ------------------------------
 
     private final int pageNumber;
+    private List<Rectangle> whitespaces;
 
-    // --------------------------- CONSTRUCTORS ---------------------------
+// --------------------------- CONSTRUCTORS ---------------------------
 
     public PageNode(int pageNumber) {
         this.pageNumber = pageNumber;
     }
 
-    // --------------------- GETTER / SETTER METHODS ---------------------
+// --------------------- GETTER / SETTER METHODS ---------------------
 
     public int getPageNumber() {
         return pageNumber;
     }
 
-    // -------------------------- PUBLIC METHODS --------------------------
+    public List<Rectangle> getWhitespaces() {
+        return whitespaces;
+    }
+
+    public void setWhitespaces(final List<Rectangle> whitespaces) {
+        this.whitespaces = whitespaces;
+    }
+
+// -------------------------- PUBLIC METHODS --------------------------
+
+    public boolean accepts(final WordNode node) {
+        return pageNumber == node.getPageNum();
+    }
 
     @Override
     public boolean addWord(final WordNode node) {
@@ -67,10 +82,6 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
         addChild(paragraph);
 
         return true;
-    }
-
-    public boolean accepts(final WordNode node) {
-        return pageNumber == node.getPageNum();
     }
 
     @Override

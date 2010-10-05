@@ -38,7 +38,7 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 public class TextExtractor {
-    // ------------------------------ FIELDS ------------------------------
+// ------------------------------ FIELDS ------------------------------
 
     private static final Logger LOG = Loggers.getPdfExtractorLog();
     private final List<File> pdfFiles;
@@ -47,115 +47,20 @@ public class TextExtractor {
     private final int endPage;
     private final String password;
 
-    // --------------------------- CONSTRUCTORS ---------------------------
+// --------------------------- CONSTRUCTORS ---------------------------
 
     public TextExtractor(final List<File> pdfFiles, final File destination, final int startPage, final int endPage, final String password) {
         this.pdfFiles = pdfFiles;
         this.destination = destination;
         this.startPage = startPage;
+
         this.endPage = endPage;
         this.password = password;
     }
 
-    // --------------------- GETTER / SETTER METHODS ---------------------
+// -------------------------- STATIC METHODS --------------------------
 
-    private static Options getOptions() {
-        Options options = new Options();
-        options.addOption("p", "password", true, "Password for decryption of document");
-        options.addOption("s", "startpage", true, "First page to parse");
-        options.addOption("e", "endpage", true, "Last page to parse");
-        return options;
-    }
-
-    // -------------------------- OTHER METHODS --------------------------
-
-    protected void renderPDF(final File pdfFile, final PDDocument doc, final DocumentNode root) throws IOException {
-        long t0 = System.currentTimeMillis();
-
-        List pages = doc.getDocumentCatalog().getAllPages();
-        for (int i = Math.max(0, startPage); i < Math.min(pages.size(), endPage); i++) {
-            final PageRenderer renderer = new PageRenderer(doc, root);
-            BufferedImage image = renderer.renderPage(i);
-
-            /* then write to file */
-            final File output;
-            if (destination.isDirectory()) {
-                output = new File(destination, pdfFile.getName().replace(".pdf", ".elc." + i + ".png"));
-            } else {
-                output = new File(destination.getAbsolutePath().replace(".xml", ".elc." + i + ".png"));
-            }
-            ImageIO.write(image, "png", output);
-        }
-        LOG.warn("Rendering of pdf took " + (System.currentTimeMillis() - t0) + " ms");
-    }
-
-    // --------------------------- main() method ---------------------------
-
-    public static void main(String[] args) {
-        CommandLine cmd = parseParameters(args);
-
-        if (cmd.getArgs().length != 2) {
-            usage();
-            return;
-        }
-
-        int startPage = -1;
-        if (cmd.hasOption("startpage")) {
-            startPage = Integer.valueOf(cmd.getOptionValue("startpage"));
-        }
-
-        int endPage = -1;
-        if (cmd.hasOption("endpage")) {
-            endPage = Integer.valueOf(cmd.getOptionValue("endpage"));
-        }
-
-        String password = null;
-        if (cmd.hasOption("password")) {
-            password = cmd.getOptionValue("password");
-        }
-
-        List<File> pdfFiles = getPdfFiles(cmd.getArgs()[0]);
-
-        final File destination = new File(cmd.getArgs()[1]);
-        if (pdfFiles.size() > 1) {
-            /* if we have more than one input file, demand that the output be a directory */
-            if (destination.exists()) {
-                if (!destination.isDirectory()) {
-                    LOG.error("When specifying multiple input files, output needs to be a directory");
-                    return;
-                }
-            } else {
-                if (!destination.mkdirs()) {
-                    LOG.error("Could not create output directory");
-                    return;
-                }
-            }
-        }
-
-        final TextExtractor textExtractor = new TextExtractor(pdfFiles, destination, startPage, endPage, password);
-        textExtractor.processFiles();
-    }
-
-    private static CommandLine parseParameters(final String[] args) {
-        Options options = getOptions();
-        CommandLineParser parser = new PosixParser();
-
-        CommandLine cmd = null;
-        try {
-            cmd = parser.parse(options, args);
-        } catch (ParseException e) {
-            LOG.error("Could not parse command line options: " + e.getMessage());
-            usage();
-            System.exit(1);
-        }
-        return cmd;
-    }
-
-    private static void usage() {
-        new HelpFormatter().printHelp(TextExtractor.class.getSimpleName() + "<PDF file/dir> <XML output file/dir>", getOptions());
-    }
-
-    protected static List<File> getPdfFiles(final String filename) {
+    protected static List<File> findAllPdfFilesUnderDirectory(final String filename) {
         List<File> ret = new ArrayList<File>();
         File file = new File(filename);
 
@@ -174,38 +79,50 @@ public class TextExtractor {
         return ret;
     }
 
-    public final void processFiles() {
-        Collection<Long> timings = new ArrayList<Long>();
-        for (File pdfFile : pdfFiles) {
-            try {
-                final long t0 = System.currentTimeMillis();
-                processFile(pdfFile);
-                timings.add(System.currentTimeMillis() - t0);
-            } catch (Exception e) {
-                LOG.error("Error while processing PDF:", e);
-            }
-        }
-
-        long sum = 0L;
-        for (Long timing : timings) {
-            sum += timing;
-        }
-        LOG.error("Total time for analyzing " + pdfFiles.size() + " documents: " + sum + "ms (" + (sum / pdfFiles.size() + "ms average)"));
-    }
-
-    protected void processFile(final File pdfFile) throws IOException {
-        /* open document and parse it */
-        final PDDocument doc = openDocument(pdfFile, password);
+    protected static DocumentNode getDocumentTree(final PDDocument document, final int startPage, final int endPage) {
         try {
-            final DocumentNode root = getDocumentTree(doc, startPage, endPage);
-            printTree(pdfFile, root);
-            //            renderPDF(pdfFile, doc, root);
-        } finally {
-            doc.close();
+            Pdf2Xml stripper = new Pdf2Xml();
+
+            if (startPage != -1) {
+                LOG.warn("Reading from page " + startPage);
+                stripper.setStartPage(startPage);
+            }
+            if (endPage != Integer.MAX_VALUE) {
+                LOG.warn("Reading until page " + endPage);
+                stripper.setEndPage(endPage);
+            }
+
+            long t1 = System.currentTimeMillis();
+            stripper.writeText(document, null);
+            final DocumentNode root = stripper.getRoot();
+
+            LOG.warn("Document analysis took " + (System.currentTimeMillis() - t1) + "ms");
+            return root;
+        } catch (IOException e) {
+            throw new RuntimeException("Error while parsing document", e);
         }
     }
 
-    protected PDDocument openDocument(final File pdfFile, final String password) {
+    private static Options getOptions() {
+        Options options = new Options();
+        options.addOption("p", "password", true, "Password for decryption of document");
+        options.addOption("s", "startpage", true, "First page to parse");
+        options.addOption("e", "endpage", true, "Last page to parse");
+        return options;
+    }
+
+    protected static PrintStream openOutputStream(final File file) {
+        PrintStream ret;
+        try {
+            LOG.warn("Opening " + file + " for output");
+            ret = new PrintStream(new BufferedOutputStream(new FileOutputStream(file, false), 8192 * 4), false, "UTF-8");
+        } catch (Exception e) {
+            throw new RuntimeException("Could not open output file", e);
+        }
+        return ret;
+    }
+
+    protected static PDDocument openPdfDocument(final File pdfFile, final String password) {
         long t0 = System.currentTimeMillis();
         LOG.warn("Opening PDF file " + pdfFile + ".");
 
@@ -231,29 +148,47 @@ public class TextExtractor {
         }
     }
 
-    protected DocumentNode getDocumentTree(final PDDocument document, final int startPage, final int endPage) {
+    private static CommandLine parseParameters(final String[] args) {
+        Options options = getOptions();
+        CommandLineParser parser = new PosixParser();
+
+        CommandLine cmd = null;
         try {
-            Pdf2Xml stripper = new Pdf2Xml();
-
-            if (startPage != -1) {
-                LOG.warn("Reading from page " + startPage);
-                stripper.setStartPage(startPage);
-            }
-            if (endPage != -1) {
-                LOG.warn("Reading until page " + endPage);
-                stripper.setEndPage(endPage);
-            }
-
-            long t1 = System.currentTimeMillis();
-            stripper.writeText(document, null);
-            final DocumentNode root = stripper.getRoot();
-
-            LOG.warn("Document analysis took " + (System.currentTimeMillis() - t1) + "ms");
-            return root;
-        } catch (IOException e) {
-            throw new RuntimeException("Error while parsing document", e);
+            cmd = parser.parse(options, args);
+        } catch (ParseException e) {
+            LOG.error("Could not parse command line options: " + e.getMessage());
+            usage();
+            System.exit(1);
         }
+        return cmd;
     }
+
+    private static void usage() {
+        new HelpFormatter().printHelp(TextExtractor.class.getSimpleName() + "<PDF file/dir> <XML output file/dir>", getOptions());
+    }
+
+// -------------------------- PUBLIC METHODS --------------------------
+
+    public final void processFiles() {
+        Collection<Long> timings = new ArrayList<Long>();
+        for (File pdfFile : pdfFiles) {
+            try {
+                final long t0 = System.currentTimeMillis();
+                processFile(pdfFile);
+                timings.add(System.currentTimeMillis() - t0);
+            } catch (Exception e) {
+                LOG.error("Error while processing PDF:", e);
+            }
+        }
+
+        long sum = 0L;
+        for (Long timing : timings) {
+            sum += timing;
+        }
+        LOG.error("Total time for analyzing " + pdfFiles.size() + " documents: " + sum + "ms (" + (sum / pdfFiles.size() + "ms average)"));
+    }
+
+// -------------------------- OTHER METHODS --------------------------
 
     protected void printTree(final File pdfFile, final DocumentNode root) {
         /* write to file */
@@ -269,15 +204,83 @@ public class TextExtractor {
         outStream.close();
     }
 
-    protected PrintStream openOutputStream(final File file) {
-        PrintStream ret;
+    protected void processFile(final File pdfFile) throws IOException {
+        /* open document and parse it */
+        final PDDocument doc = openPdfDocument(pdfFile, password);
         try {
-            LOG.warn("Opening " + file + " for output");
-            ret = new PrintStream(new BufferedOutputStream(new FileOutputStream(file, false), 8192 * 4), false, "UTF-8");
-        } catch (Exception e) {
-            throw new RuntimeException("Could not open output file", e);
+            final DocumentNode root = getDocumentTree(doc, startPage, endPage);
+            printTree(pdfFile, root);
+            renderPDF(pdfFile, doc, root);
+        } finally {
+            doc.close();
         }
-        return ret;
+    }
+
+    protected void renderPDF(final File pdfFile, final PDDocument doc, final DocumentNode root) throws IOException {
+        long t0 = System.currentTimeMillis();
+
+        List pages = doc.getDocumentCatalog().getAllPages();
+        for (int i = Math.max(0, startPage); i < Math.min(pages.size(), endPage); i++) {
+            final PageRenderer renderer = new PageRenderer(doc, root);
+            BufferedImage image = renderer.renderPage(i);
+
+            /* then write to file */
+            final File output;
+            if (destination.isDirectory()) {
+                output = new File(destination, pdfFile.getName().replace(".pdf", ".elc." + i + ".png"));
+            } else {
+                output = new File(destination.getAbsolutePath().replace(".xml", ".elc." + i + ".png"));
+            }
+            ImageIO.write(image, "png", output);
+        }
+        LOG.warn("Rendering of pdf took " + (System.currentTimeMillis() - t0) + " ms");
+    }
+
+// --------------------------- main() method ---------------------------
+
+    public static void main(String[] args) {
+        CommandLine cmd = parseParameters(args);
+
+        if (cmd.getArgs().length != 2) {
+            usage();
+            return;
+        }
+
+        int startPage = -1;
+        if (cmd.hasOption("startpage")) {
+            startPage = Integer.valueOf(cmd.getOptionValue("startpage"));
+        }
+
+        int endPage = Integer.MAX_VALUE;
+        if (cmd.hasOption("endpage")) {
+            endPage = Integer.valueOf(cmd.getOptionValue("endpage"));
+        }
+
+        String password = null;
+        if (cmd.hasOption("password")) {
+            password = cmd.getOptionValue("password");
+        }
+
+        List<File> pdfFiles = findAllPdfFilesUnderDirectory(cmd.getArgs()[0]);
+
+        final File destination = new File(cmd.getArgs()[1]);
+        if (pdfFiles.size() > 1) {
+            /* if we have more than one input file, demand that the output be a directory */
+            if (destination.exists()) {
+                if (!destination.isDirectory()) {
+                    LOG.error("When specifying multiple input files, output needs to be a directory");
+                    return;
+                }
+            } else {
+                if (!destination.mkdirs()) {
+                    LOG.error("Could not create output directory");
+                    return;
+                }
+            }
+        }
+
+        final TextExtractor textExtractor = new TextExtractor(pdfFiles, destination, startPage, endPage, password);
+        textExtractor.processFiles();
     }
 }
 

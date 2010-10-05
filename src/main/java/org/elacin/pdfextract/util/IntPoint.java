@@ -24,33 +24,18 @@ package org.elacin.pdfextract.util;
  * <p/>
  * A mutable point
  */
-public class Point {
-    // ------------------------------ FIELDS ------------------------------
+public class IntPoint {
+// ------------------------------ FIELDS ------------------------------
 
-    private float x, y;
+    int x, y;
 
-    // --------------------------- CONSTRUCTORS ---------------------------
+// --------------------------- CONSTRUCTORS ---------------------------
 
-    public Point(final float x, final float y) {
+    public IntPoint(final int x, final int y) {
         setPosition(x, y);
     }
 
-    public final void setPosition(float x, float y) {
-        this.x = x;
-        this.y = y;
-    }
-
-    // --------------------- GETTER / SETTER METHODS ---------------------
-
-    public float getX() {
-        return x;
-    }
-
-    public float getY() {
-        return y;
-    }
-
-    // ------------------------ CANONICAL METHODS ------------------------
+// ------------------------ CANONICAL METHODS ------------------------
 
     @Override
     public String toString() {
@@ -60,5 +45,22 @@ public class Point {
         sb.append(", y=").append(y);
         sb.append('}');
         return sb.toString();
+    }
+
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+// -------------------------- PUBLIC METHODS --------------------------
+
+    public final void setPosition(int x, int y) {
+        this.x = x;
+        this.y = y;
     }
 }

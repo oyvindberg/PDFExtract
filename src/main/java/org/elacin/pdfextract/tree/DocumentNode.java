@@ -17,7 +17,6 @@
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.Loggers;
-import org.elacin.pdfextract.builder.DocumentStyles;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -31,7 +30,7 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
-    // ------------------------------ FIELDS ------------------------------
+// ------------------------------ FIELDS ------------------------------
 
     public final List<WordNode> words = new ArrayList<WordNode>();
 
@@ -40,19 +39,19 @@ public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
      */
     protected final DocumentStyles styles = new DocumentStyles();
 
-    // --------------------------- CONSTRUCTORS ---------------------------
+// --------------------------- CONSTRUCTORS ---------------------------
 
     public DocumentNode() {
         setRoot(this);
     }
 
-    // --------------------- GETTER / SETTER METHODS ---------------------
+// --------------------- GETTER / SETTER METHODS ---------------------
 
     public DocumentStyles getStyles() {
         return styles;
     }
 
-    // -------------------------- PUBLIC METHODS --------------------------
+// -------------------------- PUBLIC METHODS --------------------------
 
     @Override
     public boolean addWord(final WordNode node) {

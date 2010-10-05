@@ -35,7 +35,7 @@ import java.util.Set;
  * To change this template use File | Settings | File Templates.
  */
 public abstract class AbstractNode<ParentType extends AbstractParentNode> implements Serializable {
-    // ------------------------------ FIELDS ------------------------------
+// ------------------------------ FIELDS ------------------------------
 
     protected Map<Role, String> roles;
     protected ParentType parent;
@@ -47,7 +47,7 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
     /* a cache of current toString-String */
     protected transient String toStringCache;
 
-    // --------------------- GETTER / SETTER METHODS ---------------------
+// --------------------- GETTER / SETTER METHODS ---------------------
 
     public ParentType getParent() {
         return parent;
@@ -61,7 +61,7 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
         this.root = root;
     }
 
-    // -------------------------- PUBLIC METHODS --------------------------
+// -------------------------- PUBLIC METHODS --------------------------
 
     public void addRole(Role r, String reason) {
         Loggers.getCreateTreeLog().warn(this + " got assigned role " + r);
@@ -81,6 +81,8 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
         }
         return null;
     }
+
+    public abstract Rectangle getPosition();
 
     public Set<Role> getRoles() {
         if (roles == null) {
@@ -102,8 +104,6 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
     public boolean overlapsWith(final AbstractNode two) {
         return getPosition().intersectsWith(two.getPosition());
     }
-
-    public abstract Rectangle getPosition();
 
     public void printTree(String filename) {
         PrintStream stream = null;
@@ -130,9 +130,8 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
         }
     }
 
+// -------------------------- OTHER METHODS --------------------------
+
     protected abstract void appendLocalInfo(Appendable sb, int indent) throws IOException;
-
-    // -------------------------- OTHER METHODS --------------------------
-
     protected abstract void invalidateThisAndParents();
 }

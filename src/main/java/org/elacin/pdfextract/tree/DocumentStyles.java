@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.builder;
+package org.elacin.pdfextract.tree;
 
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.text.Style;
@@ -36,19 +36,19 @@ import static org.elacin.pdfextract.util.MathUtils.round;
  * will be available here. There is some optimization to avoid excessive object creation.
  */
 public class DocumentStyles {
-    // ------------------------------ FIELDS ------------------------------
+// ------------------------------ FIELDS ------------------------------
 
     final Map<Float, Style> styles = new HashMap<Float, Style>();
 
     final Collection<Style> stylesCollection = styles.values();
 
-    // --------------------- GETTER / SETTER METHODS ---------------------
+// --------------------- GETTER / SETTER METHODS ---------------------
 
     public Map<Float, Style> getStyles() {
         return styles;
     }
 
-    // -------------------------- PUBLIC METHODS --------------------------
+// -------------------------- PUBLIC METHODS --------------------------
 
     public Style getStyleForTextPosition(TextPosition position) {
         float result = position.getFontSize();
@@ -74,6 +74,8 @@ public class DocumentStyles {
 
         return existing;
     }
+
+// -------------------------- OTHER METHODS --------------------------
 
     private Style getStyle(float xSize, float ySize, final float widthOfSpace, String font) {
         return new Style(font, round(xSize), round(ySize), round(widthOfSpace));

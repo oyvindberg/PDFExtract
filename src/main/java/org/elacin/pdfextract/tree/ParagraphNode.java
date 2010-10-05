@@ -31,12 +31,12 @@ import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
  * To change this template use File | Settings | File Templates.
  */
 public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
-    // --------------------------- CONSTRUCTORS ---------------------------
+// --------------------------- CONSTRUCTORS ---------------------------
 
     public ParagraphNode() {
     }
 
-    // -------------------------- PUBLIC METHODS --------------------------
+// -------------------------- PUBLIC METHODS --------------------------
 
     @Override
     public boolean addWord(final WordNode node) {
@@ -64,66 +64,6 @@ public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
         }
 
 
-        return false;
-    }
-
-    public boolean isNewLineInThisParagraph(final AbstractNode newNode) {
-        LineNode lastLineNode = getChildren().get(getChildren().size() - 1);
-
-        /* if the last line still has no text, accept this */
-        if (lastLineNode.getChildren().isEmpty()) {
-            return true;
-        }
-
-        /* Use the size of the preceding and new text to determine if the two lines are
-             logically part of the same paragraph. Use the smaller of the two values.
-         */
-        //TODO: style!
-        //        int ySize = Math.min(lastLineNode.getCurrentStyle().ySize, newNode.getStyle().ySize);
-
-        /* if the new node seems to be a headline, dont let it continue this paragraph */
-        if (isProbableTitle(newNode)) {
-            return false;
-        }
-
-        //TODO:
-        if (!newNode.getStyle().font.equals(getStyle().font) ||
-                newNode.getStyle().ySize != getStyle().ySize) {//|| newNode.getStyle().ySize != getStyle().ySize){
-            return false;
-        }
-
-        //        if (isWithinVariance(getPosition().getEndY(), newNode.getPosition().getY(), ySize*2)) {
-        if (isWithinVariance(getPosition().getEndY(), newNode.getPosition().getY(), lastLineNode.getCurrentStyle().ySize * 2)) {
-            int widthOfSpace = lastLineNode.getCurrentStyle().widthOfSpace;
-
-            /* if the new node STARTS at more or less the same X position, accept it */
-            if (isWithinVariance(getPosition().getX(), newNode.getPosition().getX(), widthOfSpace)) {
-                //            if (isWithinVariance(lastLineNode.getPosition().getX(), newNode.getPosition().getX(), widthOfSpace)) {
-                return true;
-            }
-
-            /* if the new node ENDS at more or less the same X position, also accept it */
-            if (isWithinVariance(getPosition().getEndX(), newNode.getPosition().getEndX(), widthOfSpace)) {
-                return true;
-            }
-
-            /* also accept it if its X value IS CONTAINED between current position's lower X and (higher X + widthOfSpace)*/
-            if (getPosition().getX() < newNode.getPosition().getX() &&
-                    getPosition().getX() + getPosition().getWidth() + widthOfSpace > newNode.getPosition().getX()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean isProbableTitle(final AbstractNode newNode) {
-        final LineNode lastLineNode = getChildren().get(getChildren().size() - 1);
-        if (lastLineNode.getStyle().xSize * 1.05 < newNode.getStyle().xSize) {
-            return true;
-        }
-        if (!newNode.getStyle().font.toLowerCase().contains("bold")) {
-            return newNode.getStyle().font.toLowerCase().contains("bold");
-        }
         return false;
     }
 
@@ -187,5 +127,67 @@ public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
     @Override
     public Comparator<LineNode> getChildComparator() {
         return new StandardNodeComparator();
+    }
+
+    public boolean isNewLineInThisParagraph(final AbstractNode newNode) {
+        LineNode lastLineNode = getChildren().get(getChildren().size() - 1);
+
+        /* if the last line still has no text, accept this */
+        if (lastLineNode.getChildren().isEmpty()) {
+            return true;
+        }
+
+        /* Use the size of the preceding and new text to determine if the two lines are
+             logically part of the same paragraph. Use the smaller of the two values.
+         */
+        //TODO: style!
+        //        int ySize = Math.min(lastLineNode.getCurrentStyle().ySize, newNode.getStyle().ySize);
+
+        /* if the new node seems to be a headline, dont let it continue this paragraph */
+        if (isProbableTitle(newNode)) {
+            return false;
+        }
+
+        //TODO:
+        if (!newNode.getStyle().font.equals(getStyle().font) ||
+                newNode.getStyle().ySize != getStyle().ySize) {//|| newNode.getStyle().ySize != getStyle().ySize){
+            return false;
+        }
+
+        //        if (isWithinVariance(getPosition().getEndY(), newNode.getPosition().getY(), ySize*2)) {
+        if (isWithinVariance(getPosition().getEndY(), newNode.getPosition().getY(), lastLineNode.getCurrentStyle().ySize * 2)) {
+            int widthOfSpace = lastLineNode.getCurrentStyle().widthOfSpace;
+
+            /* if the new node STARTS at more or less the same X position, accept it */
+            if (isWithinVariance(getPosition().getX(), newNode.getPosition().getX(), widthOfSpace)) {
+                //            if (isWithinVariance(lastLineNode.getPosition().getX(), newNode.getPosition().getX(), widthOfSpace)) {
+                return true;
+            }
+
+            /* if the new node ENDS at more or less the same X position, also accept it */
+            if (isWithinVariance(getPosition().getEndX(), newNode.getPosition().getEndX(), widthOfSpace)) {
+                return true;
+            }
+
+            /* also accept it if its X value IS CONTAINED between current position's lower X and (higher X + widthOfSpace)*/
+            if (getPosition().getX() < newNode.getPosition().getX() &&
+                    getPosition().getX() + getPosition().getWidth() + widthOfSpace > newNode.getPosition().getX()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+// -------------------------- OTHER METHODS --------------------------
+
+    private boolean isProbableTitle(final AbstractNode newNode) {
+        final LineNode lastLineNode = getChildren().get(getChildren().size() - 1);
+        if (lastLineNode.getStyle().xSize * 1.05 < newNode.getStyle().xSize) {
+            return true;
+        }
+        if (!newNode.getStyle().font.toLowerCase().contains("bold")) {
+            return newNode.getStyle().font.toLowerCase().contains("bold");
+        }
+        return false;
     }
 }

@@ -28,7 +28,7 @@ import java.util.Arrays;
  * To change this template use File | Settings | File Templates.
  */
 public class StringUtils {
-    // -------------------------- PUBLIC STATIC METHODS --------------------------
+// -------------------------- PUBLIC STATIC METHODS --------------------------
 
     public static String getTextPositionString(final TextPosition position) {
         StringBuilder sb = new StringBuilder("pos{");

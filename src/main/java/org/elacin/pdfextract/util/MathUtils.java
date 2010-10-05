@@ -24,7 +24,21 @@ package org.elacin.pdfextract.util;
  * To change this template use File | Settings | File Templates.
  */
 public class MathUtils {
-    // -------------------------- PUBLIC STATIC METHODS --------------------------
+// -------------------------- PUBLIC STATIC METHODS --------------------------
+
+    /**
+     * Returns true if num2 is within percentage percent of num1
+     *
+     * @param num1
+     * @param num2
+     * @param percentage
+     * @return
+     */
+    public static boolean isWithinPercent(final int num1, final int num2, final int percentage) {
+        if (num1 == num2) return true;
+
+        return (num1 + num1 / 100.0f * percentage) >= num2 && (num1 - num1 / 100.0f * percentage) <= num2;
+    }
 
     /**
      * Returns true if num2 is within num ± i
@@ -40,22 +54,7 @@ public class MathUtils {
         return (num1 - variance) <= num2 && (num1 + variance) >= num2;
     }
 
-
-    /**
-     * Returns true if num2 is within percentage percent of num1
-     *
-     * @param num1
-     * @param num2
-     * @param percentage
-     * @return
-     */
-    public static boolean isWithinPercent(final int num1, final int num2, final int percentage) {
-        if (num1 == num2) return true;
-
-        return (num1 + num1 / 100f * percentage) >= num2 && (num1 - num1 / 100f * percentage) <= num2;
-    }
-
     public static int round(float num) {
-        return (int) (100f * num);
+        return (int) (100.0f * num);
     }
 }

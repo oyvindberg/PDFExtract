@@ -37,7 +37,7 @@ import java.util.Map;
  * To change this template use File | Settings | File Templates.
  */
 public class PageRenderer {
-    // ------------------------------ FIELDS ------------------------------
+// ------------------------------ FIELDS ------------------------------
 
     private static final Logger LOG = Loggers.getPdfExtractorLog();
 
@@ -46,7 +46,7 @@ public class PageRenderer {
     private final DocumentNode documentNode;
     private final Map<Integer, BufferedImage> pagesCache = new HashMap<Integer, BufferedImage>();
 
-    // --------------------------- CONSTRUCTORS ---------------------------
+// --------------------------- CONSTRUCTORS ---------------------------
 
     public PageRenderer(final PDDocument document, final DocumentNode documentNode, final int resolution) {
         this.document = document;
@@ -58,7 +58,44 @@ public class PageRenderer {
         this(document, documentNode, 200);
     }
 
-    // -------------------------- PUBLIC METHODS --------------------------
+// -------------------------- PUBLIC STATIC METHODS --------------------------
+
+    @SuppressWarnings({"NumericCastThatLosesPrecision"})
+    public static void drawNode(final AbstractNode node, final Graphics2D graphics, final float xScale, final float yScale) {
+        Color color;
+
+        if (node instanceof WordNode) {
+            color = Color.BLUE;
+        } else if (node instanceof LineNode) {
+            color = Color.RED;
+        } else if (node instanceof ParagraphNode) {
+            color = Color.GREEN;
+        } else {
+            color = Color.BLACK;
+        }
+
+        final Rectangle pos = node.getPosition();
+
+        drawRectangleInColor(graphics, xScale, yScale, color, pos);
+    }
+
+// -------------------------- STATIC METHODS --------------------------
+
+    private static void drawRectangleInColor(final Graphics2D graphics, final float xScale, final float yScale, final Color color, final Rectangle pos) {
+        graphics.setColor(color);
+        final int x = (int) ((float) pos.getX() * xScale);
+        final int width = (int) ((float) pos.getWidth() * xScale);
+        int y = (int) ((float) pos.getY() * yScale);
+        final int height = (int) ((float) pos.getHeight() * yScale);
+
+        graphics.drawRect(x, y, width, height);
+
+        graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 60));
+        graphics.fillRect(x, y, width, height);
+        graphics.fillRect(x, y, width, height);
+    }
+
+// -------------------------- PUBLIC METHODS --------------------------
 
     public BufferedImage renderPage(final int pageNum) throws IOException {
         final PageNode pageNode = documentNode.getPageNumber(pageNum + 1);
@@ -84,9 +121,15 @@ public class PageRenderer {
             }
             drawNode(paragraphNode, graphics, xScale, yScale);
         }
+
+        for (Rectangle whitespace : pageNode.getWhitespaces()) {
+            drawRectangleInColor(graphics, xScale, yScale, Color.PINK, whitespace);
+        }
         LOG.warn("Rendered page " + pageNum + " in " + (System.currentTimeMillis() - t1) + " ms");
         return image;
     }
+
+// -------------------------- OTHER METHODS --------------------------
 
     private BufferedImage getPDFBoxRenderingForPage(final int pageNum) throws IOException {
         BufferedImage image = null;
@@ -96,34 +139,5 @@ public class PageRenderer {
             pagesCache.put(pageNum, image);
         }
         return image;
-    }
-
-    @SuppressWarnings({"NumericCastThatLosesPrecision"})
-    public static void drawNode(final AbstractNode node, final Graphics2D graphics, final float xScale, final float yScale) {
-        Color color;
-
-        if (node instanceof WordNode) {
-            color = Color.BLUE;
-        } else if (node instanceof LineNode) {
-            color = Color.RED;
-        } else if (node instanceof ParagraphNode) {
-            color = Color.GREEN;
-        } else {
-            color = Color.BLACK;
-        }
-
-        graphics.setColor(color);
-        final Rectangle pos = node.getPosition();
-
-        final int x = (int) ((float) pos.getX() * xScale);
-        final int width = (int) ((float) pos.getWidth() * xScale);
-        int y = (int) ((float) pos.getY() * yScale);
-        final int height = (int) ((float) pos.getHeight() * yScale);
-
-        graphics.drawRect(x, y, width, height);
-
-        graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 60));
-        graphics.fillRect(x, y, width, height);
-        graphics.fillRect(x, y, width, height);
     }
 }

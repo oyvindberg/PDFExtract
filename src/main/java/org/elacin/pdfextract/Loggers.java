@@ -27,32 +27,25 @@ import org.apache.log4j.PropertyConfigurator;
  * To change this template use File | Settings | File Templates.
  */
 public class Loggers {
-    // ------------------------------ FIELDS ------------------------------
-
-    private static final Logger createTreeLog = Logger.getLogger("org.elacin.pdfextract.createTree");
-    private static final Logger pdfExtractorLog = Logger.getLogger("org.elacin.pdfextract");
-    private static final Logger wordBuilderLog = Logger.getLogger("org.elacin.pdfextract.wordBuilder");
-    private static final Logger pdfboxLog = Logger.getLogger("org.apache.pdfbox");
-
     static {
         PropertyConfigurator.configure(Loggers.class.getClassLoader().getResource("log4j.xml"));
     }
 
-    // --------------------- GETTER / SETTER METHODS ---------------------
+// -------------------------- PUBLIC STATIC METHODS --------------------------
 
     public static Logger getCreateTreeLog() {
-        return createTreeLog;
+        return Logger.getLogger("org.elacin.pdfextract.createTree");
     }
 
     public static Logger getPdfExtractorLog() {
-        return pdfExtractorLog;
+        return Logger.getLogger("org.elacin.pdfextract");
     }
 
     public static Logger getPdfboxLog() {
-        return pdfboxLog;
+        return Logger.getLogger("org.apache.pdfbox");
     }
 
     public static Logger getWordBuilderLog() {
-        return wordBuilderLog;
+        return Logger.getLogger("org.elacin.pdfextract.wordBuilder");
     }
 }

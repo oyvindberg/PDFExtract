@@ -31,7 +31,7 @@ import java.util.List;
  * To change this template use File | Settings | File Templates.
  */
 public class FileWalker {
-    // -------------------------- PUBLIC STATIC METHODS --------------------------
+// -------------------------- PUBLIC STATIC METHODS --------------------------
 
     /**
      * Recursively walk a directory tree and return a List of all
@@ -44,6 +44,24 @@ public class FileWalker {
         validateDirectory(aStartingDir);
         List<File> result = getFileListingNoSort(aStartingDir, extension);
         Collections.sort(result);
+        return result;
+    }
+
+// -------------------------- STATIC METHODS --------------------------
+
+    static List<File> getFileListingNoSort(File aStartingDir, final String extension) {
+        List<File> result = new ArrayList<File>();
+        File[] filesAndDirs = aStartingDir.listFiles();
+        List<File> filesDirs = Arrays.asList(filesAndDirs);
+        for (File file : filesDirs) {
+            if (file.getName().endsWith(extension)) {
+                result.add(file); //always add, even if directory
+            }
+            if (file.isDirectory()) {
+                List<File> deeperList = getFileListingNoSort(file, extension);
+                result.addAll(deeperList);
+            }
+        }
         return result;
     }
 
@@ -63,21 +81,5 @@ public class FileWalker {
         if (!aDirectory.canRead()) {
             throw new IllegalArgumentException("Directory cannot be read: " + aDirectory);
         }
-    }
-
-    static List<File> getFileListingNoSort(File aStartingDir, final String extension) {
-        List<File> result = new ArrayList<File>();
-        File[] filesAndDirs = aStartingDir.listFiles();
-        List<File> filesDirs = Arrays.asList(filesAndDirs);
-        for (File file : filesDirs) {
-            if (file.getName().endsWith(extension)) {
-                result.add(file); //always add, even if directory
-            }
-            if (file.isDirectory()) {
-                List<File> deeperList = getFileListingNoSort(file, extension);
-                result.addAll(deeperList);
-            }
-        }
-        return result;
     }
 }
