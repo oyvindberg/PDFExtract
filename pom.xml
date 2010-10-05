@@ -39,6 +39,12 @@
             <url>http://www2.ph.ed.ac.uk/maven2</url>
         </repository>
 
+        <!-- for oscar3 -->
+        <!--<repository>-->
+            <!--<id>maven.ch.cam.ac.uk</id>-->
+            <!--<url>https://maven.ch.cam.ac.uk/m2repo</url>-->
+        <!--</repository>-->
+
     </repositories>
 
     <dependencies>
@@ -57,34 +63,24 @@
         </dependency>
 
 
-        <dependency>
-            <groupId>uk.ac.ed.ph.snuggletex</groupId>
-            <artifactId>snuggletex-core</artifactId>
-            <version>1.2.1</version>
-        </dependency>
-        <dependency>
-            <groupId>uk.ac.ed.ph.snuggletex</groupId>
-            <artifactId>snuggletex-upconversion</artifactId>
-            <version>1.2.1</version>
-            <scope>test</scope>
-        </dependency>
         <!--<dependency>-->
-        <!--<groupId>uk.ac.ed.ph.snuggletex</groupId>-->
-        <!--<artifactId>snuggletex-jeuclid</artifactId>-->
-        <!--<version>1.2.1</version>-->
+            <!--<groupId>uk.ac.ed.ph.snuggletex</groupId>-->
+            <!--<artifactId>snuggletex-core</artifactId>-->
+            <!--<version>1.2.1</version>-->
+        <!--</dependency>-->
+        <!--<dependency>-->
+            <!--<groupId>uk.ac.ed.ph.snuggletex</groupId>-->
+            <!--<artifactId>snuggletex-upconversion</artifactId>-->
+            <!--<version>1.2.1</version>-->
+            <!--<scope>test</scope>-->
         <!--</dependency>-->
 
-        <!--<dependency>-->
-        <!--<groupId>org.apache.pdfbox</groupId>-->
-        <!--<artifactId>pdfbox</artifactId>-->
-        <!--<version>1.0.1-SNAPSHOT</version>-->
-        <!--</dependency>-->
 
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
             <version>1.2.1</version>
-
+            <!--<version>1.3.0-SNAPSHOT</version>-->
         </dependency>
 
         <dependency>
@@ -99,45 +95,17 @@
             <version>1.2</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.ibm.icu</groupId>
-            <artifactId>icu4j</artifactId>
-            <version>4.0.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>r05</version>
-        </dependency>
-
-
         <!--<dependency>-->
-        <!--<groupId>jinahya.rfc</groupId>-->
-        <!--<artifactId>rfc4648</artifactId>-->
-        <!--<version>1.0-SNAPSHOT</version>-->
+            <!--<groupId>com.google.guava</groupId>-->
+            <!--<artifactId>guava</artifactId>-->
+            <!--<version>r05</version>-->
         <!--</dependency>-->
 
         <!--<dependency>-->
-        <!--<groupId>jinahya.io</groupId>-->
-        <!--<artifactId>bitio</artifactId>-->
-        <!--<version>1.0-SNAPSHOT</version>-->
+            <!--<groupId>wwmm</groupId>-->
+            <!--<artifactId>oscar3</artifactId>-->
+            <!--<version>1.0-SNAPSHOT</version>-->
         <!--</dependency>-->
-
-        <dependency>
-            <groupId>org.spaceroots</groupId>
-            <artifactId>jarmor</artifactId>
-            <version>1.1</version>
-            <scope>system</scope>
-            <systemPath>${basedir}/lib/jarmor-1.1.jar</systemPath>
-        </dependency>
-
-        <dependency>
-            <groupId>com.sun.jna</groupId>
-            <artifactId>jna</artifactId>
-            <version>3.0.9</version>
-        </dependency>
-
 
     </dependencies>
 
