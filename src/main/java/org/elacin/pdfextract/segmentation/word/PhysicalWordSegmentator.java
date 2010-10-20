@@ -141,8 +141,7 @@ public class PhysicalWordSegmentator {
      * @return
      */
     private static boolean isTextPositionTooHigh(final TextPosition textPosition) {
-        final boolean b = textPosition.getHeightDir() >
-                (float) (textPosition.getFontSize() * textPosition.getYScale() * 1.2);
+        final boolean b = textPosition.getHeightDir() > textPosition.getFontSize() * textPosition.getYScale() * 1.2f;
         if (b) {
             System.out.println("PhysicalWordSegmentator.isTextPositionTooHigh: " +
                     StringUtils.getTextPositionString(textPosition));
@@ -286,12 +285,12 @@ public class PhysicalWordSegmentator {
     private static class WordState {
         private final char[] chars = new char[512];
         private int len;
-        private int maxHeight;
-        private int width;
-        private int x;
-        private int y;
+        private float maxHeight;
+        private float width;
+        private float x;
+        private float y;
         private Style currentStyle;
-        public int charSpacing;
+        public float charSpacing;
 
         public WordNode createWord(final int pageNum) {
             String wordText = new String(chars, 0, len);
@@ -306,18 +305,18 @@ public class PhysicalWordSegmentator {
             /* then reset state for next word */
             len = 0;
             x += width;
-            maxHeight = 0;
-            width = 0;
+            maxHeight = 0.0F;
+            width = 0.0F;
 
             return word;
         }
 
         public boolean isTooFarAway(final Text text) {
-            if (text.distanceToPreceeding < 0) {
+            if (text.distanceToPreceeding < 0.0f) {
                 return false;
             }
 
-            if (text.distanceToPreceeding > text.charSpacing) {
+            if (text.distanceToPreceeding >= text.charSpacing) {
                 if (LOG.isDebugEnabled()) {
                     LOG.debug(this + ": " + text + " is too far away");
                 }

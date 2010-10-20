@@ -18,9 +18,9 @@ package org.elacin.pdfextract.segmentation.word;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.Loggers;
-import org.elacin.pdfextract.util.MathUtils;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -34,103 +34,46 @@ class CharSpacingFinder {
 
     // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-    /**
-     * This is the algorithm to find out the most probable charSpacing given a list of integer distances
-     * <p/>
-     * <p/>
-     * There are two special cases: - only one text fragment, in which case we set a spacing of 0 - all distances are
-     * almost the same, in which case we assume it is one continuous word, and not a list of single text fragments
-     * <p/>
-     * The general algorithm consists of these steps:
-     *
-     * @param distances
-     * @param distanceCount
-     * @param averageFontSize
-     * @return
-     */
-    public static int calculateCharspacingForDistances(final int[] distances, final int distanceCount, final float averageFontSize) {
-        /* calculate the average distance - it will be used below */
-        double sum = 0.0;
-        for (int i = 0; i < distanceCount; i++) {
-            sum += distances[i];
+    public static float calculateCharspacingForDistances(final List<Float> distances, final float averageFontSize) {
+        if (distances.size() == 1) {
+            return distances.get(0);
+        } else if (distances.isEmpty()) {
+            return 0.0f;
         }
-        double averageDistance = sum / (double) distanceCount;
-        LOG.debug("averageFontSize = " + averageFontSize + ", averageDistance = " + averageDistance);
 
-        /* this algorithm depends on that the distances be sorted */
-        Arrays.sort(distances);
+        /* calculate the average distance - it will be used below */
+        float sum = 0.0f;
+        float smallest = Float.MAX_VALUE;
 
-
-        double charSpacing = Double.MIN_VALUE;
-        if (distanceCount == 0) {
-            charSpacing = 0.0;
-        } else if (MathUtils.isWithinPercent(distances[0], distances[distanceCount - 1], 10)) {
-            charSpacing = distances[distanceCount - 1];
-            LOG.debug("spacing: all distances equal, setting as character space");
-        } else {
-            /* iterate backwards - do this because char spacing seems to vary a lot more than does word spacing */
-            double biggestScore = Double.MIN_VALUE;
-            double lastDistance = (double) (distances[distanceCount - 1] + 1);
-
-            for (int i = distanceCount - 1; i >= 0; i--) {
-                double distance = (double) distances[i];
-
-                /* this is just an optimization - dont consider a certain distance if we already did */
-                //noinspection FloatingPointEquality
-                if (distance == charSpacing || distance == lastDistance) {
-                    continue;
-                }
-
-
-                if (distance < Math.max(averageFontSize * 3.0, averageDistance)) {
-                    /* the essential scoring here is based on */
-                    double score = ((lastDistance - distance) / (Math.max(1, distance)) + distance * 0.5);
-
-                    if (distance > 0.0) {
-                        /* weight the score to give some priority to spacings around the same size as the given average font size.
-
-                        * This works by measuring the distance from distance to the given font size as the logarithm of distance with
-                        *   font size as the base.
-                        * One is subtracted from this logarithm to re-base the number around 0, and the absolute value is calculated.
-                        *
-                        * For say distances of 32 or 8 with a font size 16, this number will in both cases be 0.25.
-                        *   The penalty given to the score for that would then be score*(1 + (0.25 * 0.4))
-                        * */
-
-                        //score *= (Math.abs(StrictMath.log(distance) / Math.max(1.0, StrictMath.log(averageFontSize)) - 1.0) * 0.4 + 1.0);
-
-                        final double distanceLog = Math
-                                .abs(StrictMath.log(distance) / Math.max(1.0, StrictMath.log(averageDistance))) - 1.0;
-                        score *= (distanceLog * 0.1) + 1.0;
-
-                        /* and give some priority to bigger distances */
-                        score = score * (double) i / (double) distanceCount;
-                    } else {
-                        /* for zero or negative distances, divide the score by two */
-                        score *= 0.5;
-                    }
-
-                    if (score > biggestScore) {
-                        biggestScore = score;
-                        charSpacing = distance;
-                        LOG.debug("spacing: " + charSpacing + " is now the most probable. score: " + score);
-                    } else {
-                        LOG.debug("spacing: " + distance + " got score " + score);
-                    }
-                }
-                lastDistance = distance;
+        for (final float distance : distances) {
+            sum += distance;
+            if (distance < smallest) {
+                smallest = distance;
             }
         }
+        final float averageDistance = sum / (float) distances.size();
 
-        final double expectedMinimum = Math.max(3, averageFontSize / 2);
-        if (charSpacing < expectedMinimum) {
-            LOG.debug("spacing: got suspiciously low charSpacing " + charSpacing + " setting to " + expectedMinimum);
-            charSpacing = expectedMinimum;
-        }
+        /**
+         * The reasoning behind this algorithm is the following:
+         *
+         *  - The 'size' of a font is normally way bigger than spacing between
+         *      words, so it is useful to consider a fraction of it. 10% is
+         *      easy to reason about and thus use as a unit.
+         *
+         *  - It is necessary to use the font size, because obviously the 'normal'
+         *      word spacing will vary with it (bigger fonts have bigger spacing)
+         *
+         *  - To consider how 'many' ten percent font size units we want,
+         *      we consider the average distance between characters
+         *
+         *  - Finally, we offset the calculates charspacing with the minimum 
+         *      distance found. This is to facilitate correct spacing of lines
+         *      with abnormally long intra-word spacing. 
+         *
+         */
+        final float charSpacing = (averageFontSize / 10.0F) * (averageDistance * 0.4f) + smallest * 0.6f;
 
-        /* return after converting to int and correcting for rounding */
-        //noinspection NumericCastThatLosesPrecision
-        return 1 + (int) charSpacing;
+        return charSpacing;
     }
 
     /**
@@ -141,29 +84,17 @@ class CharSpacingFinder {
             return;
         }
 
-        /* Start by making a list of all distances, and an average*/
-        int[] distances = new int[texts.size() - 1];
-
-        int distanceCount = 0;
-        int fontSizeSum = 0;
-        for (int i = 0; i < texts.size(); i++) {
-            Text text = texts.get(i);
-            /* skip the first word fragment, and only include this distance if it is not too big */
-            if (i != 0 && text.distanceToPreceeding < text.style.xSize * 6) {
-                distances[distanceCount] = Math.max(0, text.distanceToPreceeding);
-                distanceCount++;
-            }
-            fontSizeSum += text.style.xSize;
-        }
+        /* start by finding a list of distances, and the average font size
+           for the text
+        */
+        List<Float> distances = getDistancesBetweenTextObjects(texts);
+        final float fontSizeAverage = getAverageFontSize(texts);
 
         /* spit out some debug information */
         if (LOG.isDebugEnabled()) {
             printDebugPre(texts, distances);
         }
-
-        final float fontSizeAverage = MathUtils.deround(fontSizeSum / (distanceCount + 1));
-
-        int charSpacing = calculateCharspacingForDistances(distances, distanceCount, fontSizeAverage);
+        float charSpacing = calculateCharspacingForDistances(distances, fontSizeAverage);
 
         /* and set the values in all texts */
         for (Text text : texts) {
@@ -177,8 +108,29 @@ class CharSpacingFinder {
 
     // -------------------------- STATIC METHODS --------------------------
 
-    private static void printDebugPost(final List<Text> texts, final int[] distances, final int charSpacing) {
-        LOG.debug("spacing: sorted: " + Arrays.toString(distances));
+    private static float getAverageFontSize(final Collection<Text> texts) {
+        float fontSizeSum = 0.0f;
+        for (Text text : texts) {
+            fontSizeSum += text.style.xSize;
+        }
+        return fontSizeSum / (float) texts.size();
+    }
+
+    private static List<Float> getDistancesBetweenTextObjects(final List<Text> texts) {
+        List<Float> distances = new ArrayList<Float>(texts.size());
+        for (int i = 0; i < texts.size(); i++) {
+            Text text = texts.get(i);
+            /* skip the first word fragment, and only include this distance if it is not too big */
+            if (i != 0 && text.distanceToPreceeding < text.style.xSize * 6.0f) {
+                distances.add(Math.max(0.0f, text.distanceToPreceeding));
+            }
+        }
+
+        return distances;
+    }
+
+    private static void printDebugPost(final List<Text> texts, final List<Float> distances, final float charSpacing) {
+        LOG.debug("spacing: sorted: " + distances);
         LOG.debug("spacing: charSpacing=" + charSpacing);
 
         StringBuilder out = new StringBuilder();
@@ -193,7 +145,7 @@ class CharSpacingFinder {
         LOG.debug("spacing: output: " + out);
     }
 
-    private static void printDebugPre(final List<Text> texts, final int[] distances) {
+    private static void printDebugPre(final List<Text> texts, final List<Float> distances) {
         StringBuilder textWithDistances = new StringBuilder();
         StringBuilder textOnly = new StringBuilder();
 
@@ -208,6 +160,6 @@ class CharSpacingFinder {
         LOG.debug("spacing: -----------------");
         LOG.debug("spacing: content: " + textWithDistances);
         LOG.debug("spacing: content: " + textOnly);
-        LOG.debug("spacing: unsorted: " + Arrays.toString(distances));
+        LOG.debug("spacing: unsorted: " + distances);
     }
 }

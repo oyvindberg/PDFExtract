@@ -20,56 +20,65 @@ package org.elacin.pdfextract.text;
 import java.io.Serializable;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: Mar 18, 2010
- * Time: 2:32:20 PM
+ * Created by IntelliJ IDEA. User: elacin Date: Mar 18, 2010 Time: 2:32:20 PM
  * <p/>
- * A style is a collection of a font (described by a string), its X and Y sizes,
- * and an estimate of the widt of a space in this font. All these properties
- * are immutable.
+ * A style is a collection of a font (described by a string), its X and Y sizes, and an estimate of the widt of a space
+ * in this font. All these properties are immutable.
  */
 public class Style implements Serializable {
-// ------------------------------ FIELDS ------------------------------
+    // ------------------------------ FIELDS ------------------------------
 
-    public final int xSize, ySize, widthOfSpace;
+    public final float xSize, ySize, widthOfSpace;
     public final String font;
 
     private transient boolean toStringCreated = false;
     private transient String toStringCache = null;
 
-// --------------------------- CONSTRUCTORS ---------------------------
+    // --------------------------- CONSTRUCTORS ---------------------------
 
-    public Style(final String font, final int xSize, final int ySize, final int widthOfSpace) {
+    public Style(final String font, final float xSize, final float ySize, final float widthOfSpace) {
         this.font = font;
         this.xSize = xSize;
         this.ySize = ySize;
         this.widthOfSpace = widthOfSpace;
     }
 
-// ------------------------ CANONICAL METHODS ------------------------
+    // ------------------------ CANONICAL METHODS ------------------------
+
 
     @Override
     public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         final Style style = (Style) o;
 
-        if (widthOfSpace != style.widthOfSpace) return false;
-        if (xSize != style.xSize) return false;
-        if (ySize != style.ySize) return false;
-        if (font != null ? !font.equals(style.font) : style.font != null) return false;
+        if (Float.compare(style.widthOfSpace, widthOfSpace) != 0) {
+            return false;
+        }
+        if (Float.compare(style.xSize, xSize) != 0) {
+            return false;
+        }
+        if (Float.compare(style.ySize, ySize) != 0) {
+            return false;
+        }
+        if (!font.equals(style.font)) {
+            return false;
+        }
 
         return true;
     }
 
     @Override
     public int hashCode() {
-        int result = xSize;
-        result = 31 * result + ySize;
-        result = 31 * result + widthOfSpace;
-        result = 31 * result + (font != null ? font.hashCode() : 0);
+        int result = (xSize != +0.0f ? Float.floatToIntBits(xSize) : 0);
+        result = 31 * result + (ySize != +0.0f ? Float.floatToIntBits(ySize) : 0);
+        result = 31 * result + (widthOfSpace != +0.0f ? Float.floatToIntBits(widthOfSpace) : 0);
+        result = 31 * result + font.hashCode();
         return result;
     }
 

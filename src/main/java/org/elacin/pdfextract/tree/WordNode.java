@@ -41,11 +41,11 @@ public class WordNode extends AbstractNode<LineNode> {
     protected final Rectangle position;
     protected final Style style;
     private final int pageNum;
-    private final int charSpacing;
+    private final float charSpacing;
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    public WordNode(final Rectangle position, final int pageNum, final Style style, final String text, final int charSpacing) {
+    public WordNode(final Rectangle position, final int pageNum, final Style style, final String text, final float charSpacing) {
         this.position = position;
         this.pageNum = pageNum;
         this.style = style;
@@ -95,8 +95,8 @@ public class WordNode extends AbstractNode<LineNode> {
     // -------------------------- PUBLIC METHODS --------------------------
 
     public boolean isPartOfSameWordAs(final WordNode nextNode) {
-        int distance = nextNode.position.getX() - position.getEndX();
-        return distance <= (int) ((double) charSpacing * 1.01);
+        float distance = nextNode.position.getX() - position.getEndX();
+        return distance <= charSpacing;// * 1.01f;
     }
 
     // -------------------------- OTHER METHODS --------------------------

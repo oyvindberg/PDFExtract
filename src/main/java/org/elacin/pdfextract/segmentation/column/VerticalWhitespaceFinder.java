@@ -16,11 +16,9 @@
 
 package org.elacin.pdfextract.segmentation.column;
 
-import org.elacin.pdfextract.util.MathUtils;
 import org.elacin.pdfextract.util.Rectangle;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -30,11 +28,11 @@ import java.util.List;
 class VerticalWhitespaceFinder extends AbstractWhitespaceFinder {
     // ------------------------------ FIELDS ------------------------------
 
-    private static final int WHITESPACE_MIN_WIDTH = (int) (3 * MathUtils.INT_PRECISION);
+    private static final float WHITESPACE_MIN_WIDTH = 3.0f;
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    VerticalWhitespaceFinder(final List<Rectangle> texts, final int numWhitespacesToBeFound, final int width, final int height) {
+    VerticalWhitespaceFinder(final List<Rectangle> texts, final int numWhitespacesToBeFound, final float width, final float height) {
         super(texts, numWhitespacesToBeFound, width, height);
     }
 
@@ -50,7 +48,7 @@ class VerticalWhitespaceFinder extends AbstractWhitespaceFinder {
      */
     @Override
     protected float rectangleQuality(final Rectangle r) {
-        return r.area() * (float) (r.getHeight() / Math.max(1, r.getWidth()));
+        return r.area() * r.getHeight() / Math.max(1.0f, r.getWidth());
     }
 
     @Override

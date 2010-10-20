@@ -21,7 +21,6 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.tree.*;
-import org.elacin.pdfextract.util.MathUtils;
 import org.elacin.pdfextract.util.Rectangle;
 
 import java.awt.*;
@@ -58,7 +57,6 @@ public class PageRenderer {
 
     // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-    @SuppressWarnings({"NumericCastThatLosesPrecision"})
     public static void drawNode(final AbstractNode node, final Graphics2D graphics, final float xScale, final float yScale) {
         Color color;
 
@@ -111,8 +109,8 @@ public class PageRenderer {
         final Graphics2D graphics = image.createGraphics();
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        final float xScale = MathUtils.deround((float) image.getWidth() / page.getArtBox().getWidth());
-        final float yScale = MathUtils.deround((float) image.getHeight() / page.getArtBox().getHeight());
+        final float xScale = (float) image.getWidth() / page.getArtBox().getWidth();
+        final float yScale = (float) image.getHeight() / page.getArtBox().getHeight();
 
         for (ParagraphNode paragraphNode : pageNode.getChildren()) {
             for (LineNode lineNode : paragraphNode.getChildren()) {

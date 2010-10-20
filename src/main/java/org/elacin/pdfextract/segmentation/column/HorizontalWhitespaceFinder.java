@@ -28,11 +28,11 @@ import java.util.List;
 class HorizontalWhitespaceFinder extends AbstractWhitespaceFinder {
     // ------------------------------ FIELDS ------------------------------
 
-    private static final int WHITESPACE_MIN_HEIGHT = 700;
+    private static final float WHITESPACE_MIN_HEIGHT = 7.0f;
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    HorizontalWhitespaceFinder(final List<Rectangle> texts, final int numWhitespacesToBeFound, final int width, final int height) {
+    HorizontalWhitespaceFinder(final List<Rectangle> texts, final int numWhitespacesToBeFound, final float width, final float height) {
         super(texts, numWhitespacesToBeFound, width, height);
     }
 
@@ -50,7 +50,7 @@ class HorizontalWhitespaceFinder extends AbstractWhitespaceFinder {
     protected float rectangleQuality(final Rectangle r) {
         //        return r.area() * (float) (r.getWidth() / Math.max(1, r.getHeight()));
 
-        return (float) (25 * r.getWidth()) * (r.getHeight());
+        return 25 * r.getWidth() * (r.getHeight());
         //        return r.area() * 0.3f* (float) r.getWidth() / (float) Math.max(1, r.getHeight());
 
 

@@ -27,11 +27,11 @@ import java.io.Serializable;
 public class Rectangle implements Serializable {
     // ------------------------------ FIELDS ------------------------------
 
-    private final int x, y, width, height;
+    private final float x, y, width, height;
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    public Rectangle(final int x, final int y, final int width, final int height) {
+    public Rectangle(final float x, final float y, final float width, final float height) {
         this.height = height;
         this.width = width;
         this.x = x;
@@ -51,16 +51,16 @@ public class Rectangle implements Serializable {
 
         final Rectangle rectangle = (Rectangle) o;
 
-        if (height != rectangle.height) {
+        if (Float.compare(rectangle.height, height) != 0) {
             return false;
         }
-        if (width != rectangle.width) {
+        if (Float.compare(rectangle.width, width) != 0) {
             return false;
         }
-        if (x != rectangle.x) {
+        if (Float.compare(rectangle.x, x) != 0) {
             return false;
         }
-        if (y != rectangle.y) {
+        if (Float.compare(rectangle.y, y) != 0) {
             return false;
         }
 
@@ -69,10 +69,10 @@ public class Rectangle implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = x;
-        result = 31 * result + y;
-        result = 31 * result + width;
-        result = 31 * result + height;
+        int result = (x != +0.0f ? Float.floatToIntBits(x) : 0);
+        result = 31 * result + (y != +0.0f ? Float.floatToIntBits(y) : 0);
+        result = 31 * result + (width != +0.0f ? Float.floatToIntBits(width) : 0);
+        result = 31 * result + (height != +0.0f ? Float.floatToIntBits(height) : 0);
         return result;
     }
 
@@ -92,19 +92,19 @@ public class Rectangle implements Serializable {
 
     // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public int getHeight() {
+    public float getHeight() {
         return height;
     }
 
-    public int getWidth() {
+    public float getWidth() {
         return width;
     }
 
-    public int getX() {
+    public float getX() {
         return x;
     }
 
-    public int getY() {
+    public float getY() {
         return y;
     }
 
@@ -116,7 +116,7 @@ public class Rectangle implements Serializable {
      * @return The area of this rectangle
      */
     public float area() {
-        return MathUtils.deround(width) * MathUtils.deround(height);
+        return width * height;
     }
 
     /**
@@ -124,8 +124,8 @@ public class Rectangle implements Serializable {
      *
      * @return
      */
-    public IntPoint centre() {
-        return new IntPoint((x + (width / 2)), (y + (height / 2)));
+    public FloatPoint centre() {
+        return new FloatPoint((x + (width / 2)), (y + (height / 2)));
     }
 
     /**
@@ -155,18 +155,18 @@ public class Rectangle implements Serializable {
      * @param p Point to find the distance to
      * @return distance beween this rectangle and the passed point.
      */
-    public float distance(final IntPoint p) {
-        float temp = MathUtils.deround(x) - MathUtils.deround(p.x);
+    public float distance(final FloatPoint p) {
+        float temp = x - p.x;
         if (temp < 0) {
-            temp = MathUtils.deround(p.x) - MathUtils.deround(getEndX());
+            temp = p.x - getEndX();
         }
 
 
         float distanceSquared = Math.max(0, temp * temp);
 
-        float temp2 = (MathUtils.deround(y) - MathUtils.deround(p.y));
+        float temp2 = (y - p.y);
         if (temp2 < 0) {
-            temp2 = MathUtils.deround(p.y) - MathUtils.deround(getEndY());
+            temp2 = p.y - getEndY();
         }
 
         if (temp2 > 0) {
@@ -181,19 +181,19 @@ public class Rectangle implements Serializable {
         return v;
     }
 
-    public int getEndX() {
+    public float getEndX() {
         return x + width;
     }
 
-    public int getEndY() {
+    public float getEndY() {
         return y + height;
     }
 
     public boolean intersectsWith(Rectangle other) {
-        int otherX = other.x;
-        int otherY = other.y;
-        int otherW = other.width;
-        int otherH = other.height;
+        float otherX = other.x;
+        float otherY = other.y;
+        float otherW = other.width;
+        float otherH = other.height;
 
         if (isEmpty() || otherW <= 0 || otherH <= 0) {
             return false;
@@ -217,17 +217,17 @@ public class Rectangle implements Serializable {
      * @return
      */
     public Rectangle union(Rectangle other) {
-        int x1 = Math.min(x, other.x);
-        int y1 = Math.min(y, other.y);
-        int x2 = Math.max(getEndX(), other.getEndX());
-        int y2 = Math.max(getEndY(), other.getEndY());
+        float x1 = Math.min(x, other.x);
+        float y1 = Math.min(y, other.y);
+        float x2 = Math.max(getEndX(), other.getEndX());
+        float y2 = Math.max(getEndY(), other.getEndY());
         if (x2 < x1) {
-            int t = x1;
+            float t = x1;
             x1 = x2;
             x2 = t;
         }
         if (y2 < y1) {
-            int t = y1;
+            float t = y1;
             y1 = y2;
             y2 = t;
         }

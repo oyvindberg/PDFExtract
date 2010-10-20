@@ -18,36 +18,31 @@ package org.elacin.pdfextract.segmentation.word;
 
 import org.elacin.pdfextract.text.Style;
 
-import static org.elacin.pdfextract.util.MathUtils.round;
-
 /**
-* Created by IntelliJ IDEA.
-* User: elacin
-* Date: Sep 23, 2010
-* Time: 2:36:44 PM
-* To change this template use File | Settings | File Templates.
-*/
+ * Created by IntelliJ IDEA. User: elacin Date: Sep 23, 2010 Time: 2:36:44 PM To change this template use File |
+ * Settings | File Templates.
+ */
 class Text {
-// ------------------------------ FIELDS ------------------------------
+    // ------------------------------ FIELDS ------------------------------
 
-    final int x, y, width, height, distanceToPreceeding;
-    int charSpacing;
+    final float x, y, width, height, distanceToPreceeding;
+    float charSpacing;
     final String content;
     final Style style;
 
-// --------------------------- CONSTRUCTORS ---------------------------
+    // --------------------------- CONSTRUCTORS ---------------------------
 
     Text(final String content, final Style style, final float x, final float y, final float width, final float height, final float distanceToPreceeding) {
-        this.distanceToPreceeding = round(distanceToPreceeding);
-        this.height = round(height);
-        this.width = round(width);
-        this.x = round(x);
-        this.y = round(y);
+        this.distanceToPreceeding = distanceToPreceeding;
+        this.height = height;
+        this.width = width;
+        this.x = x;
+        this.y = y;
         this.style = style;
         this.content = content;
     }
 
-// ------------------------ CANONICAL METHODS ------------------------
+    // ------------------------ CANONICAL METHODS ------------------------
 
     @Override
     public String toString() {

@@ -151,7 +151,7 @@ public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
      * @return
      */
     public boolean isOnSameLine(final AbstractNode node) {
-        int otherMiddleY = node.getPosition().getY() + (node.getPosition().getHeight() / 2);
+        float otherMiddleY = node.getPosition().getY() + (node.getPosition().getHeight() / 2);
         return getPosition().getY() <= otherMiddleY && getPosition().getEndY() >= otherMiddleY;
     }
 

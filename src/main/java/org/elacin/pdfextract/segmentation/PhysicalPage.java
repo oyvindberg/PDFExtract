@@ -30,13 +30,13 @@ import java.util.List;
 public class PhysicalPage {
 
     final List<WordNode> words;
-    final WordNode[][] wordRefs;
-    private final int height;
-    private final int width;
+    //    final WordNode[][] wordRefs;
+    private final float height;
+    private final float width;
     private final int pageNumber;
 
-    public PhysicalPage(List<WordNode> words, final int height, final int width, int pageNumber) {
-        wordRefs = new WordNode[width][height];
+    public PhysicalPage(List<WordNode> words, final float height, final float width, int pageNumber) {
+        //        wordRefs = new WordNode[width][height];
         this.height = height;
         this.width = width;
         this.words = words;

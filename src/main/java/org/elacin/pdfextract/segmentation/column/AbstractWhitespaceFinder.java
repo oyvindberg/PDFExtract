@@ -16,11 +16,10 @@
 
 package org.elacin.pdfextract.segmentation.column;
 
-import org.elacin.pdfextract.util.IntPoint;
+import org.elacin.pdfextract.util.FloatPoint;
 import org.elacin.pdfextract.util.Rectangle;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.PriorityQueue;
 
@@ -46,14 +45,14 @@ abstract class AbstractWhitespaceFinder {
 
     // --------------------------- CONSTRUCTORS ---------------------------
 
-    public AbstractWhitespaceFinder(final List<Rectangle> texts, final int numWantedWhitespaces, final int width, final int height) {
+    public AbstractWhitespaceFinder(final List<Rectangle> texts, final int numWantedWhitespaces, final float width, final float height) {
         wantedWhitespaces = numWantedWhitespaces;
 
         originalObstacles = texts;
 
         foundWhitespace = new ArrayList<Rectangle>(numWantedWhitespaces);
 
-        pageBounds = new Rectangle(0, 0, width, height);
+        pageBounds = new Rectangle(0.0f, 0.0f, width, height);
         queue = new PriorityQueue<QueueEntry>(Math.max(10, originalObstacles.size() * 2));
     }
 
@@ -70,7 +69,7 @@ abstract class AbstractWhitespaceFinder {
         if (obstacles.size() == 1) {
             return obstacles.get(0);
         }
-        final IntPoint centrePoint = bound.centre();
+        final FloatPoint centrePoint = bound.centre();
         float minDistance = Float.MAX_VALUE;
         Rectangle closestToCentre = null;
 
@@ -81,9 +80,6 @@ abstract class AbstractWhitespaceFinder {
                 minDistance = distance;
                 closestToCentre = obstacle;
             }
-        }
-        if (closestToCentre == null) {
-            System.out.println("AbstractWhitespaceFinder.choosePivot");
         }
         return closestToCentre;
     }
@@ -97,12 +93,12 @@ abstract class AbstractWhitespaceFinder {
      * @param x2 coordinate of the opposite corner
      * @param y2 (see x2)
      */
-    private static Rectangle createRectangle(final int x1, final int y1, final int x2, final int y2) {
-        int x = Math.min(x1, x2);
-        int y = Math.min(y1, y2);
+    private static Rectangle createRectangle(final float x1, final float y1, final float x2, final float y2) {
+        float x = Math.min(x1, x2);
+        float y = Math.min(y1, y2);
 
-        int width = Math.max(x1, x2) - x;
-        int height = Math.max(y1, y2) - y;
+        float width = Math.max(x1, x2) - x;
+        float height = Math.max(y1, y2) - y;
 
         return new Rectangle(x, y, width, height);
     }

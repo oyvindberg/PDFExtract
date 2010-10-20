@@ -216,8 +216,8 @@ public class PDFTextStripper extends PDFStreamEngine {
             processStream(page, page.findResources(), content);
 
             if (!charactersForPage.isEmpty()) {
-                final int width = (int) page.getArtBox().getWidth();
-                final int height = (int) page.getArtBox().getHeight();
+                final float width = page.getArtBox().getWidth();
+                final float height = page.getArtBox().getHeight();
 
                 final List<WordNode> words = wordSegment.createWords(root, currentPageNo, charactersForPage);
 
@@ -232,10 +232,6 @@ public class PDFTextStripper extends PDFStreamEngine {
                             "words should not have been empty here. created nothing from these characters:" + sb);
                 }
                 final List<Rectangle> whitespaces = ColumnFinder.findColumnsFromWordNodes(words, width, height);
-
-                for (Rectangle whitespace : whitespaces) {
-                    System.out.println("whitespace = " + whitespace);
-                }
 
                 for (WordNode word : words) {
                     root.addWord(word);

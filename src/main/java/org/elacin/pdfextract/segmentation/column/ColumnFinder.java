@@ -17,7 +17,6 @@
 package org.elacin.pdfextract.segmentation.column;
 
 import org.elacin.pdfextract.tree.WordNode;
-import org.elacin.pdfextract.util.MathUtils;
 import org.elacin.pdfextract.util.Rectangle;
 
 import java.util.ArrayList;
@@ -34,7 +33,7 @@ public class ColumnFinder {
 
     // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-    public static List<Rectangle> findColumnsFromWordNodes(final List<WordNode> words, final int width, final int height) {
+    public static List<Rectangle> findColumnsFromWordNodes(final List<WordNode> words, final float width, final float height) {
         final long t0 = System.currentTimeMillis();
 
         List<Rectangle> obstacles = new ArrayList<Rectangle>();
@@ -43,7 +42,7 @@ public class ColumnFinder {
         }
 
         final VerticalWhitespaceFinder vert = new VerticalWhitespaceFinder(obstacles, NUM_WHITESPACES_TO_BE_FOUND,
-                MathUtils.round(width), MathUtils.round(height));
+                width, height);
         final List<Rectangle> ret = vert.findWhitespace();
 
         obstacles.addAll(ret);

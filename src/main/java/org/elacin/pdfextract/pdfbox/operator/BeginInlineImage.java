@@ -3,16 +3,9 @@ package org.elacin.pdfextract.pdfbox.operator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.pdfbox.cos.COSBase;
-import org.apache.pdfbox.pdfviewer.PageDrawer;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.graphics.xobject.PDInlinedImage;
-import org.apache.pdfbox.util.ImageParameters;
-import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.PDFOperator;
 import org.apache.pdfbox.util.operator.OperatorProcessor;
 
-import java.awt.geom.AffineTransform;
-import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.List;
 

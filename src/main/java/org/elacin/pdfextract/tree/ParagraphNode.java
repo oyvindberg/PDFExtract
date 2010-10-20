@@ -159,7 +159,7 @@ public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
         //        if (isWithinVariance(getPosition().getEndY(), newNode.getPosition().getY(), ySize*2)) {
         if (isWithinVariance(getPosition().getEndY(), newNode.getPosition().getY(),
                 lastLineNode.getCurrentStyle().ySize * 3)) {
-            int widthOfSpace = lastLineNode.getCurrentStyle().widthOfSpace;
+            float widthOfSpace = lastLineNode.getCurrentStyle().widthOfSpace;
 
             /* if the new node STARTS at more or less the same X position, accept it */
             if (isWithinVariance(getPosition().getX(), newNode.getPosition().getX(), widthOfSpace)) {

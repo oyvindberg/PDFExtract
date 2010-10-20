@@ -23,32 +23,27 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.elacin.pdfextract.util.MathUtils.round;
-
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: Mar 18, 2010
- * Time: 2:32:39 PM
+ * Created by IntelliJ IDEA. User: elacin Date: Mar 18, 2010 Time: 2:32:39 PM
  * <p/>
  * <p/>
- * This class is meant to belong to a document, so that all the styles used in a document
- * will be available here. There is some optimization to avoid excessive object creation.
+ * This class is meant to belong to a document, so that all the styles used in a document will be available here. There
+ * is some optimization to avoid excessive object creation.
  */
 public class DocumentStyles {
-// ------------------------------ FIELDS ------------------------------
+    // ------------------------------ FIELDS ------------------------------
 
     final Map<Float, Style> styles = new HashMap<Float, Style>();
 
     final Collection<Style> stylesCollection = styles.values();
 
-// --------------------- GETTER / SETTER METHODS ---------------------
+    // --------------------- GETTER / SETTER METHODS ---------------------
 
     public Map<Float, Style> getStyles() {
         return styles;
     }
 
-// -------------------------- PUBLIC METHODS --------------------------
+    // -------------------------- PUBLIC METHODS --------------------------
 
     public Style getStyleForTextPosition(TextPosition position) {
         float result = position.getFontSize();
@@ -64,7 +59,9 @@ public class DocumentStyles {
             float realFontSizeY = position.getFontSize() * position.getYScale();
 
             /* build a string with fontname / type */
-            final String baseFontName = position.getFont().getBaseFont() == null ? "null" : position.getFont().getBaseFont();
+            final String baseFontName = position.getFont().getBaseFont() == null ?
+                    "null" :
+                    position.getFont().getBaseFont();
             final String fontname = baseFontName + " (" + position.getFont().getSubType() + ")";
 
             existing = getStyle(realFontSizeX, realFontSizeY, position.getWidthOfSpace(), fontname);
@@ -75,9 +72,9 @@ public class DocumentStyles {
         return existing;
     }
 
-// -------------------------- OTHER METHODS --------------------------
+    // -------------------------- OTHER METHODS --------------------------
 
     private Style getStyle(float xSize, float ySize, final float widthOfSpace, String font) {
-        return new Style(font, round(xSize), round(ySize), round(widthOfSpace));
+        return new Style(font, xSize, ySize, widthOfSpace);
     }
 }

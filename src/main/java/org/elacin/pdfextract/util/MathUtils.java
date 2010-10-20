@@ -21,7 +21,7 @@ package org.elacin.pdfextract.util;
  * | File Templates.
  */
 public final class MathUtils {
-    public static float INT_PRECISION = 100.0f;
+    //    public static float INT_PRECISION = 100.0f;
 
     private MathUtils() {
     }
@@ -35,12 +35,12 @@ public final class MathUtils {
      * @param percentage
      * @return
      */
-    public static boolean isWithinPercent(final int num1, final int num2, final int percentage) {
+    public static boolean isWithinPercent(final float num1, final float num2, final float percentage) {
         if (num1 == num2) {
             return true;
         }
 
-        return (num1 + num1 / INT_PRECISION * percentage) >= num2 && (num1 - num1 / INT_PRECISION * percentage) <= num2;
+        return (num1 + num1 / 100.0F * percentage) >= num2 && (num1 - num1 / 100.0F * percentage) <= num2;
     }
 
     /**
@@ -51,7 +51,7 @@ public final class MathUtils {
      * @param variance
      * @return
      */
-    public static boolean isWithinVariance(final int num1, final int num2, final int variance) {
+    public static boolean isWithinVariance(final float num1, final float num2, final float variance) {
         if (num1 == num2) {
             return true;
         }
@@ -59,10 +59,10 @@ public final class MathUtils {
         return (num1 - variance) <= num2 && (num1 + variance) >= num2;
     }
 
-    public static int round(float num) {
-        return (int) (INT_PRECISION * num);
-        //        return (int) num;
-    }
+    //    public static int round(float num) {
+    //        return (int) (INT_PRECISION * num);
+    //        //        return (int) num;
+    //    }
 
     public static boolean overlap(float y1, float height1, float y2, float height2) {
         return within(y1, y2, .1f) || (y2 <= y1 && y2 >= y1 - height1) || (y1 <= y2 && y1 >= y2 - height2);
@@ -79,11 +79,15 @@ public final class MathUtils {
         return second < first + variance && second > first - variance;
     }
 
-    public static float deround(final int i) {
-        return (float) i / INT_PRECISION;
-    }
+    //    public static float deround(final int i) {
+    //        return (float) i / INT_PRECISION;
+    //    }
+    //
+    //    public static float deround(final float i) {
+    //        return i / INT_PRECISION;
+    //    }
 
-    public static float deround(final float i) {
-        return i / INT_PRECISION;
+    public static float log(float a) {
+        return (float) StrictMath.log((double) a);
     }
 }
