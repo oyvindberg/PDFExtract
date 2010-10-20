@@ -20,11 +20,10 @@ import org.apache.log4j.Logger;
 import org.apache.pdfbox.util.TextPosition;
 import org.apache.pdfbox.util.TextPositionComparator;
 import org.elacin.pdfextract.Loggers;
-import org.elacin.pdfextract.tree.DocumentStyles;
 import org.elacin.pdfextract.pdfbox.ETextPosition;
 import org.elacin.pdfextract.text.Style;
 import org.elacin.pdfextract.tree.DocumentNode;
-import org.elacin.pdfextract.tree.PageNode;
+import org.elacin.pdfextract.tree.DocumentStyles;
 import org.elacin.pdfextract.tree.WordNode;
 import org.elacin.pdfextract.util.FloatPoint;
 import org.elacin.pdfextract.util.Rectangle;
@@ -35,30 +34,24 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: May 12, 2010
- * Time: 3:34:09 AM
+ * Created by IntelliJ IDEA. User: elacin Date: May 12, 2010 Time: 3:34:09 AM
  * <p/>
- * This class provides a way to convert incoming TextPositions (as created by PDFBox) into
- * WordNodes, as used by this application. The difference between the two classes are
- * technical, but also semantic, in that they are defined to be at most a whole word (the
- * normal case: Word fragments will only occur when a word is split over two lines, or
- * if the word is formatted with two different styles) instead of arbitrary length.
+ * This class provides a way to convert incoming TextPositions (as created by PDFBox) into WordNodes, as used by this
+ * application. The difference between the two classes are technical, but also semantic, in that they are defined to be
+ * at most a whole word (the normal case: Word fragments will only occur when a word is split over two lines, or if the
+ * word is formatted with two different styles) instead of arbitrary length.
  * <p/>
- * This makes it easier to reason about the information we have, and also reconstructs
- * some notion of word and character spacing, which will be an important property
- * for feature recognition.
+ * This makes it easier to reason about the information we have, and also reconstructs some notion of word and character
+ * spacing, which will be an important property for feature recognition.
  * <p/>
- * By using createWords() all this will be done, and the words will be added to the
- * the provided document tree.
+ * By using createWords() all this will be done, and the words will be added to the the provided document tree.
  */
 public class PhysicalWordSegmentator {
-// ------------------------------ FIELDS ------------------------------
+    // ------------------------------ FIELDS ------------------------------
 
     private static final Logger LOG = Loggers.getWordBuilderLog();
 
-// -------------------------- STATIC METHODS --------------------------
+    // -------------------------- STATIC METHODS --------------------------
 
     /**
      * This creates
@@ -84,8 +77,9 @@ public class PhysicalWordSegmentator {
 
             for (int j = 0; j < textPosition.getCharacter().length(); j++) {
                 /* if we found a space */
-                if (Character.isSpaceChar(textPosition.getCharacter().charAt(j)) || isTextPositionTooHigh(textPosition)) {
-                    if (contents.length() != 0) {
+                if (Character.isSpaceChar(textPosition.getCharacter().charAt(j)) ||
+                        isTextPositionTooHigh(textPosition)) {
+                    if (contents.length() > 0) {
                         /* else just output a new text */
 
                         final float distance;
@@ -96,7 +90,8 @@ public class PhysicalWordSegmentator {
                             distance = x - lastWordBoundary.getX();
                         }
 
-                        ret.add(new Text(contents.toString(), style, x, y, width, textPosition.getHeightDir(), distance));
+                        ret.add(new Text(contents.toString(), style, x, y, width, textPosition.getHeightDir(),
+                                distance));
                         contents.setLength(0);
                         x += width;
                         width = 0.0F;
@@ -139,19 +134,25 @@ public class PhysicalWordSegmentator {
     }
 
     /**
-     * Some times TextPositions will be far, far higher than the font size would allow. this is normally a faulty PDF or a
-     * bug in PDFBox. since they destroy my algorithms ill just drop them
+     * Some times TextPositions will be far, far higher than the font size would allow. this is normally a faulty PDF or
+     * a bug in PDFBox. since they destroy my algorithms ill just drop them
      *
      * @param textPosition
      * @return
      */
     private static boolean isTextPositionTooHigh(final TextPosition textPosition) {
-        return textPosition.getHeightDir() > (float) (textPosition.getFontSize() * textPosition.getYScale() * 1.2);
+        final boolean b = textPosition.getHeightDir() >
+                (float) (textPosition.getFontSize() * textPosition.getYScale() * 1.2);
+        if (b) {
+            System.out.println("PhysicalWordSegmentator.isTextPositionTooHigh: " +
+                    StringUtils.getTextPositionString(textPosition));
+        }
+        return b;
     }
 
     /**
-     * This method will process one line worth of TextPositions , and split and/or
-     * combine them as to output words. The words are added directly to the tree
+     * This method will process one line worth of TextPositions , and split and/or combine them as to output words. The
+     * words are added directly to the tree
      *
      * @param root
      * @param wordNodes
@@ -204,14 +205,14 @@ public class PhysicalWordSegmentator {
         }
     }
 
-// -------------------------- PUBLIC METHODS --------------------------
+    // -------------------------- PUBLIC METHODS --------------------------
 
     /**
-     * This method will convert the text into WordNodes, which will be added to the
-     * provided DocumentNode under the correct page
+     * This method will convert the text into WordNodes, which will be added to the provided DocumentNode under the
+     * correct page
      * <p/>
-     * To do this, the text is split on whitespaces, character and word distances are
-     * approximated, and words are created based on those
+     * To do this, the text is split on whitespaces, character and word distances are approximated, and words are
+     * created based on those
      *
      * @param root          Document to which add words
      * @param pageNum       Page number
@@ -273,23 +274,14 @@ public class PhysicalWordSegmentator {
             line.clear();
         }
 
-        /* if the page contained no text, create an empty page node and return */
-        try {
-            root.getPageNumber(pageNum);
-        } catch (RuntimeException e) {
-            /* this means the page does not exist - create it here */
-            root.addChild(new PageNode(pageNum));
-        }
-
         LOG.debug("PhysicalWordSegmentator.createWords took " + (System.currentTimeMillis() - t0) + " ms");
         return ret;
     }
 
-// -------------------------- INNER CLASSES --------------------------
+    // -------------------------- INNER CLASSES --------------------------
 
     /**
-     * This class is used while combining Text objects into Words, as a simple way of
-     * grouping all state together.
+     * This class is used while combining Text objects into Words, as a simple way of grouping all state together.
      */
     private static class WordState {
         private final char[] chars = new char[512];
@@ -304,7 +296,8 @@ public class PhysicalWordSegmentator {
         public WordNode createWord(final int pageNum) {
             String wordText = new String(chars, 0, len);
             //TODO
-            final WordNode word = new WordNode(new Rectangle(x, y - maxHeight, width, maxHeight), pageNum, currentStyle, wordText, charSpacing);
+            final WordNode word = new WordNode(new Rectangle(x, y - maxHeight, width, maxHeight), pageNum, currentStyle,
+                    wordText, charSpacing);
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("out: " + word);
@@ -320,7 +313,9 @@ public class PhysicalWordSegmentator {
         }
 
         public boolean isTooFarAway(final Text text) {
-            if (text.distanceToPreceeding < 0) return false;
+            if (text.distanceToPreceeding < 0) {
+                return false;
+            }
 
             if (text.distanceToPreceeding > text.charSpacing) {
                 if (LOG.isDebugEnabled()) {

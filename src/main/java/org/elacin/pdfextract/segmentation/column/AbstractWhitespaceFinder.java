@@ -20,14 +20,16 @@ import org.elacin.pdfextract.util.IntPoint;
 import org.elacin.pdfextract.util.Rectangle;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.PriorityQueue;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Sep 23, 2010 Time: 3:05:06 PM To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Sep 23, 2010 Time: 3:05:06 PM To change this template use File |
+ * Settings | File Templates.
  */
 abstract class AbstractWhitespaceFinder {
-// ------------------------------ FIELDS ------------------------------
+    // ------------------------------ FIELDS ------------------------------
 
     /* this holds all the whitespace rectangles we have found */
     protected final List<Rectangle> foundWhitespace;
@@ -42,7 +44,7 @@ abstract class AbstractWhitespaceFinder {
     protected final Rectangle pageBounds;
     private final PriorityQueue<QueueEntry> queue;
 
-// --------------------------- CONSTRUCTORS ---------------------------
+    // --------------------------- CONSTRUCTORS ---------------------------
 
     public AbstractWhitespaceFinder(final List<Rectangle> texts, final int numWantedWhitespaces, final int width, final int height) {
         wantedWhitespaces = numWantedWhitespaces;
@@ -51,11 +53,11 @@ abstract class AbstractWhitespaceFinder {
 
         foundWhitespace = new ArrayList<Rectangle>(numWantedWhitespaces);
 
-        pageBounds = new Rectangle(0, 0, width * 100, height * 100);
-        queue = new PriorityQueue<QueueEntry>(originalObstacles.size() * 2);
+        pageBounds = new Rectangle(0, 0, width, height);
+        queue = new PriorityQueue<QueueEntry>(Math.max(10, originalObstacles.size() * 2));
     }
 
-// -------------------------- STATIC METHODS --------------------------
+    // -------------------------- STATIC METHODS --------------------------
 
     /**
      * Finds the obstacle which is closest to the centre of the rectangle bound
@@ -64,7 +66,10 @@ abstract class AbstractWhitespaceFinder {
      * @param obstacles
      * @return
      */
-    private static Rectangle choosePivot(final Rectangle bound, final Iterable<Rectangle> obstacles) {
+    private static Rectangle choosePivot(final Rectangle bound, final List<Rectangle> obstacles) {
+        if (obstacles.size() == 1) {
+            return obstacles.get(0);
+        }
         final IntPoint centrePoint = bound.centre();
         float minDistance = Float.MAX_VALUE;
         Rectangle closestToCentre = null;
@@ -77,11 +82,15 @@ abstract class AbstractWhitespaceFinder {
                 closestToCentre = obstacle;
             }
         }
+        if (closestToCentre == null) {
+            System.out.println("AbstractWhitespaceFinder.choosePivot");
+        }
         return closestToCentre;
     }
 
     /**
-     * Creates a rectangle based on the coordinates of corners, instead of with the normal constructor which accepts upper left corner and width/height.
+     * Creates a rectangle based on the coordinates of corners, instead of with the normal constructor which accepts
+     * upper left corner and width/height.
      *
      * @param x1 coordinate of any corner of the rectangle
      * @param y1 (see x1)
@@ -124,7 +133,7 @@ abstract class AbstractWhitespaceFinder {
         return true;
     }
 
-// -------------------------- PUBLIC METHODS --------------------------
+    // -------------------------- PUBLIC METHODS --------------------------
 
     public List<Rectangle> findWhitespace() {
         if (foundWhitespace.isEmpty()) {
@@ -146,7 +155,7 @@ abstract class AbstractWhitespaceFinder {
         return selectUsefulWhitespace();
     }
 
-// -------------------------- OTHER METHODS --------------------------
+    // -------------------------- OTHER METHODS --------------------------
 
     @SuppressWarnings({"ObjectAllocationInLoop"})
     private Rectangle findNextWhitespace() {
@@ -190,7 +199,8 @@ abstract class AbstractWhitespaceFinder {
                     continue;
                 }
 
-                final List<Rectangle> obstaclesForSubrectangle = getObstaclesBoundedBy(current.obstacles, subrectangle, pivot);
+                final List<Rectangle> obstaclesForSubrectangle = getObstaclesBoundedBy(current.obstacles, subrectangle,
+                        pivot);
 
                 /**
                  * It does not make sense to include rectangles which are completely
@@ -212,7 +222,8 @@ abstract class AbstractWhitespaceFinder {
     }
 
     /**
-     * Checks if some of the newly added whitespace rectangles overlaps with the area of this queue entry, and if so adds them to its list of obstacles
+     * Checks if some of the newly added whitespace rectangles overlaps with the area of this queue entry, and if so
+     * adds them to its list of obstacles
      *
      * @param entry
      */
@@ -231,7 +242,7 @@ abstract class AbstractWhitespaceFinder {
 
     protected abstract List<Rectangle> selectUsefulWhitespace();
 
-// -------------------------- INNER CLASSES --------------------------
+    // -------------------------- INNER CLASSES --------------------------
 
     private class QueueEntry implements Comparable<QueueEntry> {
         final Rectangle bound;
@@ -253,7 +264,7 @@ abstract class AbstractWhitespaceFinder {
         public String toString() {
             final StringBuilder sb = new StringBuilder();
             sb.append("QueueEntry");
-            sb.append("{area=").append(bound.area() / 10000);
+            sb.append("{area=").append(bound.area());
             sb.append(", bound=").append(bound);
             sb.append(", obstacles=").append(obstacles.size());
             sb.append('}');

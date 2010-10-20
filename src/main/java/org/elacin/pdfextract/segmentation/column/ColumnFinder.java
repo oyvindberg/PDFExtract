@@ -17,18 +17,20 @@
 package org.elacin.pdfextract.segmentation.column;
 
 import org.elacin.pdfextract.tree.WordNode;
+import org.elacin.pdfextract.util.MathUtils;
 import org.elacin.pdfextract.util.Rectangle;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Sep 23, 2010 Time: 12:54:21 PM To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Sep 23, 2010 Time: 12:54:21 PM To change this template use File |
+ * Settings | File Templates.
  */
 public class ColumnFinder {
     // ------------------------------ FIELDS ------------------------------
 
-    private static final int NUM_WHITESPACES_TO_BE_FOUND = 30;
+    private static final int NUM_WHITESPACES_TO_BE_FOUND = 20;
 
     // -------------------------- PUBLIC STATIC METHODS --------------------------
 
@@ -40,16 +42,16 @@ public class ColumnFinder {
             obstacles.add(word.getPosition());
         }
 
-        final VerticalWhitespaceFinder verticalWhitespaceFinder = new VerticalWhitespaceFinder(obstacles, NUM_WHITESPACES_TO_BE_FOUND, width, height);
+        final VerticalWhitespaceFinder vert = new VerticalWhitespaceFinder(obstacles, NUM_WHITESPACES_TO_BE_FOUND,
+                MathUtils.round(width), MathUtils.round(height));
+        final List<Rectangle> ret = vert.findWhitespace();
 
-        final List<Rectangle> ret = verticalWhitespaceFinder.findWhitespace();
+        obstacles.addAll(ret);
+
+        //        AbstractWhitespaceFinder hor = new HorizontalWhitespaceFinder(obstacles, NUM_WHITESPACES_TO_BE_FOUND, width, height);
+        //        ret.addAll(hor.findWhitespace());
+
         System.out.println("findColumnsFromWordNodes took " + (System.currentTimeMillis() - t0) + " ms.");
-
-//        obstacles.addAll(ret);
-
-        //        AbstractWhitespaceFinder horFinder = new HorizontalWhitespaceFinder(obstacles, 40, width, height);
-        //        ret.addAll(horFinder.findWhitespace());
-
         return ret;
     }
 }

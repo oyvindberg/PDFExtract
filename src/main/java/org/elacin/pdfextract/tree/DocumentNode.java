@@ -17,20 +17,19 @@
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.Loggers;
+import org.elacin.pdfextract.text.Style;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: Mar 24, 2010
- * Time: 12:17:02 AM
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Mar 24, 2010 Time: 12:17:02 AM To change this template use File |
+ * Settings | File Templates.
  */
 public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
-// ------------------------------ FIELDS ------------------------------
+    // ------------------------------ FIELDS ------------------------------
 
     public final List<WordNode> words = new ArrayList<WordNode>();
 
@@ -39,19 +38,19 @@ public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
      */
     protected final DocumentStyles styles = new DocumentStyles();
 
-// --------------------------- CONSTRUCTORS ---------------------------
+    // --------------------------- CONSTRUCTORS ---------------------------
 
     public DocumentNode() {
         setRoot(this);
     }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
+    // --------------------- GETTER / SETTER METHODS ---------------------
 
     public DocumentStyles getStyles() {
         return styles;
     }
 
-// -------------------------- PUBLIC METHODS --------------------------
+    // -------------------------- PUBLIC METHODS --------------------------
 
     @Override
     public boolean addWord(final WordNode node) {
@@ -64,7 +63,9 @@ public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
 
 
         for (PageNode pageNode : getChildren()) {
-            if (pageNode.addWord(node)) return true;
+            if (pageNode.addWord(node)) {
+                return true;
+            }
         }
 
         final PageNode newPage = new PageNode(node.getPageNum());
@@ -89,8 +90,11 @@ public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
     public Comparator<PageNode> getChildComparator() {
         return new Comparator<PageNode>() {
             public int compare(final PageNode o1, final PageNode o2) {
-                if (o1.getPage().getPageNumber() < o2.getPage().getPageNumber()) return -1;
-                else if (o1.getPage().getPageNumber() > o2.getPage().getPageNumber()) return 1;
+                if (o1.getPage().getPageNumber() < o2.getPage().getPageNumber()) {
+                    return -1;
+                } else if (o1.getPage().getPageNumber() > o2.getPage().getPageNumber()) {
+                    return 1;
+                }
 
                 return 0;
             }
@@ -103,6 +107,16 @@ public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
                 return pageNode;
             }
         }
-        throw new RuntimeException("Document didnt have a page with page number " + pageNumber);
+        return null;
+    }
+
+    @Override
+    protected void appendLocalInfo(final Appendable out, final int indent) throws IOException {
+        super.appendLocalInfo(out, indent);
+        out.append("Styles used in document:\n");
+        for (Style style : getStyles().stylesCollection) {
+            out.append(style.toString()).append("\n");
+        }
+
     }
 }

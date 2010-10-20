@@ -17,14 +17,15 @@
 package org.elacin.pdfextract.util;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: May 7, 2010
- * Time: 5:54:30 AM
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: May 7, 2010 Time: 5:54:30 AM To change this template use File | Settings
+ * | File Templates.
  */
-public class MathUtils {
-// -------------------------- PUBLIC STATIC METHODS --------------------------
+public final class MathUtils {
+    public static float INT_PRECISION = 100.0f;
+
+    private MathUtils() {
+    }
+    // -------------------------- PUBLIC STATIC METHODS --------------------------
 
     /**
      * Returns true if num2 is within percentage percent of num1
@@ -35,9 +36,11 @@ public class MathUtils {
      * @return
      */
     public static boolean isWithinPercent(final int num1, final int num2, final int percentage) {
-        if (num1 == num2) return true;
+        if (num1 == num2) {
+            return true;
+        }
 
-        return (num1 + num1 / 100.0f * percentage) >= num2 && (num1 - num1 / 100.0f * percentage) <= num2;
+        return (num1 + num1 / INT_PRECISION * percentage) >= num2 && (num1 - num1 / INT_PRECISION * percentage) <= num2;
     }
 
     /**
@@ -49,12 +52,38 @@ public class MathUtils {
      * @return
      */
     public static boolean isWithinVariance(final int num1, final int num2, final int variance) {
-        if (num1 == num2) return true;
+        if (num1 == num2) {
+            return true;
+        }
 
         return (num1 - variance) <= num2 && (num1 + variance) >= num2;
     }
 
     public static int round(float num) {
-        return (int) (100.0f * num);
+        return (int) (INT_PRECISION * num);
+        //        return (int) num;
+    }
+
+    public static boolean overlap(float y1, float height1, float y2, float height2) {
+        return within(y1, y2, .1f) || (y2 <= y1 && y2 >= y1 - height1) || (y1 <= y2 && y1 >= y2 - height2);
+    }
+
+    /**
+     * This will determine of two floating point numbers are within a specified variance.
+     *
+     * @param first    The first number to compare to.
+     * @param second   The second number to compare to.
+     * @param variance The allowed variance.
+     */
+    public static boolean within(float first, float second, float variance) {
+        return second < first + variance && second > first - variance;
+    }
+
+    public static float deround(final int i) {
+        return (float) i / INT_PRECISION;
+    }
+
+    public static float deround(final float i) {
+        return i / INT_PRECISION;
     }
 }

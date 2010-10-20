@@ -19,6 +19,7 @@ package org.elacin.pdfextract;
 import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDDocument;
+import org.elacin.pdfextract.pdfbox.PDFTextStripper;
 import org.elacin.pdfextract.renderer.PageRenderer;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.util.FileWalker;
@@ -31,14 +32,11 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: Apr 8, 2010
- * Time: 6:50:25 AM
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Apr 8, 2010 Time: 6:50:25 AM To change this template use File | Settings
+ * | File Templates.
  */
 public class TextExtractor {
-// ------------------------------ FIELDS ------------------------------
+    // ------------------------------ FIELDS ------------------------------
 
     private static final Logger LOG = Loggers.getPdfExtractorLog();
     private final List<File> pdfFiles;
@@ -46,19 +44,21 @@ public class TextExtractor {
     private final int startPage;
     private final int endPage;
     private final String password;
+    private final boolean render;
 
-// --------------------------- CONSTRUCTORS ---------------------------
+    // --------------------------- CONSTRUCTORS ---------------------------
 
-    public TextExtractor(final List<File> pdfFiles, final File destination, final int startPage, final int endPage, final String password) {
+    public TextExtractor(final List<File> pdfFiles, final File destination, final int startPage, final int endPage, final String password, final boolean render) {
         this.pdfFiles = pdfFiles;
         this.destination = destination;
         this.startPage = startPage;
 
         this.endPage = endPage;
         this.password = password;
+        this.render = render;
     }
 
-// -------------------------- STATIC METHODS --------------------------
+    // -------------------------- STATIC METHODS --------------------------
 
     protected static List<File> findAllPdfFilesUnderDirectory(final String filename) {
         List<File> ret = new ArrayList<File>();
@@ -79,35 +79,12 @@ public class TextExtractor {
         return ret;
     }
 
-    protected static DocumentNode getDocumentTree(final PDDocument document, final int startPage, final int endPage) {
-        try {
-            Pdf2Xml stripper = new Pdf2Xml();
-
-            if (startPage != -1) {
-                LOG.warn("Reading from page " + startPage);
-                stripper.setStartPage(startPage);
-            }
-            if (endPage != Integer.MAX_VALUE) {
-                LOG.warn("Reading until page " + endPage);
-                stripper.setEndPage(endPage);
-            }
-
-            long t1 = System.currentTimeMillis();
-            stripper.writeText(document, null);
-            final DocumentNode root = stripper.getRoot();
-
-            LOG.warn("Document analysis took " + (System.currentTimeMillis() - t1) + "ms");
-            return root;
-        } catch (IOException e) {
-            throw new RuntimeException("Error while parsing document", e);
-        }
-    }
-
     private static Options getOptions() {
         Options options = new Options();
         options.addOption("p", "password", true, "Password for decryption of document");
         options.addOption("s", "startpage", true, "First page to parse");
         options.addOption("e", "endpage", true, "Last page to parse");
+        options.addOption("r", "render", false, "Render document");
         return options;
     }
 
@@ -115,7 +92,8 @@ public class TextExtractor {
         PrintStream ret;
         try {
             LOG.warn("Opening " + file + " for output");
-            ret = new PrintStream(new BufferedOutputStream(new FileOutputStream(file, false), 8192 * 4), false, "UTF-8");
+            ret = new PrintStream(new BufferedOutputStream(new FileOutputStream(file, false), 8192 * 4), false,
+                    "UTF-8");
         } catch (Exception e) {
             throw new RuntimeException("Could not open output file", e);
         }
@@ -141,7 +119,7 @@ public class TextExtractor {
                 }
             }
 
-            LOG.info("PDFBox load() took " + (System.currentTimeMillis() - t0) + "ms");
+            LOG.warn("PDFBox load() took " + (System.currentTimeMillis() - t0) + "ms");
             return document;
         } catch (IOException e) {
             throw new RuntimeException("Error while reading " + pdfFile + ".", e);
@@ -164,10 +142,11 @@ public class TextExtractor {
     }
 
     private static void usage() {
-        new HelpFormatter().printHelp(TextExtractor.class.getSimpleName() + "<PDF file/dir> <XML output file/dir>", getOptions());
+        new HelpFormatter()
+                .printHelp(TextExtractor.class.getSimpleName() + "<PDF file/dir> <XML output file/dir>", getOptions());
     }
 
-// -------------------------- PUBLIC METHODS --------------------------
+    // -------------------------- PUBLIC METHODS --------------------------
 
     public final void processFiles() {
         Collection<Long> timings = new ArrayList<Long>();
@@ -185,10 +164,15 @@ public class TextExtractor {
         for (Long timing : timings) {
             sum += timing;
         }
-        LOG.error("Total time for analyzing " + pdfFiles.size() + " documents: " + sum + "ms (" + (sum / pdfFiles.size() + "ms average)"));
+        LOG.error("Total time for analyzing " +
+                pdfFiles.size() +
+                " documents: " +
+                sum +
+                "ms (" +
+                (sum / pdfFiles.size() + "ms average)"));
     }
 
-// -------------------------- OTHER METHODS --------------------------
+    // -------------------------- OTHER METHODS --------------------------
 
     protected void printTree(final File pdfFile, final DocumentNode root) {
         /* write to file */
@@ -205,14 +189,36 @@ public class TextExtractor {
     }
 
     protected void processFile(final File pdfFile) throws IOException {
-        /* open document and parse it */
-        final PDDocument doc = openPdfDocument(pdfFile, password);
+
+        if (startPage != -1) {
+            LOG.warn("Reading from page " + startPage);
+        }
+        if (endPage != Integer.MAX_VALUE) {
+            LOG.warn("Reading until page " + endPage);
+        }
+
+        PDDocument doc = null;
         try {
-            final DocumentNode root = getDocumentTree(doc, startPage, endPage);
+            /* open the document */
+            doc = openPdfDocument(pdfFile, password);
+
+            long t1 = System.currentTimeMillis();
+            PDFTextStripper stripper = new PDFTextStripper(doc, startPage, endPage);
+            stripper.readText();
+            LOG.warn("Document analysis took " + (System.currentTimeMillis() - t1) + "ms");
+
+            final DocumentNode root = stripper.getDocumentNode();
             printTree(pdfFile, root);
-            renderPDF(pdfFile, doc, root);
+
+            if (render) {
+                renderPDF(pdfFile, doc, root);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error while parsing document", e);
         } finally {
-            doc.close();
+            if (doc != null) {
+                doc.close();
+            }
         }
     }
 
@@ -222,7 +228,14 @@ public class TextExtractor {
         List pages = doc.getDocumentCatalog().getAllPages();
         for (int i = Math.max(0, startPage); i < Math.min(pages.size(), endPage); i++) {
             final PageRenderer renderer = new PageRenderer(doc, root);
-            BufferedImage image = renderer.renderPage(i);
+
+            BufferedImage image;
+            try {
+                image = renderer.renderPage(i);
+            } catch (RuntimeException e) {
+                LOG.warn("Error while rendering page " + i, e);
+                continue;
+            }
 
             /* then write to file */
             final File output;
@@ -236,7 +249,7 @@ public class TextExtractor {
         LOG.warn("Rendering of pdf took " + (System.currentTimeMillis() - t0) + " ms");
     }
 
-// --------------------------- main() method ---------------------------
+    // --------------------------- main() method ---------------------------
 
     public static void main(String[] args) {
         CommandLine cmd = parseParameters(args);
@@ -261,6 +274,11 @@ public class TextExtractor {
             password = cmd.getOptionValue("password");
         }
 
+        boolean render = false;
+        if (cmd.hasOption("render")) {
+            render = true;
+        }
+
         List<File> pdfFiles = findAllPdfFilesUnderDirectory(cmd.getArgs()[0]);
 
         final File destination = new File(cmd.getArgs()[1]);
@@ -279,7 +297,8 @@ public class TextExtractor {
             }
         }
 
-        final TextExtractor textExtractor = new TextExtractor(pdfFiles, destination, startPage, endPage, password);
+        final TextExtractor textExtractor = new TextExtractor(pdfFiles, destination, startPage, endPage, password,
+                render);
         textExtractor.processFiles();
     }
 }

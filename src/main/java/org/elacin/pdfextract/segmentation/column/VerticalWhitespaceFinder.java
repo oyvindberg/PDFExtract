@@ -16,6 +16,7 @@
 
 package org.elacin.pdfextract.segmentation.column;
 
+import org.elacin.pdfextract.util.MathUtils;
 import org.elacin.pdfextract.util.Rectangle;
 
 import java.util.ArrayList;
@@ -23,24 +24,21 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: Sep 9, 2010
- * Time: 4:33:59 AM
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Sep 9, 2010 Time: 4:33:59 AM To change this template use File | Settings
+ * | File Templates.
  */
 class VerticalWhitespaceFinder extends AbstractWhitespaceFinder {
-// ------------------------------ FIELDS ------------------------------
+    // ------------------------------ FIELDS ------------------------------
 
-    private static final int WHITESPACE_MIN_WIDTH = 300;
+    private static final int WHITESPACE_MIN_WIDTH = (int) (3 * MathUtils.INT_PRECISION);
 
-// --------------------------- CONSTRUCTORS ---------------------------
+    // --------------------------- CONSTRUCTORS ---------------------------
 
     VerticalWhitespaceFinder(final List<Rectangle> texts, final int numWhitespacesToBeFound, final int width, final int height) {
         super(texts, numWhitespacesToBeFound, width, height);
     }
 
-// -------------------------- OTHER METHODS --------------------------
+    // -------------------------- OTHER METHODS --------------------------
 
     /**
      * This is the quality function by which we sort rectangles to choose the 'best' one first.
@@ -63,7 +61,6 @@ class VerticalWhitespaceFinder extends AbstractWhitespaceFinder {
                 continue;
             }
 
-            
 
             ret.add(whitespace);
         }

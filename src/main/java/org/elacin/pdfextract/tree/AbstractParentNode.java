@@ -26,14 +26,12 @@ import java.io.Serializable;
 import java.util.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: Mar 18, 2010
- * Time: 3:16:53 PM
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Mar 18, 2010 Time: 3:16:53 PM To change this template use File |
+ * Settings | File Templates.
  */
-public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentType extends AbstractParentNode> extends AbstractNode<ParentType> {
-// ------------------------------ FIELDS ------------------------------
+public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentType extends AbstractParentNode>
+        extends AbstractNode<ParentType> {
+    // ------------------------------ FIELDS ------------------------------
 
     /* a cache of group position */
     protected Rectangle posCache;
@@ -41,7 +39,7 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
     /* children nodes */
     private final List<ChildType> children = new ArrayList<ChildType>();
 
-// --------------------------- CONSTRUCTORS ---------------------------
+    // --------------------------- CONSTRUCTORS ---------------------------
 
     public AbstractParentNode(final ChildType child) {
         addChild(child);
@@ -50,7 +48,7 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
     public AbstractParentNode() {
     }
 
-// ------------------------ CANONICAL METHODS ------------------------
+    // ------------------------ CANONICAL METHODS ------------------------
 
     @Override
     public String toString() {
@@ -66,7 +64,7 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
         return toStringCache;
     }
 
-// ------------------------ OVERRIDING METHODS ------------------------
+    // ------------------------ OVERRIDING METHODS ------------------------
 
     public Set<Role> getRoles() {
         Set<Role> ret = EnumSet.noneOf(Role.class);
@@ -78,13 +76,13 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
         return ret;
     }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
+    // --------------------- GETTER / SETTER METHODS ---------------------
 
     public List<ChildType> getChildren() {
         return children;
     }
 
-// -------------------------- PUBLIC METHODS --------------------------
+    // -------------------------- PUBLIC METHODS --------------------------
 
     public final void addChild(final ChildType child) {
         child.invalidateThisAndParents();
@@ -143,9 +141,9 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
         return textCache;
     }
 
-// -------------------------- OTHER METHODS --------------------------
+    // -------------------------- OTHER METHODS --------------------------
 
-    protected void appendLocalInfo(Appendable out, int indent) throws IOException {
+    protected void appendLocalInfo(final Appendable out, final int indent) throws IOException {
         for (int i = 0; i < indent; i++) {
             out.append(" ");
         }
@@ -169,21 +167,26 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
         }
     }
 
-// -------------------------- INNER CLASSES --------------------------
+    // -------------------------- INNER CLASSES --------------------------
 
     /**
-     * This comparator will compare two nodes based on their position within a page
-     * TODO: add page number here
+     * This comparator will compare two nodes based on their position within a page TODO: add page number here
      */
     protected class StandardNodeComparator implements Comparator<ChildType>, Serializable {
         private static final long serialVersionUID = 3903290320365277004L;
 
         public int compare(final ChildType o1, final ChildType o2) {
-            if (o1.getPosition().getY() < o2.getPosition().getY()) return -1;
-            else if (o1.getPosition().getY() > o2.getPosition().getY()) return 1;
+            if (o1.getPosition().getY() < o2.getPosition().getY()) {
+                return -1;
+            } else if (o1.getPosition().getY() > o2.getPosition().getY()) {
+                return 1;
+            }
 
-            if (o1.getPosition().getX() < o2.getPosition().getX()) return -1;
-            else if (o1.getPosition().getX() > o2.getPosition().getX()) return 1;
+            if (o1.getPosition().getX() < o2.getPosition().getX()) {
+                return -1;
+            } else if (o1.getPosition().getX() > o2.getPosition().getX()) {
+                return 1;
+            }
 
             return 0;
         }

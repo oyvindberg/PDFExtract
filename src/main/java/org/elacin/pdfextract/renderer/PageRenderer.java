@@ -21,6 +21,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.tree.*;
+import org.elacin.pdfextract.util.MathUtils;
 import org.elacin.pdfextract.util.Rectangle;
 
 import java.awt.*;
@@ -30,14 +31,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: Jun 17, 2010
- * Time: 5:02:09 AM
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Jun 17, 2010 Time: 5:02:09 AM To change this template use File |
+ * Settings | File Templates.
  */
 public class PageRenderer {
-// ------------------------------ FIELDS ------------------------------
+    // ------------------------------ FIELDS ------------------------------
 
     private static final Logger LOG = Loggers.getPdfExtractorLog();
 
@@ -46,7 +44,7 @@ public class PageRenderer {
     private final DocumentNode documentNode;
     private final Map<Integer, BufferedImage> pagesCache = new HashMap<Integer, BufferedImage>();
 
-// --------------------------- CONSTRUCTORS ---------------------------
+    // --------------------------- CONSTRUCTORS ---------------------------
 
     public PageRenderer(final PDDocument document, final DocumentNode documentNode, final int resolution) {
         this.document = document;
@@ -58,7 +56,7 @@ public class PageRenderer {
         this(document, documentNode, 200);
     }
 
-// -------------------------- PUBLIC STATIC METHODS --------------------------
+    // -------------------------- PUBLIC STATIC METHODS --------------------------
 
     @SuppressWarnings({"NumericCastThatLosesPrecision"})
     public static void drawNode(final AbstractNode node, final Graphics2D graphics, final float xScale, final float yScale) {
@@ -79,7 +77,7 @@ public class PageRenderer {
         drawRectangleInColor(graphics, xScale, yScale, color, pos);
     }
 
-// -------------------------- STATIC METHODS --------------------------
+    // -------------------------- STATIC METHODS --------------------------
 
     private static void drawRectangleInColor(final Graphics2D graphics, final float xScale, final float yScale, final Color color, final Rectangle pos) {
         graphics.setColor(color);
@@ -95,10 +93,14 @@ public class PageRenderer {
         graphics.fillRect(x, y, width, height);
     }
 
-// -------------------------- PUBLIC METHODS --------------------------
+    // -------------------------- PUBLIC METHODS --------------------------
 
     public BufferedImage renderPage(final int pageNum) throws IOException {
         final PageNode pageNode = documentNode.getPageNumber(pageNum + 1);
+
+        if (pageNode == null) {
+            throw new RuntimeException("Could not render page " + pageNum + ". No contents found for page");
+        }
 
         /* first have PDFBox draw the pdf to a BufferedImage */
         long t1 = System.currentTimeMillis();
@@ -109,8 +111,8 @@ public class PageRenderer {
         final Graphics2D graphics = image.createGraphics();
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        final float xScale = ((float) image.getWidth() / page.getArtBox().getWidth()) / 100.0f;
-        final float yScale = ((float) image.getHeight() / page.getArtBox().getHeight()) / 100.0f;
+        final float xScale = MathUtils.deround((float) image.getWidth() / page.getArtBox().getWidth());
+        final float yScale = MathUtils.deround((float) image.getHeight() / page.getArtBox().getHeight());
 
         for (ParagraphNode paragraphNode : pageNode.getChildren()) {
             for (LineNode lineNode : paragraphNode.getChildren()) {
@@ -129,7 +131,7 @@ public class PageRenderer {
         return image;
     }
 
-// -------------------------- OTHER METHODS --------------------------
+    // -------------------------- OTHER METHODS --------------------------
 
     private BufferedImage getPDFBoxRenderingForPage(final int pageNum) throws IOException {
         BufferedImage image = null;

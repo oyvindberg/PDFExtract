@@ -39,10 +39,15 @@
             <url>http://www2.ph.ed.ac.uk/maven2</url>
         </repository>
 
+        <repository>
+            <id>jahmm repo</id>
+            <url>http://jahmm.googlecode.com/svn/repo</url>
+        </repository>
+
         <!-- for oscar3 -->
         <!--<repository>-->
-            <!--<id>maven.ch.cam.ac.uk</id>-->
-            <!--<url>https://maven.ch.cam.ac.uk/m2repo</url>-->
+        <!--<id>maven.ch.cam.ac.uk</id>-->
+        <!--<url>https://maven.ch.cam.ac.uk/m2repo</url>-->
         <!--</repository>-->
 
     </repositories>
@@ -64,15 +69,15 @@
 
 
         <!--<dependency>-->
-            <!--<groupId>uk.ac.ed.ph.snuggletex</groupId>-->
-            <!--<artifactId>snuggletex-core</artifactId>-->
-            <!--<version>1.2.1</version>-->
+        <!--<groupId>uk.ac.ed.ph.snuggletex</groupId>-->
+        <!--<artifactId>snuggletex-core</artifactId>-->
+        <!--<version>1.2.1</version>-->
         <!--</dependency>-->
         <!--<dependency>-->
-            <!--<groupId>uk.ac.ed.ph.snuggletex</groupId>-->
-            <!--<artifactId>snuggletex-upconversion</artifactId>-->
-            <!--<version>1.2.1</version>-->
-            <!--<scope>test</scope>-->
+        <!--<groupId>uk.ac.ed.ph.snuggletex</groupId>-->
+        <!--<artifactId>snuggletex-upconversion</artifactId>-->
+        <!--<version>1.2.1</version>-->
+        <!--<scope>test</scope>-->
         <!--</dependency>-->
 
 
@@ -95,16 +100,28 @@
             <version>1.2</version>
         </dependency>
 
+        <dependency>
+            <groupId>com.ibm.icu</groupId>
+            <artifactId>icu4j</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>be.ac.ulg.montefiore.run.jahmm</groupId>
+            <artifactId>jahmm</artifactId>
+            <version>0.6.2</version>
+        </dependency>
+
         <!--<dependency>-->
-            <!--<groupId>com.google.guava</groupId>-->
-            <!--<artifactId>guava</artifactId>-->
-            <!--<version>r05</version>-->
+        <!--<groupId>com.google.guava</groupId>-->
+        <!--<artifactId>guava</artifactId>-->
+        <!--<version>r05</version>-->
         <!--</dependency>-->
 
         <!--<dependency>-->
-            <!--<groupId>wwmm</groupId>-->
-            <!--<artifactId>oscar3</artifactId>-->
-            <!--<version>1.0-SNAPSHOT</version>-->
+        <!--<groupId>wwmm</groupId>-->
+        <!--<artifactId>oscar3</artifactId>-->
+        <!--<version>1.0-SNAPSHOT</version>-->
         <!--</dependency>-->
 
     </dependencies>

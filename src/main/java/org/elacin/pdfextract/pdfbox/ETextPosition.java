@@ -35,6 +35,7 @@ public class ETextPosition extends TextPosition {
     }
 
     public ETextPosition(final PDPage page, final Matrix textPositionSt, final Matrix textPositionEnd, final float maxFontH, final float[] individualWidths, final float spaceWidth, final String string, final PDFont currentFont, final float fontSizeValue, final int fontSizeInPt, final float ws) {
-        super(page, textPositionSt, textPositionEnd, maxFontH, individualWidths, spaceWidth, string, currentFont, fontSizeValue, fontSizeInPt, ws);
+        super(page, textPositionSt, textPositionEnd, maxFontH, individualWidths, spaceWidth, string, currentFont,
+                fontSizeValue, fontSizeInPt, ws);
     }
 }

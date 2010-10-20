@@ -20,32 +20,34 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: Apr 19, 2010
- * Time: 2:50:18 AM
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Apr 19, 2010 Time: 2:50:18 AM To change this template use File |
+ * Settings | File Templates.
  */
 public class Loggers {
+    private static Logger createTreeLogger = Logger.getLogger("org.elacin.pdfextract.createTree");
+    private static final Logger pdfExtractLogger = Logger.getLogger("org.elacin.pdfextract");
+    private static final Logger pdfboxLog = Logger.getLogger("org.apache.pdfbox");
+    private static final Logger wordBuilderLog = Logger.getLogger("org.elacin.pdfextract.wordBuilder");
+
     static {
         PropertyConfigurator.configure(Loggers.class.getClassLoader().getResource("log4j.xml"));
     }
 
-// -------------------------- PUBLIC STATIC METHODS --------------------------
+    // -------------------------- PUBLIC STATIC METHODS --------------------------
 
     public static Logger getCreateTreeLog() {
-        return Logger.getLogger("org.elacin.pdfextract.createTree");
+        return createTreeLogger;
     }
 
     public static Logger getPdfExtractorLog() {
-        return Logger.getLogger("org.elacin.pdfextract");
+        return pdfExtractLogger;
     }
 
     public static Logger getPdfboxLog() {
-        return Logger.getLogger("org.apache.pdfbox");
+        return pdfboxLog;
     }
 
     public static Logger getWordBuilderLog() {
-        return Logger.getLogger("org.elacin.pdfextract.wordBuilder");
+        return wordBuilderLog;
     }
 }

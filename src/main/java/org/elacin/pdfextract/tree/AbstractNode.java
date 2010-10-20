@@ -28,14 +28,11 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: Mar 23, 2010
- * Time: 7:44:33 AM
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Mar 23, 2010 Time: 7:44:33 AM To change this template use File |
+ * Settings | File Templates.
  */
 public abstract class AbstractNode<ParentType extends AbstractParentNode> implements Serializable {
-// ------------------------------ FIELDS ------------------------------
+    // ------------------------------ FIELDS ------------------------------
 
     protected Map<Role, String> roles;
     protected ParentType parent;
@@ -47,7 +44,7 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
     /* a cache of current toString-String */
     protected transient String toStringCache;
 
-// --------------------- GETTER / SETTER METHODS ---------------------
+    // --------------------- GETTER / SETTER METHODS ---------------------
 
     public ParentType getParent() {
         return parent;
@@ -61,7 +58,7 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
         this.root = root;
     }
 
-// -------------------------- PUBLIC METHODS --------------------------
+    // -------------------------- PUBLIC METHODS --------------------------
 
     public void addRole(Role r, String reason) {
         Loggers.getCreateTreeLog().warn(this + " got assigned role " + r);
@@ -96,7 +93,9 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
     public abstract String getText();
 
     public boolean hasRole(Role r) {
-        if (roles == null) return false;
+        if (roles == null) {
+            return false;
+        }
 
         return roles.containsKey(r);
     }
@@ -106,10 +105,11 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
     }
 
     public void printTree(String filename) {
+        Loggers.getPdfExtractorLog().info("Opening " + filename + " for output");
         PrintStream stream = null;
         try {
-            Loggers.getPdfExtractorLog().info("Opening " + filename + " for output");
-            stream = new PrintStream(new BufferedOutputStream(new FileOutputStream(filename, false), 8192 * 4), false, "UTF-8");
+            stream = new PrintStream(new BufferedOutputStream(new FileOutputStream(filename, false), 8192 * 4), false,
+                    "UTF-8");
             printTree(stream);
         } catch (Exception e) {
             Loggers.getPdfExtractorLog().error("Could not open output file", e);
@@ -130,8 +130,9 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> implem
         }
     }
 
-// -------------------------- OTHER METHODS --------------------------
+    // -------------------------- OTHER METHODS --------------------------
 
     protected abstract void appendLocalInfo(Appendable sb, int indent) throws IOException;
+
     protected abstract void invalidateThisAndParents();
 }

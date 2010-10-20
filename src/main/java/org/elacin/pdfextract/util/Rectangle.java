@@ -21,15 +21,15 @@ import java.io.Serializable;
 /**
  * Created by IntelliJ IDEA. User: elacin Date: May 19, 2010 Time: 9:43:07 PM
  * <p/>
- * A non-mutable rectangle, with union and intercepts bits stolen from javas Rectangle2D. The problem with just using that class was that is isnt available in
- * an integer version.
+ * A non-mutable rectangle, with union and intercepts bits stolen from javas Rectangle2D. The problem with just using
+ * that class was that is isnt available in an integer version.
  */
 public class Rectangle implements Serializable {
-// ------------------------------ FIELDS ------------------------------
+    // ------------------------------ FIELDS ------------------------------
 
     private final int x, y, width, height;
 
-// --------------------------- CONSTRUCTORS ---------------------------
+    // --------------------------- CONSTRUCTORS ---------------------------
 
     public Rectangle(final int x, final int y, final int width, final int height) {
         this.height = height;
@@ -38,19 +38,31 @@ public class Rectangle implements Serializable {
         this.y = y;
     }
 
-// ------------------------ CANONICAL METHODS ------------------------
+    // ------------------------ CANONICAL METHODS ------------------------
 
     @Override
     public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         final Rectangle rectangle = (Rectangle) o;
 
-        if (height != rectangle.height) return false;
-        if (width != rectangle.width) return false;
-        if (x != rectangle.x) return false;
-        if (y != rectangle.y) return false;
+        if (height != rectangle.height) {
+            return false;
+        }
+        if (width != rectangle.width) {
+            return false;
+        }
+        if (x != rectangle.x) {
+            return false;
+        }
+        if (y != rectangle.y) {
+            return false;
+        }
 
         return true;
     }
@@ -78,7 +90,7 @@ public class Rectangle implements Serializable {
         return sb.toString();
     }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
+    // --------------------- GETTER / SETTER METHODS ---------------------
 
     public int getHeight() {
         return height;
@@ -96,7 +108,7 @@ public class Rectangle implements Serializable {
         return y;
     }
 
-// -------------------------- PUBLIC METHODS --------------------------
+    // -------------------------- PUBLIC METHODS --------------------------
 
     /**
      * Compute the area of this rectangle.
@@ -104,7 +116,7 @@ public class Rectangle implements Serializable {
      * @return The area of this rectangle
      */
     public float area() {
-        return (float) width / 100.0f * (float) height / 100.0f;
+        return MathUtils.deround(width) * MathUtils.deround(height);
     }
 
     /**
@@ -137,22 +149,24 @@ public class Rectangle implements Serializable {
     }
 
     /**
-     * Return the distance between this rectangle and the passed point. If the rectangle contains the point, the distance is zero.
+     * Return the distance between this rectangle and the passed point. If the rectangle contains the point, the
+     * distance is zero.
      *
      * @param p Point to find the distance to
      * @return distance beween this rectangle and the passed point.
      */
     public float distance(final IntPoint p) {
-        int temp = x - p.x;
+        float temp = MathUtils.deround(x) - MathUtils.deround(p.x);
         if (temp < 0) {
-            temp = p.x - getEndX();
+            temp = MathUtils.deround(p.x) - MathUtils.deround(getEndX());
         }
 
-        int distanceSquared = Math.max(0, temp * temp);
 
-        int temp2 = (y - p.y);
+        float distanceSquared = Math.max(0, temp * temp);
+
+        float temp2 = (MathUtils.deround(y) - MathUtils.deround(p.y));
         if (temp2 < 0) {
-            temp2 = p.y - getEndY();
+            temp2 = MathUtils.deround(p.y) - MathUtils.deround(getEndY());
         }
 
         if (temp2 > 0) {
@@ -160,7 +174,11 @@ public class Rectangle implements Serializable {
         }
 
         //noinspection NumericCastThatLosesPrecision
-        return (float) Math.sqrt((double) distanceSquared);
+        final float v = (float) Math.sqrt((double) distanceSquared);
+        if (Float.isNaN(v)) {
+            return distance(p);
+        }
+        return v;
     }
 
     public int getEndX() {

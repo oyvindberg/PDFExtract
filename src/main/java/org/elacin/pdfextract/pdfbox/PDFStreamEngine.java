@@ -38,9 +38,9 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * This class will run through a PDF content stream and execute certain operations
- * and provide a callback interface for clients that want to do things with the stream.
- * See the PDFTextStripper class for an example of how to use this class.
+ * This class will run through a PDF content stream and execute certain operations and provide a callback interface for
+ * clients that want to do things with the stream. See the PDFTextStripper class for an example of how to use this
+ * class.
  *
  * @author <a href="mailto:ben@benlitchfield.com">Ben Litchfield</a>
  * @version $Revision: 1.38 $
@@ -89,10 +89,8 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
     }
 
     /**
-     * Constructor with engine properties.  The property keys are all
-     * PDF operators, the values are class names used to execute those
-     * operators. An empty value means that the operator will be silently
-     * ignored.
+     * Constructor with engine properties.  The property keys are all PDF operators, the values are class names used to
+     * execute those operators. An empty value means that the operator will be silently ignored.
      *
      * @param properties The engine properties.
      * @throws IOException If there is an error setting the engine properties.
@@ -113,7 +111,8 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
                     OperatorProcessor processor = (OperatorProcessor) klass.newInstance();
                     registerOperatorProcessor(operator, processor);
                 } catch (Exception e) {
-                    throw new WrappedIOException("OperatorProcessor class " + processorClassName + " could not be instantiated", e);
+                    throw new WrappedIOException(
+                            "OperatorProcessor class " + processorClassName + " could not be instantiated", e);
                 }
             }
         }
@@ -121,18 +120,30 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
         totalCharCnt = 0;
     }
 
+    // ------------------------ OVERRIDING METHODS ------------------------
+
     /**
-     * Register a custom operator processor with the engine.
-     *
-     * @param operator The operator as a string.
-     * @param op       Processor instance.
+     * @return Returns the colorSpaces.
      */
-    public final void registerOperatorProcessor(String operator, OperatorProcessor op) {
-        op.setContext(this);
-        operators.put(operator, op);
+    public Map getColorSpaces() {
+        return (streamResourcesStack.peek()).colorSpaces;
     }
 
-    // --------------------- GETTER / SETTER METHODS ---------------------
+    /**
+     * Get the current page that is being processed.
+     *
+     * @return The page being processed.
+     */
+    public PDPage getCurrentPage() {
+        return page;
+    }
+
+    /**
+     * @return Returns the fonts.
+     */
+    public Map getFonts() {
+        return (streamResourcesStack.peek()).fonts;
+    }
 
     /**
      * @return Returns the graphicsStack.
@@ -160,6 +171,20 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
      */
     public void setGraphicsState(PDGraphicsState value) {
         graphicsState = value;
+    }
+
+    /**
+     * @return Returns the graphicsStates.
+     */
+    public Map getGraphicsStates() {
+        return (streamResourcesStack.peek()).graphicsStates;
+    }
+
+    /**
+     * @return Returns the resources.
+     */
+    public PDResources getResources() {
+        return (streamResourcesStack.peek()).resources;
     }
 
     /**
@@ -191,8 +216,7 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
     }
 
     /**
-     * Get the total number of characters in the doc
-     * (including ones that could not be mapped).
+     * Get the total number of characters in the doc (including ones that could not be mapped).
      *
      * @return The number of characters.
      */
@@ -201,52 +225,12 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
     }
 
     /**
-     * Get the total number of valid characters in the doc
-     * that could be decoded in processEncodedText().
+     * Get the total number of valid characters in the doc that could be decoded in processEncodedText().
      *
      * @return The number of valid characters.
      */
     public int getValidCharCnt() {
         return validCharCnt;
-    }
-
-    // ------------------------ OVERRIDING METHODS ------------------------
-
-    /**
-     * @return Returns the colorSpaces.
-     */
-    public Map getColorSpaces() {
-        return (streamResourcesStack.peek()).colorSpaces;
-    }
-
-    /**
-     * Get the current page that is being processed.
-     *
-     * @return The page being processed.
-     */
-    public PDPage getCurrentPage() {
-        return page;
-    }
-
-    /**
-     * @return Returns the fonts.
-     */
-    public Map getFonts() {
-        return (streamResourcesStack.peek()).fonts;
-    }
-
-    /**
-     * @return Returns the graphicsStates.
-     */
-    public Map getGraphicsStates() {
-        return (streamResourcesStack.peek()).graphicsStates;
-    }
-
-    /**
-     * @return Returns the resources.
-     */
-    public PDResources getResources() {
-        return (streamResourcesStack.peek()).resources;
     }
 
     /**
@@ -257,8 +241,7 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
     }
 
     /**
-     * Process encoded text from the PDF Stream.
-     * You should override this method if you want to perform an action when
+     * Process encoded text from the PDF Stream. You should override this method if you want to perform an action when
      * encoded text is being processed.
      *
      * @param string The encoded text
@@ -347,8 +330,10 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
 
             //todo, handle horizontal displacement
             // get the width and height of this character in text units
-            float characterHorizontalDisplacementText = (font.getFontWidth(string, i, codeLength) / glyphSpaceToTextSpaceFactor);
-            maxVerticalDisplacementText = Math.max(maxVerticalDisplacementText, font.getFontHeight(string, i, codeLength) / glyphSpaceToTextSpaceFactor);
+            float characterHorizontalDisplacementText = (font.getFontWidth(string, i, codeLength) /
+                    glyphSpaceToTextSpaceFactor);
+            maxVerticalDisplacementText = Math.max(maxVerticalDisplacementText,
+                    font.getFontHeight(string, i, codeLength) / glyphSpaceToTextSpaceFactor);
 
             // PDF Spec - 5.5.2 Word Spacing
             //
@@ -383,7 +368,8 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
             float adjustment = 0;
             // TODO : tx should be set for horizontal text and ty for vertical text
             // which seems to be specified in the font (not the direction in the matrix).
-            float tx = ((characterHorizontalDisplacementText - adjustment / glyphSpaceToTextSpaceFactor) * fontSizeText) * horizontalScalingText;
+            float tx = ((characterHorizontalDisplacementText - adjustment / glyphSpaceToTextSpaceFactor) *
+                    fontSizeText) * horizontalScalingText;
             float ty = 0;
 
             Matrix td = new Matrix();
@@ -418,7 +404,8 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
             //output multiple characters.  For example "fi" or a
             //glyphname that has no mapping like "visiblespace"
             if (c != null) {
-                Arrays.fill(individualWidthsBuffer, characterBuffer.length(), characterBuffer.length() + c.length(), widthText / c.length());
+                Arrays.fill(individualWidthsBuffer, characterBuffer.length(), characterBuffer.length() + c.length(),
+                        widthText / c.length());
 
                 validCharCnt += c.length();
             } else {
@@ -444,23 +431,15 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
             System.arraycopy(individualWidthsBuffer, 0, individualWidths, 0, individualWidths.length);
 
             // process the decoded text
-            processTextPosition(new ETextPosition(page, textMatrixStDisp, textMatrixEndDisp, totalVerticalDisplacementDisp, individualWidths, spaceWidthDisp,
-                    characterBuffer.toString(), font, fontSizeText, (int) (fontSizeText * textMatrix.getXScale()), wordSpacingDisp));
+            processTextPosition(
+                    new ETextPosition(page, textMatrixStDisp, textMatrixEndDisp, totalVerticalDisplacementDisp,
+                            individualWidths, spaceWidthDisp, characterBuffer.toString(), font, fontSizeText,
+                            (int) (fontSizeText * textMatrix.getXScale()), wordSpacingDisp));
 
             textMatrixStDisp = textMatrix.multiply(dispMatrix);
 
             characterBuffer.setLength(0);
         }
-    }
-
-    /**
-     * A method provided as an event interface to allow a subclass to perform
-     * some specific functionality when text needs to be processed.
-     *
-     * @param text The text to be processed.
-     */
-    protected void processTextPosition(ETextPosition text) {
-        //subclasses can override to provide specific functionality.
     }
 
     /**
@@ -475,6 +454,31 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
             PDFOperator oper = PDFOperator.getOperator(operation);
             processOperator(oper, arguments);
         } catch (IOException e) {
+            log.warn(e, e);
+        }
+    }
+
+    /**
+     * This is used to handle an operation.
+     *
+     * @param operator  The operation to perform.
+     * @param arguments The list of arguments.
+     * @throws IOException If there is an error processing the operation.
+     */
+    protected void processOperator(PDFOperator operator, List arguments) throws IOException {
+        try {
+            String operation = operator.getOperation();
+            OperatorProcessor processor = operators.get(operation);
+            if (processor != null) {
+                processor.setContext(this);
+                processor.process(operator, arguments);
+            } else {
+                if (!unsupportedOperators.contains(operation)) {
+                    log.info("unsupported/disabled operation: " + operation);
+                    unsupportedOperators.add(operation);
+                }
+            }
+        } catch (Exception e) {
             log.warn(e, e);
         }
     }
@@ -542,35 +546,20 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
     }
 
     /**
-     * This is used to handle an operation.
+     * Register a custom operator processor with the engine.
      *
-     * @param operator  The operation to perform.
-     * @param arguments The list of arguments.
-     * @throws IOException If there is an error processing the operation.
+     * @param operator The operator as a string.
+     * @param op       Processor instance.
      */
-    protected void processOperator(PDFOperator operator, List arguments) throws IOException {
-        try {
-            String operation = operator.getOperation();
-            OperatorProcessor processor = operators.get(operation);
-            if (processor != null) {
-                processor.setContext(this);
-                processor.process(operator, arguments);
-            } else {
-                if (!unsupportedOperators.contains(operation)) {
-                    log.info("unsupported/disabled operation: " + operation);
-                    unsupportedOperators.add(operation);
-                }
-            }
-        } catch (Exception e) {
-            log.warn(e, e);
-        }
+    public final void registerOperatorProcessor(String operator, OperatorProcessor op) {
+        op.setContext(this);
+        operators.put(operator, op);
     }
 
     /**
-     * This method must be called between processing documents.  The
-     * PDFStreamEngine caches information for the document between pages
-     * and this will release the cached information.  This only needs
-     * to be called if processing a new document.
+     * This method must be called between processing documents.  The PDFStreamEngine caches information for the document
+     * between pages and this will release the cached information.  This only needs to be called if processing a new
+     * document.
      */
     public void resetEngine() {
         documentFontCache.clear();
@@ -599,11 +588,22 @@ public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
         (streamResourcesStack.peek()).graphicsStates = value;
     }
 
+    // -------------------------- OTHER METHODS --------------------------
+
+    /**
+     * A method provided as an event interface to allow a subclass to perform some specific functionality when text
+     * needs to be processed.
+     *
+     * @param text The text to be processed.
+     */
+    protected void processTextPosition(ETextPosition text) {
+        //subclasses can override to provide specific functionality.
+    }
+
     // -------------------------- INNER CLASSES --------------------------
 
     /**
-     * This is a simple internal class used by the Stream engine to handle the
-     * resources stack.
+     * This is a simple internal class used by the Stream engine to handle the resources stack.
      */
     private static class StreamResources {
         private Map<String, PDFont> fonts;

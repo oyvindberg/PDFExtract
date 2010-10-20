@@ -24,19 +24,16 @@ import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
 
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: Apr 8, 2010
- * Time: 8:56:45 AM
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Apr 8, 2010 Time: 8:56:45 AM To change this template use File | Settings
+ * | File Templates.
  */
 public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
-// --------------------------- CONSTRUCTORS ---------------------------
+    // --------------------------- CONSTRUCTORS ---------------------------
 
     public ParagraphNode() {
     }
 
-// -------------------------- PUBLIC METHODS --------------------------
+    // -------------------------- PUBLIC METHODS --------------------------
 
     @Override
     public boolean addWord(final WordNode node) {
@@ -57,7 +54,8 @@ public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
 
         if (isNewLineInThisParagraph(node)) {
             if (Loggers.getCreateTreeLog().isDebugEnabled()) {
-                Loggers.getCreateTreeLog().debug(toString() + ": Node " + node + " is considered to be a new line in this paragraph");
+                Loggers.getCreateTreeLog()
+                        .debug(toString() + ": Node " + node + " is considered to be a new line in this paragraph");
             }
             addChild(new LineNode(node));
             return true;
@@ -81,14 +79,17 @@ public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
             LineNode firstLine = lineNodes[i];
 
             for (int j = 0; j < lineNodes.length; j++) {
-                if (i == j) continue;
+                if (i == j) {
+                    continue;
+                }
 
                 if (lineNodes[j] == null) {
                     continue;
                 }
                 LineNode secondLine = lineNodes[j];
 
-                if (firstLine.isOnSameLine(secondLine) || firstLine.getPosition().intersectsWith(secondLine.getPosition())) {
+                if (firstLine.isOnSameLine(secondLine) ||
+                        firstLine.getPosition().intersectsWith(secondLine.getPosition())) {
                     if (Loggers.getCreateTreeLog().isDebugEnabled()) {
                         Loggers.getCreateTreeLog().debug("combining lines " + firstLine + " and " + secondLine);
                     }
@@ -144,18 +145,20 @@ public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
         //        int ySize = Math.min(lastLineNode.getCurrentStyle().ySize, newNode.getStyle().ySize);
 
         /* if the new node seems to be a headline, dont let it continue this paragraph */
-        if (isProbableTitle(newNode)) {
-            return false;
-        }
+        //        if (isProbableTitle(newNode)) {
+        //            return false;
+        //        }
 
         //TODO:
         if (!newNode.getStyle().font.equals(getStyle().font) ||
-                newNode.getStyle().ySize != getStyle().ySize) {//|| newNode.getStyle().ySize != getStyle().ySize){
+                newNode.getStyle().ySize != getStyle().ySize ||
+                newNode.getStyle().xSize != getStyle().xSize) {
             return false;
         }
 
         //        if (isWithinVariance(getPosition().getEndY(), newNode.getPosition().getY(), ySize*2)) {
-        if (isWithinVariance(getPosition().getEndY(), newNode.getPosition().getY(), lastLineNode.getCurrentStyle().ySize * 2)) {
+        if (isWithinVariance(getPosition().getEndY(), newNode.getPosition().getY(),
+                lastLineNode.getCurrentStyle().ySize * 3)) {
             int widthOfSpace = lastLineNode.getCurrentStyle().widthOfSpace;
 
             /* if the new node STARTS at more or less the same X position, accept it */
@@ -170,15 +173,15 @@ public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
             }
 
             /* also accept it if its X value IS CONTAINED between current position's lower X and (higher X + widthOfSpace)*/
-            if (getPosition().getX() < newNode.getPosition().getX() &&
-                    getPosition().getX() + getPosition().getWidth() + widthOfSpace > newNode.getPosition().getX()) {
+            if (getPosition().getX() <= newNode.getPosition().getX() &&
+                    getPosition().getX() + getPosition().getWidth() + widthOfSpace >= newNode.getPosition().getX()) {
                 return true;
             }
         }
         return false;
     }
 
-// -------------------------- OTHER METHODS --------------------------
+    // -------------------------- OTHER METHODS --------------------------
 
     private boolean isProbableTitle(final AbstractNode newNode) {
         final LineNode lastLineNode = getChildren().get(getChildren().size() - 1);

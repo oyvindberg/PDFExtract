@@ -29,14 +29,13 @@ import java.io.IOException;
  */
 
 /**
- * This class represents one word read from the PDF, and all the information
- * about that word, including style, position, distance to former word (if
- * this is not the first word on a line, and the textual representation.
+ * This class represents one word read from the PDF, and all the information about that word, including style, position,
+ * distance to former word (if this is not the first word on a line, and the textual representation.
  * <p/>
  * Note that all whitespace characters will have been stripped from the text.
  */
 public class WordNode extends AbstractNode<LineNode> {
-// ------------------------------ FIELDS ------------------------------
+    // ------------------------------ FIELDS ------------------------------
 
     public final String text;
     protected final Rectangle position;
@@ -44,7 +43,7 @@ public class WordNode extends AbstractNode<LineNode> {
     private final int pageNum;
     private final int charSpacing;
 
-// --------------------------- CONSTRUCTORS ---------------------------
+    // --------------------------- CONSTRUCTORS ---------------------------
 
     public WordNode(final Rectangle position, final int pageNum, final Style style, final String text, final int charSpacing) {
         this.position = position;
@@ -54,7 +53,7 @@ public class WordNode extends AbstractNode<LineNode> {
         this.charSpacing = charSpacing;
     }
 
-// ------------------------ CANONICAL METHODS ------------------------
+    // ------------------------ CANONICAL METHODS ------------------------
 
     @Override
     public String toString() {
@@ -70,7 +69,7 @@ public class WordNode extends AbstractNode<LineNode> {
         return toStringCache;
     }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
+    // --------------------- GETTER / SETTER METHODS ---------------------
 
     public float getCharSpacing() {
         return charSpacing;
@@ -93,14 +92,14 @@ public class WordNode extends AbstractNode<LineNode> {
         return text;
     }
 
-// -------------------------- PUBLIC METHODS --------------------------
+    // -------------------------- PUBLIC METHODS --------------------------
 
-    public boolean isPartOfSameWordAs(final WordNode wordNode) {
-        int distance = wordNode.position.getX() - position.getEndX();
-        return distance <= Math.max(charSpacing * 1.01, 3);
+    public boolean isPartOfSameWordAs(final WordNode nextNode) {
+        int distance = nextNode.position.getX() - position.getEndX();
+        return distance <= (int) ((double) charSpacing * 1.01);
     }
 
-// -------------------------- OTHER METHODS --------------------------
+    // -------------------------- OTHER METHODS --------------------------
 
     protected void appendLocalInfo(final Appendable out, final int indent) throws IOException {
         for (int i = 0; i < indent; i++) {
