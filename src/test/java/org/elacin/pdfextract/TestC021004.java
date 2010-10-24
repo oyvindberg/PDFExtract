@@ -28,57 +28,54 @@ import java.net.URL;
 import java.util.ArrayList;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: May 26, 2010
- * Time: 1:08:50 PM
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: May 26, 2010 Time: 1:08:50 PM To change this
+ * template use File | Settings | File Templates.
  */
 public class TestC021004 {
 
-    // ------------------------------ FIELDS ------------------------------
-    private DocumentNode doc;
-    private ArrayList<LineNode> lines;
-    private BufferedReader reader;
+// ------------------------------ FIELDS ------------------------------
+private DocumentNode doc;
+private ArrayList<LineNode> lines;
+private BufferedReader reader;
 
-    // -------------------------- PUBLIC METHODS --------------------------
+// -------------------------- PUBLIC METHODS --------------------------
 
-    @BeforeClass(groups = "TestC021004")
-    public void setUp() throws IOException {
-        doc = PDFDocumentLoader.readPDF("C02-1004.pdf", "C02-1004_out.xml", 1);
-        lines = DocumentNavigator.getLineNodes(doc);
+@BeforeClass(groups = "TestC021004")
+public void setUp() throws IOException {
+    doc = PDFDocumentLoader.readPDF("C02-1004.pdf", "C02-1004_out.xml", 1);
+    lines = DocumentNavigator.getLineNodes(doc);
 
-        final URL url = PDFDocumentLoader.class.getClassLoader().getResource("C021004.txt");
-        reader = new BufferedReader(new FileReader(url.getFile()));
-    }
+    final URL url = PDFDocumentLoader.class.getClassLoader().getResource("C021004.txt");
+    reader = new BufferedReader(new FileReader(url.getFile()));
+}
 
 
-    @Test()
-    public void testContents() throws IOException {
-        int found = 0, total = 0;
-        while (reader.ready()) {
-            final String line = reader.readLine();
-            if (line.trim().length() != 0) {
-                total++;
-                final LineNode line1 = findLine(line);
-                if (line1 == null) {
-                    System.out.println("could not find line = " + line);
-                } else {
-                    found++;
-                }
-            }
-
-        }
-        System.out.println("Found " + found + " of " + total);
-    }
-
-    private LineNode findLine(final String line) {
-        for (LineNode lineNode : lines) {
-            if (lineNode.getText().equals(line)) {
-                return lineNode;
+@Test()
+public void testContents() throws IOException {
+    int found = 0, total = 0;
+    while (reader.ready()) {
+        final String line = reader.readLine();
+        if (line.trim().length() != 0) {
+            total++;
+            final LineNode line1 = findLine(line);
+            if (line1 == null) {
+                System.out.println("could not find line = " + line);
+            } else {
+                found++;
             }
         }
-        return null;
+
     }
+    System.out.println("Found " + found + " of " + total);
+}
+
+private LineNode findLine(final String line) {
+    for (LineNode lineNode : lines) {
+        if (lineNode.getText().equals(line)) {
+            return lineNode;
+        }
+    }
+    return null;
+}
 
 }

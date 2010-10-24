@@ -22,92 +22,207 @@ import org.apache.pdfbox.util.TextPositionComparator;
 import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.pdfbox.ETextPosition;
 import org.elacin.pdfextract.text.Style;
-import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.DocumentStyles;
-import org.elacin.pdfextract.tree.WordNode;
 import org.elacin.pdfextract.util.FloatPoint;
-import org.elacin.pdfextract.util.Rectangle;
-import org.elacin.pdfextract.util.StringUtils;
+import org.elacin.pdfextract.util.MathUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: May 12, 2010 Time: 3:34:09 AM
  * <p/>
- * This class provides a way to convert incoming TextPositions (as created by PDFBox) into WordNodes, as used by this
- * application. The difference between the two classes are technical, but also semantic, in that they are defined to be
- * at most a whole word (the normal case: Word fragments will only occur when a word is split over two lines, or if the
- * word is formatted with two different styles) instead of arbitrary length.
+ * This class provides a way to convert incoming TextPositions (as created by PDFBox) into
+ * WordNodes, as used by this application. The difference between the two classes are technical, but
+ * also semantic, in that they are defined to be at most a whole word (the normal case: Word
+ * fragments will only occur when a word is split over two lines, or if the word is formatted with
+ * two different styles) instead of arbitrary length.
  * <p/>
- * This makes it easier to reason about the information we have, and also reconstructs some notion of word and character
- * spacing, which will be an important property for feature recognition.
+ * This makes it easier to reason about the information we have, and also reconstructs some notion
+ * of word and character spacing, which will be an important property for feature recognition.
  * <p/>
- * By using createWords() all this will be done, and the words will be added to the the provided document tree.
+ * By using createWords() all this will be done, and the words will be added to the the provided
+ * document tree.
  */
 public class PhysicalWordSegmentator {
-    // ------------------------------ FIELDS ------------------------------
+// ------------------------------ FIELDS ------------------------------
 
-    private static final Logger LOG = Loggers.getWordBuilderLog();
+private static final Logger LOG = Loggers.getWordBuilderLog();
 
-    // -------------------------- STATIC METHODS --------------------------
+// -------------------------- PUBLIC STATIC METHODS --------------------------
 
-    /**
-     * This creates
-     *
-     * @param sf
-     * @param textPositions
-     * @return
-     */
-    static List<Text> getTextsFromTextPositions(final DocumentStyles sf, final List<TextPosition> textPositions) {
-        List<Text> ret = new ArrayList<Text>(textPositions.size() * 2);
+/**
+ * This method will convert the text into WordNodes.
+ * <p/>
+ * To do this, the text is split on whitespaces, character and word distances are approximated, and
+ * words are created based on those
+ *
+ * @param documentStyles The collection of styles used for the document
+ * @param textToBeAdded  text which is to be added
+ */
+public static List<PhysicalText> createWords(final DocumentStyles documentStyles,
+                                             final List<ETextPosition> textToBeAdded)
+{
+    long t0 = System.currentTimeMillis();
 
-        FloatPoint lastWordBoundary = new FloatPoint(0.0F, 0.0F);
-        StringBuilder contents = new StringBuilder();
+    List<PhysicalText> ret = new ArrayList<PhysicalText>(textToBeAdded.size());
 
-        Collections.sort(textPositions, new TextPositionComparator());
+    /* iterate through all incoming TextPositions, and process them
+       in a line by line fashion. We do this to be able to calculate
+       char and word distances for each line
+    */
 
-        float width = 0.0f;
-        boolean firstInLine = true;
-        for (TextPosition textPosition : textPositions) {
-            float x = textPosition.getXDirAdj();
-            float y = textPosition.getYDirAdj();
-            final Style style = sf.getStyleForTextPosition(textPosition);
+    List<TextPosition> line = new ArrayList<TextPosition>();
 
-            for (int j = 0; j < textPosition.getCharacter().length(); j++) {
-                /* if we found a space */
-                if (Character.isSpaceChar(textPosition.getCharacter().charAt(j)) ||
-                        isTextPositionTooHigh(textPosition)) {
-                    if (contents.length() > 0) {
-                        /* else just output a new text */
+    Collections.sort(textToBeAdded, new TextPositionComparator());
 
-                        final float distance;
-                        if (firstInLine) {
-                            distance = Float.MIN_VALUE;
-                            firstInLine = false;
-                        } else {
-                            distance = x - lastWordBoundary.getX();
-                        }
+    float minY = 0.0f;
+    float maxY = 0.0f;
+    float maxX = 0.0f;
+    for (ETextPosition textPosition : textToBeAdded) {
+        /* if this is the first text in a line */
+        if (line.isEmpty()) {
+            minY = textPosition.getY();
+            maxY = minY + textPosition.getHeightDir();
+            maxX = textPosition.getPos().getEndX();
+        }
 
-                        ret.add(new Text(contents.toString(), style, x, y, width, textPosition.getHeightDir(),
-                                distance));
-                        contents.setLength(0);
-                        x += width;
-                        width = 0.0F;
-                        lastWordBoundary.setPosition(x, y);
-                    }
+        if (isOnAnotherLine(minY, textPosition) || isTooFarAwayHorizontally(maxX, textPosition)) {
+            if (!line.isEmpty()) {
+                ret.addAll(createWordsInLine(documentStyles, line));
+                line.clear();
+            }
+            minY = Float.MAX_VALUE;
+        }
 
-                    x += textPosition.getIndividualWidths()[j];
-                } else {
-                    /* include this character */
-                    width += textPosition.getIndividualWidths()[j];
-                    contents.append(textPosition.getCharacter().charAt(j));
-                }
+        /* then add the current text to start next line */
+        line.add(textPosition);
+        minY = Math.min(textPosition.getYDirAdj(), minY);
+        maxY = Math.max(minY + textPosition.getHeightDir(), maxY);
+        maxX = textPosition.getPos().getEndX();
+    }
 
+    if (!line.isEmpty()) {
+        ret.addAll(createWordsInLine(documentStyles, line));
+        line.clear();
+    }
 
-                /* if this is the last char */
-                if (j == textPosition.getCharacter().length() - 1 && contents.length() != 0) {
+    LOG.info("PhysicalWordSegmentator.createWords took "
+            + (System.currentTimeMillis() - t0)
+            + " ms");
+    return ret;
+}
+
+// -------------------------- STATIC METHODS --------------------------
+
+/**
+ * This method will process one line worth of TextPositions , and split and/or combine them as to
+ * output words.
+ *
+ * @param documentStyles
+ * @param line
+ */
+static List<PhysicalText> createWordsInLine(final DocumentStyles documentStyles,
+                                            final List<TextPosition> line)
+{
+    final Comparator<PhysicalText> sortByLowerX = new Comparator<PhysicalText>() {
+        public int compare(final PhysicalText o1, final PhysicalText o2) {
+            return Float.compare(o1.getPosition().getX(), o2.getPosition().getX());
+        }
+    };
+    PriorityQueue<PhysicalText> queue = new PriorityQueue<PhysicalText>(line.size(), sortByLowerX);
+
+    /* first convert into text elements */
+    queue.addAll(splitTextPositionsOnSpace(documentStyles, line));
+
+    /* then calculate spacing */
+    CharSpacingFinder.setCharSpacingForTexts(queue);
+
+    /* finally iterate through all texts from left to right, and combine into words as we go */
+    List<PhysicalText> ret = new ArrayList<PhysicalText>();
+    while (!queue.isEmpty()) {
+        final PhysicalText current = queue.remove();
+        final PhysicalText next = queue.peek();
+
+        if (next != null && current.isCloseEnoughToBelongToSameWord(next) && current.isSameStyleAs(
+                next)) {
+            PhysicalText combinedWord = current.combineWith(next);
+            queue.remove(next);
+            queue.add(combinedWord);
+            continue;
+        }
+        ret.add(current);
+    }
+
+    return ret;
+}
+
+/**
+ * it happens that some of the TextPositions are unreasonably tall. This destroys my algorithms, so
+ * for those we will use a lower value
+ *
+ * @param tp
+ * @return
+ */
+private static float getAdjustedHeight(final TextPosition tp) {
+    final float adjustedHeight;
+    final float maxHeight = tp.getFontSize() * tp.getYScale() * 1.2f;
+    if (tp.getHeightDir() > maxHeight) {
+        adjustedHeight = maxHeight;
+    } else {
+        adjustedHeight = tp.getHeightDir();
+    }
+    return adjustedHeight;
+}
+
+private static boolean isOnAnotherLine(final float minY, final ETextPosition textPosition) {
+    return minY != textPosition.getYDirAdj();
+}
+
+private static boolean isTooFarAwayHorizontally(final float maxX,
+                                                final ETextPosition textPosition)
+{
+    return !MathUtils.isWithinVariance(maxX, textPosition.getPos().getX(),
+                                       textPosition.getFontSizeInPt());
+}
+
+/**
+ * This creates
+ *
+ * @param sf
+ * @param textPositions
+ * @return
+ */
+@SuppressWarnings({"ObjectAllocationInLoop"})
+static List<PhysicalText> splitTextPositionsOnSpace(final DocumentStyles sf,
+                                                    final List<TextPosition> textPositions)
+{
+    final List<PhysicalText> ret = new ArrayList<PhysicalText>(textPositions.size() * 2);
+
+    final FloatPoint lastWordBoundary = new FloatPoint(0.0F, 0.0F);
+    final StringBuilder contents = new StringBuilder();
+
+    Collections.sort(textPositions, new TextPositionComparator());
+
+    float width = 0.0f;
+    boolean firstInLine = true;
+    for (TextPosition tp : textPositions) {
+        float x = tp.getXDirAdj();
+        float y = tp.getYDirAdj();
+        final String s = tp.getCharacter();
+        final Style style = sf.getStyleForTextPosition(tp);
+
+        /* iterate through all the characters in textposition.
+           Notice that the loop is a bit evil in that it iterates
+           one extra time as apposed to what you would expect, in
+           order make sure that the last piece of the textposition
+           is created into a text.
+        */
+        for (int j = 0; j <= s.length(); j++) {
+            /* if this is either the last character or a space */
+            final char currentChar = s.charAt(j);
+            if (j == s.length() || Character.isSpaceChar(currentChar)) {
+                if (contents.length() > 0) {
+                    /* just output a new text */
                     final float distance;
                     if (firstInLine) {
                         distance = Float.MIN_VALUE;
@@ -116,232 +231,28 @@ public class PhysicalWordSegmentator {
                         distance = x - lastWordBoundary.getX();
                     }
 
-                    /* Some times textPosition.getIndividualWidths will contain zero, so work around that here */
-                    if (width == 0.0F) {
-                        width = textPosition.getWidthDirAdj();
-                    }
+                    final float adjustedHeight = getAdjustedHeight(tp);
 
-                    ret.add(new Text(contents.toString(), style, x, y, width, textPosition.getHeightDir(), distance));
+                    ret.add(new PhysicalText(contents.toString(), style, x, y - adjustedHeight,
+                                             width, adjustedHeight, distance));
+
                     contents.setLength(0);
                     x += width;
                     width = 0.0F;
                     lastWordBoundary.setPosition(x, y);
                 }
-            }
-        }
 
-        return ret;
-    }
-
-    /**
-     * Some times TextPositions will be far, far higher than the font size would allow. this is normally a faulty PDF or
-     * a bug in PDFBox. since they destroy my algorithms ill just drop them
-     *
-     * @param textPosition
-     * @return
-     */
-    private static boolean isTextPositionTooHigh(final TextPosition textPosition) {
-        final boolean b = textPosition.getHeightDir() > textPosition.getFontSize() * textPosition.getYScale() * 1.2f;
-        if (b) {
-            System.out.println("PhysicalWordSegmentator.isTextPositionTooHigh: " +
-                    StringUtils.getTextPositionString(textPosition));
-        }
-        return b;
-    }
-
-    /**
-     * This method will process one line worth of TextPositions , and split and/or combine them as to output words. The
-     * words are added directly to the tree
-     *
-     * @param root
-     * @param wordNodes
-     * @param pageNum
-     * @param line
-     */
-    static void processLine(final DocumentNode root, final List<WordNode> wordNodes, final int pageNum, final List<TextPosition> line) {
-        /* first convert into text elements */
-        final List<Text> lineTexts = getTextsFromTextPositions(root.getStyles(), line);
-
-        /* then calculate spacing */
-        CharSpacingFinder.setCharSpacingForTexts(lineTexts);
-
-        /* this will be used to keep all the state while combining text fragments into words */
-        WordState currentState = new WordState();
-
-        /* create WordNodes and add them to the tree */
-        for (Text newText : lineTexts) {
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("in : " + newText);
-            }
-
-            /* if this is the first text element going into a word */
-            if (currentState.len == 0) {
-                currentState.x = newText.x;
-                currentState.y = newText.y;
-                currentState.charSpacing = newText.charSpacing;
+                if (j != s.length()) {
+                    x += tp.getIndividualWidths()[j];
+                }
             } else {
-                /* if not, check if this new text means we should finish the current word */
-                if (currentState.isTooFarAway(newText) || currentState.isDifferentStyle(newText.style)) {
-                    wordNodes.add(currentState.createWord(pageNum));
-                    currentState.x = newText.x;
-                }
+                /* include this character */
+                width += tp.getIndividualWidths()[j];
+                contents.append(currentChar);
             }
-
-            currentState.currentStyle = newText.style;
-            currentState.maxHeight = Math.max(currentState.maxHeight, newText.height);
-
-            /* copy text from the Text object, and adjust width */
-            for (int textPositionIdx = 0; textPositionIdx < newText.content.length(); textPositionIdx++) {
-                currentState.chars[currentState.len] = newText.content.charAt(textPositionIdx);
-                currentState.len++;
-            }
-            currentState.width = newText.x + newText.width - currentState.x;
-        }
-
-        /* no words can span lines, so yield whatever is read */
-        if (currentState.len != 0) {
-            wordNodes.add(currentState.createWord(pageNum));
         }
     }
 
-    // -------------------------- PUBLIC METHODS --------------------------
-
-    /**
-     * This method will convert the text into WordNodes, which will be added to the provided DocumentNode under the
-     * correct page
-     * <p/>
-     * To do this, the text is split on whitespaces, character and word distances are approximated, and words are
-     * created based on those
-     *
-     * @param root          Document to which add words
-     * @param pageNum       Page number
-     * @param textToBeAdded text which is to be added
-     */
-    public List<WordNode> createWords(final DocumentNode root, final int pageNum, final List<ETextPosition> textToBeAdded) {
-        long t0 = System.currentTimeMillis();
-
-        List<WordNode> ret = new ArrayList<WordNode>(textToBeAdded.size());
-
-        /* iterate through all incoming TextPositions, and process them
-           in a line by line fashion. We do this to be able to calculate
-           char and word distances for each line
-        */
-
-        List<TextPosition> line = new ArrayList<TextPosition>();
-
-        Collections.sort(textToBeAdded, new TextPositionComparator());
-
-        float lastY = Float.MAX_VALUE;
-        float lastEndY = Float.MIN_VALUE;
-        for (ETextPosition textPosition : textToBeAdded) {
-            if (LOG.isTraceEnabled()) {
-                LOG.trace(StringUtils.getTextPositionString(textPosition));
-            }
-
-            /* If this not the first text on a line and also not on the same Y coordinate
-                as the existing, complete this line */
-
-            /**
-             * Decide whether or not this textPosition is part of the current
-             *  line we are building or not
-             */
-            boolean endLine = false;
-
-            if (lastY == Float.MAX_VALUE) {
-                /* if this is the first text in a line */
-                lastY = textPosition.getY();
-                lastEndY = lastY + textPosition.getHeightDir();
-            } else if (lastY != textPosition.getYDirAdj()) {
-                //            } else if (!isOnSameLine(lastY, lastEndY, textPosition.getYDirAdj(), textPosition.getYDirAdj() + textPosition.getHeightDir())) {
-                /* end the current line if this element is not considered to be part of it */
-                endLine = true;
-            }
-
-            if (endLine) {
-                processLine(root, ret, pageNum, line);
-                line.clear();
-                lastY = Float.MAX_VALUE;
-            }
-
-            line.add(textPosition);
-            lastY = Math.min(textPosition.getYDirAdj(), lastY);
-            lastEndY = Math.max(lastY + textPosition.getHeightDir(), lastEndY);
-        }
-
-        if (!line.isEmpty()) {
-            processLine(root, ret, pageNum, line);
-            line.clear();
-        }
-
-        LOG.debug("PhysicalWordSegmentator.createWords took " + (System.currentTimeMillis() - t0) + " ms");
-        return ret;
-    }
-
-    // -------------------------- INNER CLASSES --------------------------
-
-    /**
-     * This class is used while combining Text objects into Words, as a simple way of grouping all state together.
-     */
-    private static class WordState {
-        private final char[] chars = new char[512];
-        private int len;
-        private float maxHeight;
-        private float width;
-        private float x;
-        private float y;
-        private Style currentStyle;
-        public float charSpacing;
-
-        public WordNode createWord(final int pageNum) {
-            String wordText = new String(chars, 0, len);
-            //TODO
-            final WordNode word = new WordNode(new Rectangle(x, y - maxHeight, width, maxHeight), pageNum, currentStyle,
-                    wordText, charSpacing);
-
-            if (LOG.isDebugEnabled()) {
-                LOG.debug("out: " + word);
-            }
-
-            /* then reset state for next word */
-            len = 0;
-            x += width;
-            maxHeight = 0.0F;
-            width = 0.0F;
-
-            return word;
-        }
-
-        public boolean isTooFarAway(final Text text) {
-            if (text.distanceToPreceeding < 0.0f) {
-                return false;
-            }
-
-            if (text.distanceToPreceeding >= text.charSpacing) {
-                if (LOG.isDebugEnabled()) {
-                    LOG.debug(this + ": " + text + " is too far away");
-                }
-                return true;
-            }
-
-            return false;
-        }
-
-        public boolean isDifferentStyle(final Style newStyle) {
-            return !currentStyle.equals(newStyle);
-        }
-
-        @Override
-        public String toString() {
-            final StringBuilder sb = new StringBuilder();
-            sb.append("WordState");
-            sb.append("{len=").append(len);
-            sb.append(", maxHeight=").append(maxHeight);
-            sb.append(", width=").append(width);
-            sb.append(", x=").append(x);
-            sb.append(", y=").append(y);
-            sb.append(", currentStyle=").append(currentStyle);
-            sb.append('}');
-            return sb.toString();
-        }
-    }
+    return ret;
+}
 }

@@ -21,33 +21,30 @@ import org.apache.pdfbox.util.TextPosition;
 import java.util.Arrays;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: May 19, 2010
- * Time: 3:46:09 AM
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: May 19, 2010 Time: 3:46:09 AM To change this
+ * template use File | Settings | File Templates.
  */
 public class StringUtils {
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-    public static String getTextPositionString(final TextPosition position) {
-        StringBuilder sb = new StringBuilder("pos{");
-        sb.append("c=\"").append(position.getCharacter()).append("\"");
-        sb.append(", XDirAdj=").append(position.getXDirAdj());
-        sb.append(", YDirAdj=").append(position.getYDirAdj());
-        sb.append(", endY=").append(position.getYDirAdj() + position.getHeightDir());
-        sb.append(", endX=").append(position.getXDirAdj() + position.getWidthDirAdj());
+public static String getTextPositionString(final TextPosition position) {
+    StringBuilder sb = new StringBuilder("pos{");
+    sb.append("c=\"").append(position.getCharacter()).append("\"");
+    sb.append(", XDirAdj=").append(position.getXDirAdj());
+    sb.append(", YDirAdj=").append(position.getYDirAdj());
+    sb.append(", endY=").append(position.getYDirAdj() + position.getHeightDir());
+    sb.append(", endX=").append(position.getXDirAdj() + position.getWidthDirAdj());
 
-        sb.append(", HeightDir=").append(position.getHeightDir());
-        sb.append(", WidthDirAdj=").append(position.getWidthDirAdj());
+    sb.append(", HeightDir=").append(position.getHeightDir());
+    sb.append(", WidthDirAdj=").append(position.getWidthDirAdj());
 
-        sb.append(", WidthOfSpace=").append(position.getWidthOfSpace());
-        sb.append(", WordSpacing()=").append(position.getWordSpacing());
-        sb.append(", FontSize=").append(position.getFontSize());
-        sb.append(", getIndividualWidths=").append(Arrays.toString(position.getIndividualWidths()));
-        sb.append(", font=").append(position.getFont().getBaseFont());
+    sb.append(", WidthOfSpace=").append(position.getWidthOfSpace());
+    sb.append(", WordSpacing()=").append(position.getWordSpacing());
+    sb.append(", FontSize=").append(position.getFontSize());
+    sb.append(", getIndividualWidths=").append(Arrays.toString(position.getIndividualWidths()));
+    sb.append(", font=").append(position.getFont().getBaseFont());
 
-        sb.append("}");
-        return sb.toString();
-    }
+    sb.append("}");
+    return sb.toString();
+}
 }

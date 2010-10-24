@@ -24,21 +24,18 @@ import org.elacin.pdfextract.tree.ParagraphNode;
 import java.util.ArrayList;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: May 9, 2010
- * Time: 12:31:16 AM
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: May 9, 2010 Time: 12:31:16 AM To change this
+ * template use File | Settings | File Templates.
  */
 public class DocumentNavigator {
 
-    public static ArrayList<LineNode> getLineNodes(DocumentNode doc) {
-        ArrayList<LineNode> ret = new ArrayList<LineNode>();
-        for (PageNode pageNode : doc.getChildren()) {
-            for (ParagraphNode paragraphNode : pageNode.getChildren()) {
-                ret.addAll(paragraphNode.getChildren());
-            }
+public static ArrayList<LineNode> getLineNodes(DocumentNode doc) {
+    ArrayList<LineNode> ret = new ArrayList<LineNode>();
+    for (PageNode pageNode : doc.getChildren()) {
+        for (ParagraphNode paragraphNode : pageNode.getChildren()) {
+            ret.addAll(paragraphNode.getChildren());
         }
-        return ret;
     }
+    return ret;
+}
 }

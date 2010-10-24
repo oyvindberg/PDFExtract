@@ -24,21 +24,24 @@ import java.io.IOException;
 import java.net.URL;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: May 9, 2010 Time: 12:19:56 AM To change this template use File |
- * Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: May 9, 2010 Time: 12:19:56 AM To change this
+ * template use File | Settings | File Templates.
  */
 public class PDFDocumentLoader {
 
-    public static DocumentNode readPDF(String filename, final String outFile, final int endPage) throws IOException {
-        final URL url = PDFDocumentLoader.class.getClassLoader().getResource(filename);
-        PDDocument document = PDDocument.load(url);
-        PDFTextStripper stripper = new PDFTextStripper(document, -1, endPage);
-        stripper.readText();
+public static DocumentNode readPDF(String filename,
+                                   final String outFile,
+                                   final int endPage) throws IOException
+{
+    final URL url = PDFDocumentLoader.class.getClassLoader().getResource(filename);
+    PDDocument document = PDDocument.load(url);
+    PDFTextStripper stripper = new PDFTextStripper(document, -1, endPage);
+    stripper.readText();
 
-        final DocumentNode documentNode = stripper.getDocumentNode();
-        documentNode.printTree(outFile);
-        document.close();
-        return documentNode;
+    final DocumentNode documentNode = stripper.getDocumentNode();
+    documentNode.printTree(outFile);
+    document.close();
+    return documentNode;
 
-    }
+}
 }

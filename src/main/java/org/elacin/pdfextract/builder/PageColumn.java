@@ -14,53 +14,42 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.util;
+package org.elacin.pdfextract.builder;
+
+import org.elacin.pdfextract.util.Rectangle;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: May 19, 2010
- * Time: 9:56:04 PM
- * <p/>
- * A mutable point
+ * Created by IntelliJ IDEA. User: elacin Date: Aug 25, 2010 Time: 10:16:25 PM To change this
+ * template use File | Settings | File Templates.
  */
-public class IntPoint {
+public class PageColumn {
 // ------------------------------ FIELDS ------------------------------
 
-    int x, y;
+private final Rectangle pos;
+private final int numLinesStart;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-    public IntPoint(final int x, final int y) {
-        setPosition(x, y);
-    }
+public PageColumn(final Rectangle pos, final int numLinesStart) {
+    this.pos = pos;
+    this.numLinesStart = numLinesStart;
+}
 
 // ------------------------ CANONICAL METHODS ------------------------
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("Point");
-        sb.append(", x=").append(x);
-        sb.append(", y=").append(y);
-        sb.append('}');
-        return sb.toString();
-    }
+@Override
+public String toString() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("PageColumn");
+    sb.append("{numLinesStart=").append(numLinesStart);
+    sb.append(", pos=").append(pos);
+    sb.append('}');
+    return sb.toString();
+}
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-// -------------------------- PUBLIC METHODS --------------------------
-
-    public final void setPosition(int x, int y) {
-        this.x = x;
-        this.y = y;
-    }
+public Rectangle getPos() {
+    return pos;
+}
 }

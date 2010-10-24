@@ -21,6 +21,7 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.TextPosition;
+import org.elacin.pdfextract.util.Rectangle;
 
 /**
  * This represents a string and a position on the screen of those characters.
@@ -29,13 +30,44 @@ import org.apache.pdfbox.util.TextPosition;
  * @version $Revision: 1.12 $
  */
 public class ETextPosition extends TextPosition {
-    // --------------------------- CONSTRUCTORS ---------------------------
+// ------------------------------ FIELDS ------------------------------
 
-    public ETextPosition() {
-    }
+private float distanceToPreceeding;
+private final Rectangle pos;
 
-    public ETextPosition(final PDPage page, final Matrix textPositionSt, final Matrix textPositionEnd, final float maxFontH, final float[] individualWidths, final float spaceWidth, final String string, final PDFont currentFont, final float fontSizeValue, final int fontSizeInPt, final float ws) {
-        super(page, textPositionSt, textPositionEnd, maxFontH, individualWidths, spaceWidth, string, currentFont,
-                fontSizeValue, fontSizeInPt, ws);
-    }
+// --------------------------- CONSTRUCTORS ---------------------------
+
+public ETextPosition(final PDPage page,
+                     final Matrix textPositionSt,
+                     final Matrix textPositionEnd,
+                     final float maxFontH,
+                     final float[] individualWidths,
+                     final float spaceWidth,
+                     final String string,
+                     final PDFont currentFont,
+                     final float fontSizeValue,
+                     final int fontSizeInPt,
+                     final float ws)
+{
+    super(page, textPositionSt, textPositionEnd, maxFontH, individualWidths, spaceWidth, string,
+          currentFont, fontSizeValue, fontSizeInPt, ws);
+    //        if (string.length() > 1){
+    //            System.out.println("string = " + string);
+    //        }
+    pos = new Rectangle(getXDirAdj(), getYDirAdj(), getWidthDirAdj(), getHeightDir());
+}
+
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+public float getDistanceToPreceeding() {
+    return distanceToPreceeding;
+}
+
+public void setDistanceToPreceeding(final float distanceToPreceeding) {
+    this.distanceToPreceeding = distanceToPreceeding;
+}
+
+public Rectangle getPos() {
+    return pos;
+}
 }

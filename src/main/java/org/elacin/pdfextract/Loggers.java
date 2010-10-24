@@ -20,34 +20,36 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Apr 19, 2010 Time: 2:50:18 AM To change this template use File |
- * Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Apr 19, 2010 Time: 2:50:18 AM To change this
+ * template use File | Settings | File Templates.
  */
 public class Loggers {
-    private static Logger createTreeLogger = Logger.getLogger("org.elacin.pdfextract.createTree");
-    private static final Logger pdfExtractLogger = Logger.getLogger("org.elacin.pdfextract");
-    private static final Logger pdfboxLog = Logger.getLogger("org.apache.pdfbox");
-    private static final Logger wordBuilderLog = Logger.getLogger("org.elacin.pdfextract.wordBuilder");
+// ------------------------------ FIELDS ------------------------------
 
-    static {
-        PropertyConfigurator.configure(Loggers.class.getClassLoader().getResource("log4j.xml"));
-    }
+private static final Logger createTreeLogger = Logger.getLogger("org.elacin.pdfextract.createTree");
+private static final Logger pdfExtractLogger = Logger.getLogger("org.elacin.pdfextract");
+private static final Logger pdfboxLog = Logger.getLogger("org.apache.pdfbox");
+private static final Logger wordBuilderLog = Logger.getLogger("org.elacin.pdfextract.wordBuilder");
 
-    // -------------------------- PUBLIC STATIC METHODS --------------------------
+static {
+    PropertyConfigurator.configure(Loggers.class.getClassLoader().getResource("log4j.xml"));
+}
 
-    public static Logger getCreateTreeLog() {
-        return createTreeLogger;
-    }
+// -------------------------- PUBLIC STATIC METHODS --------------------------
 
-    public static Logger getPdfExtractorLog() {
-        return pdfExtractLogger;
-    }
+public static Logger getCreateTreeLog() {
+    return createTreeLogger;
+}
 
-    public static Logger getPdfboxLog() {
-        return pdfboxLog;
-    }
+public static Logger getPdfExtractorLog() {
+    return pdfExtractLogger;
+}
 
-    public static Logger getWordBuilderLog() {
-        return wordBuilderLog;
-    }
+public static Logger getPdfboxLog() {
+    return pdfboxLog;
+}
+
+public static Logger getWordBuilderLog() {
+    return wordBuilderLog;
+}
 }

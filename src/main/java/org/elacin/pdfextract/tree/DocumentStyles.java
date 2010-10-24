@@ -19,6 +19,7 @@ package org.elacin.pdfextract.tree;
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.text.Style;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,54 +28,54 @@ import java.util.Map;
  * Created by IntelliJ IDEA. User: elacin Date: Mar 18, 2010 Time: 2:32:39 PM
  * <p/>
  * <p/>
- * This class is meant to belong to a document, so that all the styles used in a document will be available here. There
- * is some optimization to avoid excessive object creation.
+ * This class is meant to belong to a document, so that all the styles used in a document will be
+ * available here. There is some optimization to avoid excessive object creation.
  */
-public class DocumentStyles {
-    // ------------------------------ FIELDS ------------------------------
+public class DocumentStyles implements Serializable {
+// ------------------------------ FIELDS ------------------------------
 
-    final Map<Float, Style> styles = new HashMap<Float, Style>();
+final Map<Float, Style> styles = new HashMap<Float, Style>();
 
-    final Collection<Style> stylesCollection = styles.values();
+final Collection<Style> stylesCollection = styles.values();
 
-    // --------------------- GETTER / SETTER METHODS ---------------------
+// -------------------------- STATIC METHODS --------------------------
 
-    public Map<Float, Style> getStyles() {
-        return styles;
+private static Style getStyle(float xSize, float ySize, final float widthOfSpace, String font) {
+    return new Style(font, xSize, ySize, widthOfSpace);
+}
+
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+public Map<Float, Style> getStyles() {
+    return styles;
+}
+
+// -------------------------- PUBLIC METHODS --------------------------
+
+public Style getStyleForTextPosition(TextPosition position) {
+    float result = position.getFontSize();
+    result = 31.0F * result + position.getXScale();
+    result = 31.0F * result + position.getYScale();
+    result = 31.0F * result + (float) position.getFont().hashCode();
+    result = 31.0F * result + position.getWidthOfSpace();
+    result = 31.0F * result + position.getWordSpacing();
+
+    Style existing = styles.get(result);
+    if (existing == null) {
+        float realFontSizeX = position.getFontSize() * position.getXScale();
+        float realFontSizeY = position.getFontSize() * position.getYScale();
+
+        /* build a string with fontname / type */
+        final String baseFontName = position.getFont().getBaseFont() == null ? "null" :
+                position.getFont().getBaseFont();
+
+        final String fontname = baseFontName + " (" + position.getFont().getSubType() + ")";
+
+        existing = getStyle(realFontSizeX, realFontSizeY, position.getWidthOfSpace(), fontname);
+        styles.put(result, existing);
     }
 
-    // -------------------------- PUBLIC METHODS --------------------------
 
-    public Style getStyleForTextPosition(TextPosition position) {
-        float result = position.getFontSize();
-        result = 31 * result + position.getXScale();
-        result = 31 * result + position.getYScale();
-        result = 31 * result + position.getFont().hashCode();
-        result = 31 * result + position.getWidthOfSpace();
-        result = 31 * result + position.getWordSpacing();
-
-        Style existing = styles.get(result);
-        if (existing == null) {
-            float realFontSizeX = position.getFontSize() * position.getXScale();
-            float realFontSizeY = position.getFontSize() * position.getYScale();
-
-            /* build a string with fontname / type */
-            final String baseFontName = position.getFont().getBaseFont() == null ?
-                    "null" :
-                    position.getFont().getBaseFont();
-            final String fontname = baseFontName + " (" + position.getFont().getSubType() + ")";
-
-            existing = getStyle(realFontSizeX, realFontSizeY, position.getWidthOfSpace(), fontname);
-            styles.put(result, existing);
-        }
-
-
-        return existing;
-    }
-
-    // -------------------------- OTHER METHODS --------------------------
-
-    private Style getStyle(float xSize, float ySize, final float widthOfSpace, String font) {
-        return new Style(font, xSize, ySize, widthOfSpace);
-    }
+    return existing;
+}
 }

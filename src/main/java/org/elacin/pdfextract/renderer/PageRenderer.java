@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.elacin.pdfextract.Loggers;
+import org.elacin.pdfextract.TextWithPosition;
 import org.elacin.pdfextract.tree.*;
 import org.elacin.pdfextract.util.Rectangle;
 
@@ -30,114 +31,128 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Jun 17, 2010 Time: 5:02:09 AM To change this template use File |
- * Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Jun 17, 2010 Time: 5:02:09 AM To change this
+ * template use File | Settings | File Templates.
  */
 public class PageRenderer {
-    // ------------------------------ FIELDS ------------------------------
+// ------------------------------ FIELDS ------------------------------
 
-    private static final Logger LOG = Loggers.getPdfExtractorLog();
+private static final Logger LOG = Loggers.getPdfExtractorLog();
 
-    private final int resolution;
-    private final PDDocument document;
-    private final DocumentNode documentNode;
-    private final Map<Integer, BufferedImage> pagesCache = new HashMap<Integer, BufferedImage>();
+private final int resolution;
+private final PDDocument document;
+private final DocumentNode documentNode;
+private final Map<Integer, BufferedImage> pagesCache = new HashMap<Integer, BufferedImage>();
 
-    // --------------------------- CONSTRUCTORS ---------------------------
+// --------------------------- CONSTRUCTORS ---------------------------
 
-    public PageRenderer(final PDDocument document, final DocumentNode documentNode, final int resolution) {
-        this.document = document;
-        this.documentNode = documentNode;
-        this.resolution = resolution;
+public PageRenderer(final PDDocument document,
+                    final DocumentNode documentNode,
+                    final int resolution)
+{
+    this.document = document;
+    this.documentNode = documentNode;
+    this.resolution = resolution;
+}
+
+public PageRenderer(final PDDocument document, final DocumentNode documentNode) {
+    this(document, documentNode, 200);
+}
+
+// -------------------------- PUBLIC STATIC METHODS --------------------------
+
+public static void drawNode(final TextWithPosition node,
+                            final Graphics2D graphics,
+                            final float xScale,
+                            final float yScale)
+{
+    Color color;
+
+    if (node instanceof WordNode) {
+        color = Color.BLUE;
+    } else if (node instanceof LineNode) {
+        color = Color.RED;
+    } else if (node instanceof ParagraphNode) {
+        color = Color.GREEN;
+    } else {
+        color = Color.BLACK;
     }
 
-    public PageRenderer(final PDDocument document, final DocumentNode documentNode) {
-        this(document, documentNode, 200);
+    final Rectangle pos = node.getPosition();
+
+    drawRectangleInColor(graphics, xScale, yScale, color, pos);
+}
+
+// -------------------------- STATIC METHODS --------------------------
+
+@SuppressWarnings({"NumericCastThatLosesPrecision"})
+private static void drawRectangleInColor(final Graphics2D graphics,
+                                         final float xScale,
+                                         final float yScale,
+                                         final Color color,
+                                         final Rectangle pos)
+{
+    graphics.setColor(color);
+    final int x = (int) ((float) pos.getX() * xScale);
+    final int width = (int) ((float) pos.getWidth() * xScale);
+    int y = (int) ((float) pos.getY() * yScale);
+    final int height = (int) ((float) pos.getHeight() * yScale);
+
+    graphics.drawRect(x, y, width, height);
+
+    graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 60));
+    graphics.fillRect(x, y, width, height);
+    graphics.fillRect(x, y, width, height);
+}
+
+// -------------------------- PUBLIC METHODS --------------------------
+
+public BufferedImage renderPage(final int pageNum) throws IOException {
+    final PageNode pageNode = documentNode.getPageNumber(pageNum + 1);
+
+    if (pageNode == null) {
+        throw new RuntimeException(
+                "Could not render page " + pageNum + ". No contents found for page");
     }
 
-    // -------------------------- PUBLIC STATIC METHODS --------------------------
+    /* first have PDFBox draw the pdf to a BufferedImage */
+    long t1 = System.currentTimeMillis();
+    PDPage page = (PDPage) document.getDocumentCatalog().getAllPages().get(pageNum);
+    BufferedImage image = getPDFBoxRenderingForPage(pageNum);
 
-    public static void drawNode(final AbstractNode node, final Graphics2D graphics, final float xScale, final float yScale) {
-        Color color;
+    /* then draw our information on top */
+    final Graphics2D graphics = image.createGraphics();
+    graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        if (node instanceof WordNode) {
-            color = Color.BLUE;
-        } else if (node instanceof LineNode) {
-            color = Color.RED;
-        } else if (node instanceof ParagraphNode) {
-            color = Color.GREEN;
-        } else {
-            color = Color.BLACK;
-        }
+    final float xScale = (float) image.getWidth() / page.getArtBox().getWidth();
+    final float yScale = (float) image.getHeight() / page.getArtBox().getHeight();
 
-        final Rectangle pos = node.getPosition();
-
-        drawRectangleInColor(graphics, xScale, yScale, color, pos);
-    }
-
-    // -------------------------- STATIC METHODS --------------------------
-
-    private static void drawRectangleInColor(final Graphics2D graphics, final float xScale, final float yScale, final Color color, final Rectangle pos) {
-        graphics.setColor(color);
-        final int x = (int) ((float) pos.getX() * xScale);
-        final int width = (int) ((float) pos.getWidth() * xScale);
-        int y = (int) ((float) pos.getY() * yScale);
-        final int height = (int) ((float) pos.getHeight() * yScale);
-
-        graphics.drawRect(x, y, width, height);
-
-        graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 60));
-        graphics.fillRect(x, y, width, height);
-        graphics.fillRect(x, y, width, height);
-    }
-
-    // -------------------------- PUBLIC METHODS --------------------------
-
-    public BufferedImage renderPage(final int pageNum) throws IOException {
-        final PageNode pageNode = documentNode.getPageNumber(pageNum + 1);
-
-        if (pageNode == null) {
-            throw new RuntimeException("Could not render page " + pageNum + ". No contents found for page");
-        }
-
-        /* first have PDFBox draw the pdf to a BufferedImage */
-        long t1 = System.currentTimeMillis();
-        PDPage page = (PDPage) document.getDocumentCatalog().getAllPages().get(pageNum);
-        BufferedImage image = getPDFBoxRenderingForPage(pageNum);
-
-        /* then draw our information on top */
-        final Graphics2D graphics = image.createGraphics();
-        graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-        final float xScale = (float) image.getWidth() / page.getArtBox().getWidth();
-        final float yScale = (float) image.getHeight() / page.getArtBox().getHeight();
-
-        for (ParagraphNode paragraphNode : pageNode.getChildren()) {
-            for (LineNode lineNode : paragraphNode.getChildren()) {
-                for (WordNode wordNode : lineNode.getChildren()) {
-                    drawNode(wordNode, graphics, xScale, yScale);
-                }
-                drawNode(lineNode, graphics, xScale, yScale);
+    for (ParagraphNode paragraphNode : pageNode.getChildren()) {
+        for (LineNode lineNode : paragraphNode.getChildren()) {
+            for (WordNode wordNode : lineNode.getChildren()) {
+                drawNode(wordNode, graphics, xScale, yScale);
             }
-            drawNode(paragraphNode, graphics, xScale, yScale);
+            drawNode(lineNode, graphics, xScale, yScale);
         }
-
-        for (Rectangle whitespace : pageNode.getWhitespaces()) {
-            drawRectangleInColor(graphics, xScale, yScale, Color.PINK, whitespace);
-        }
-        LOG.warn("Rendered page " + pageNum + " in " + (System.currentTimeMillis() - t1) + " ms");
-        return image;
+        drawNode(paragraphNode, graphics, xScale, yScale);
     }
 
-    // -------------------------- OTHER METHODS --------------------------
-
-    private BufferedImage getPDFBoxRenderingForPage(final int pageNum) throws IOException {
-        BufferedImage image = null;
-        if (!pagesCache.containsKey(pageNum)) {
-            PDPage page = (PDPage) document.getDocumentCatalog().getAllPages().get(pageNum);
-            image = page.convertToImage(BufferedImage.TYPE_INT_ARGB, resolution);
-            pagesCache.put(pageNum, image);
-        }
-        return image;
+    for (Rectangle whitespace : pageNode.getWhitespaces()) {
+        drawRectangleInColor(graphics, xScale, yScale, Color.PINK, whitespace);
     }
+    LOG.warn("Rendered page " + pageNum + " in " + (System.currentTimeMillis() - t1) + " ms");
+    return image;
+}
+
+// -------------------------- OTHER METHODS --------------------------
+
+private BufferedImage getPDFBoxRenderingForPage(final int pageNum) throws IOException {
+    BufferedImage image = null;
+    if (!pagesCache.containsKey(pageNum)) {
+        PDPage page = (PDPage) document.getDocumentCatalog().getAllPages().get(pageNum);
+        image = page.convertToImage(BufferedImage.TYPE_INT_ARGB, resolution);
+        pagesCache.put(pageNum, image);
+    }
+    return image;
+}
 }

@@ -22,50 +22,55 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Sep 9, 2010 Time: 4:33:59 AM To change this template use File | Settings
- * | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Sep 9, 2010 Time: 4:33:59 AM To change this template
+ * use File | Settings | File Templates.
  */
 class HorizontalWhitespaceFinder extends AbstractWhitespaceFinder {
-    // ------------------------------ FIELDS ------------------------------
+// ------------------------------ FIELDS ------------------------------
 
-    private static final float WHITESPACE_MIN_HEIGHT = 7.0f;
+private static final float WHITESPACE_MIN_HEIGHT = 7.0f;
 
-    // --------------------------- CONSTRUCTORS ---------------------------
+// --------------------------- CONSTRUCTORS ---------------------------
 
-    HorizontalWhitespaceFinder(final List<Rectangle> texts, final int numWhitespacesToBeFound, final float width, final float height) {
-        super(texts, numWhitespacesToBeFound, width, height);
-    }
+HorizontalWhitespaceFinder(final List<Rectangle> texts,
+                           final int numWhitespacesToBeFound,
+                           final float width,
+                           final float height)
+{
+    super(texts, numWhitespacesToBeFound, width, height);
+}
 
-    // -------------------------- OTHER METHODS --------------------------
+// -------------------------- OTHER METHODS --------------------------
 
-    /**
-     * This is the quality function by which we sort rectangles to choose the 'best' one first.
-     * <p/>
-     * The current function bases itself on the area of the rectangle, and then heavily prefers high and narrow ones
-     *
-     * @param r
-     * @return
-     */
-    @Override
-    protected float rectangleQuality(final Rectangle r) {
-        //        return r.area() * (float) (r.getWidth() / Math.max(1, r.getHeight()));
+/**
+ * This is the quality function by which we sort rectangles to choose the 'best' one first.
+ * <p/>
+ * The current function bases itself on the area of the rectangle, and then heavily prefers high and
+ * narrow ones
+ *
+ * @param r
+ * @return
+ */
+@Override
+protected float rectangleQuality(final Rectangle r) {
+    //        return r.area() * (float) (r.getWidth() / Math.max(1, r.getHeight()));
 
-        return 25 * r.getWidth() * (r.getHeight());
-        //        return r.area() * 0.3f* (float) r.getWidth() / (float) Math.max(1, r.getHeight());
+    return 25 * r.getWidth() * (r.getHeight());
+    //        return r.area() * 0.3f* (float) r.getWidth() / (float) Math.max(1, r.getHeight());
 
 
-        //        return (float) (r.area() * (1.0 + 3.0*Math.log(r.getHeight())));
-    }
+    //        return (float) (r.area() * (1.0 + 3.0*Math.log(r.getHeight())));
+}
 
-    @Override
-    protected List<Rectangle> selectUsefulWhitespace() {
-        List<Rectangle> ret = new ArrayList<Rectangle>();
-        for (Rectangle whitespace : foundWhitespace) {
-            if (whitespace.getHeight() > WHITESPACE_MIN_HEIGHT) {
-                ret.add(whitespace);
-            }
+@Override
+protected List<Rectangle> selectUsefulWhitespace() {
+    List<Rectangle> ret = new ArrayList<Rectangle>();
+    for (Rectangle whitespace : foundWhitespace) {
+        if (whitespace.getHeight() > WHITESPACE_MIN_HEIGHT) {
+            ret.add(whitespace);
         }
-
-        return ret;
     }
+
+    return ret;
+}
 }

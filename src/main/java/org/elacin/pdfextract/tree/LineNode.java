@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.Loggers;
+import org.elacin.pdfextract.TextWithPosition;
 import org.elacin.pdfextract.text.Style;
 
 import java.io.IOException;
@@ -25,149 +26,157 @@ import java.util.Comparator;
 import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Apr 8, 2010 Time: 8:29:43 AM To change this template use File | Settings
- * | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Apr 8, 2010 Time: 8:29:43 AM To change this template
+ * use File | Settings | File Templates.
  */
 public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
-    // --------------------------- CONSTRUCTORS ---------------------------
+// ------------------------------ FIELDS ------------------------------
 
-    public LineNode(final WordNode child) {
-        super(child);
-    }
+private final boolean SHOW_DETAILS = true;
 
-    // ------------------------ OVERRIDING METHODS ------------------------
+// --------------------------- CONSTRUCTORS ---------------------------
 
-    @Override
-    protected void appendLocalInfo(final Appendable out, final int indent) throws IOException {
+public LineNode(final WordNode child) {
+    super(child);
+}
+
+// ------------------------ OVERRIDING METHODS ------------------------
+
+@Override
+protected void appendLocalInfo(final Appendable out, final int indent) throws IOException {
+    if (SHOW_DETAILS) {
         super.appendLocalInfo(out, indent);
-
-        //        for (int i = 0; i < indent; i++) {
-        //            out.append(" ");
-        //        }
-        //        out.append(getClass().getSimpleName());
-        //        out.append(": \"");
-        //        writeTextTo(out);
-        //        out.append("\"");
-        //
-        //        //        out.append("{").append(getPosition().toString());
-        //
-        //        out.append("\n");
-    }
-
-    @Override
-    public String getText() {
-        StringBuilder sb = new StringBuilder();
-        writeTextTo(sb);
-
-        return sb.toString();
-    }
-
-    // -------------------------- PUBLIC METHODS --------------------------
-
-    /**
-     * Decides whether or not node node belongs to this line
-     *
-     * @param node
-     * @return
-     */
-    public boolean accepts(final WordNode node) {
-        /* assure the node is located vertically on the current line */
-        if (!isOnSameLine(node)) {
-            if (Loggers.getCreateTreeLog().isTraceEnabled()) {
-                Loggers.getCreateTreeLog()
-                        .trace(toString() + ": accepts() " + node + "false: was not considered to be on same line");
-            }
-            return false;
+    } else {
+        for (int i = 0; i < indent; i++) {
+            out.append(" ");
         }
+        out.append(getClass().getSimpleName());
+        out.append(": \"");
+        writeTextTo(out);
+        out.append("\"");
+        out.append("\n");
+    }
+}
 
+@Override
+public String getText() {
+    StringBuilder sb = new StringBuilder();
+    writeTextTo(sb);
 
-        if (getPosition().intersectsWith(node.getPosition())) {
-            return true;
-        }
+    return sb.toString();
+}
 
-        final boolean ret = isWithinVariance(getPosition().getX() + getPosition().getWidth(), node.getPosition().getX(),
-                (int) (node.getStyle().xSize * 1.01));
+// -------------------------- PUBLIC METHODS --------------------------
 
+/**
+ * Decides whether or not node node belongs to this line
+ *
+ * @param node
+ * @return
+ */
+public boolean accepts(final WordNode node) {
+    /* assure the node is located vertically on the current line */
+    if (!isOnSameLine(node)) {
         if (Loggers.getCreateTreeLog().isTraceEnabled()) {
-            Loggers.getCreateTreeLog().trace(toString() + ": accepts() " + node + ret + ": after isWithinVariance");
+            Loggers.getCreateTreeLog().trace(toString()
+                    + ": accepts() "
+                    + node
+                    + "false: was not considered to be on same line");
         }
-        return ret;
+        return false;
     }
 
-    @Override
-    public boolean addWord(final WordNode node) {
-        /* check that node belongs to this line, return if it doesn't */
-        if (!accepts(node)) {
-            return false;
-        }
-        addChild(node);
+
+    if (getPosition().intersectsWith(node.getPosition())) {
         return true;
     }
 
-    @Override
-    public void combineChildren() {
-        //do nothing for now:
+    final boolean ret = isWithinVariance(getPosition().getX() + getPosition().getWidth(),
+                                         node.getPosition().getX(),
+                                         (node.getStyle().xSize * 1.01f));
+
+    if (Loggers.getCreateTreeLog().isTraceEnabled()) {
+        Loggers.getCreateTreeLog().trace(
+                toString() + ": accepts() " + node + ret + ": after isWithinVariance");
     }
+    return ret;
+}
 
-    /**
-     * adds all the text from otherLine to this line. no checking!
-     *
-     * @param otherLine
-     */
-    public void combineWith(final LineNode otherLine) {
-        for (WordNode word : otherLine.getChildren()) {
-            addChild(word);
-        }
+@Override
+public boolean addWord(final WordNode node) {
+    /* check that node belongs to this line, return if it doesn't */
+    if (!accepts(node)) {
+        return false;
     }
+    addChild(node);
+    return true;
+}
 
-    /**
-     * Returns a Comparator which compares only X coordinates
-     *
-     * @return
-     */
-    @Override
-    public Comparator<WordNode> getChildComparator() {
-        return new Comparator<WordNode>() {
-            public int compare(final WordNode o1, final WordNode o2) {
-                if (o1.getPosition().getX() < o2.getPosition().getX()) {
-                    return -1;
-                } else if (o1.getPosition().getX() > o2.getPosition().getX()) {
-                    return 1;
-                }
+@Override
+public void combineChildren() {
+    //do nothing for now:
+}
 
-                return 0;
+/**
+ * adds all the text from otherLine to this line. no checking!
+ *
+ * @param otherLine
+ */
+public void combineWith(final LineNode otherLine) {
+    for (WordNode word : otherLine.getChildren()) {
+        addChild(word);
+    }
+}
+
+/**
+ * Returns a Comparator which compares only X coordinates
+ *
+ * @return
+ */
+@Override
+public Comparator<WordNode> getChildComparator() {
+    return new Comparator<WordNode>() {
+        public int compare(final WordNode o1, final WordNode o2) {
+            if (o1.getPosition().getX() < o2.getPosition().getX()) {
+                return -1;
+            } else if (o1.getPosition().getX() > o2.getPosition().getX()) {
+                return 1;
             }
-        };
-    }
 
-    public Style getCurrentStyle() {
-        return getChildren().get(getChildren().size() - 1).getStyle();
-    }
-
-    /**
-     * checks if the the average height of node falls within current line
-     *
-     * @param node
-     * @return
-     */
-    public boolean isOnSameLine(final AbstractNode node) {
-        float otherMiddleY = node.getPosition().getY() + (node.getPosition().getHeight() / 2);
-        return getPosition().getY() <= otherMiddleY && getPosition().getEndY() >= otherMiddleY;
-    }
-
-    // -------------------------- OTHER METHODS --------------------------
-
-    private void writeTextTo(final Appendable sb) {
-        try {
-            for (int i = 0; i < getChildren().size(); i++) {
-                final WordNode word = getChildren().get(i);
-                sb.append(word.getText());
-                if (i != getChildren().size() - 1 && !word.isPartOfSameWordAs(getChildren().get(i + 1))) {
-                    sb.append(" ");
-                }
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("something went wrong while writing text", e);
+            return 0;
         }
+    };
+}
+
+public Style getCurrentStyle() {
+    return getChildren().get(getChildren().size() - 1).getStyle();
+}
+
+/**
+ * checks if the the average height of node falls within current line
+ *
+ * @param node
+ * @return
+ */
+public boolean isOnSameLine(final TextWithPosition node) {
+    float otherMiddleY = node.getPosition().getY() + (node.getPosition().getHeight() * 0.5f);
+    return getPosition().getY() <= otherMiddleY && getPosition().getEndY() >= otherMiddleY;
+}
+
+// -------------------------- OTHER METHODS --------------------------
+
+private void writeTextTo(final Appendable sb) {
+    try {
+        for (int i = 0; i < getChildren().size(); i++) {
+            final WordNode word = getChildren().get(i);
+            sb.append(word.getText());
+            if (i != getChildren().size() - 1 && !word.isPartOfSameWordAs(getChildren().get(
+                    i + 1))) {
+                sb.append(" ");
+            }
+        }
+    } catch (IOException e) {
+        throw new RuntimeException("something went wrong while writing text", e);
     }
+}
 }

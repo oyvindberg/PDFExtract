@@ -24,40 +24,37 @@ import java.io.IOException;
 import java.io.PrintStream;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: May 9, 2010
- * Time: 7:25:21 PM
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: May 9, 2010 Time: 7:25:21 PM To change this template
+ * use File | Settings | File Templates.
  */
 public abstract class TestLatexComparison {
-    protected final String TESTNAME;
-    protected final String PDFFILENAME;
-    protected final String LATEXFILENAME;
-    protected final String XMLFILENAME;
-    protected final String ELCXMLFILENAME;
+protected final String TESTNAME;
+protected final String PDFFILENAME;
+protected final String LATEXFILENAME;
+protected final String XMLFILENAME;
+protected final String ELCXMLFILENAME;
 
-    protected DocumentNode pdfDOM;
-    protected String latexDOMString;
+protected DocumentNode pdfDOM;
+protected String latexDOMString;
 
-    public TestLatexComparison(String inputname) {
-        TESTNAME = inputname;
-        PDFFILENAME = TESTNAME + ".pdf";
-        XMLFILENAME = TESTNAME + ".xml";
-        ELCXMLFILENAME = TESTNAME + ".elc.xml";
-        LATEXFILENAME = TESTNAME + ".tex";
-    }
+public TestLatexComparison(String inputname) {
+    TESTNAME = inputname;
+    PDFFILENAME = TESTNAME + ".pdf";
+    XMLFILENAME = TESTNAME + ".xml";
+    ELCXMLFILENAME = TESTNAME + ".elc.xml";
+    LATEXFILENAME = TESTNAME + ".tex";
+}
 
-    protected void readFiles() throws IOException {
-        pdfDOM = PDFDocumentLoader.readPDF(PDFFILENAME, ELCXMLFILENAME, 4);
-        latexDOMString = LatexDocumentLoader.readLatex(LATEXFILENAME);
-        printLatexDOMToFile();
-    }
+protected void readFiles() throws IOException {
+    pdfDOM = PDFDocumentLoader.readPDF(PDFFILENAME, ELCXMLFILENAME, 4);
+    latexDOMString = LatexDocumentLoader.readLatex(LATEXFILENAME);
+    printLatexDOMToFile();
+}
 
 
-    protected void printLatexDOMToFile() throws FileNotFoundException {
-        PrintStream out = new PrintStream(new File(XMLFILENAME));
-        out.print(latexDOMString);
-        out.close();
-    }
+protected void printLatexDOMToFile() throws FileNotFoundException {
+    PrintStream out = new PrintStream(new File(XMLFILENAME));
+    out.print(latexDOMString);
+    out.close();
+}
 }

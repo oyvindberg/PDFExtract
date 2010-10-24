@@ -24,266 +24,281 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Sep 23, 2010 Time: 3:05:06 PM To change this template use File |
- * Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Sep 23, 2010 Time: 3:05:06 PM To change this
+ * template use File | Settings | File Templates.
  */
 abstract class AbstractWhitespaceFinder {
-    // ------------------------------ FIELDS ------------------------------
+// ------------------------------ FIELDS ------------------------------
 
-    /* this holds all the whitespace rectangles we have found */
-    protected final List<Rectangle> foundWhitespace;
+/* this holds all the whitespace rectangles we have found */
+protected final List<Rectangle> foundWhitespace;
 
-    /* this holds all the content on the page. this is unchanged */
-    protected final List<Rectangle> originalObstacles;
+/* this holds all the content on the page. this is unchanged */
+protected final List<Rectangle> originalObstacles;
 
-    /* the number of whitespace we want to find */
-    protected final int wantedWhitespaces;
+/* the number of whitespace we want to find */
+protected final int wantedWhitespaces;
 
-    /* width and height of the page */
-    protected final Rectangle pageBounds;
-    private final PriorityQueue<QueueEntry> queue;
+/* width and height of the page */
+protected final Rectangle pageBounds;
 
-    // --------------------------- CONSTRUCTORS ---------------------------
+private final PriorityQueue<QueueEntry> queue;
 
-    public AbstractWhitespaceFinder(final List<Rectangle> texts, final int numWantedWhitespaces, final float width, final float height) {
-        wantedWhitespaces = numWantedWhitespaces;
+// --------------------------- CONSTRUCTORS ---------------------------
 
-        originalObstacles = texts;
+public AbstractWhitespaceFinder(final List<Rectangle> texts,
+                                final int numWantedWhitespaces,
+                                final float width,
+                                final float height)
+{
+    wantedWhitespaces = numWantedWhitespaces;
 
-        foundWhitespace = new ArrayList<Rectangle>(numWantedWhitespaces);
+    originalObstacles = texts;
 
-        pageBounds = new Rectangle(0.0f, 0.0f, width, height);
-        queue = new PriorityQueue<QueueEntry>(Math.max(10, originalObstacles.size() * 2));
+    foundWhitespace = new ArrayList<Rectangle>(numWantedWhitespaces);
+
+    pageBounds = new Rectangle(0.0f, 0.0f, width, height);
+    queue = new PriorityQueue<QueueEntry>(Math.max(10, originalObstacles.size() * 2));
+}
+
+// -------------------------- STATIC METHODS --------------------------
+
+/**
+ * Finds the obstacle which is closest to the centre of the rectangle bound
+ *
+ * @param bound
+ * @param obstacles
+ * @return
+ */
+private static Rectangle choosePivot(final Rectangle bound, final List<Rectangle> obstacles) {
+    if (obstacles.size() == 1) {
+        return obstacles.get(0);
     }
+    final FloatPoint centrePoint = bound.centre();
+    float minDistance = Float.MAX_VALUE;
+    Rectangle closestToCentre = null;
 
-    // -------------------------- STATIC METHODS --------------------------
-
-    /**
-     * Finds the obstacle which is closest to the centre of the rectangle bound
-     *
-     * @param bound
-     * @param obstacles
-     * @return
-     */
-    private static Rectangle choosePivot(final Rectangle bound, final List<Rectangle> obstacles) {
-        if (obstacles.size() == 1) {
-            return obstacles.get(0);
+    for (Rectangle obstacle : obstacles) {
+        final float distance = obstacle.distance(centrePoint);
+        if (distance < minDistance) {
+            minDistance = distance;
+            closestToCentre = obstacle;
         }
-        final FloatPoint centrePoint = bound.centre();
-        float minDistance = Float.MAX_VALUE;
-        Rectangle closestToCentre = null;
+    }
+    return closestToCentre;
+}
 
-        for (Rectangle obstacle : obstacles) {
+/**
+ * Creates a rectangle based on the coordinates of corners, instead of with the normal constructor
+ * which accepts upper left corner and width/height.
+ *
+ * @param x1 coordinate of any corner of the rectangle
+ * @param y1 (see x1)
+ * @param x2 coordinate of the opposite corner
+ * @param y2 (see x2)
+ */
+private static Rectangle createRectangle(final float x1,
+                                         final float y1,
+                                         final float x2,
+                                         final float y2)
+{
+    float x = Math.min(x1, x2);
+    float y = Math.min(y1, y2);
 
-            final float distance = obstacle.distance(centrePoint);
-            if (distance < minDistance) {
-                minDistance = distance;
-                closestToCentre = obstacle;
-            }
+    float width = Math.max(x1, x2) - x;
+    float height = Math.max(y1, y2) - y;
+
+    return new Rectangle(x, y, width, height);
+}
+
+private static Rectangle[] createSubrectanglesAroundPivot(final Rectangle pos,
+                                                          final Rectangle pivot)
+{
+    Rectangle one = createRectangle(pivot.getX(), pos.getY(), pos.getX(), pos.getEndY());
+    Rectangle two = createRectangle(pos.getX(), pivot.getY(), pos.getEndX(), pos.getY());
+    Rectangle three = createRectangle(pos.getEndX(), pos.getY(), pivot.getEndX(), pos.getEndY());
+    Rectangle four = createRectangle(pos.getX(), pos.getEndY(), pos.getEndX(), pivot.getEndY());
+
+    return new Rectangle[]{one, two, three, four};
+}
+
+private static List<Rectangle> getObstaclesBoundedBy(final Iterable<Rectangle> obstacles,
+                                                     final Rectangle subrectangle,
+                                                     final Rectangle pivot)
+{
+    List<Rectangle> ret = new ArrayList<Rectangle>();
+    for (Rectangle obstacle : obstacles) {
+        if (obstacle != null && subrectangle.intersectsWith(obstacle) && !pivot.equals(obstacle)) {
+            ret.add(obstacle);
         }
-        return closestToCentre;
     }
+    return ret;
+}
 
-    /**
-     * Creates a rectangle based on the coordinates of corners, instead of with the normal constructor which accepts
-     * upper left corner and width/height.
-     *
-     * @param x1 coordinate of any corner of the rectangle
-     * @param y1 (see x1)
-     * @param x2 coordinate of the opposite corner
-     * @param y2 (see x2)
-     */
-    private static Rectangle createRectangle(final float x1, final float y1, final float x2, final float y2) {
-        float x = Math.min(x1, x2);
-        float y = Math.min(y1, y2);
-
-        float width = Math.max(x1, x2) - x;
-        float height = Math.max(y1, y2) - y;
-
-        return new Rectangle(x, y, width, height);
-    }
-
-    private static Rectangle[] createSubrectanglesAroundPivot(final Rectangle pos, final Rectangle pivot) {
-        return new Rectangle[]{createRectangle(pivot.getX(), pos.getY(), pos.getX(), pos.getEndY()),
-                createRectangle(pos.getX(), pivot.getY(), pos.getEndX(), pos.getY()),
-                createRectangle(pos.getEndX(), pos.getY(), pivot.getEndX(), pos.getEndY()),
-                createRectangle(pos.getX(), pos.getEndY(), pos.getEndX(), pivot.getEndY())};
-    }
-
-    private static List<Rectangle> getObstaclesBoundedBy(final Iterable<Rectangle> obstacles, final Rectangle subrectangle, final Rectangle pivot) {
-        List<Rectangle> ret = new ArrayList<Rectangle>();
-        for (Rectangle obstacle : obstacles) {
-            if (obstacle != null && subrectangle.intersectsWith(obstacle) && !pivot.equals(obstacle)) {
-                ret.add(obstacle);
-            }
+private static boolean isNotContainedByAnyObstacle(final Rectangle subrectangle,
+                                                   final Iterable<Rectangle> obstacles)
+{
+    for (Rectangle obstacle : obstacles) {
+        if (obstacle.contains(subrectangle)) {
+            return false;
         }
-        return ret;
     }
+    return true;
+}
 
-    private static boolean isNotContainedByAnyObstacle(final Rectangle subrectangle, final Iterable<Rectangle> obstacles) {
-        for (Rectangle obstacle : obstacles) {
-            if (obstacle.contains(subrectangle)) {
-                return false;
+// -------------------------- PUBLIC METHODS --------------------------
+
+public List<Rectangle> findWhitespace() {
+    if (foundWhitespace.isEmpty()) {
+        /* first add the whole page with all the obstacles to the priority queue */
+        queue.add(new QueueEntry(pageBounds, originalObstacles));
+
+        /* continue looking for whitespace until we have the wanted number or we run out*/
+        while (getNumberOfWhitespacesFound() < wantedWhitespaces) {
+            final Rectangle newRectangle = findNextWhitespace();
+
+            /* if no further rectangles exist, stop looking */
+            if (newRectangle == null) {
+                break;
             }
+
+            foundWhitespace.add(newRectangle);
         }
-        return true;
     }
+    return selectUsefulWhitespace();
+}
 
-    // -------------------------- PUBLIC METHODS --------------------------
+// -------------------------- OTHER METHODS --------------------------
 
-    public List<Rectangle> findWhitespace() {
-        if (foundWhitespace.isEmpty()) {
-            /* first add the whole page with all the obstacles to the priority queue */
-            queue.add(new QueueEntry(pageBounds, originalObstacles));
+@SuppressWarnings({"ObjectAllocationInLoop"})
+private Rectangle findNextWhitespace() {
+    /* this will always choose the rectangle with the highest priority */
+    while (!queue.isEmpty()) {
+        final QueueEntry current = queue.remove();
 
-            /* continue looking for whitespace until we have the wanted number or we run out*/
-            while (getNumberOfWhitespacesFound() < wantedWhitespaces) {
-                final Rectangle newRectangle = findNextWhitespace();
-
-                /* if no further rectangles exist, stop looking */
-                if (newRectangle == null) {
-                    break;
-                }
-
-                foundWhitespace.add(newRectangle);
-            }
-        }
-        return selectUsefulWhitespace();
-    }
-
-    // -------------------------- OTHER METHODS --------------------------
-
-    @SuppressWarnings({"ObjectAllocationInLoop"})
-    private Rectangle findNextWhitespace() {
-        /* this will always choose the rectangle with the highest priority */
-        while (!queue.isEmpty()) {
-            final QueueEntry current = queue.remove();
-
-            /* if we have found and marked whitespace since we added this rectangle we need to recalculate the obstacles it
-                references to make sure it doesnt overlap with the ones we already have */
-            if (current.numberOfWhitespaceFound != getNumberOfWhitespacesFound()) {
-                updateObstacleListForQueueEntry(current);
-            }
-
-            /* if none of the obstacles are contained within outerBound, then we have a whitespace rectangle */
-            if (current.obstacles.isEmpty()) {
-                return current.bound;
-            }
-
-            /* choose an obstacle near the middle of the current rectangle */
-            final Rectangle pivot = choosePivot(current.bound, current.obstacles);
-
-            /**
-             * Create four subrectangles, one on each side of the pivot. 
-             *
-             * Then, for each subrectangle, determine the obstacles located inside it, 
-             *  and add it to the queue (as long as the subrectangle does not escape
-             *  the current bound, and as long as it is not completely contained within
-             *  an obstacle) 
-             */
-            final Rectangle[] subrectangles = createSubrectanglesAroundPivot(current.bound, pivot);
-
-            for (Rectangle subrectangle : subrectangles) {
-                /* check that the subrectangle is contained by the current bound. this will happen
-                    if the pivot we used was itself not contained. This breaks the algorithm if it
-                    happens, as we will have overlapping rectangles */
-                if (!subrectangle.containedBy(current.bound)) {
-                    continue;
-                }
-
-                if (subrectangle.isEmpty()) {
-                    continue;
-                }
-
-                final List<Rectangle> obstaclesForSubrectangle = getObstaclesBoundedBy(current.obstacles, subrectangle,
-                        pivot);
-
-                /**
-                 * It does not make sense to include rectangles which are completely
-                 *  contained within one of the obstacles, so skip those
-                 */
-                if (isNotContainedByAnyObstacle(subrectangle, obstaclesForSubrectangle)) {
-                    queue.add(new QueueEntry(subrectangle, obstaclesForSubrectangle));
-                }
-            }
+        /** If we have found and marked whitespace since we added this rectangle we need to
+         *  recalculate the obstacles it references to make sure it doesnt overlap with the ones
+         * we already have */
+        if (current.numberOfWhitespaceFound != getNumberOfWhitespacesFound()) {
+            updateObstacleListForQueueEntry(current);
         }
 
-        /* if we ran out of rectangles in the queue, return null to signal that. */
-        //noinspection ReturnOfNull
-        return null;
-    }
+        /* if none of the obstacles are contained within outerBound, then we have a whitespace rectangle */
+        if (current.obstacles.isEmpty()) {
+            return current.bound;
+        }
 
-    private int getNumberOfWhitespacesFound() {
-        return foundWhitespace.size();
-    }
+        /* choose an obstacle near the middle of the current rectangle */
+        final Rectangle pivot = choosePivot(current.bound, current.obstacles);
 
-    /**
-     * Checks if some of the newly added whitespace rectangles overlaps with the area of this queue entry, and if so
-     * adds them to its list of obstacles
-     *
-     * @param entry
-     */
-    private void updateObstacleListForQueueEntry(final QueueEntry entry) {
-        int numNewestObstaclesToCheck = getNumberOfWhitespacesFound() - entry.numberOfWhitespaceFound;
+        /** Create four subrectangles, one on each side of the pivot.
+         *
+         * Then, for each subrectangle, determine the obstacles located inside it,
+         *  and add it to the queue (as long as the subrectangle does not escape
+         *  the current bound, and as long as it is not completely contained within
+         *  an obstacle)
+         */
+        final Rectangle[] subrectangles = createSubrectanglesAroundPivot(current.bound, pivot);
 
-        for (int i = 0; i < numNewestObstaclesToCheck; i++) {
-            final Rectangle obstacle = foundWhitespace.get(foundWhitespace.size() - 1 - i);
-            if (entry.bound.intersectsWith(obstacle)) {
-                entry.obstacles.add(obstacle);
+        for (Rectangle subrectangle : subrectangles) {
+            /** check that the subrectangle is contained by the current bound. this will happen
+             * if the pivot we used was itself not contained. This breaks the algorithm if it
+             * happens, as we will have overlapping rectangles */
+            if (!subrectangle.containedBy(current.bound)) {
+                continue;
+            }
+
+            if (subrectangle.isEmpty()) {
+                continue;
+            }
+
+            final List<Rectangle> obstaclesForSubrectangle = getObstaclesBoundedBy(
+                    current.obstacles, subrectangle, pivot);
+
+            /** It does not make sense to include rectangles which are completely
+             *  contained within one of the obstacles, so skip those */
+            if (isNotContainedByAnyObstacle(subrectangle, obstaclesForSubrectangle)) {
+                queue.add(new QueueEntry(subrectangle, obstaclesForSubrectangle));
             }
         }
     }
 
-    protected abstract float rectangleQuality(Rectangle r);
+    /* if we ran out of rectangles in the queue, return null to signal that. */
+    //noinspection ReturnOfNull
+    return null;
+}
 
-    protected abstract List<Rectangle> selectUsefulWhitespace();
+private int getNumberOfWhitespacesFound() {
+    return foundWhitespace.size();
+}
 
-    // -------------------------- INNER CLASSES --------------------------
+/**
+ * Checks if some of the newly added whitespace rectangles overlaps with the area of this queue
+ * entry, and if so adds them to its list of obstacles
+ *
+ * @param entry
+ */
+private void updateObstacleListForQueueEntry(final QueueEntry entry) {
+    int numNewestObstaclesToCheck = getNumberOfWhitespacesFound() - entry.numberOfWhitespaceFound;
 
-    private class QueueEntry implements Comparable<QueueEntry> {
-        final Rectangle bound;
-        final List<Rectangle> obstacles;
-        int numberOfWhitespaceFound;
-
-        private QueueEntry(final Rectangle bound, final List<Rectangle> obstacles) {
-            this.bound = bound;
-            this.obstacles = obstacles;
-            numberOfWhitespaceFound = getNumberOfWhitespacesFound();
-        }
-
-        @Override
-        public int compareTo(final QueueEntry o) {
-            return Float.compare(rectangleQuality(o.bound), rectangleQuality(bound));
-        }
-
-        @Override
-        public String toString() {
-            final StringBuilder sb = new StringBuilder();
-            sb.append("QueueEntry");
-            sb.append("{area=").append(bound.area());
-            sb.append(", bound=").append(bound);
-            sb.append(", obstacles=").append(obstacles.size());
-            sb.append('}');
-            return sb.toString();
-        }
-
-        @Override
-        public boolean equals(final Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            final QueueEntry that = (QueueEntry) o;
-
-            return !(bound != null ? !bound.equals(that.bound) : that.bound != null);
-        }
-
-        @Override
-        public int hashCode() {
-            return bound != null ? bound.hashCode() : 0;
+    for (int i = 0; i < numNewestObstaclesToCheck; i++) {
+        final Rectangle obstacle = foundWhitespace.get(foundWhitespace.size() - 1 - i);
+        if (entry.bound.intersectsWith(obstacle)) {
+            entry.obstacles.add(obstacle);
         }
     }
+}
+
+protected abstract float rectangleQuality(Rectangle r);
+
+protected abstract List<Rectangle> selectUsefulWhitespace();
+
+// -------------------------- INNER CLASSES --------------------------
+
+private class QueueEntry implements Comparable<QueueEntry> {
+    final Rectangle bound;
+    final List<Rectangle> obstacles;
+    int numberOfWhitespaceFound;
+
+    private QueueEntry(final Rectangle bound, final List<Rectangle> obstacles) {
+        this.bound = bound;
+        this.obstacles = obstacles;
+        numberOfWhitespaceFound = getNumberOfWhitespacesFound();
+    }
+
+    @Override
+    public int compareTo(final QueueEntry o) {
+        return Float.compare(rectangleQuality(o.bound), rectangleQuality(bound));
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("QueueEntry");
+        sb.append("{area=").append(bound.area());
+        sb.append(", bound=").append(bound);
+        sb.append(", obstacles=").append(obstacles.size());
+        sb.append('}');
+        return sb.toString();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        final QueueEntry that = (QueueEntry) o;
+
+        return !(bound != null ? !bound.equals(that.bound) : that.bound != null);
+    }
+
+    @Override
+    public int hashCode() {
+        return bound != null ? bound.hashCode() : 0;
+    }
+}
 }

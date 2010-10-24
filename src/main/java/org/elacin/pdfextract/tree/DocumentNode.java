@@ -25,98 +25,100 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Mar 24, 2010 Time: 12:17:02 AM To change this template use File |
- * Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Mar 24, 2010 Time: 12:17:02 AM To change this
+ * template use File | Settings | File Templates.
  */
 public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
-    // ------------------------------ FIELDS ------------------------------
+// ------------------------------ FIELDS ------------------------------
 
-    public final List<WordNode> words = new ArrayList<WordNode>();
+public final List<WordNode> words = new ArrayList<WordNode>();
 
-    /**
-     * this contains all the different styles used in the document
-     */
-    protected final DocumentStyles styles = new DocumentStyles();
+/**
+ * this contains all the different styles used in the document
+ */
+protected final DocumentStyles styles = new DocumentStyles();
 
-    // --------------------------- CONSTRUCTORS ---------------------------
+// --------------------------- CONSTRUCTORS ---------------------------
 
-    public DocumentNode() {
-        setRoot(this);
+public DocumentNode() {
+    setRoot(this);
+}
+
+// ------------------------ OVERRIDING METHODS ------------------------
+
+@Override
+protected void appendLocalInfo(final Appendable out, final int indent) throws IOException {
+    super.appendLocalInfo(out, indent);
+    out.append("Styles used in document:\n");
+    for (Style style : styles.stylesCollection) {
+        out.append(style.toString()).append("\n");
     }
+}
 
-    // --------------------- GETTER / SETTER METHODS ---------------------
+// --------------------- GETTER / SETTER METHODS ---------------------
 
-    public DocumentStyles getStyles() {
-        return styles;
-    }
+public DocumentStyles getStyles() {
+    return styles;
+}
 
-    // -------------------------- PUBLIC METHODS --------------------------
+// -------------------------- PUBLIC METHODS --------------------------
 
-    @Override
-    public boolean addWord(final WordNode node) {
-        if (node.getText().trim().length() == 0) {
-            if (Loggers.getCreateTreeLog().isTraceEnabled()) {
-                Loggers.getCreateTreeLog().trace("Ignoring word " + node + " because it contains no text");
-            }
-            return false;
+@Override
+public boolean addWord(final WordNode node) {
+    if (node.getText().trim().length() == 0) {
+        if (Loggers.getCreateTreeLog().isTraceEnabled()) {
+            Loggers.getCreateTreeLog().trace(
+                    "Ignoring word " + node + " because it contains no text");
         }
-
-
-        for (PageNode pageNode : getChildren()) {
-            if (pageNode.addWord(node)) {
-                return true;
-            }
-        }
-
-        final PageNode newPage = new PageNode(node.getPageNum());
-        addChild(newPage);
-        newPage.addWord(node);
         return false;
     }
 
-    @Override
-    public void combineChildren() {
-        for (PageNode pageNode : getChildren()) {
-            pageNode.combineChildren();
+
+    for (PageNode pageNode : getChildren()) {
+        if (pageNode.addWord(node)) {
+            return true;
         }
     }
 
-    /**
-     * Returns a Comparator which will compare pagenumbers of the pages
-     *
-     * @return
-     */
-    @Override
-    public Comparator<PageNode> getChildComparator() {
-        return new Comparator<PageNode>() {
-            public int compare(final PageNode o1, final PageNode o2) {
-                if (o1.getPage().getPageNumber() < o2.getPage().getPageNumber()) {
-                    return -1;
-                } else if (o1.getPage().getPageNumber() > o2.getPage().getPageNumber()) {
-                    return 1;
-                }
+    final PageNode newPage = new PageNode(node.getPageNum());
+    addChild(newPage);
+    newPage.addWord(node);
+    return false;
+}
 
-                return 0;
+@Override
+public void combineChildren() {
+    for (PageNode pageNode : getChildren()) {
+        pageNode.combineChildren();
+    }
+}
+
+/**
+ * Returns a Comparator which will compare pagenumbers of the pages
+ *
+ * @return
+ */
+@Override
+public Comparator<PageNode> getChildComparator() {
+    return new Comparator<PageNode>() {
+        public int compare(final PageNode o1, final PageNode o2) {
+            if (o1.getPage().getPageNumber() < o2.getPage().getPageNumber()) {
+                return -1;
+            } else if (o1.getPage().getPageNumber() > o2.getPage().getPageNumber()) {
+                return 1;
             }
-        };
-    }
 
-    public PageNode getPageNumber(final int pageNumber) {
-        for (PageNode pageNode : getChildren()) {
-            if (pageNode.getPageNumber() == pageNumber) {
-                return pageNode;
-            }
+            return 0;
         }
-        return null;
-    }
+    };
+}
 
-    @Override
-    protected void appendLocalInfo(final Appendable out, final int indent) throws IOException {
-        super.appendLocalInfo(out, indent);
-        out.append("Styles used in document:\n");
-        for (Style style : getStyles().stylesCollection) {
-            out.append(style.toString()).append("\n");
+public PageNode getPageNumber(final int pageNumber) {
+    for (PageNode pageNode : getChildren()) {
+        if (pageNode.getPageNumber() == pageNumber) {
+            return pageNode;
         }
-
     }
+    return null;
+}
 }
