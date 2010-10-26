@@ -53,7 +53,9 @@ VerticalWhitespaceFinder(final List<Rectangle> texts,
  */
 @Override
 protected float rectangleQuality(final Rectangle r) {
-    return r.area() * r.getHeight() / Math.max(1.0f, r.getWidth());
+    return r.area() * r.getHeight() / Math.max(1.0f, r.getWidth() / 2.0f);
+    //    return (r.getHeight()) * 25 * r.getWidth();
+
 }
 
 @Override

@@ -52,7 +52,7 @@ public AbstractParentNode() {
 // ------------------------ INTERFACE METHODS ------------------------
 
 
-// --------------------- Interface TextWithPosition ---------------------
+// --------------------- Interface HasPosition ---------------------
 
 public final Rectangle getPosition() {
     if (posCache == null) {

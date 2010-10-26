@@ -171,8 +171,8 @@ public final void processFiles() {
     for (Long timing : timings) {
         sum += timing;
     }
-    LOG.error("Total time for analyzing " + pdfFiles.size() + " documents: " + sum + "ms (" + (sum
-            / pdfFiles.size() + "ms average)"));
+    LOG.error("Total time for analyzing " + pdfFiles.size() + " documents: " + sum + "ms (" + (
+            sum / pdfFiles.size() + "ms average)"));
 }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -224,15 +224,13 @@ protected void processFile(final File pdfFile) throws IOException {
     }
 }
 
-protected void renderPDF(final File pdfFile,
-                         final PDDocument doc,
-                         final DocumentNode root) throws IOException
-{
+protected void renderPDF(final File pdfFile, final PDDocument doc, final DocumentNode root) {
     long t0 = System.currentTimeMillis();
 
     List pages = doc.getDocumentCatalog().getAllPages();
+    final PageRenderer renderer = new PageRenderer(doc, root);
+
     for (int i = Math.max(0, startPage); i < Math.min(pages.size(), endPage); i++) {
-        final PageRenderer renderer = new PageRenderer(doc, root);
 
         BufferedImage image;
         try {
@@ -249,7 +247,11 @@ protected void renderPDF(final File pdfFile,
         } else {
             output = new File(destination.getAbsolutePath().replace(".xml", ".elc." + i + ".png"));
         }
-        ImageIO.write(image, "png", output);
+        try {
+            ImageIO.write(image, "png", output);
+        } catch (IOException e) {
+            LOG.warn("Error while writing rendered image to file", e);
+        }
     }
     LOG.warn("Rendering of pdf took " + (System.currentTimeMillis() - t0) + " ms");
 }

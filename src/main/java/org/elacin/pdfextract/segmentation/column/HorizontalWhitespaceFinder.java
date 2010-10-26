@@ -55,11 +55,14 @@ HorizontalWhitespaceFinder(final List<Rectangle> texts,
 protected float rectangleQuality(final Rectangle r) {
     //        return r.area() * (float) (r.getWidth() / Math.max(1, r.getHeight()));
 
-    return 25 * r.getWidth() * (r.getHeight());
     //        return r.area() * 0.3f* (float) r.getWidth() / (float) Math.max(1, r.getHeight());
 
 
     //        return (float) (r.area() * (1.0 + 3.0*Math.log(r.getHeight())));
+
+
+    //    return 25 * r.getWidth() * (r.getHeight());
+    return r.area() * r.getWidth() / Math.max(1.0f, r.getHeight());
 }
 
 @Override

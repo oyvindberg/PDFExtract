@@ -37,6 +37,7 @@ private MathUtils() {
  * @return
  */
 public static boolean isWithinPercent(final float num1, final float num2, final float percentage) {
+    //noinspection FloatingPointEquality
     if (num1 == num2) {
         return true;
     }
@@ -54,6 +55,7 @@ public static boolean isWithinPercent(final float num1, final float num2, final 
  * @return
  */
 public static boolean isWithinVariance(final float num1, final float num2, final float variance) {
+    //noinspection FloatingPointEquality
     if (num1 == num2) {
         return true;
     }
@@ -66,14 +68,4 @@ public static float log(float a) {
     return (float) StrictMath.log((double) a);
 }
 
-/**
- * This will determine of two floating point numbers are within a specified variance.
- *
- * @param first    The first number to compare to.
- * @param second   The second number to compare to.
- * @param variance The allowed variance.
- */
-public static boolean within(float first, float second, float variance) {
-    return second < first + variance && second > first - variance;
-}
 }

@@ -48,7 +48,6 @@ public class PDFTextStripper extends PDFStreamEngine {
 protected final List<ETextPosition> charactersForPage = new ArrayList<ETextPosition>();
 
 private final DocumentNode root;
-private final PhysicalWordSegmentator wordSegment;
 
 private int currentPageNo = 0;
 private int startPage = 1;
@@ -71,10 +70,10 @@ public PDFTextStripper(final PDDocument doc,
                        final int startPage,
                        final int endPage) throws IOException
 {
+
     super(ResourceLoader.loadProperties("org.elacin.PdfTextStripper.properties", true));
 
     root = new DocumentNode();
-    wordSegment = new PhysicalWordSegmentator();
 
     this.doc = doc;
     this.startPage = startPage;
@@ -90,6 +89,10 @@ public PDFTextStripper(final PDDocument doc,
  * @param text The text to process.
  */
 protected void processTextPosition(ETextPosition text) {
+    if (text.getCharacter().contains("√")) {
+        System.out.println("textPosition = " + text);
+    }
+
     final boolean showCharacter = suppressDuplicateOverlappingText(text);
 
     if (showCharacter) {
@@ -154,14 +157,13 @@ public void readText() throws IOException {
 
     /* postprocessing */
     root.combineChildren();
-    root.combineChildren();
+    //    root.combineChildren();
     new RecognizeRoles().doOperation(root);
 }
 
 // -------------------------- OTHER METHODS --------------------------
 
 private boolean suppressDuplicateOverlappingText(final ETextPosition text) {
-    //        String textCharacter = text.getCharacter() + (int) text.getX();
     String textCharacter = text.getCharacter();
     if (" ".equals(text.getCharacter())) {
         return false;
@@ -174,27 +176,27 @@ private boolean suppressDuplicateOverlappingText(final ETextPosition text) {
         return true;
     }
 
-    // RDD - Here we compute the value that represents the end of the rendered
-    // text.  This value is used to determine whether subsequent text rendered
-    // on the same line overwrites the current text.
-    //
-    // We subtract any positive padding to handle cases where extreme amounts
-    // of padding are applied, then backed off (not sure why this is done, but there
-    // are cases where the padding is on the order of 10x the character width, and
-    // the TJ just backs up to compensate after each character).  Also, we subtract
-    // an amount to allow for kerning (a percentage of the width of the last
-    // character).
-    //
+    /** RDD - Here we compute the value that represents the end of the rendered
+     text.  This value is used to determine whether subsequent text rendered
+     on the same line overwrites the current text.
+
+     We subtract any positive padding to handle cases where extreme amounts
+     of padding are applied, then backed off (not sure why this is done, but there
+     are cases where the padding is on the order of 10x the character width, and
+     the TJ just backs up to compensate after each character).  Also, we subtract
+     an amount to allow for kerning (a percentage of the width of the last
+     character). */
+
     boolean suppressCharacter = false;
+
     float tolerance = (text.getWidth() / (float) textCharacter.length()) / 3.0f;
     for (TextPosition character : sameTextCharacters) {
         String charCharacter = character.getCharacter();
         float charX = character.getX();
         float charY = character.getY();
 
-        if (charCharacter != null
-                && MathUtils.within(charX, text.getX(), tolerance)
-                && MathUtils.within(charY, text.getY(), tolerance)) {
+        if (charCharacter != null && MathUtils.isWithinVariance(charX, text.getX(), tolerance)
+                && MathUtils.isWithinVariance(charY, text.getY(), tolerance)) {
             suppressCharacter = true;
         }
     }
@@ -228,10 +230,11 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
             final float width = page.getArtBox().getWidth();
             final float height = page.getArtBox().getHeight();
 
-            final List<PhysicalText> texts = wordSegment.createWords(root.getStyles(),
-                                                                     charactersForPage);
+            final List<PhysicalText> texts = PhysicalWordSegmentator.createWords(root.getStyles(),
+                                                                                 charactersForPage);
 
             PhysicalPage physicalPage = new PhysicalPage(texts, height, width, currentPageNo);
+            physicalPage.compileLogicalPage();
 
             if (texts.isEmpty()) {
                 StringBuilder sb = new StringBuilder();
@@ -239,25 +242,18 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
                     sb.append(StringUtils.getTextPositionString(character)).append("\n");
                 }
                 throw new RuntimeException("words should not have been empty here. "
-                        + "created nothing from these characters:"
-                        + sb);
+                        + "created nothing from these characters:" + sb);
             }
 
-            final List<Rectangle> whitespaces = ColumnFinder.findColumnsFromWordNodes(texts, width,
-                                                                                      height);
 
             for (PhysicalText text : texts) {
                 root.addWord(new WordNode(text.getPosition(), currentPageNo, text.getStyle(),
                                           text.getContent(), text.getCharSpacing()));
             }
-            //                for (WordNode word : words) {
-            //                    root.addWord(word);
-            //                }
-            //                words.get(0).getPage().setWhitespaces(whitespaces);
-            //
-            //                if (!words.isEmpty()) {
-            //                    System.out.println("page = " + words.get(0).getPageNum());
-            //                }
+
+            final List<Rectangle> whitespaces = ColumnFinder.findColumnsFromWordNodes(texts, width,
+                                                                                      height);
+            root.getPageNumber(currentPageNo).addWhitespaces(whitespaces);
         }
     }
 }

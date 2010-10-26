@@ -19,16 +19,14 @@ package org.elacin.pdfextract.renderer;
 import org.apache.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.elacin.pdfextract.HasPosition;
 import org.elacin.pdfextract.Loggers;
-import org.elacin.pdfextract.TextWithPosition;
 import org.elacin.pdfextract.tree.*;
 import org.elacin.pdfextract.util.Rectangle;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Jun 17, 2010 Time: 5:02:09 AM To change this
@@ -42,9 +40,10 @@ private static final Logger LOG = Loggers.getPdfExtractorLog();
 private final int resolution;
 private final PDDocument document;
 private final DocumentNode documentNode;
-private final Map<Integer, BufferedImage> pagesCache = new HashMap<Integer, BufferedImage>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
+
+//private final Map<Integer, BufferedImage> pagesCache = new HashMap<Integer, BufferedImage>();
 
 public PageRenderer(final PDDocument document,
                     final DocumentNode documentNode,
@@ -61,7 +60,7 @@ public PageRenderer(final PDDocument document, final DocumentNode documentNode) 
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-public static void drawNode(final TextWithPosition node,
+public static void drawNode(final HasPosition node,
                             final Graphics2D graphics,
                             final float xScale,
                             final float yScale)
@@ -107,18 +106,23 @@ private static void drawRectangleInColor(final Graphics2D graphics,
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-public BufferedImage renderPage(final int pageNum) throws IOException {
+public BufferedImage renderPage(final int pageNum) {
     final PageNode pageNode = documentNode.getPageNumber(pageNum + 1);
 
     if (pageNode == null) {
-        throw new RuntimeException(
-                "Could not render page " + pageNum + ". No contents found for page");
+        throw new RuntimeException("Renderer: No contents found for page " + pageNum + ".");
     }
 
     /* first have PDFBox draw the pdf to a BufferedImage */
     long t1 = System.currentTimeMillis();
     PDPage page = (PDPage) document.getDocumentCatalog().getAllPages().get(pageNum);
-    BufferedImage image = getPDFBoxRenderingForPage(pageNum);
+
+    final BufferedImage image;
+    try {
+        image = page.convertToImage(BufferedImage.TYPE_INT_ARGB, resolution);
+    } catch (IOException e) {
+        throw new RuntimeException("PDFBox failed while rendering page " + pageNum, e);
+    }
 
     /* then draw our information on top */
     final Graphics2D graphics = image.createGraphics();
@@ -141,18 +145,6 @@ public BufferedImage renderPage(final int pageNum) throws IOException {
         drawRectangleInColor(graphics, xScale, yScale, Color.PINK, whitespace);
     }
     LOG.warn("Rendered page " + pageNum + " in " + (System.currentTimeMillis() - t1) + " ms");
-    return image;
-}
-
-// -------------------------- OTHER METHODS --------------------------
-
-private BufferedImage getPDFBoxRenderingForPage(final int pageNum) throws IOException {
-    BufferedImage image = null;
-    if (!pagesCache.containsKey(pageNum)) {
-        PDPage page = (PDPage) document.getDocumentCatalog().getAllPages().get(pageNum);
-        image = page.convertToImage(BufferedImage.TYPE_INT_ARGB, resolution);
-        pagesCache.put(pageNum, image);
-    }
     return image;
 }
 }

@@ -112,8 +112,7 @@ public PDFStreamEngine(Properties properties) throws IOException {
                 OperatorProcessor processor = (OperatorProcessor) klass.newInstance();
                 registerOperatorProcessor(operator, processor);
             } catch (Exception e) {
-                throw new WrappedIOException("OperatorProcessor class "
-                        + processorClassName
+                throw new WrappedIOException("OperatorProcessor class " + processorClassName
                         + " could not be instantiated", e);
             }
         }
@@ -334,8 +333,8 @@ public void processEncodedText(byte[] string) throws IOException {
 
         //todo, handle horizontal displacement
         // get the width and height of this character in text units
-        float characterHorizontalDisplacementText = (font.getFontWidth(string, i, codeLength)
-                / glyphSpaceToTextSpaceFactor);
+        float characterHorizontalDisplacementText = font.getFontWidth(string, i, codeLength)
+                / glyphSpaceToTextSpaceFactor;
         maxVerticalDisplacementText = Math.max(maxVerticalDisplacementText, font.getFontHeight(
                 string, i, codeLength) / glyphSpaceToTextSpaceFactor);
 
@@ -430,8 +429,7 @@ public void processEncodedText(byte[] string) throws IOException {
 
         textMatrixEndDisp = glyphMatrixEndDisp;
 
-        float totalVerticalDisplacementDisp = maxVerticalDisplacementText
-                * fontSizeText
+        float totalVerticalDisplacementDisp = maxVerticalDisplacementText * fontSizeText
                 * yScaleDisp;
 
         float[] individualWidths = new float[characterBuffer.length()];

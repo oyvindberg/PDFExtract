@@ -25,6 +25,7 @@ import org.elacin.pdfextract.text.Style;
 import org.elacin.pdfextract.tree.DocumentStyles;
 import org.elacin.pdfextract.util.FloatPoint;
 import org.elacin.pdfextract.util.MathUtils;
+import org.elacin.pdfextract.util.StringUtils;
 
 import java.util.*;
 
@@ -106,8 +107,7 @@ public static List<PhysicalText> createWords(final DocumentStyles documentStyles
         line.clear();
     }
 
-    LOG.info("PhysicalWordSegmentator.createWords took "
-            + (System.currentTimeMillis() - t0)
+    LOG.info("PhysicalWordSegmentator.createWords took " + (System.currentTimeMillis() - t0)
             + " ms");
     return ret;
 }
@@ -143,8 +143,9 @@ static List<PhysicalText> createWordsInLine(final DocumentStyles documentStyles,
         final PhysicalText current = queue.remove();
         final PhysicalText next = queue.peek();
 
-        if (next != null && current.isCloseEnoughToBelongToSameWord(next) && current.isSameStyleAs(
-                next)) {
+        if (next != null && PhysicalText.isCloseEnoughToBelongToSameWord(next)
+                && current.isSameStyleAs(next)) {
+
             PhysicalText combinedWord = current.combineWith(next);
             queue.remove(next);
             queue.add(combinedWord);
@@ -175,6 +176,7 @@ private static float getAdjustedHeight(final TextPosition tp) {
 }
 
 private static boolean isOnAnotherLine(final float minY, final ETextPosition textPosition) {
+    //noinspection FloatingPointEquality
     return minY != textPosition.getYDirAdj();
 }
 
@@ -206,23 +208,24 @@ static List<PhysicalText> splitTextPositionsOnSpace(final DocumentStyles sf,
     float width = 0.0f;
     boolean firstInLine = true;
     for (TextPosition tp : textPositions) {
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("in:" + StringUtils.getTextPositionString(tp));
+        }
         float x = tp.getXDirAdj();
         float y = tp.getYDirAdj();
         final String s = tp.getCharacter();
         final Style style = sf.getStyleForTextPosition(tp);
 
-        /* iterate through all the characters in textposition.
-           Notice that the loop is a bit evil in that it iterates
-           one extra time as apposed to what you would expect, in
-           order make sure that the last piece of the textposition
-           is created into a text.
-        */
+        /** iterate through all the characters in textposition. Notice that the loop is a bit evil
+         * in that it iterates one extra time as apposed to what you would expect, in order make sure
+         * that the last piece of the textposition is created into a text.
+         */
         for (int j = 0; j <= s.length(); j++) {
-            /* if this is either the last character or a space */
-            final char currentChar = s.charAt(j);
-            if (j == s.length() || Character.isSpaceChar(currentChar)) {
+            /* if this is either the last character or a space then just output a new text */
+
+            if (j == s.length() || Character.isSpaceChar(s.charAt(j))) {
                 if (contents.length() > 0) {
-                    /* just output a new text */
+
                     final float distance;
                     if (firstInLine) {
                         distance = Float.MIN_VALUE;
@@ -231,10 +234,8 @@ static List<PhysicalText> splitTextPositionsOnSpace(final DocumentStyles sf,
                         distance = x - lastWordBoundary.getX();
                     }
 
-                    final float adjustedHeight = getAdjustedHeight(tp);
-
-                    ret.add(new PhysicalText(contents.toString(), style, x, y - adjustedHeight,
-                                             width, adjustedHeight, distance));
+                    ret.add(new PhysicalText(contents.toString(), style, x, y - tp.getHeightDir(),
+                                             width, getAdjustedHeight(tp), distance));
 
                     contents.setLength(0);
                     x += width;
@@ -248,7 +249,7 @@ static List<PhysicalText> splitTextPositionsOnSpace(final DocumentStyles sf,
             } else {
                 /* include this character */
                 width += tp.getIndividualWidths()[j];
-                contents.append(currentChar);
+                contents.append(s.charAt(j));
             }
         }
     }

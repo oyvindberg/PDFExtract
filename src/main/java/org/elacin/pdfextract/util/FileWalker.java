@@ -19,7 +19,6 @@ package org.elacin.pdfextract.util;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -49,19 +48,17 @@ public static List<File> getFileListing(final File aStartingDir,
 // -------------------------- STATIC METHODS --------------------------
 
 static List<File> getFileListingNoSort(File aStartingDir, final String extension) {
-    List<File> result = new ArrayList<File>();
-    File[] filesAndDirs = aStartingDir.listFiles();
-    List<File> filesDirs = Arrays.asList(filesAndDirs);
-    for (File file : filesDirs) {
+    List<File> ret = new ArrayList<File>();
+
+    for (File file : aStartingDir.listFiles()) {
         if (file.getName().endsWith(extension)) {
-            result.add(file); //always add, even if directory
+            ret.add(file);
         }
         if (file.isDirectory()) {
-            List<File> deeperList = getFileListingNoSort(file, extension);
-            result.addAll(deeperList);
+            ret.addAll(getFileListingNoSort(file, extension));
         }
     }
-    return result;
+    return ret;
 }
 
 /**

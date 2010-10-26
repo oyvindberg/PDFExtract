@@ -17,8 +17,8 @@
 package org.elacin.pdfextract.tree;
 
 
+import org.elacin.pdfextract.HasPosition;
 import org.elacin.pdfextract.Loggers;
-import org.elacin.pdfextract.TextWithPosition;
 import org.elacin.pdfextract.text.Role;
 import org.elacin.pdfextract.text.Style;
 
@@ -32,7 +32,7 @@ import java.util.Set;
  * template use File | Settings | File Templates.
  */
 public abstract class AbstractNode<ParentType extends AbstractParentNode>
-        implements Serializable, TextWithPosition
+        implements Serializable, HasPosition
 {
 // ------------------------------ FIELDS ------------------------------
 
@@ -100,7 +100,7 @@ public boolean hasRole(Role r) {
     return roles.containsKey(r);
 }
 
-public boolean overlapsWith(final TextWithPosition two) {
+public boolean overlapsWith(final HasPosition two) {
     return getPosition().intersectsWith(two.getPosition());
 }
 

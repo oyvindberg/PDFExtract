@@ -16,7 +16,7 @@
 
 package org.elacin.pdfextract.segmentation.word;
 
-import org.elacin.pdfextract.TextWithPosition;
+import org.elacin.pdfextract.HasPosition;
 import org.elacin.pdfextract.text.Style;
 import org.elacin.pdfextract.util.Rectangle;
 
@@ -24,7 +24,7 @@ import org.elacin.pdfextract.util.Rectangle;
  * Created by IntelliJ IDEA. User: elacin Date: Sep 23, 2010 Time: 2:36:44 PM To change this
  * template use File | Settings | File Templates.
  */
-public class PhysicalText implements TextWithPosition {
+public class PhysicalText implements HasPosition {
 // ------------------------------ FIELDS ------------------------------
 
 public int index;
@@ -61,7 +61,7 @@ PhysicalText(final String content,
 // ------------------------ INTERFACE METHODS ------------------------
 
 
-// --------------------- Interface TextWithPosition ---------------------
+// --------------------- Interface HasPosition ---------------------
 
 public Rectangle getPosition() {
     return position;

@@ -16,6 +16,8 @@
 
 package org.elacin.pdfextract.util;
 
+import org.elacin.pdfextract.HasPosition;
+
 import java.io.Serializable;
 
 /**
@@ -24,7 +26,7 @@ import java.io.Serializable;
  * A non-mutable rectangle, with union and intercepts bits stolen from javas Rectangle2D. The
  * problem with just using that class was that is isnt available in an integer version.
  */
-public class Rectangle implements Serializable {
+public class Rectangle implements Serializable, HasPosition {
 // ------------------------------ FIELDS ------------------------------
 
 private final float x, y, width, height;
@@ -36,6 +38,16 @@ public Rectangle(final float x, final float y, final float width, final float he
     this.width = width;
     this.x = x;
     this.y = y;
+}
+
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface HasPosition ---------------------
+
+@Override
+public Rectangle getPosition() {
+    return this;
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
@@ -189,18 +201,16 @@ public float getEndY() {
     return y + height;
 }
 
-public boolean intersectsWith(Rectangle other) {
-    float otherX = other.x;
-    float otherY = other.y;
-    float otherW = other.width;
-    float otherH = other.height;
+public boolean intersectsWith(HasPosition other) {
+    float otherX = other.getPosition().x;
+    float otherY = other.getPosition().y;
+    float otherW = other.getPosition().width;
+    float otherH = other.getPosition().height;
 
     if (isEmpty() || otherW <= 0.0F || otherH <= 0.0F) {
         return false;
     }
-    return (otherX + otherW > x
-            && otherY + otherH > y
-            && otherX < x + width
+    return (otherX + otherW > x && otherY + otherH > y && otherX < x + width
             && otherY < y + height);
 }
 

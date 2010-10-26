@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.segmentation;
 
 import org.apache.log4j.Logger;
+import org.elacin.pdfextract.HasPosition;
 import org.elacin.pdfextract.segmentation.column.ColumnFinder;
 import org.elacin.pdfextract.segmentation.word.PhysicalText;
 import org.elacin.pdfextract.tree.PageNode;
@@ -28,78 +29,104 @@ import java.util.List;
 public class PhysicalPage {
 // ------------------------------ FIELDS ------------------------------
 
+private static final Logger logger = Logger.getLogger(PhysicalPage.class);
 private final List<PhysicalText> words;
 private final float height;
 private final float width;
 private final int pageNumber;
-private final Logger logger = Logger.getLogger(PhysicalPage.class);
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public PhysicalPage(List<PhysicalText> words,
-                    final float height,
-                    final float width,
-                    int pageNumber)
-{
-    this.height = height;
-    this.width = width;
+public PhysicalPage(List<PhysicalText> words, final float h, final float w, int pageNumber) {
+    height = h;
+    width = w;
     this.words = words;
     this.pageNumber = pageNumber;
-
-    long t0 = System.currentTimeMillis();
 
     for (int i = 0, wordsSize = words.size(); i < wordsSize; i++) {
         words.get(i).index = i;
     }
-
-    int counter = 0;
-    for (int i = 0; i < 200; i++) {
-        for (int y = 0; y < (int) height; y += 10) {
-            int yEnd = y + 10;
-            final List<PhysicalText> result = findWordsBetweenYValues(y, yEnd);
-            counter++;
-        }
-
-        for (PhysicalText word : words) {
-            final List<PhysicalText> result = findWordsInDirectionFromWord(Direction.E, word, 10);
-            counter++;
-        }
-    }
-
-
-    logger.warn("Tree construction took "
-            + (System.currentTimeMillis() - t0)
-            + "ms. counter: "
-            + counter);
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
+class ColumnBoundaryInterval {
+    final int y, endy;
+    final int[] columnBoundaries;
+
+    ColumnBoundaryInterval(final int[] columnBoundaries, final int endy, final int y) {
+        this.columnBoundaries = columnBoundaries;
+        this.endy = endy;
+        this.y = y;
+    }
+}
 
 public PageNode compileLogicalPage() {
+    long t0 = System.currentTimeMillis();
+
     PageNode ret = new PageNode(pageNumber);
     final List<Rectangle> whitespaces = ColumnFinder.findColumnsFromWordNodes(words, width, height);
 
+    /* establish column boundaries for every y-index */
+    List<ColumnBoundaryInterval> columnLayout = new ArrayList<ColumnBoundaryInterval>();
+    final int interval = 10;
+    List<Integer> currentColumnBoundaries = new ArrayList<Integer>();
+    int currentBoundariesStartedAt;
+    boolean continuingInterval = false;
 
-    /* use the testpositions to determine column boundaries */
+    for (int y = 0; y < (int) height; y += interval) {
+        /* find boundaries for this Y */
+        final List<HasPosition> texts = selectIntersectingWithYIndex(words, y);
+        final List<HasPosition> spaces = selectIntersectingWithYIndex(whitespaces, y);
+        List<Integer> boundaries = findColumnBoundaries(texts, spaces);
 
-    /* segment w*/
-    //        for (WordNode word : words) {
-    //            ret.addWord(word);
-    //        }
+        /* if this set of boundaries does not mach the current one, save that
+            interval and start the new one */
+        if (!boundaries.equals(currentColumnBoundaries)) {
+
+        }
+
+    }
+
+    //    for (PhysicalText word : words) {
+    //        final List<PhysicalText> result = findWordsInDirectionFromWord(Direction.E, word, 10.0f);
+    //    }
+
 
     ret.addWhitespaces(whitespaces);
+
+    logger.warn("compileLogicalPage:" + (System.currentTimeMillis() - t0));
+
     return ret;
+}
+
+private List<Integer> findColumnBoundaries(final List<HasPosition> texts,
+                                           final List<HasPosition> spaces)
+{
+    List<Integer> boundaries = new ArrayList<Integer>();
+
+    if (spaces.isEmpty() || texts.isEmpty()) {
+        boundaries.add(0);
+    } else {
+        for (int i = 0, textsSize = texts.size(); i < textsSize; i++) {
+            final HasPosition pos = texts.get(i);
+
+            boundaries.add(spaces.size());
+        }
+    }
+    return boundaries;
 }
 
 // -------------------------- OTHER METHODS --------------------------
 
-private List<PhysicalText> findWordsBetweenYValues(final int y, final int yEnd) {
-    final Rectangle searchRectangle = new Rectangle(0, y, width, yEnd - y);
-    final List<PhysicalText> result = new ArrayList<PhysicalText>(50);
+private List<HasPosition> selectIntersectingWithYIndex(final List<? extends HasPosition> positions,
+                                                       float y)
+{
+    final Rectangle searchRectangle = new Rectangle(0.0F, y, width, y + 1);
+    final List<HasPosition> result = new ArrayList<HasPosition>(20);
 
-    for (PhysicalText word : words) {
-        if (searchRectangle.intersectsWith(word.getPosition())) {
-            result.add(word);
+    for (HasPosition position : positions) {
+        if (searchRectangle.intersectsWith(position.getPosition())) {
+            result.add(position);
         }
     }
 
@@ -108,16 +135,14 @@ private List<PhysicalText> findWordsBetweenYValues(final int y, final int yEnd) 
 
 private List<PhysicalText> findWordsInDirectionFromWord(Direction dir,
                                                         PhysicalText text,
-                                                        int distance)
+                                                        float distance)
 {
-    final List<PhysicalText> ret = new ArrayList<PhysicalText>(50);
+    final List<PhysicalText> ret = new ArrayList<PhysicalText>();
 
     final Rectangle pos = text.getPosition();
-    final float x1 = pos.getX() + (float) (dir.xDiff * distance);
-    final float w = pos.getWidth();
-    final float y1 = pos.getY() + (float) (dir.yDiff * distance);
-    final float h = pos.getHeight();
-    final Rectangle search = new Rectangle(x1, y1, w, h);
+    final float x = pos.getX() + dir.xDiff * distance;
+    final float y = pos.getY() + dir.yDiff * distance;
+    final Rectangle search = new Rectangle(x, y, pos.getWidth(), pos.getHeight());
 
     for (PhysicalText physicalText : words) {
         if (search.intersectsWith(physicalText.getPosition())) {
@@ -139,10 +164,10 @@ enum Direction {
     SW(-1, -1),
     W(-1, 0),
     NW(-1, 1);
-    int xDiff;
-    int yDiff;
+    float xDiff;
+    float yDiff;
 
-    Direction(final int xDiff, final int yDiff) {
+    Direction(final float xDiff, final float yDiff) {
         this.xDiff = xDiff;
         this.yDiff = yDiff;
     }

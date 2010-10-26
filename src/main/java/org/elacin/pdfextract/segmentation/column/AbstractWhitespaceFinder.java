@@ -178,12 +178,13 @@ private Rectangle findNextWhitespace() {
 
         /** If we have found and marked whitespace since we added this rectangle we need to
          *  recalculate the obstacles it references to make sure it doesnt overlap with the ones
-         * we already have */
+         *  we already have */
         if (current.numberOfWhitespaceFound != getNumberOfWhitespacesFound()) {
             updateObstacleListForQueueEntry(current);
         }
 
-        /* if none of the obstacles are contained within outerBound, then we have a whitespace rectangle */
+        /** If none of the obstacles are contained within outerBound, then we have a whitespace
+         *  rectangle */
         if (current.obstacles.isEmpty()) {
             return current.bound;
         }
