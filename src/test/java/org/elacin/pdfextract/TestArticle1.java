@@ -46,17 +46,6 @@ public void setUp() throws IOException {
 
 @Test()
 public void test1() {
-    /* not sure if this is possible vart-øydelagt */
-
-    /**
-     *
-     * content: [|D|P|*|(|D|e|t|)|g|a|m|l|-|e|R|o|m|a|]|v|a|r|t|ø|y|d|e|l|a|g|t|a|v|b|a|r|b|a|r|-|a|-|n|e|.
-     *               ^           ^
-     * unsorted: [0, -5, 339, -5, -5, -5, -5, -5, 1295, -37, -37, -37, -37, -37, 2000, 1, 1, 1, 1, 700, 1, 1, 1, 98, -3, -3, -3, -3, -3, -3, -3, 800, -21, 999, -18, -18, -18, -18, -18, -18, -18, -18, -18, -18, -18]
-     *
-     */
-
-
     assertExistsLineWithText("[DP *(Det) gaml-e Roma] vart øydelagt av barbar-a-ne.");
 }
 

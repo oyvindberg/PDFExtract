@@ -16,6 +16,7 @@
 
 package org.elacin.pdfextract.segmentation.column;
 
+import org.apache.log4j.Logger;
 import org.elacin.pdfextract.HasPosition;
 import org.elacin.pdfextract.util.Rectangle;
 
@@ -29,7 +30,8 @@ import java.util.List;
 public class ColumnFinder {
 // ------------------------------ FIELDS ------------------------------
 
-private static final int NUM_WHITESPACES_TO_BE_FOUND = 30;
+private static final int NUM_WHITESPACES_TO_BE_FOUND = 40;
+protected static final Logger logger = Logger.getLogger(ColumnFinder.class);
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
@@ -45,12 +47,14 @@ public static List<Rectangle> findColumnsFromWordNodes(final List<? extends HasP
     }
 
     final List<Rectangle> ret = new ArrayList<Rectangle>();
-    //    AbstractWhitespaceFinder hor = new HorizontalWhitespaceFinder(obstacles,
-    //                                                                  NUM_WHITESPACES_TO_BE_FOUND,
-    //                                                                  width, height);
-    //    ret.addAll(hor.findWhitespace());
 
-    //        obstacles.addAll(ret);
+
+    //        AbstractWhitespaceFinder hor = new HorizontalWhitespaceFinder(obstacles,
+    //                                                                      NUM_WHITESPACES_TO_BE_FOUND,
+    //                                                                      width, height);
+    //        ret.addAll(hor.findWhitespace());
+    //
+    //            obstacles.addAll(ret);
 
     AbstractWhitespaceFinder vert = new VerticalWhitespaceFinder(obstacles,
                                                                  NUM_WHITESPACES_TO_BE_FOUND, width,
@@ -58,7 +62,7 @@ public static List<Rectangle> findColumnsFromWordNodes(final List<? extends HasP
     ret.addAll(vert.findWhitespace());
 
     final long time = System.currentTimeMillis() - t0;
-    System.out.println("findColumnsFromWordNodes took " + time + " ms.");
+    logger.warn("findColumnsFromWordNodes took " + time + " ms.");
     return ret;
 }
 }

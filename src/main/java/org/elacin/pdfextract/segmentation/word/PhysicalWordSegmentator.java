@@ -24,10 +24,11 @@ import org.elacin.pdfextract.pdfbox.ETextPosition;
 import org.elacin.pdfextract.text.Style;
 import org.elacin.pdfextract.tree.DocumentStyles;
 import org.elacin.pdfextract.util.FloatPoint;
-import org.elacin.pdfextract.util.MathUtils;
 import org.elacin.pdfextract.util.StringUtils;
 
 import java.util.*;
+
+import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: May 12, 2010 Time: 3:34:09 AM
@@ -107,8 +108,7 @@ public static List<PhysicalText> createWords(final DocumentStyles documentStyles
         line.clear();
     }
 
-    LOG.info("PhysicalWordSegmentator.createWords took " + (System.currentTimeMillis() - t0)
-            + " ms");
+    LOG.info("PhysicalWordSegmentator.createWords:" + (System.currentTimeMillis() - t0) + " ms");
     return ret;
 }
 
@@ -166,25 +166,25 @@ static List<PhysicalText> createWordsInLine(final DocumentStyles documentStyles,
  */
 private static float getAdjustedHeight(final TextPosition tp) {
     final float adjustedHeight;
-    final float maxHeight = tp.getFontSize() * tp.getYScale() * 1.2f;
-    if (tp.getHeightDir() > maxHeight) {
-        adjustedHeight = maxHeight;
-    } else {
-        adjustedHeight = tp.getHeightDir();
-    }
+    //    final float maxHeight = tp.getFontSize() * tp.getYScale() * 1.2f;
+    //    if (tp.getHeightDir() > maxHeight) {
+    //        adjustedHeight = maxHeight;
+    //    } else {
+    adjustedHeight = tp.getHeightDir();
+    //    }
     return adjustedHeight;
 }
 
 private static boolean isOnAnotherLine(final float minY, final ETextPosition textPosition) {
     //noinspection FloatingPointEquality
-    return minY != textPosition.getYDirAdj();
+    return !isWithinVariance(minY, textPosition.getYDirAdj(), 3.0f);
+    //    return minY != textPosition.getYDirAdj();
 }
 
 private static boolean isTooFarAwayHorizontally(final float maxX,
                                                 final ETextPosition textPosition)
 {
-    return !MathUtils.isWithinVariance(maxX, textPosition.getPos().getX(),
-                                       textPosition.getFontSizeInPt());
+    return !isWithinVariance(maxX, textPosition.getPos().getX(), textPosition.getFontSizeInPt());
 }
 
 /**
@@ -234,8 +234,16 @@ static List<PhysicalText> splitTextPositionsOnSpace(final DocumentStyles sf,
                         distance = x - lastWordBoundary.getX();
                     }
 
-                    ret.add(new PhysicalText(contents.toString(), style, x, y - tp.getHeightDir(),
-                                             width, getAdjustedHeight(tp), distance));
+                    final float adjustedY;
+                    if (contents.toString().matches("[∑√∏⊗]")) {
+                        adjustedY = y;
+                    } else {
+                        adjustedY = y - tp.getHeightDir();
+                    }
+
+
+                    ret.add(new PhysicalText(contents.toString(), style, x, adjustedY, width,
+                                             getAdjustedHeight(tp), distance));
 
                     contents.setLength(0);
                     x += width;

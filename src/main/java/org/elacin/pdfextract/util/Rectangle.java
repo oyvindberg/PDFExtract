@@ -202,16 +202,29 @@ public float getEndY() {
 }
 
 public boolean intersectsWith(HasPosition other) {
-    float otherX = other.getPosition().x;
-    float otherY = other.getPosition().y;
-    float otherW = other.getPosition().width;
-    float otherH = other.getPosition().height;
+    final Rectangle that = other.getPosition();
 
-    if (isEmpty() || otherW <= 0.0F || otherH <= 0.0F) {
+    if (isEmpty() || that.width <= 0.0F || that.height <= 0.0F) {
         return false;
     }
-    return (otherX + otherW > x && otherY + otherH > y && otherX < x + width
-            && otherY < y + height);
+
+    if (that.getEndX() < getX()) {
+        return false;
+    }
+    if (that.getX() > getEndX()) {
+        return false;
+    }
+    if (that.getY() > getEndY()) {
+        return false;
+    }
+    if (that.getEndY() < getY()) {
+        return false;
+    }
+
+    return true;
+
+    //    return (that.x + that.width > x && that.y + that.height > y && that.x < x + width
+    //            && that.y < y + height);
 }
 
 /**

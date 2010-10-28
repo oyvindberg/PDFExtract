@@ -26,13 +26,12 @@ import org.apache.pdfbox.util.TextNormalize;
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.operation.RecognizeRoles;
 import org.elacin.pdfextract.segmentation.PhysicalPage;
-import org.elacin.pdfextract.segmentation.column.ColumnFinder;
 import org.elacin.pdfextract.segmentation.word.PhysicalText;
 import org.elacin.pdfextract.segmentation.word.PhysicalWordSegmentator;
 import org.elacin.pdfextract.tree.DocumentNode;
+import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.tree.WordNode;
 import org.elacin.pdfextract.util.MathUtils;
-import org.elacin.pdfextract.util.Rectangle;
 import org.elacin.pdfextract.util.StringUtils;
 
 import java.io.IOException;
@@ -89,9 +88,6 @@ public PDFTextStripper(final PDDocument doc,
  * @param text The text to process.
  */
 protected void processTextPosition(ETextPosition text) {
-    if (text.getCharacter().contains("√")) {
-        System.out.println("textPosition = " + text);
-    }
 
     final boolean showCharacter = suppressDuplicateOverlappingText(text);
 
@@ -206,9 +202,9 @@ private boolean suppressDuplicateOverlappingText(final ETextPosition text) {
         sameTextCharacters.add(text);
         showCharacter = true;
     }
-    if (!showCharacter) {
-        System.out.println("showCharacter = " + StringUtils.getTextPositionString(text));
-    }
+    //    if (!showCharacter) {
+    //        System.out.println("showCharacter = " + StringUtils.getTextPositionString(text));
+    //    }
     return showCharacter;
 }
 
@@ -234,7 +230,7 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
                                                                                  charactersForPage);
 
             PhysicalPage physicalPage = new PhysicalPage(texts, height, width, currentPageNo);
-            physicalPage.compileLogicalPage();
+            final PageNode notUsed = physicalPage.compileLogicalPage();
 
             if (texts.isEmpty()) {
                 StringBuilder sb = new StringBuilder();
@@ -251,9 +247,11 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
                                           text.getContent(), text.getCharSpacing()));
             }
 
-            final List<Rectangle> whitespaces = ColumnFinder.findColumnsFromWordNodes(texts, width,
-                                                                                      height);
-            root.getPageNumber(currentPageNo).addWhitespaces(whitespaces);
+            //            final List<Rectangle> whitespaces = ColumnFinder.findColumnsFromWordNodes(texts, width,
+            //                                                                                      height);
+            root.getPageNumber(currentPageNo).addWhitespaces(notUsed.getWhitespaces());
+            root.getPageNumber(currentPageNo).addColumns(notUsed.getColumns());
+
         }
     }
 }

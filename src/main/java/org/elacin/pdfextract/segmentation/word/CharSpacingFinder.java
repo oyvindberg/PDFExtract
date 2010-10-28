@@ -83,6 +83,11 @@ public static float calculateCharspacingForDistances(final List<Float> distances
         return largest;
     }
 
+    /* lower that 0.25 does not realisticly happen with 7pt, scale that with bigger font sizes */
+    final float lowerLimit = (0.35f / 7.0f) * averageFontSize;
+    if (diff < lowerLimit) {
+        return lowerLimit;
+    }
 
     float minSize = 0.0f;
     for (int i = 0, distancesSize = distances.size() - 1; i < distancesSize; i++) {
@@ -94,16 +99,17 @@ public static float calculateCharspacingForDistances(final List<Float> distances
             minSize = v;
         }
     }
-    LOG.warn("minSize = " + minSize);
+    //    LOG.warn("minSize = " + minSize);
 
-    //        float charSpacing = ((float) (StrictMath.log(averageFontSize) * 0.60f) * (averageDistance * 0.3f) + smallest * 0.8f);
+    //    float charSpacing = ((float) (StrictMath.log(averageFontSize) * 0.60f) * (averageDistance
+    //            * 0.3f) + smallest * 0.8f);
     //
-    //        if (charSpacing > minSize) {
-    //            charSpacing = minSize;
-    //        }
+    //    if (charSpacing > minSize) {
+    //        charSpacing = minSize;
+    //    }
 
-    final float charSpacing = (averageFontSize / 10.0F) * (averageDistance * 0.4f)
-            + smallest * 0.6f;
+    float charSpacing = (averageFontSize / 10.0F) * (averageDistance * 0.4f) + smallest * 0.6f;
+
 
     return charSpacing;
 }

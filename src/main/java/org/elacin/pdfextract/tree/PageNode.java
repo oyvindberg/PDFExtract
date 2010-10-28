@@ -22,6 +22,7 @@ import org.elacin.pdfextract.util.Rectangle;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Mar 23, 2010 Time: 9:33:52 PM To change this
@@ -32,6 +33,7 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
 
 private final int pageNumber;
 private final List<Rectangle> whitespaces = new ArrayList<Rectangle>();
+private Map<Integer, List<Integer>> columns;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -40,6 +42,10 @@ public PageNode(int pageNumber) {
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
+
+public Map<Integer, List<Integer>> getColumns() {
+    return columns;
+}
 
 public int getPageNumber() {
     return pageNumber;
@@ -53,6 +59,10 @@ public List<Rectangle> getWhitespaces() {
 
 public boolean accepts(final WordNode node) {
     return pageNumber == node.getPageNum();
+}
+
+public void addColumns(final Map<Integer, List<Integer>> columns) {
+    this.columns = columns;
 }
 
 public void addWhitespaces(final List<Rectangle> whitespaces) {

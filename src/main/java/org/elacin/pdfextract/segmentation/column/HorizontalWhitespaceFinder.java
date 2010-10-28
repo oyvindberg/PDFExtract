@@ -26,10 +26,6 @@ import java.util.List;
  * use File | Settings | File Templates.
  */
 class HorizontalWhitespaceFinder extends AbstractWhitespaceFinder {
-// ------------------------------ FIELDS ------------------------------
-
-private static final float WHITESPACE_MIN_HEIGHT = 7.0f;
-
 // --------------------------- CONSTRUCTORS ---------------------------
 
 HorizontalWhitespaceFinder(final List<Rectangle> texts,
@@ -62,7 +58,8 @@ protected float rectangleQuality(final Rectangle r) {
 
 
     //    return 25 * r.getWidth() * (r.getHeight());
-    return r.area() * r.getWidth() / Math.max(1.0f, r.getHeight());
+    //    return r.area() * r.getWidth() / Math.max(1.0f, r.getHeight());
+    return r.area();
 }
 
 @Override

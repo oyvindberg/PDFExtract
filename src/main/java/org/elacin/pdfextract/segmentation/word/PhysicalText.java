@@ -85,7 +85,7 @@ public String toString() {
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
 public static boolean isCloseEnoughToBelongToSameWord(final PhysicalText otherText) {
-    return otherText.distanceToPreceeding < otherText.charSpacing;
+    return otherText.distanceToPreceeding <= otherText.charSpacing;
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -105,6 +105,11 @@ public float getDistanceToPreceeding() {
 public Style getStyle() {
     return style;
 }
+
+public float getAverageCharacterWidth() {
+    return getPosition().getWidth() / (float) getContent().length();
+}
+
 
 // -------------------------- PUBLIC METHODS --------------------------
 

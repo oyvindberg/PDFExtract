@@ -19,7 +19,6 @@ package org.elacin.pdfextract.renderer;
 import org.apache.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.elacin.pdfextract.HasPosition;
 import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.tree.*;
 import org.elacin.pdfextract.util.Rectangle;
@@ -27,6 +26,8 @@ import org.elacin.pdfextract.util.Rectangle;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Jun 17, 2010 Time: 5:02:09 AM To change this
@@ -56,30 +57,6 @@ public PageRenderer(final PDDocument document,
 
 public PageRenderer(final PDDocument document, final DocumentNode documentNode) {
     this(document, documentNode, 200);
-}
-
-// -------------------------- PUBLIC STATIC METHODS --------------------------
-
-public static void drawNode(final HasPosition node,
-                            final Graphics2D graphics,
-                            final float xScale,
-                            final float yScale)
-{
-    Color color;
-
-    if (node instanceof WordNode) {
-        color = Color.BLUE;
-    } else if (node instanceof LineNode) {
-        color = Color.RED;
-    } else if (node instanceof ParagraphNode) {
-        color = Color.GREEN;
-    } else {
-        color = Color.BLACK;
-    }
-
-    final Rectangle pos = node.getPosition();
-
-    drawRectangleInColor(graphics, xScale, yScale, color, pos);
 }
 
 // -------------------------- STATIC METHODS --------------------------
@@ -134,16 +111,24 @@ public BufferedImage renderPage(final int pageNum) {
     for (ParagraphNode paragraphNode : pageNode.getChildren()) {
         for (LineNode lineNode : paragraphNode.getChildren()) {
             for (WordNode wordNode : lineNode.getChildren()) {
-                drawNode(wordNode, graphics, xScale, yScale);
+                drawRectangleInColor(graphics, xScale, yScale, Color.BLUE, wordNode.getPosition());
             }
-            drawNode(lineNode, graphics, xScale, yScale);
+            drawRectangleInColor(graphics, xScale, yScale, Color.RED, lineNode.getPosition());
         }
-        drawNode(paragraphNode, graphics, xScale, yScale);
+        drawRectangleInColor(graphics, xScale, yScale, Color.GREEN, paragraphNode.getPosition());
     }
 
     for (Rectangle whitespace : pageNode.getWhitespaces()) {
         drawRectangleInColor(graphics, xScale, yScale, Color.PINK, whitespace);
     }
+    for (Map.Entry<Integer, List<Integer>> columnIndicesForY : pageNode.getColumns().entrySet()) {
+        final Integer y = columnIndicesForY.getKey();
+        for (Integer index : columnIndicesForY.getValue()) {
+            drawRectangleInColor(graphics, xScale, yScale, Color.BLACK, new Rectangle(index, y, 1,
+                                                                                      1));
+        }
+    }
+
     LOG.warn("Rendered page " + pageNum + " in " + (System.currentTimeMillis() - t1) + " ms");
     return image;
 }

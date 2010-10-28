@@ -16,6 +16,7 @@
 
 package org.elacin.pdfextract.segmentation.column;
 
+import org.apache.log4j.Logger;
 import org.elacin.pdfextract.util.FloatPoint;
 import org.elacin.pdfextract.util.Rectangle;
 
@@ -43,6 +44,10 @@ protected final int wantedWhitespaces;
 protected final Rectangle pageBounds;
 
 private final PriorityQueue<QueueEntry> queue;
+private static final Logger logger = Logger.getLogger(AbstractWhitespaceFinder.class);
+protected static final int MAX_QUEUE_SIZE = 100000;
+protected static final float WHITESPACE_MIN_HEIGHT = 7.0f;
+protected static final float WHITESPACE_MIN_WIDTH = 3.0f;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -58,7 +63,7 @@ public AbstractWhitespaceFinder(final List<Rectangle> texts,
     foundWhitespace = new ArrayList<Rectangle>(numWantedWhitespaces);
 
     pageBounds = new Rectangle(0.0f, 0.0f, width, height);
-    queue = new PriorityQueue<QueueEntry>(Math.max(10, originalObstacles.size() * 2));
+    queue = new PriorityQueue<QueueEntry>(MAX_QUEUE_SIZE);
 }
 
 // -------------------------- STATIC METHODS --------------------------
@@ -174,6 +179,12 @@ public List<Rectangle> findWhitespace() {
 private Rectangle findNextWhitespace() {
     /* this will always choose the rectangle with the highest priority */
     while (!queue.isEmpty()) {
+
+        if (MAX_QUEUE_SIZE < queue.size()) {
+            logger.warn("Queue too long");
+            return null;
+        }
+
         final QueueEntry current = queue.remove();
 
         /** If we have found and marked whitespace since we added this rectangle we need to

@@ -115,7 +115,7 @@ public void testNormalWordInterval() {
           "increased by 0pt (i.e. normally spaced). In this text, spaces between words are increased by 0pt");
     check(lines.get(54),
           "(i.e. normally spaced). In this text, spaces between words are increased by 0pt (i.e. normally");
-    //        check(lines.get(55), "spaced).");
+    check(lines.get(55), "spaced).");
 }
 
 @Test()

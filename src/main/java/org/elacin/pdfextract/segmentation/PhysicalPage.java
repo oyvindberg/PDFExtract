@@ -23,8 +23,7 @@ import org.elacin.pdfextract.segmentation.word.PhysicalText;
 import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.util.Rectangle;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class PhysicalPage {
 // ------------------------------ FIELDS ------------------------------
@@ -49,16 +48,6 @@ public PhysicalPage(List<PhysicalText> words, final float h, final float w, int 
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
-class ColumnBoundaryInterval {
-    final int y, endy;
-    final int[] columnBoundaries;
-
-    ColumnBoundaryInterval(final int[] columnBoundaries, final int endy, final int y) {
-        this.columnBoundaries = columnBoundaries;
-        this.endy = endy;
-        this.y = y;
-    }
-}
 
 public PageNode compileLogicalPage() {
     long t0 = System.currentTimeMillis();
@@ -73,18 +62,21 @@ public PageNode compileLogicalPage() {
     int currentBoundariesStartedAt;
     boolean continuingInterval = false;
 
-    for (int y = 0; y < (int) height; y += interval) {
+    Map<Integer, List<Integer>> columns = new HashMap<Integer, List<Integer>>((int) height);
+    for (int y = 0; y < (int) height; y++) {
         /* find boundaries for this Y */
         final List<HasPosition> texts = selectIntersectingWithYIndex(words, y);
         final List<HasPosition> spaces = selectIntersectingWithYIndex(whitespaces, y);
         List<Integer> boundaries = findColumnBoundaries(texts, spaces);
 
-        /* if this set of boundaries does not mach the current one, save that
-            interval and start the new one */
-        if (!boundaries.equals(currentColumnBoundaries)) {
+        columns.put(y, boundaries);
 
+        /** if this set of boundaries does not mach the current one, save that interval and
+         start the new one */
+        //        System.out.println(y + " boundaries = " + boundaries + ": contents = " + texts);
+
+        if (!boundaries.isEmpty() || !boundaries.equals(currentColumnBoundaries)) {
         }
-
     }
 
     //    for (PhysicalText word : words) {
@@ -93,44 +85,56 @@ public PageNode compileLogicalPage() {
 
 
     ret.addWhitespaces(whitespaces);
+    ret.addColumns(columns);
 
     logger.warn("compileLogicalPage:" + (System.currentTimeMillis() - t0));
 
     return ret;
 }
 
-private List<Integer> findColumnBoundaries(final List<HasPosition> texts,
-                                           final List<HasPosition> spaces)
+// -------------------------- OTHER METHODS --------------------------
+
+/**
+ * Returns a list of integer x indices where a string of character ends, and a whitespace starts.
+ * these indices will be considered start of columns
+ *
+ * @param texts
+ * @param spaces
+ * @return
+ */
+private List<Integer> findColumnBoundaries(final Collection<HasPosition> texts,
+                                           final Collection<HasPosition> spaces)
 {
     List<Integer> boundaries = new ArrayList<Integer>();
 
-    if (spaces.isEmpty() || texts.isEmpty()) {
-        boundaries.add(0);
-    } else {
-        for (int i = 0, textsSize = texts.size(); i < textsSize; i++) {
-            final HasPosition pos = texts.get(i);
+    List<HasPosition> lineContents = new ArrayList<HasPosition>();
+    lineContents.addAll(texts);
+    lineContents.addAll(spaces);
 
-            boundaries.add(spaces.size());
+    final Comparator<HasPosition> sortByXIndex = new Comparator<HasPosition>() {
+        @Override
+        public int compare(final HasPosition o1, final HasPosition o2) {
+            return Float.compare(o1.getPosition().getX(), o2.getPosition().getX());
+        }
+    };
+    Collections.sort(lineContents, sortByXIndex);
+
+    if (!spaces.isEmpty() && !texts.isEmpty()) {
+        PhysicalText lastText = null;
+
+        for (int i = 0; i < lineContents.size(); i++) {
+            final HasPosition content = lineContents.get(i);
+            if (content instanceof Rectangle) {
+                if (isNewBoundary(lineContents, lastText, i)) {
+                    boundaries.add((int) lastText.getPosition().getEndX());
+                }
+                lastText = null;
+            } else {
+                lastText = (PhysicalText) content;
+            }
         }
     }
     return boundaries;
-}
-
-// -------------------------- OTHER METHODS --------------------------
-
-private List<HasPosition> selectIntersectingWithYIndex(final List<? extends HasPosition> positions,
-                                                       float y)
-{
-    final Rectangle searchRectangle = new Rectangle(0.0F, y, width, y + 1);
-    final List<HasPosition> result = new ArrayList<HasPosition>(20);
-
-    for (HasPosition position : positions) {
-        if (searchRectangle.intersectsWith(position.getPosition())) {
-            result.add(position);
-        }
-    }
-
-    return result;
 }
 
 private List<PhysicalText> findWordsInDirectionFromWord(Direction dir,
@@ -153,6 +157,61 @@ private List<PhysicalText> findWordsInDirectionFromWord(Direction dir,
     return ret;
 }
 
+private PhysicalText getNextText(final List<HasPosition> contents, final int i) {
+    for (int j = i; j < contents.size(); j++) {
+        final HasPosition next = contents.get(j);
+        if (next instanceof PhysicalText) {
+            return (PhysicalText) next;
+        }
+    }
+    return null;
+}
+
+private boolean isNewBoundary(final List<HasPosition> contents,
+                              final PhysicalText lastText,
+                              final int i)
+{
+    /* first check that there has in fact been preceeding text */
+    if (lastText == null) {
+        return false;
+    }
+
+    /* check that there are more text on the same line */
+    final PhysicalText nextText = getNextText(contents, i);
+    if (nextText == null) {
+        return true;
+    }
+
+    /** there will at times be thin whitespace rectangles which crosses in between two words which
+     *  logically belongs together. Compare the distance between the two words to their average
+     *  character width to filter out those cases
+     */
+    float min = Math.min(lastText.getAverageCharacterWidth(), nextText.getAverageCharacterWidth());
+    float distance = nextText.getPosition().getX() - lastText.getPosition().getEndX();
+    if (distance < min) {
+        return false;
+    }
+
+    /** Some times, */
+
+    return true;
+}
+
+private List<HasPosition> selectIntersectingWithYIndex(final List<? extends HasPosition> positions,
+                                                       float y)
+{
+    final Rectangle searchRectangle = new Rectangle(0.0F, y, width, 1);
+    final List<HasPosition> result = new ArrayList<HasPosition>(20);
+
+    for (HasPosition position : positions) {
+        if (searchRectangle.intersectsWith(position.getPosition())) {
+            result.add(position);
+        }
+    }
+
+    return result;
+}
+
 // -------------------------- ENUMERATIONS --------------------------
 
 enum Direction {
@@ -170,6 +229,19 @@ enum Direction {
     Direction(final float xDiff, final float yDiff) {
         this.xDiff = xDiff;
         this.yDiff = yDiff;
+    }
+}
+
+// -------------------------- INNER CLASSES --------------------------
+
+class ColumnBoundaryInterval {
+    final int y, endy;
+    final int[] columnBoundaries;
+
+    ColumnBoundaryInterval(final int[] columnBoundaries, final int endy, final int y) {
+        this.columnBoundaries = columnBoundaries;
+        this.endy = endy;
+        this.y = y;
     }
 }
 }
