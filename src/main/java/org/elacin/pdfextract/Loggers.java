@@ -17,7 +17,6 @@
 package org.elacin.pdfextract;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.PropertyConfigurator;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Apr 19, 2010 Time: 2:50:18 AM To change this
@@ -26,30 +25,11 @@ import org.apache.log4j.PropertyConfigurator;
 public class Loggers {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger createTreeLogger = Logger.getLogger("org.elacin.pdfextract.createTree");
-private static final Logger pdfExtractLogger = Logger.getLogger("org.elacin.pdfextract");
-private static final Logger pdfboxLog = Logger.getLogger("org.apache.pdfbox");
-private static final Logger wordBuilderLog = Logger.getLogger("org.elacin.pdfextract.wordBuilder");
-
-static {
-    PropertyConfigurator.configure(Loggers.class.getClassLoader().getResource("log4j.xml"));
-}
+private static final Logger interfaceLog = Logger.getLogger("pdfextract-interface");
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-public static Logger getCreateTreeLog() {
-    return createTreeLogger;
-}
-
-public static Logger getPdfExtractorLog() {
-    return pdfExtractLogger;
-}
-
-public static Logger getPdfboxLog() {
-    return pdfboxLog;
-}
-
-public static Logger getWordBuilderLog() {
-    return wordBuilderLog;
+public static Logger getInterfaceLog() {
+    return interfaceLog;
 }
 }

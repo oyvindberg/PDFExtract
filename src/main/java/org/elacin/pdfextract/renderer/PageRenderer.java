@@ -36,8 +36,7 @@ import java.util.Map;
 public class PageRenderer {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger LOG = Loggers.getPdfExtractorLog();
-
+private static final Logger log = Logger.getLogger(PageRenderer.class);
 private final int resolution;
 private final PDDocument document;
 private final DocumentNode documentNode;
@@ -129,7 +128,8 @@ public BufferedImage renderPage(final int pageNum) {
         }
     }
 
-    LOG.warn("Rendered page " + pageNum + " in " + (System.currentTimeMillis() - t1) + " ms");
+    Loggers.getInterfaceLog().info(
+            "Rendered page " + pageNum + " in " + (System.currentTimeMillis() - t1) + " ms");
     return image;
 }
 }

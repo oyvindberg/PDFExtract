@@ -17,7 +17,6 @@
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.HasPosition;
-import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.text.Style;
 
 import java.io.IOException;
@@ -77,8 +76,8 @@ public String getText() {
 public boolean accepts(final WordNode node) {
     /* assure the node is located vertically on the current line */
     if (!isOnSameLine(node)) {
-        if (Loggers.getCreateTreeLog().isTraceEnabled()) {
-            Loggers.getCreateTreeLog().trace(toString() + ": accepts() " + node
+        if (log.isTraceEnabled()) {
+            log.trace(toString() + ": accepts() " + node
                     + "false: was not considered to be on same line");
         }
         return false;
@@ -93,9 +92,8 @@ public boolean accepts(final WordNode node) {
                                          node.getPosition().getX(),
                                          (node.getStyle().xSize * 1.01f));
 
-    if (Loggers.getCreateTreeLog().isTraceEnabled()) {
-        Loggers.getCreateTreeLog().trace(
-                toString() + ": accepts() " + node + ret + ": after isWithinVariance");
+    if (log.isTraceEnabled()) {
+        log.trace(toString() + ": accepts() " + node + ret + ": after isWithinVariance");
     }
     return ret;
 }

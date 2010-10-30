@@ -19,7 +19,6 @@ package org.elacin.pdfextract.segmentation.word;
 import org.apache.log4j.Logger;
 import org.apache.pdfbox.util.TextPosition;
 import org.apache.pdfbox.util.TextPositionComparator;
-import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.pdfbox.ETextPosition;
 import org.elacin.pdfextract.text.Style;
 import org.elacin.pdfextract.tree.DocumentStyles;
@@ -48,7 +47,7 @@ import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
 public class PhysicalWordSegmentator {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger LOG = Loggers.getWordBuilderLog();
+private static final Logger log = Logger.getLogger(PhysicalWordSegmentator.class);
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
@@ -108,7 +107,10 @@ public static List<PhysicalText> createWords(final DocumentStyles documentStyles
         line.clear();
     }
 
-    LOG.info("PhysicalWordSegmentator.createWords:" + (System.currentTimeMillis() - t0) + " ms");
+    if (log.isInfoEnabled()) {
+        log.info("LOG00010:word segmentation took " + (System.currentTimeMillis() - t0) + " ms");
+    }
+    ;
     return ret;
 }
 
@@ -121,8 +123,8 @@ public static List<PhysicalText> createWords(final DocumentStyles documentStyles
  * @param documentStyles
  * @param line
  */
-static List<PhysicalText> createWordsInLine(final DocumentStyles documentStyles,
-                                            final List<TextPosition> line)
+private static List<PhysicalText> createWordsInLine(final DocumentStyles documentStyles,
+                                                    final List<TextPosition> line)
 {
     final Comparator<PhysicalText> sortByLowerX = new Comparator<PhysicalText>() {
         public int compare(final PhysicalText o1, final PhysicalText o2) {
@@ -145,7 +147,6 @@ static List<PhysicalText> createWordsInLine(final DocumentStyles documentStyles,
 
         if (next != null && PhysicalText.isCloseEnoughToBelongToSameWord(next)
                 && current.isSameStyleAs(next)) {
-
             PhysicalText combinedWord = current.combineWith(next);
             queue.remove(next);
             queue.add(combinedWord);
@@ -175,16 +176,14 @@ private static float getAdjustedHeight(final TextPosition tp) {
     return adjustedHeight;
 }
 
-private static boolean isOnAnotherLine(final float minY, final ETextPosition textPosition) {
+private static boolean isOnAnotherLine(final float y, final ETextPosition tp) {
     //noinspection FloatingPointEquality
-    return !isWithinVariance(minY, textPosition.getYDirAdj(), 3.0f);
-    //    return minY != textPosition.getYDirAdj();
+    return !isWithinVariance(y, tp.getYDirAdj(), 3.0f);
+    //    return y != tp.getYDirAdj();
 }
 
-private static boolean isTooFarAwayHorizontally(final float maxX,
-                                                final ETextPosition textPosition)
-{
-    return !isWithinVariance(maxX, textPosition.getPos().getX(), textPosition.getFontSizeInPt());
+private static boolean isTooFarAwayHorizontally(final float endX, final ETextPosition tp) {
+    return !isWithinVariance(endX, tp.getPos().getX(), tp.getFontSizeInPt());
 }
 
 /**
@@ -208,8 +207,8 @@ static List<PhysicalText> splitTextPositionsOnSpace(final DocumentStyles sf,
     float width = 0.0f;
     boolean firstInLine = true;
     for (TextPosition tp : textPositions) {
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("in:" + StringUtils.getTextPositionString(tp));
+        if (log.isDebugEnabled()) {
+            log.debug("LOG00000:in:" + StringUtils.getTextPositionString(tp));
         }
         float x = tp.getXDirAdj();
         float y = tp.getYDirAdj();
@@ -225,7 +224,6 @@ static List<PhysicalText> splitTextPositionsOnSpace(final DocumentStyles sf,
 
             if (j == s.length() || Character.isSpaceChar(s.charAt(j))) {
                 if (contents.length() > 0) {
-
                     final float distance;
                     if (firstInLine) {
                         distance = Float.MIN_VALUE;

@@ -18,6 +18,7 @@ package org.elacin.pdfextract.segmentation.column;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.HasPosition;
+import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.util.Rectangle;
 
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ public class ColumnFinder {
 // ------------------------------ FIELDS ------------------------------
 
 private static final int NUM_WHITESPACES_TO_BE_FOUND = 40;
-protected static final Logger logger = Logger.getLogger(ColumnFinder.class);
+private static final Logger log = Logger.getLogger(ColumnFinder.class);
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
@@ -62,7 +63,7 @@ public static List<Rectangle> findColumnsFromWordNodes(final List<? extends HasP
     ret.addAll(vert.findWhitespace());
 
     final long time = System.currentTimeMillis() - t0;
-    logger.warn("findColumnsFromWordNodes took " + time + " ms.");
+    Loggers.getInterfaceLog().debug("findColumnsFromWordNodes took " + time + " ms.");
     return ret;
 }
 }

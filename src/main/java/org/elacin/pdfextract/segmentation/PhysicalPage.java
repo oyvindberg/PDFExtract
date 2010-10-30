@@ -18,6 +18,7 @@ package org.elacin.pdfextract.segmentation;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.HasPosition;
+import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.segmentation.column.ColumnFinder;
 import org.elacin.pdfextract.segmentation.word.PhysicalText;
 import org.elacin.pdfextract.tree.PageNode;
@@ -87,7 +88,7 @@ public PageNode compileLogicalPage() {
     ret.addWhitespaces(whitespaces);
     ret.addColumns(columns);
 
-    logger.warn("compileLogicalPage:" + (System.currentTimeMillis() - t0));
+    Loggers.getInterfaceLog().debug("compileLogicalPage:" + (System.currentTimeMillis() - t0));
 
     return ret;
 }

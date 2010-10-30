@@ -32,7 +32,6 @@ import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.PDFOperator;
 import org.apache.pdfbox.util.operator.OperatorProcessor;
-import org.elacin.pdfextract.Loggers;
 
 import java.io.IOException;
 import java.util.*;
@@ -48,10 +47,10 @@ import java.util.*;
 public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
 // ------------------------------ FIELDS ------------------------------
 
+private static final Logger log = Logger.getLogger(PDFStreamEngine.class);
 /**
  * Log instance.
  */
-private static final Logger log = Loggers.getPdfboxLog();
 
 private static final byte[] SPACE_BYTES = {(byte) 32};
 

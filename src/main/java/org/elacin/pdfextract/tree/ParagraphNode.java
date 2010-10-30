@@ -16,8 +16,6 @@
 
 package org.elacin.pdfextract.tree;
 
-import org.elacin.pdfextract.Loggers;
-
 import java.util.Comparator;
 
 import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
@@ -33,9 +31,8 @@ public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
 @Override
 public boolean addWord(final WordNode node) {
     if (getChildren().isEmpty()) {
-        if (Loggers.getCreateTreeLog().isDebugEnabled()) {
-            Loggers.getCreateTreeLog().debug(
-                    toString() + ": Adding a new LineNode for node " + node);
+        if (log.isDebugEnabled()) {
+            log.debug(toString() + ": Adding a new LineNode for node " + node);
         }
         addChild(new LineNode(node));
         return true;
@@ -49,10 +46,8 @@ public boolean addWord(final WordNode node) {
     }
 
     if (isNewLineInThisParagraph(node)) {
-        if (Loggers.getCreateTreeLog().isDebugEnabled()) {
-            Loggers.getCreateTreeLog().debug(toString()
-                    + ": Node "
-                    + node
+        if (log.isDebugEnabled()) {
+            log.debug(toString() + ": Node " + node
                     + " is considered to be a new line in this paragraph");
         }
         addChild(new LineNode(node));
@@ -88,9 +83,8 @@ public void combineChildren() {
 
             if (firstLine.isOnSameLine(secondLine) || firstLine.getPosition().intersectsWith(
                     secondLine.getPosition())) {
-                if (Loggers.getCreateTreeLog().isDebugEnabled()) {
-                    Loggers.getCreateTreeLog().debug(
-                            "combining lines " + firstLine + " and " + secondLine);
+                if (log.isDebugEnabled()) {
+                    log.debug("combining lines " + firstLine + " and " + secondLine);
                 }
                 firstLine.combineWith(secondLine);
 

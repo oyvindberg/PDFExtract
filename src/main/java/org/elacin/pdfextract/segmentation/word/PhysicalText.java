@@ -27,6 +27,7 @@ import org.elacin.pdfextract.util.Rectangle;
 public class PhysicalText implements HasPosition {
 // ------------------------------ FIELDS ------------------------------
 
+
 public int index;
 final float distanceToPreceeding;
 float charSpacing;

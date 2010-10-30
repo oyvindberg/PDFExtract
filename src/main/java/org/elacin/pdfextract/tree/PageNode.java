@@ -16,7 +16,6 @@
 
 package org.elacin.pdfextract.tree;
 
-import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.util.Rectangle;
 
 import java.util.ArrayList;
@@ -75,8 +74,8 @@ public boolean addWord(final WordNode node) {
         return false;
     }
 
-    if (Loggers.getCreateTreeLog().isDebugEnabled()) {
-        Loggers.getCreateTreeLog().debug("Adding new WordNode: " + node);
+    if (log.isDebugEnabled()) {
+        log.debug("Adding new WordNode: " + node);
     }
     getParent().words.add(node);
 
@@ -115,9 +114,8 @@ public void combineChildren() {
             ParagraphNode secondParagraph = paragraphNodes[j];
 
             if (firstParagraph.overlapsWith(secondParagraph)) {
-                if (Loggers.getCreateTreeLog().isInfoEnabled()) {
-                    Loggers.getCreateTreeLog().info(
-                            "combining paragraphs " + firstParagraph + " and " + secondParagraph);
+                if (log.isInfoEnabled()) {
+                    log.info("combining paragraphs " + firstParagraph + " and " + secondParagraph);
                 }
                 firstParagraph.combineWith(secondParagraph);
 

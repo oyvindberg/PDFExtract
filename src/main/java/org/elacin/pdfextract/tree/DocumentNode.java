@@ -16,7 +16,6 @@
 
 package org.elacin.pdfextract.tree;
 
-import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.text.Style;
 
 import java.io.IOException;
@@ -66,9 +65,8 @@ public DocumentStyles getStyles() {
 @Override
 public boolean addWord(final WordNode node) {
     if (node.getText().trim().length() == 0) {
-        if (Loggers.getCreateTreeLog().isTraceEnabled()) {
-            Loggers.getCreateTreeLog().trace(
-                    "Ignoring word " + node + " because it contains no text");
+        if (log.isTraceEnabled()) {
+            log.trace("Ignoring word " + node + " because it contains no text");
         }
         return false;
     }

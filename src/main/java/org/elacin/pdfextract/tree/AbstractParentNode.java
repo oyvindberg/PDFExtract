@@ -16,7 +16,6 @@
 
 package org.elacin.pdfextract.tree;
 
-import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.text.Role;
 import org.elacin.pdfextract.text.Style;
 import org.elacin.pdfextract.util.Rectangle;
@@ -113,9 +112,8 @@ public final void addChild(final ChildType child) {
     child.parent = this;
     child.invalidateThisAndParents();
     Collections.sort(children, getChildComparator());
-    if (Loggers.getCreateTreeLog().isDebugEnabled()) {
-        Loggers.getCreateTreeLog().debug(
-                getClass().getSimpleName() + " : " + toString() + ": Added node " + child);
+    if (log.isDebugEnabled()) {
+        log.debug(getClass().getSimpleName() + " : " + toString() + ": Added node " + child);
     }
 
     child.setRoot(getRoot());

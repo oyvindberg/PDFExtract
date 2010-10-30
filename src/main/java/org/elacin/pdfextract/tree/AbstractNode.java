@@ -17,8 +17,8 @@
 package org.elacin.pdfextract.tree;
 
 
+import org.apache.log4j.Logger;
 import org.elacin.pdfextract.HasPosition;
-import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.text.Role;
 import org.elacin.pdfextract.text.Style;
 
@@ -34,6 +34,8 @@ import java.util.Set;
 public abstract class AbstractNode<ParentType extends AbstractParentNode>
         implements Serializable, HasPosition
 {
+protected static final Logger log = Logger.getLogger(AbstractNode.class);
+
 // ------------------------------ FIELDS ------------------------------
 
 protected Map<Role, String> roles;
@@ -63,7 +65,7 @@ public void setRoot(final DocumentNode root) {
 // -------------------------- PUBLIC METHODS --------------------------
 
 public void addRole(Role r, String reason) {
-    Loggers.getCreateTreeLog().warn(this + " got assigned role " + r);
+    log.warn(this + " got assigned role " + r);
     if (roles == null) {
         roles = new EnumMap<Role, String>(Role.class);
     }
@@ -105,14 +107,14 @@ public boolean overlapsWith(final HasPosition two) {
 }
 
 public void printTree(String filename) {
-    Loggers.getPdfExtractorLog().info("Opening " + filename + " for output");
+    log.info("Opening " + filename + " for output");
     PrintStream stream = null;
     try {
         stream = new PrintStream(new BufferedOutputStream(new FileOutputStream(filename, false),
                                                           8192 * 4), false, "UTF-8");
         printTree(stream);
     } catch (Exception e) {
-        Loggers.getPdfExtractorLog().error("Could not open output file", e);
+        log.error("Could not open output file", e);
     } finally {
         if (stream != null) {
             stream.close();
@@ -124,10 +126,9 @@ public void printTree(final PrintStream output) {
     long t1 = System.currentTimeMillis();
     try {
         appendLocalInfo(output, 0);
-        Loggers.getPdfExtractorLog().info(
-                "printTree took " + (System.currentTimeMillis() - t1) + " ms");
+        log.info("printTree took " + (System.currentTimeMillis() - t1) + " ms");
     } catch (IOException e) {
-        Loggers.getPdfExtractorLog().warn("error while printing tree", e);
+        log.warn("error while printing tree", e);
     }
 }
 

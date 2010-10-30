@@ -38,7 +38,7 @@ import java.util.List;
 public class TextExtractor {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger LOG = Loggers.getPdfExtractorLog();
+private static final Logger log = Logger.getLogger(TextExtractor.class);
 private final List<File> pdfFiles;
 private final File destination;
 private final int startPage;
@@ -76,7 +76,7 @@ protected static List<File> findAllPdfFilesUnderDirectory(final String filename)
         try {
             ret.addAll(FileWalker.getFileListing(file, ".pdf"));
         } catch (FileNotFoundException e) {
-            LOG.error("Could not find file " + filename);
+            log.error("Could not find file " + filename);
         }
     } else if (file.isFile()) {
         ret.add(file);
@@ -95,20 +95,18 @@ private static Options getOptions() {
 }
 
 protected static PrintStream openOutputStream(final File file) {
-    PrintStream ret;
+    Loggers.getInterfaceLog().info("LOG00110:Opening " + file + " for output");
     try {
-        LOG.warn("Opening " + file + " for output");
-        ret = new PrintStream(new BufferedOutputStream(new FileOutputStream(file, false), 8192 * 4),
-                              false, "UTF-8");
+        return new PrintStream(new BufferedOutputStream(new FileOutputStream(file, false),
+                                                        8192 * 4), false, "UTF-8");
     } catch (Exception e) {
         throw new RuntimeException("Could not open output file", e);
     }
-    return ret;
 }
 
 protected static PDDocument openPdfDocument(final File pdfFile, final String password) {
     long t0 = System.currentTimeMillis();
-    LOG.warn("Opening PDF file " + pdfFile + ".");
+    Loggers.getInterfaceLog().info("LOG00120:Opening PDF file " + pdfFile + ".");
 
 
     try {
@@ -121,11 +119,13 @@ protected static PDDocument openPdfDocument(final File pdfFile, final String pas
                     throw new RuntimeException("Error while reading encrypted PDF:", e);
                 }
             } else {
-                LOG.warn("File claims to be encrypted, a password should be provided");
+                Loggers.getInterfaceLog().warn(
+                        "File claims to be encrypted, a password should be provided");
             }
         }
 
-        LOG.warn("PDFBox load() took " + (System.currentTimeMillis() - t0) + "ms");
+        Loggers.getInterfaceLog().debug(
+                "LOG00130:PDFBox load() took " + (System.currentTimeMillis() - t0) + "ms");
         return document;
     } catch (IOException e) {
         throw new RuntimeException("Error while reading " + pdfFile + ".", e);
@@ -140,7 +140,7 @@ private static CommandLine parseParameters(final String[] args) {
     try {
         cmd = parser.parse(options, args);
     } catch (ParseException e) {
-        LOG.error("Could not parse command line options: " + e.getMessage());
+        Loggers.getInterfaceLog().error("Could not parse command line options: " + e.getMessage());
         usage();
         System.exit(1);
     }
@@ -163,7 +163,7 @@ public final void processFiles() {
             processFile(pdfFile);
             timings.add(System.currentTimeMillis() - t0);
         } catch (Exception e) {
-            LOG.error("Error while processing PDF:", e);
+            Loggers.getInterfaceLog().error("Error while processing PDF:", e);
         }
     }
 
@@ -171,8 +171,9 @@ public final void processFiles() {
     for (Long timing : timings) {
         sum += timing;
     }
-    LOG.error("Total time for analyzing " + pdfFiles.size() + " documents: " + sum + "ms (" + (
-            sum / pdfFiles.size() + "ms average)"));
+    Loggers.getInterfaceLog().error(String.format(
+            "Total time for analyzing %d documents: %dms (%sms average)", pdfFiles.size(), sum,
+            sum / pdfFiles.size()));
 }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -193,10 +194,10 @@ protected void printTree(final File pdfFile, final DocumentNode root) {
 
 protected void processFile(final File pdfFile) throws IOException {
     if (startPage != -1) {
-        LOG.warn("Reading from page " + startPage);
+        Loggers.getInterfaceLog().info("LOG00140:Reading from page " + startPage);
     }
     if (endPage != Integer.MAX_VALUE) {
-        LOG.warn("Reading until page " + endPage);
+        Loggers.getInterfaceLog().info("LOG00150:Reading until page " + endPage);
     }
 
     PDDocument doc = null;
@@ -207,7 +208,8 @@ protected void processFile(final File pdfFile) throws IOException {
         long t1 = System.currentTimeMillis();
         PDFTextStripper stripper = new PDFTextStripper(doc, startPage, endPage);
         stripper.readText();
-        LOG.warn("Document analysis took " + (System.currentTimeMillis() - t1) + "ms");
+        Loggers.getInterfaceLog().debug(
+                "LOG00160:Document analysis took " + (System.currentTimeMillis() - t1) + "ms");
 
         final DocumentNode root = stripper.getDocumentNode();
         printTree(pdfFile, root);
@@ -236,7 +238,7 @@ protected void renderPDF(final File pdfFile, final PDDocument doc, final Documen
         try {
             image = renderer.renderPage(i);
         } catch (RuntimeException e) {
-            LOG.warn("Error while rendering page " + i, e);
+            Loggers.getInterfaceLog().warn("Error while rendering page " + i, e);
             continue;
         }
 
@@ -250,10 +252,11 @@ protected void renderPDF(final File pdfFile, final PDDocument doc, final Documen
         try {
             ImageIO.write(image, "png", output);
         } catch (IOException e) {
-            LOG.warn("Error while writing rendered image to file", e);
+            Loggers.getInterfaceLog().warn("Error while writing rendered image to file", e);
         }
     }
-    LOG.warn("Rendering of pdf took " + (System.currentTimeMillis() - t0) + " ms");
+    Loggers.getInterfaceLog().debug(
+            "LOG00170:Rendering of pdf took " + (System.currentTimeMillis() - t0) + " ms");
 }
 
 // --------------------------- main() method ---------------------------
@@ -294,12 +297,13 @@ public static void main(String[] args) {
         /* if we have more than one input file, demand that the output be a directory */
         if (destination.exists()) {
             if (!destination.isDirectory()) {
-                LOG.error("When specifying multiple input files, output needs to be a directory");
+                Loggers.getInterfaceLog().error(
+                        "When specifying multiple input files, output needs to be a directory");
                 return;
             }
         } else {
             if (!destination.mkdirs()) {
-                LOG.error("Could not create output directory");
+                Loggers.getInterfaceLog().error("Could not create output directory");
                 return;
             }
         }

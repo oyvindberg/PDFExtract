@@ -17,7 +17,6 @@
 package org.elacin.pdfextract.segmentation.word;
 
 import org.apache.log4j.Logger;
-import org.elacin.pdfextract.Loggers;
 import org.elacin.pdfextract.util.MathUtils;
 
 import java.util.ArrayList;
@@ -31,7 +30,7 @@ import java.util.List;
 class CharSpacingFinder {
 // ------------------------------ FIELDS ------------------------------
 
-static final Logger LOG = Loggers.getWordBuilderLog();
+private static final Logger log = Logger.getLogger(CharSpacingFinder.class);
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
@@ -43,7 +42,6 @@ public static float calculateCharspacingForDistances(final List<Float> distances
     } else if (distances.isEmpty()) {
         return 0.0f;
     }
-
     /* calculate the average distance - it will be used below */
     float sum = 0.0f;
     float smallest = Float.MAX_VALUE;
@@ -83,7 +81,7 @@ public static float calculateCharspacingForDistances(final List<Float> distances
         return largest;
     }
 
-    /* lower that 0.25 does not realisticly happen with 7pt, scale that with bigger font sizes */
+    /* lower than 0.35 does not realisticly happen with 7pt, scale that with bigger font sizes */
     final float lowerLimit = (0.35f / 7.0f) * averageFontSize;
     if (diff < lowerLimit) {
         return lowerLimit;
@@ -99,7 +97,7 @@ public static float calculateCharspacingForDistances(final List<Float> distances
             minSize = v;
         }
     }
-    //    LOG.warn("minSize = " + minSize);
+    //    log.warn("minSize = " + minSize);
 
     //    float charSpacing = ((float) (StrictMath.log(averageFontSize) * 0.60f) * (averageDistance
     //            * 0.3f) + smallest * 0.8f);
@@ -123,13 +121,12 @@ public static void setCharSpacingForTexts(final Collection<PhysicalText> texts) 
     }
 
     /* start by finding a list of distances, and the average font size
-       for the text
-    */
+       for the text */
     List<Float> distances = getDistancesBetweenTextObjects(texts);
     final float fontSizeAverage = getAverageFontSize(texts);
 
     /* spit out some debug information */
-    if (LOG.isDebugEnabled()) {
+    if (log.isDebugEnabled()) {
         printDebugPre(texts, distances, fontSizeAverage);
     }
     float charSpacing = calculateCharspacingForDistances(distances, fontSizeAverage);
@@ -139,7 +136,7 @@ public static void setCharSpacingForTexts(final Collection<PhysicalText> texts) 
         text.charSpacing = charSpacing;
     }
 
-    if (LOG.isDebugEnabled()) {
+    if (log.isDebugEnabled()) {
         printDebugPost(texts, charSpacing);
     }
 }
@@ -168,7 +165,7 @@ private static List<Float> getDistancesBetweenTextObjects(final Collection<Physi
 }
 
 private static void printDebugPost(final Collection<PhysicalText> texts, final float charSpacing) {
-    LOG.debug("spacing: charSpacing=" + charSpacing);
+    log.debug("spacing: charSpacing=" + charSpacing);
 
     StringBuilder out = new StringBuilder();
 
@@ -180,7 +177,7 @@ private static void printDebugPost(final Collection<PhysicalText> texts, final f
         out.append(text.content);
         first = false;
     }
-    LOG.debug("spacing: output: " + out);
+    log.debug("spacing: output: " + out);
 }
 
 private static void printDebugPre(final Collection<PhysicalText> texts,
@@ -200,10 +197,10 @@ private static void printDebugPre(final Collection<PhysicalText> texts,
         first = false;
     }
 
-    LOG.debug("spacing: -----------------");
-    LOG.debug("spacing: fontSizeAverage: " + fontSizeAverage);
-    LOG.debug("spacing: content: " + textWithDistances);
-    LOG.debug("spacing: content: " + textOnly);
-    LOG.debug("spacing: distances: " + distances);
+    log.debug("spacing: -----------------");
+    log.debug("spacing: fontSizeAverage: " + fontSizeAverage);
+    log.debug("spacing: content: " + textWithDistances);
+    log.debug("spacing: content: " + textOnly);
+    log.debug("spacing: distances: " + distances);
 }
 }
