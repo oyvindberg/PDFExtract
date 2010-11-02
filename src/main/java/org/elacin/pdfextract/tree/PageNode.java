@@ -16,7 +16,7 @@
 
 package org.elacin.pdfextract.tree;
 
-import org.elacin.pdfextract.util.Rectangle;
+import org.elacin.pdfextract.segmentation.column.WhitespaceRectangle;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -31,7 +31,7 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
 // ------------------------------ FIELDS ------------------------------
 
 private final int pageNumber;
-private final List<Rectangle> whitespaces = new ArrayList<Rectangle>();
+private final List<WhitespaceRectangle> whitespaces = new ArrayList<WhitespaceRectangle>();
 private Map<Integer, List<Integer>> columns;
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -50,7 +50,7 @@ public int getPageNumber() {
     return pageNumber;
 }
 
-public List<Rectangle> getWhitespaces() {
+public List<WhitespaceRectangle> getWhitespaces() {
     return whitespaces;
 }
 
@@ -64,7 +64,7 @@ public void addColumns(final Map<Integer, List<Integer>> columns) {
     this.columns = columns;
 }
 
-public void addWhitespaces(final List<Rectangle> whitespaces) {
+public void addWhitespaces(final List<WhitespaceRectangle> whitespaces) {
     this.whitespaces.addAll(whitespaces);
 }
 

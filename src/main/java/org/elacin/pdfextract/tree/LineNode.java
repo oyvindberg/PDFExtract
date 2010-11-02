@@ -31,7 +31,7 @@ import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
 public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
 // ------------------------------ FIELDS ------------------------------
 
-private final boolean SHOW_DETAILS = true;
+private final boolean SHOW_DETAILS = false;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 

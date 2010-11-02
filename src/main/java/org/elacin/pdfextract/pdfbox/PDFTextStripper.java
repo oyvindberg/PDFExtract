@@ -62,7 +62,7 @@ Map<String, List<TextPosition>>
 /* The normalizer is used to remove text ligatures/presentation forms and to correct
 the direction of right to left text, such as Arabic and Hebrew. */
 private final TextNormalize normalize = new TextNormalize("UTF-8");
-private PDDocument doc;
+private final PDDocument doc;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -70,7 +70,6 @@ public PDFTextStripper(final PDDocument doc,
                        final int startPage,
                        final int endPage) throws IOException
 {
-
     super(ResourceLoader.loadProperties("org.elacin.PdfTextStripper.properties", true));
 
     root = new DocumentNode();
@@ -89,7 +88,6 @@ public PDFTextStripper(final PDDocument doc,
  * @param text The text to process.
  */
 protected void processTextPosition(ETextPosition text) {
-
     final boolean showCharacter = suppressDuplicateOverlappingText(text);
 
     if (showCharacter) {
@@ -247,12 +245,8 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
                 root.addWord(new WordNode(text.getPosition(), currentPageNo, text.getStyle(),
                                           text.getContent(), text.getCharSpacing()));
             }
-
-            //            final List<Rectangle> whitespaces = LayoutRecognizer.findColumnsFromWordNodes(texts, width,
-            //                                                                                      height);
             root.getPageNumber(currentPageNo).addWhitespaces(notUsed.getWhitespaces());
             root.getPageNumber(currentPageNo).addColumns(notUsed.getColumns());
-
         }
     }
 }

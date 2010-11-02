@@ -19,6 +19,7 @@ package org.elacin.pdfextract.segmentation;
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.HasPosition;
 import org.elacin.pdfextract.segmentation.column.LayoutRecognizer;
+import org.elacin.pdfextract.segmentation.column.WhitespaceRectangle;
 import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.util.Rectangle;
 import org.elacin.pdfextract.util.RectangleCollection;
@@ -74,7 +75,7 @@ public PageNode compileLogicalPage() {
     long t0 = System.currentTimeMillis();
 
 
-    final List<Rectangle> whitespaces = LayoutRecognizer.findColumnsForPage(this);
+    final List<WhitespaceRectangle> whitespaces = LayoutRecognizer.findColumnsForPage(this);
 
     /* establish column boundaries for every y-index */
     List<ColumnBoundaryInterval> columnLayout = new ArrayList<ColumnBoundaryInterval>();

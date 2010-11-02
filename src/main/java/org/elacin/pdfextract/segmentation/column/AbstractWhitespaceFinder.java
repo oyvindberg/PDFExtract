@@ -37,19 +37,17 @@ private static final Logger log = Logger.getLogger(AbstractWhitespaceFinder.clas
 
 protected static final int MAX_QUEUE_SIZE = 100000;
 
-protected final float whitespaceMinHeight;
+protected final float minHeight;
 protected final float minWidth;
 
 /* this holds all the whitespace rectangles we have found */
 protected final List<WhitespaceRectangle> foundWhitespace;
 
-/* this holds all the content on the page. this is unchanged */
-//protected final List<ObstacleType> originalObstacles;
-
 /* the number of whitespace we want to find */
 protected final int wantedWhitespaces;
 
 private final PriorityQueue<QueueEntry> queue;
+
 private final RectangleCollection<? extends HasPosition> page;
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -57,7 +55,7 @@ private final RectangleCollection<? extends HasPosition> page;
 public AbstractWhitespaceFinder(RectangleCollection<? extends HasPosition> page,
                                 final int numWantedWhitespaces,
                                 final float minWidth,
-                                final float whitespaceMinHeight)
+                                final float minHeight)
 {
     this.page = page;
 
@@ -67,7 +65,7 @@ public AbstractWhitespaceFinder(RectangleCollection<? extends HasPosition> page,
     queue = new PriorityQueue<QueueEntry>(MAX_QUEUE_SIZE);
 
     this.minWidth = minWidth;
-    this.whitespaceMinHeight = whitespaceMinHeight;
+    this.minHeight = minHeight;
 }
 
 // -------------------------- STATIC METHODS --------------------------
@@ -97,54 +95,6 @@ private static HasPosition choosePivot(final Rectangle bound,
         }
     }
     return closestToCentre;
-}
-
-/**
- * Creates a rectangle based on the coordinates of corners, instead of with the normal constructor
- * which accepts upper left corner and width/height.
- *
- * @param x1 coordinate of any corner of the rectangle
- * @param y1 (see x1)
- * @param x2 coordinate of the opposite corner
- * @param y2 (see x2)
- */
-private static Rectangle createRectangle(final float x1,
-                                         final float y1,
-                                         final float x2,
-                                         final float y2)
-{
-    float x = Math.min(x1, x2);
-    float y = Math.min(y1, y2);
-
-    float width = Math.max(x1, x2) - x;
-    float height = Math.max(y1, y2) - y;
-
-    return new Rectangle(x, y, width, height);
-}
-
-private static Rectangle[] createSubrectanglesAroundPivot(final Rectangle pos,
-                                                          final Rectangle pivot)
-{
-    Rectangle one = createRectangle(pivot.getX(), pos.getY(), pos.getX(), pos.getEndY());
-    Rectangle two = createRectangle(pos.getX(), pivot.getY(), pos.getEndX(), pos.getY());
-    Rectangle three = createRectangle(pos.getEndX(), pos.getY(), pivot.getEndX(), pos.getEndY());
-    Rectangle four = createRectangle(pos.getX(), pos.getEndY(), pos.getEndX(), pivot.getEndY());
-
-    return new Rectangle[]{one, two, three, four};
-}
-
-private static List<HasPosition> getObstaclesBoundedBy(final Iterable<? extends HasPosition> obstacles,
-                                                       final HasPosition subrectangle,
-                                                       final HasPosition pivot)
-{
-    List<HasPosition> ret = new ArrayList<HasPosition>();
-    for (HasPosition obstacle : obstacles) {
-        if (obstacle != null && subrectangle.getPosition().intersectsWith(obstacle)
-                && !pivot.equals(obstacle)) {
-            ret.add(obstacle);
-        }
-    }
-    return ret;
 }
 
 private static boolean isNotContainedByAnyObstacle(final Rectangle subrectangle,
@@ -188,7 +138,7 @@ private WhitespaceRectangle findNextWhitespace() {
     /* this will always choose the rectangle with the highest priority */
     while (!queue.isEmpty()) {
         /* TODO: i can't help but feel this shouldnt be necessary */
-        if (MAX_QUEUE_SIZE < queue.size()) {
+        if (MAX_QUEUE_SIZE - 4 <= queue.size()) {
             log.warn("Queue too long");
             return null;
         }
@@ -207,12 +157,13 @@ private WhitespaceRectangle findNextWhitespace() {
             /* if the rectangle is not higher than 25% of the page, check whether it is
                 surrounded on all sides by text. in that case, drop it
              */
+            final WhitespaceRectangle newWhitespace = new WhitespaceRectangle(current.bound);
             if (current.bound.getHeight() < page.getHeight() / 4.0f) {
-                if (isSurroundedByObstaclesOnAllSides(current.bound)) {
+                if (!doesTouchAnotherWhitespace(newWhitespace)) {
                     continue;
                 }
             }
-            return new WhitespaceRectangle(current.bound);
+            return newWhitespace;
         }
 
         /* choose an obstacle near the middle of the current rectangle */
@@ -225,29 +176,25 @@ private WhitespaceRectangle findNextWhitespace() {
          *  the current bound, and as long as it is not completely contained within
          *  an obstacle)
          */
-        final Rectangle[] subrectangles = createSubrectanglesAroundPivot(current.bound,
-                                                                         pivot.getPosition());
 
-        for (Rectangle subrectangle : subrectangles) {
+        final QueueEntry[] subrectangles = splitSearchAreaAround(current, pivot);
+
+        for (QueueEntry sub : subrectangles) {
             /** check that the subrectangle is contained by the current bound. this will happen
              * if the pivot we used was itself not contained. This breaks the algorithm if it
              * happens, as we will have overlapping rectangles */
-            if (!subrectangle.containedBy(current.bound)) {
+            if (!sub.bound.containedBy(current.bound)) {
                 continue;
             }
 
-            if (subrectangle.getWidth() < minWidth
-                    || subrectangle.getHeight() < whitespaceMinHeight) {
+            if (sub.bound.getWidth() < minWidth || sub.bound.getHeight() < minHeight) {
                 continue;
             }
-
-            final List<HasPosition> obstaclesForSubrectangle = getObstaclesBoundedBy(
-                    current.obstacles, subrectangle, pivot);
 
             /** It does not make sense to include rectangles which are completely
              *  contained within one of the obstacles, so skip those */
-            if (isNotContainedByAnyObstacle(subrectangle, obstaclesForSubrectangle)) {
-                queue.add(new QueueEntry(subrectangle, obstaclesForSubrectangle));
+            if (isNotContainedByAnyObstacle(sub.bound, sub.obstacles)) {
+                queue.add(sub);
             }
         }
     }
@@ -257,27 +204,76 @@ private WhitespaceRectangle findNextWhitespace() {
     return null;
 }
 
+private boolean doesTouchAnotherWhitespace(final WhitespaceRectangle newWhitespace) {
+    if (newWhitespace.getX() == 0.0f || newWhitespace.getY() == 0.0f
+            || newWhitespace.getEndX() == page.getWidth()
+            || newWhitespace.getEndY() == page.getHeight()) {
+        return true;
+    }
+
+    for (WhitespaceRectangle existing : foundWhitespace) {
+        if (newWhitespace.distance(existing) < 1.0f) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 private int getNumberOfWhitespacesFound() {
     return foundWhitespace.size();
 }
 
-private boolean isSurroundedByObstaclesOnAllSides(final Rectangle bound) {
+private QueueEntry[] splitSearchAreaAround(final QueueEntry current, final HasPosition pivot) {
+    final Rectangle pos = current.bound;
+    final Rectangle pivotPos = pivot.getPosition();
 
-    for (WhitespaceRectangle whitespaceRectangle : foundWhitespace) {
-        if (bound.distance(whitespaceRectangle) < 2.0f) {
-            return false;
+    Rectangle left = new Rectangle(pos.getX(), pos.getY(), pivotPos.getX() - pos.getX(),
+                                   pos.getHeight());
+    List<HasPosition> leftObstacles = new ArrayList<HasPosition>();
+
+    Rectangle above = new Rectangle(pos.getX(), pos.getY(), pos.getWidth(),
+                                    pivotPos.getY() - pos.getY());
+    List<HasPosition> aboveObstacles = new ArrayList<HasPosition>();
+
+    Rectangle right = new Rectangle(pivotPos.getEndX(), pos.getY(),
+                                    pos.getEndX() - pivotPos.getEndX(), pos.getHeight());
+    List<HasPosition> rightObstacles = new ArrayList<HasPosition>();
+
+    Rectangle below = new Rectangle(pos.getX(), pivotPos.getEndY(), pos.getWidth(),
+                                    pos.getEndY() - pivotPos.getEndY());
+    List<HasPosition> belowObstacles = new ArrayList<HasPosition>();
+
+    /**
+     * All the obstacles in current already fit within current.bound, so we can do just a quick
+     *  check to see where they belong here. this is primarily an optimization
+     */
+
+    for (HasPosition obstacle : current.obstacles) {
+        if (obstacle.equals(pivot)) {
+            continue;
+        }
+
+        final Rectangle oPos = obstacle.getPosition();
+
+        if (oPos.getX() < pivotPos.getX()) {
+            leftObstacles.add(obstacle);
+        }
+        if (oPos.getY() < pivotPos.getY()) {
+            aboveObstacles.add(obstacle);
+        }
+        if (oPos.getEndX() > pivotPos.getEndX()) {
+            rightObstacles.add(obstacle);
+        }
+        if (oPos.getEndY() > pivotPos.getEndY()) {
+            belowObstacles.add(obstacle);
         }
     }
 
-
-    //    final float distance = 1.0f;
-    //    return !page.searchDirection(Direction.E, bound, distance).isEmpty() && !page.searchDirection(
-    //            Direction.W, bound, distance).isEmpty() && !page.searchDirection(Direction.N, bound,
-    //                                                                             distance).isEmpty()
-    //            && !page.searchDirection(Direction.S, bound, distance).isEmpty();
-    //
-
-    return true;
+    return new QueueEntry[]{new QueueEntry(left, leftObstacles),
+                            new QueueEntry(above, aboveObstacles),
+                            new QueueEntry(right, rightObstacles),
+                            new QueueEntry(below, belowObstacles)};
 }
 
 /**
@@ -303,18 +299,20 @@ protected abstract float rectangleQuality(Rectangle r);
 
 private class QueueEntry implements Comparable<QueueEntry> {
     final Rectangle bound;
-    final List<HasPosition> obstacles = new ArrayList<HasPosition>();
+    final List<HasPosition> obstacles;///= new ArrayList<HasPosition>();
     int numberOfWhitespaceFound;
+    private final float q;
 
-    private QueueEntry(final Rectangle bound, final List<? extends HasPosition> obstacles) {
+    private QueueEntry(final Rectangle bound, final List<? extends HasPosition> positions) {
         this.bound = bound;
-        this.obstacles.addAll(obstacles);
+        obstacles = (List<HasPosition>) positions;
         numberOfWhitespaceFound = getNumberOfWhitespacesFound();
+        q = rectangleQuality(bound);
     }
 
     @Override
     public int compareTo(final QueueEntry o) {
-        return Float.compare(rectangleQuality(o.bound), rectangleQuality(bound));
+        return Float.compare(o.q, q);
     }
 
     @Override

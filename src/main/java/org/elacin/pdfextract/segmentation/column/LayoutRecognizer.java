@@ -17,11 +17,8 @@
 package org.elacin.pdfextract.segmentation.column;
 
 import org.apache.log4j.Logger;
-import org.elacin.pdfextract.HasPosition;
 import org.elacin.pdfextract.segmentation.PhysicalPage;
-import org.elacin.pdfextract.util.Rectangle;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static org.elacin.pdfextract.Loggers.getInterfaceLog;
@@ -33,28 +30,22 @@ import static org.elacin.pdfextract.Loggers.getInterfaceLog;
 public class LayoutRecognizer {
 // ------------------------------ FIELDS ------------------------------
 
-private static final int NUM_WHITESPACES_TO_BE_FOUND = 40;
+private static final int NUM_WHITESPACES_TO_BE_FOUND = 50;
 private static final Logger log = Logger.getLogger(LayoutRecognizer.class);
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-public static List<Rectangle> findColumnsForPage(final PhysicalPage page) {
+public static List<WhitespaceRectangle> findColumnsForPage(final PhysicalPage page) {
     final long t0 = System.currentTimeMillis();
-
-    List<Rectangle> obstacles = new ArrayList<Rectangle>();
-    for (HasPosition word : page.getWords()) {
-        obstacles.add(word.getPosition());
-    }
-
-    final List<Rectangle> ret = new ArrayList<Rectangle>();
 
     AbstractWhitespaceFinder vert = new VerticalWhitespaceFinder(page, NUM_WHITESPACES_TO_BE_FOUND,
                                                                  page.getMinFontSizeX(),
                                                                  page.getMinFontSizeY());
-    ret.addAll(vert.findWhitespace());
+
+    final List<WhitespaceRectangle> whitespace = vert.findWhitespace();
 
     final long time = System.currentTimeMillis() - t0;
     getInterfaceLog().debug("LOG00200:findColumnsForPage took " + time + " ms.");
-    return ret;
+    return whitespace;
 }
 }

@@ -185,12 +185,7 @@ public float distance(final FloatPoint p) {
         distanceSquared += (temp2 * temp2);
     }
 
-    //noinspection NumericCastThatLosesPrecision
-    final float v = (float) Math.sqrt((double) distanceSquared);
-    //    if (Float.isNaN(v)) {
-    //        return distance(p);
-    //    }
-    return v;
+    return MathUtils.sqrt(distanceSquared);
 }
 
 /**
@@ -230,7 +225,7 @@ public float getEndY() {
 public boolean intersectsWith(HasPosition other) {
     final Rectangle that = other.getPosition();
 
-    if (isEmpty() || that.width <= 0.0F || that.height <= 0.0F) {
+    if (isEmpty()) {
         return false;
     }
 
@@ -243,15 +238,9 @@ public boolean intersectsWith(HasPosition other) {
     if (that.y > getEndY()) {
         return false;
     }
-    if (that.getEndY() < y) {
-        return false;
-    }
-
-    return true;
-
-    //    return (that.x + that.width > x && that.y + that.height > y && that.x < x + width
-    //            && that.y < y + height);
+    return that.getEndY() >= y;
 }
+
 
 /**
  * Determines if this rectangle has an area of 0
