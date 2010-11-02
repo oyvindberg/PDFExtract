@@ -68,4 +68,9 @@ public static float log(float a) {
     return (float) StrictMath.log((double) a);
 }
 
+@SuppressWarnings({"NumericCastThatLosesPrecision"})
+public static float sqrt(float a) {
+    return (float) StrictMath.sqrt((double) a);
+}
+
 }

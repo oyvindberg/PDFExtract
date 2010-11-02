@@ -14,29 +14,16 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.util.xml;
+package org.elacin.pdfextract.segmentation;
 
-import com.thoughtworks.xstream.converters.SingleValueConverter;
-import org.elacin.pdfextract.util.Rectangle;
+import org.elacin.pdfextract.pdfbox.ETextPosition;
+
+import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: Jun 4, 2010
- * Time: 3:48:44 AM
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Nov 1, 2010 Time: 6:37:35 AM To change this template
+ * use File | Settings | File Templates.
  */
-public class RectangleConverter implements SingleValueConverter {
-
-    public boolean canConvert(final Class type) {
-        return type.isAssignableFrom(Rectangle.class);
-    }
-
-    public String toString(final Object obj) {
-        return obj.toString();
-    }
-
-    public Object fromString(final String str) {
-        return null;
-    }
+public interface WordSegmentator {
+List<PhysicalText> segmentWords(List<ETextPosition> text);
 }

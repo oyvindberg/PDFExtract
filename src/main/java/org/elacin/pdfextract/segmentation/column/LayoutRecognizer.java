@@ -18,52 +18,43 @@ package org.elacin.pdfextract.segmentation.column;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.HasPosition;
-import org.elacin.pdfextract.Loggers;
+import org.elacin.pdfextract.segmentation.PhysicalPage;
 import org.elacin.pdfextract.util.Rectangle;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.elacin.pdfextract.Loggers.getInterfaceLog;
+
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Sep 23, 2010 Time: 12:54:21 PM To change this
  * template use File | Settings | File Templates.
  */
-public class ColumnFinder {
+public class LayoutRecognizer {
 // ------------------------------ FIELDS ------------------------------
 
 private static final int NUM_WHITESPACES_TO_BE_FOUND = 40;
-private static final Logger log = Logger.getLogger(ColumnFinder.class);
+private static final Logger log = Logger.getLogger(LayoutRecognizer.class);
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-public static List<Rectangle> findColumnsFromWordNodes(final List<? extends HasPosition> words,
-                                                       final float width,
-                                                       final float height)
-{
+public static List<Rectangle> findColumnsForPage(final PhysicalPage page) {
     final long t0 = System.currentTimeMillis();
 
     List<Rectangle> obstacles = new ArrayList<Rectangle>();
-    for (HasPosition word : words) {
+    for (HasPosition word : page.getWords()) {
         obstacles.add(word.getPosition());
     }
 
     final List<Rectangle> ret = new ArrayList<Rectangle>();
 
-
-    //        AbstractWhitespaceFinder hor = new HorizontalWhitespaceFinder(obstacles,
-    //                                                                      NUM_WHITESPACES_TO_BE_FOUND,
-    //                                                                      width, height);
-    //        ret.addAll(hor.findWhitespace());
-    //
-    //            obstacles.addAll(ret);
-
-    AbstractWhitespaceFinder vert = new VerticalWhitespaceFinder(obstacles,
-                                                                 NUM_WHITESPACES_TO_BE_FOUND, width,
-                                                                 height);
+    AbstractWhitespaceFinder vert = new VerticalWhitespaceFinder(page, NUM_WHITESPACES_TO_BE_FOUND,
+                                                                 page.getMinFontSizeX(),
+                                                                 page.getMinFontSizeY());
     ret.addAll(vert.findWhitespace());
 
     final long time = System.currentTimeMillis() - t0;
-    Loggers.getInterfaceLog().debug("findColumnsFromWordNodes took " + time + " ms.");
+    getInterfaceLog().debug("LOG00200:findColumnsForPage took " + time + " ms.");
     return ret;
 }
 }

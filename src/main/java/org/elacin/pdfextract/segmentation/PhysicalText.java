@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.segmentation.word;
+package org.elacin.pdfextract.segmentation;
 
 import org.elacin.pdfextract.HasPosition;
 import org.elacin.pdfextract.text.Style;
@@ -29,21 +29,21 @@ public class PhysicalText implements HasPosition {
 
 
 public int index;
-final float distanceToPreceeding;
-float charSpacing;
-final String content;
-final Style style;
+public final float distanceToPreceeding;
+public float charSpacing;
+public final String content;
+public final Style style;
 private final Rectangle position;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-PhysicalText(final String content,
-             final Style style,
-             final float x,
-             final float y,
-             final float width,
-             final float height,
-             final float distanceToPreceeding)
+public PhysicalText(final String content,
+                    final Style style,
+                    final float x,
+                    final float y,
+                    final float width,
+                    final float height,
+                    final float distanceToPreceeding)
 {
     this(content, style, new Rectangle(x, y, width, height), distanceToPreceeding);
 }

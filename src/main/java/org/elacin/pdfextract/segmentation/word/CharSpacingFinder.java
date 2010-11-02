@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.segmentation.word;
 
 import org.apache.log4j.Logger;
+import org.elacin.pdfextract.segmentation.PhysicalText;
 import org.elacin.pdfextract.util.MathUtils;
 
 import java.util.ArrayList;
@@ -34,84 +35,6 @@ private static final Logger log = Logger.getLogger(CharSpacingFinder.class);
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-public static float calculateCharspacingForDistances(final List<Float> distances,
-                                                     final float averageFontSize)
-{
-    if (distances.size() == 1) {
-        return distances.get(0);
-    } else if (distances.isEmpty()) {
-        return 0.0f;
-    }
-    /* calculate the average distance - it will be used below */
-    float sum = 0.0f;
-    float smallest = Float.MAX_VALUE;
-    float largest = Float.MIN_VALUE;
-
-    for (final float distance : distances) {
-        sum += distance;
-        if (distance < smallest) {
-            smallest = distance;
-        }
-        if (distance > largest) {
-            largest = distance;
-        }
-    }
-    final float averageDistance = sum / (float) distances.size();
-    final float diff = largest - smallest;
-
-    /**
-     * The reasoning behind this algorithm is the following:
-     *
-     *  - The 'size' of a font is normally way bigger than spacing between
-     *      words, so it is useful to consider a fraction of it. 10% is
-     *      easy to reason about and thus use as a unit.
-     *
-     *  - It is necessary to use the font size, because obviously the 'normal'
-     *      word spacing will vary with it (bigger fonts have bigger spacing)
-     *
-     *  - To consider how 'many' ten percent font size units we want,
-     *      we consider the average distance between characters
-     *
-     *  - Finally, we offset the calculates charspacing with the minimum
-     *      distance found. This is to facilitate correct spacing of lines
-     *      with abnormally long intra-word spacing.
-     *
-     */
-    if (MathUtils.isWithinPercent(smallest, largest, 10.0f)) {
-        return largest;
-    }
-
-    /* lower than 0.35 does not realisticly happen with 7pt, scale that with bigger font sizes */
-    final float lowerLimit = (0.35f / 7.0f) * averageFontSize;
-    if (diff < lowerLimit) {
-        return lowerLimit;
-    }
-
-    float minSize = 0.0f;
-    for (int i = 0, distancesSize = distances.size() - 1; i < distancesSize; i++) {
-        final Float d1 = distances.get(i);
-        final Float d2 = distances.get(i + 1);
-
-        final float v = Math.min(d1, d2);
-        if (v > minSize) {
-            minSize = v;
-        }
-    }
-    //    log.warn("minSize = " + minSize);
-
-    //    float charSpacing = ((float) (StrictMath.log(averageFontSize) * 0.60f) * (averageDistance
-    //            * 0.3f) + smallest * 0.8f);
-    //
-    //    if (charSpacing > minSize) {
-    //        charSpacing = minSize;
-    //    }
-
-    float charSpacing = (averageFontSize / 10.0F) * (averageDistance * 0.4f) + smallest * 0.6f;
-
-
-    return charSpacing;
-}
-
 /**
  * @param texts
  */
@@ -122,7 +45,7 @@ public static void setCharSpacingForTexts(final Collection<PhysicalText> texts) 
 
     /* start by finding a list of distances, and the average font size
        for the text */
-    List<Float> distances = getDistancesBetweenTextObjects(texts);
+    final List<Float> distances = getDistancesBetweenTextObjects(texts);
     final float fontSizeAverage = getAverageFontSize(texts);
 
     /* spit out some debug information */
@@ -142,6 +65,90 @@ public static void setCharSpacingForTexts(final Collection<PhysicalText> texts) 
 }
 
 // -------------------------- STATIC METHODS --------------------------
+
+static float calculateCharspacingForDistances(final List<Float> distances,
+                                              final float averageFontSize)
+{
+    /* consider two simple cases */
+    if (distances.size() == 1) {
+        return distances.get(0);
+    } else if (distances.isEmpty()) {
+        return 0.0f;
+    }
+
+    /* find smallest and largest distances, and calculate the average distance - it will
+        be used below */
+    float sum = 0.0f;
+    float smallest = Float.MAX_VALUE;
+    float largest = Float.MIN_VALUE;
+    for (final float distance : distances) {
+        sum += distance;
+        if (distance < smallest) {
+            smallest = distance;
+        }
+        if (distance > largest) {
+            largest = distance;
+        }
+    }
+    final float averageDistance = sum / (float) distances.size();
+    final float diff = largest - smallest;
+
+
+    if (MathUtils.isWithinPercent(smallest, largest, 10.0f)) {
+        return largest;
+    }
+
+    /* lower than 0.35 does not realisticly happen with 7pt, scale that with bigger font sizes */
+    final float lowerLimit = (0.35f / 7.0f) * averageFontSize;
+    if (diff < lowerLimit) {
+        return lowerLimit;
+    }
+
+
+    //    float minSize = 0.0f;
+    //    for (int i = 0, distancesSize = distances.size() - 1; i < distancesSize; i++) {
+    //        final Float d1 = distances.get(i);
+    //        final Float d2 = distances.get(i + 1);
+    //
+    //        final float v = Math.min(d1, d2);
+    //        if (v > minSize) {
+    //            minSize = v;
+    //        }
+    //    }
+
+    //    log.warn("minSize = " + minSize);
+
+    //    float charSpacing = ((float) (StrictMath.log(averageFontSize) * 0.60f) * (averageDistance
+    //            * 0.3f) + smallest * 0.8f);
+    //
+    //    if (charSpacing > minSize) {
+    //        charSpacing = minSize;
+    //    }
+
+    /**
+     * The reasoning behind this algorithm is the following:
+     *
+     *  - The 'size' of a font is normally way bigger than spacing between
+     *      words, so it is useful to consider a fraction of it. 10% is
+     *      easy to reason about and thus use as a unit.
+     *
+     *  - It is necessary to use the font size, because obviously the 'normal'
+     *      word spacing will vary with it (bigger fonts have bigger spacing)
+     *
+     *  - To consider how 'many' ten percent font size units we want,
+     *      we consider the average distance between characters
+     *
+     *  - Finally, we offset the calculates charspacing with the minimum
+     *      distance found. This is to facilitate correct spacing of lines
+     *      with abnormally long intra-word spacing.
+     *
+     */
+
+    final float charSpacing = (averageFontSize / 10.0F) * (averageDistance * 0.4f)
+            + smallest * 0.6f;
+
+    return charSpacing;
+}
 
 private static float getAverageFontSize(final Collection<PhysicalText> texts) {
     float fontSizeSum = 0.0f;

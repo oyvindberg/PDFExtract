@@ -18,34 +18,54 @@ package org.elacin.pdfextract.segmentation;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.HasPosition;
-import org.elacin.pdfextract.Loggers;
-import org.elacin.pdfextract.segmentation.column.ColumnFinder;
-import org.elacin.pdfextract.segmentation.word.PhysicalText;
+import org.elacin.pdfextract.segmentation.column.LayoutRecognizer;
 import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.util.Rectangle;
+import org.elacin.pdfextract.util.RectangleCollection;
 
 import java.util.*;
 
-public class PhysicalPage {
+import static org.elacin.pdfextract.Loggers.getInterfaceLog;
+
+public class PhysicalPage extends RectangleCollection<PhysicalText> {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger logger = Logger.getLogger(PhysicalPage.class);
-private final List<PhysicalText> words;
-private final float height;
-private final float width;
+private static final Logger log = Logger.getLogger(PhysicalPage.class);
 private final int pageNumber;
+
+/* minimum font sizes for the page */
+private final float minFontSizeX, minFontSizeY;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public PhysicalPage(List<PhysicalText> words, final float h, final float w, int pageNumber) {
-    height = h;
-    width = w;
-    this.words = words;
+    super(new Rectangle(0, 0, w, h), words);
     this.pageNumber = pageNumber;
 
+    /* find minimum font sizes, and set word indices */
+    float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
     for (int i = 0, wordsSize = words.size(); i < wordsSize; i++) {
-        words.get(i).index = i;
+        final PhysicalText word = words.get(i);
+        word.index = i;
+        minX = Math.min(minX, word.getStyle().xSize);
+        minY = Math.min(minY, word.getStyle().ySize);
     }
+    minFontSizeX = minX;
+    minFontSizeY = minY;
+}
+
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+public float getMinFontSizeX() {
+    return minFontSizeX;
+}
+
+public float getMinFontSizeY() {
+    return minFontSizeY;
+}
+
+public int getPageNumber() {
+    return pageNumber;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
@@ -53,8 +73,8 @@ public PhysicalPage(List<PhysicalText> words, final float h, final float w, int 
 public PageNode compileLogicalPage() {
     long t0 = System.currentTimeMillis();
 
-    PageNode ret = new PageNode(pageNumber);
-    final List<Rectangle> whitespaces = ColumnFinder.findColumnsFromWordNodes(words, width, height);
+
+    final List<Rectangle> whitespaces = LayoutRecognizer.findColumnsForPage(this);
 
     /* establish column boundaries for every y-index */
     List<ColumnBoundaryInterval> columnLayout = new ArrayList<ColumnBoundaryInterval>();
@@ -63,10 +83,13 @@ public PageNode compileLogicalPage() {
     int currentBoundariesStartedAt;
     boolean continuingInterval = false;
 
-    Map<Integer, List<Integer>> columns = new HashMap<Integer, List<Integer>>((int) height);
+    int height = (int) getPosition().getHeight();
+
+    Map<Integer, List<Integer>> columns = new HashMap<Integer, List<Integer>>(height);
+
     for (int y = 0; y < (int) height; y++) {
         /* find boundaries for this Y */
-        final List<HasPosition> texts = selectIntersectingWithYIndex(words, y);
+        final List<HasPosition> texts = selectIntersectingWithYIndex(getWords(), y);
         final List<HasPosition> spaces = selectIntersectingWithYIndex(whitespaces, y);
         List<Integer> boundaries = findColumnBoundaries(texts, spaces);
 
@@ -74,23 +97,26 @@ public PageNode compileLogicalPage() {
 
         /** if this set of boundaries does not mach the current one, save that interval and
          start the new one */
-        //        System.out.println(y + " boundaries = " + boundaries + ": contents = " + texts);
-
         if (!boundaries.isEmpty() || !boundaries.equals(currentColumnBoundaries)) {
         }
     }
 
-    //    for (PhysicalText word : words) {
-    //        final List<PhysicalText> result = findWordsInDirectionFromWord(Direction.E, word, 10.0f);
-    //    }
 
-
+    PageNode ret = new PageNode(pageNumber);
     ret.addWhitespaces(whitespaces);
     ret.addColumns(columns);
 
-    Loggers.getInterfaceLog().debug("compileLogicalPage:" + (System.currentTimeMillis() - t0));
+    getInterfaceLog().debug("LOG00190:compileLogicalPage:" + (System.currentTimeMillis() - t0));
 
     return ret;
+}
+
+public Rectangle getPageDimensions() {
+    return getPosition();
+}
+
+public List<PhysicalText> getWords() {
+    return getRectangles();
 }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -138,26 +164,6 @@ private List<Integer> findColumnBoundaries(final Collection<HasPosition> texts,
     return boundaries;
 }
 
-private List<PhysicalText> findWordsInDirectionFromWord(Direction dir,
-                                                        PhysicalText text,
-                                                        float distance)
-{
-    final List<PhysicalText> ret = new ArrayList<PhysicalText>();
-
-    final Rectangle pos = text.getPosition();
-    final float x = pos.getX() + dir.xDiff * distance;
-    final float y = pos.getY() + dir.yDiff * distance;
-    final Rectangle search = new Rectangle(x, y, pos.getWidth(), pos.getHeight());
-
-    for (PhysicalText physicalText : words) {
-        if (search.intersectsWith(physicalText.getPosition())) {
-            ret.add(physicalText);
-        }
-    }
-    ret.remove(text);
-    return ret;
-}
-
 private PhysicalText getNextText(final List<HasPosition> contents, final int i) {
     for (int j = i; j < contents.size(); j++) {
         final HasPosition next = contents.get(j);
@@ -177,7 +183,7 @@ private boolean isNewBoundary(final List<HasPosition> contents,
         return false;
     }
 
-    /* check that there are more text on the same line */
+    /* check that there is more text on the same line */
     final PhysicalText nextText = getNextText(contents, i);
     if (nextText == null) {
         return true;
@@ -187,13 +193,12 @@ private boolean isNewBoundary(final List<HasPosition> contents,
      *  logically belongs together. Compare the distance between the two words to their average
      *  character width to filter out those cases
      */
-    float min = Math.min(lastText.getAverageCharacterWidth(), nextText.getAverageCharacterWidth());
+    float min = 2.0f * Math.min(lastText.getAverageCharacterWidth(),
+                                nextText.getAverageCharacterWidth());
     float distance = nextText.getPosition().getX() - lastText.getPosition().getEndX();
     if (distance < min) {
         return false;
     }
-
-    /** Some times, */
 
     return true;
 }
@@ -201,7 +206,7 @@ private boolean isNewBoundary(final List<HasPosition> contents,
 private List<HasPosition> selectIntersectingWithYIndex(final List<? extends HasPosition> positions,
                                                        float y)
 {
-    final Rectangle searchRectangle = new Rectangle(0.0F, y, width, 1);
+    final Rectangle searchRectangle = new Rectangle(0.0F, y, getWidth(), 1);
     final List<HasPosition> result = new ArrayList<HasPosition>(20);
 
     for (HasPosition position : positions) {
@@ -211,26 +216,6 @@ private List<HasPosition> selectIntersectingWithYIndex(final List<? extends HasP
     }
 
     return result;
-}
-
-// -------------------------- ENUMERATIONS --------------------------
-
-enum Direction {
-    N(0, 1),
-    NE(1, 1),
-    E(1, 0),
-    SE(1, -1),
-    S(0, -1),
-    SW(-1, -1),
-    W(-1, 0),
-    NW(-1, 1);
-    float xDiff;
-    float yDiff;
-
-    Direction(final float xDiff, final float yDiff) {
-        this.xDiff = xDiff;
-        this.yDiff = yDiff;
-    }
 }
 
 // -------------------------- INNER CLASSES --------------------------

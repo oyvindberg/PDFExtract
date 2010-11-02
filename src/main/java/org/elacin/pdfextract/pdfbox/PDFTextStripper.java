@@ -26,8 +26,9 @@ import org.apache.pdfbox.util.TextNormalize;
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.operation.RecognizeRoles;
 import org.elacin.pdfextract.segmentation.PhysicalPage;
-import org.elacin.pdfextract.segmentation.word.PhysicalText;
-import org.elacin.pdfextract.segmentation.word.PhysicalWordSegmentator;
+import org.elacin.pdfextract.segmentation.PhysicalText;
+import org.elacin.pdfextract.segmentation.WordSegmentator;
+import org.elacin.pdfextract.segmentation.word.WordSegmentatorImpl;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.tree.WordNode;
@@ -221,13 +222,13 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
         characterListMapping.clear();
 
         processStream(page, page.findResources(), content);
+        WordSegmentator segmentator = new WordSegmentatorImpl(root.getStyles());
 
         if (!charactersForPage.isEmpty()) {
             final float width = page.getArtBox().getWidth();
             final float height = page.getArtBox().getHeight();
 
-            final List<PhysicalText> texts = PhysicalWordSegmentator.createWords(root.getStyles(),
-                                                                                 charactersForPage);
+            final List<PhysicalText> texts = segmentator.segmentWords(charactersForPage);
 
             PhysicalPage physicalPage = new PhysicalPage(texts, height, width, currentPageNo);
             final PageNode notUsed = physicalPage.compileLogicalPage();
@@ -247,7 +248,7 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
                                           text.getContent(), text.getCharSpacing()));
             }
 
-            //            final List<Rectangle> whitespaces = ColumnFinder.findColumnsFromWordNodes(texts, width,
+            //            final List<Rectangle> whitespaces = LayoutRecognizer.findColumnsFromWordNodes(texts, width,
             //                                                                                      height);
             root.getPageNumber(currentPageNo).addWhitespaces(notUsed.getWhitespaces());
             root.getPageNumber(currentPageNo).addColumns(notUsed.getColumns());

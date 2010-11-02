@@ -171,7 +171,7 @@ public final void processFiles() {
     for (Long timing : timings) {
         sum += timing;
     }
-    Loggers.getInterfaceLog().error(String.format(
+    Loggers.getInterfaceLog().info(String.format(
             "Total time for analyzing %d documents: %dms (%sms average)", pdfFiles.size(), sum,
             sum / pdfFiles.size()));
 }
@@ -242,13 +242,14 @@ protected void renderPDF(final File pdfFile, final PDDocument doc, final Documen
             continue;
         }
 
-        /* then write to file */
+        /* then open and write to file */
         final File output;
         if (destination.isDirectory()) {
             output = new File(destination, pdfFile.getName().replace(".pdf", ".elc." + i + ".png"));
         } else {
             output = new File(destination.getAbsolutePath().replace(".xml", ".elc." + i + ".png"));
         }
+
         try {
             ImageIO.write(image, "png", output);
         } catch (IOException e) {

@@ -129,7 +129,8 @@ public BufferedImage renderPage(final int pageNum) {
     }
 
     Loggers.getInterfaceLog().info(
-            "Rendered page " + pageNum + " in " + (System.currentTimeMillis() - t1) + " ms");
+            "LOG00180:Rendered page " + pageNum + " in " + (System.currentTimeMillis() - t1)
+                    + " ms");
     return image;
 }
 }

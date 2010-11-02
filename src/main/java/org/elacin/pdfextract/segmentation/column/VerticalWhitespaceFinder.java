@@ -16,10 +16,9 @@
 
 package org.elacin.pdfextract.segmentation.column;
 
+import org.elacin.pdfextract.HasPosition;
 import org.elacin.pdfextract.util.Rectangle;
-
-import java.util.ArrayList;
-import java.util.List;
+import org.elacin.pdfextract.util.RectangleCollection;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Sep 9, 2010 Time: 4:33:59 AM To change this template
@@ -28,12 +27,12 @@ import java.util.List;
 class VerticalWhitespaceFinder extends AbstractWhitespaceFinder {
 // --------------------------- CONSTRUCTORS ---------------------------
 
-VerticalWhitespaceFinder(final List<Rectangle> texts,
+VerticalWhitespaceFinder(RectangleCollection<? extends HasPosition> content,
                          final int numWhitespacesToBeFound,
-                         final float width,
-                         final float height)
+                         final float whitespaceMinWidth,
+                         final float whitespaceMinHeight)
 {
-    super(texts, numWhitespacesToBeFound, width, height);
+    super(content, numWhitespacesToBeFound, whitespaceMinWidth, whitespaceMinHeight);
 }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -49,35 +48,14 @@ VerticalWhitespaceFinder(final List<Rectangle> texts,
  */
 @Override
 protected float rectangleQuality(final Rectangle r) {
-    if (r.getWidth() < WHITESPACE_MIN_WIDTH || r.getHeight() < WHITESPACE_MIN_HEIGHT) {
-        return -1;
-    }
-    return r.area() * (1 + r.getHeight() / 2.0f);
+    //    if (r.getWidth() < WHITESPACE_MIN_WIDTH || r.getHeight() < WHITESPACE_MIN_HEIGHT) {
+    //        return -1;
+    //    }
 
-
+    return r.area() * (1 + r.getHeight() /*/ 2.0f*/);
     //    return (r.getWidth() * 0.05f) * (r.getHeight() * 5f);
-
-    //        return r.area() * r.getHeight() / Math.max(1.0f, r.getWidth() / 2.0f); <--
-
-
+    //    return r.area() * r.getHeight() / Math.max(1.0f, r.getWidth() / 2.0f);<--
     //    return r.area() * r.getHeight() / Math.max(1.0f, r.getWidth() / 2.0f);
-
-
     //    return (r.getHeight()) * 25 * r.getWidth();
-}
-
-@Override
-protected List<Rectangle> selectUsefulWhitespace() {
-    List<Rectangle> ret = new ArrayList<Rectangle>();
-    for (Rectangle whitespace : foundWhitespace) {
-        if (whitespace.getWidth() <= WHITESPACE_MIN_WIDTH) {
-            continue;
-        }
-
-
-        ret.add(whitespace);
-    }
-
-    return ret;
 }
 }

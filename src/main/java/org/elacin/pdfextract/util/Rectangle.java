@@ -187,10 +187,36 @@ public float distance(final FloatPoint p) {
 
     //noinspection NumericCastThatLosesPrecision
     final float v = (float) Math.sqrt((double) distanceSquared);
-    if (Float.isNaN(v)) {
-        return distance(p);
-    }
+    //    if (Float.isNaN(v)) {
+    //        return distance(p);
+    //    }
     return v;
+}
+
+/**
+ * Distance to another rectangle
+ *
+ * @param that another rectangle
+ * @return the distance
+ */
+public float distance(Rectangle that) {
+    if (intersectsWith(that)) {
+        return 0.0f;
+    }
+    float distance = 0.0f;
+
+    if (x > that.getEndX()) {
+        distance += (x - that.getEndX()) * (x - that.getEndX());
+    } else if (that.x > getEndX()) {
+        distance += (that.x - getEndX()) * (that.x - getEndX());
+    }
+    if (y > that.getEndY()) {
+        distance += (y - that.getEndY()) * (y - that.getEndY());
+    } else if (that.y > getEndY()) {
+        distance += (that.y - getEndY()) * (that.y - getEndY());
+    }
+
+    return MathUtils.sqrt(distance);
 }
 
 public float getEndX() {
@@ -208,16 +234,16 @@ public boolean intersectsWith(HasPosition other) {
         return false;
     }
 
-    if (that.getEndX() < getX()) {
+    if (that.getEndX() < x) {
         return false;
     }
-    if (that.getX() > getEndX()) {
+    if (that.x > getEndX()) {
         return false;
     }
-    if (that.getY() > getEndY()) {
+    if (that.y > getEndY()) {
         return false;
     }
-    if (that.getEndY() < getY()) {
+    if (that.getEndY() < y) {
         return false;
     }
 
