@@ -215,7 +215,7 @@ List<PhysicalText> splitTextPositionsOnSpace(final List<ETextPosition> texts) {
 
                     /* output this word */
                     ret.add(new PhysicalText(contents.toString(), style, x, adjustedY, width,
-                                             getAdjustedHeight(tp), distance));
+                                             getAdjustedHeight(tp), distance, (int) tp.getDir()));
 
                     /* change X coordinate to include this text */
                     x += width;
@@ -245,7 +245,7 @@ List<PhysicalText> splitTextPositionsOnSpace(final List<ETextPosition> texts) {
 
 private boolean fontSeemsToNeedAdjustment(final PDFont font) {
     for (String strangeMathFont : strangeMathFonts) {
-        if (font.getBaseFont().contains(strangeMathFont)) {
+        if (font.getBaseFont() != null && font.getBaseFont().contains(strangeMathFont)) {
             return true;
         }
     }

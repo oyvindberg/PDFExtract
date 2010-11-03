@@ -210,7 +210,7 @@ protected void processFile(final File pdfFile) throws IOException {
         long t1 = System.currentTimeMillis();
 
         PDFTextStripper stripper = new PDFTextStripper(doc, startPage, endPage);
-        stripper.readText();
+        stripper.processDocument();
 
         Loggers.getInterfaceLog().debug(
                 "LOG00160:Document analysis took " + (System.currentTimeMillis() - t1) + "ms");

@@ -113,7 +113,9 @@ public void combineChildren() {
 
             ParagraphNode secondParagraph = paragraphNodes[j];
 
-            if (firstParagraph.overlapsWith(secondParagraph)) {
+            //            if (firstParagraph.overlapsWith(secondParagraph)) {
+            if (firstParagraph.getPosition().contains(secondParagraph.getPosition())
+                    || secondParagraph.getPosition().contains(firstParagraph.getPosition())) {
                 if (log.isInfoEnabled()) {
                     log.info("combining paragraphs " + firstParagraph + " and " + secondParagraph);
                 }
@@ -130,6 +132,8 @@ public void combineChildren() {
     for (ParagraphNode paragraphNode : getChildren()) {
         paragraphNode.combineChildren();
     }
+
+
 }
 
 /**

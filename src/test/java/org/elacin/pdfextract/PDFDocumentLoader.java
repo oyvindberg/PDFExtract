@@ -36,7 +36,7 @@ public static DocumentNode readPDF(String filename,
     final URL url = PDFDocumentLoader.class.getClassLoader().getResource(filename);
     PDDocument document = PDDocument.load(url);
     PDFTextStripper stripper = new PDFTextStripper(document, -1, endPage);
-    stripper.readText();
+    stripper.processDocument();
 
     final DocumentNode documentNode = stripper.getDocumentNode();
     documentNode.printTree(outFile);

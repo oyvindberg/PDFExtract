@@ -17,6 +17,7 @@
 
 package org.elacin.pdfextract.pdfbox;
 
+import org.apache.log4j.MDC;
 import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -31,9 +32,7 @@ import org.elacin.pdfextract.segmentation.WordSegmentator;
 import org.elacin.pdfextract.segmentation.word.WordSegmentatorImpl;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.PageNode;
-import org.elacin.pdfextract.tree.WordNode;
 import org.elacin.pdfextract.util.MathUtils;
-import org.elacin.pdfextract.util.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -130,7 +129,7 @@ public DocumentNode getDocumentNode() {
     return root;
 }
 
-public void readText() throws IOException {
+public void processDocument() throws IOException {
     resetEngine();
     try {
         if (doc.isEncrypted()) {
@@ -151,8 +150,6 @@ public void readText() throws IOException {
     }
 
     /* postprocessing */
-    root.combineChildren();
-    //    root.combineChildren();
     new RecognizeRoles().doOperation(root);
 }
 
@@ -201,9 +198,6 @@ private boolean suppressDuplicateOverlappingText(final ETextPosition text) {
         sameTextCharacters.add(text);
         showCharacter = true;
     }
-    //    if (!showCharacter) {
-    //        System.out.println("showCharacter = " + StringUtils.getTextPositionString(text));
-    //    }
     return showCharacter;
 }
 
@@ -218,7 +212,7 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
     if (currentPageNo >= startPage && currentPageNo <= endPage) {
         charactersForPage.clear();
         characterListMapping.clear();
-
+        MDC.put("page", currentPageNo);
         processStream(page, page.findResources(), content);
 
         WordSegmentator segmentator = new WordSegmentatorImpl(root.getStyles());
@@ -227,28 +221,19 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
             final float width = page.getArtBox().getWidth();
             final float height = page.getArtBox().getHeight();
 
+            /* segment words */
             final List<PhysicalText> texts = segmentator.segmentWords(charactersForPage);
 
+            /* and create the page subtree */
             PhysicalPage physicalPage = new PhysicalPage(texts, height, width, currentPageNo);
-            final PageNode notUsed = physicalPage.compileLogicalPage();
+            final PageNode pageNode = physicalPage.compileLogicalPage();
 
-            if (texts.isEmpty()) {
-                StringBuilder sb = new StringBuilder();
-                for (ETextPosition character : charactersForPage) {
-                    sb.append(StringUtils.getTextPositionString(character)).append("\n");
-                }
-                throw new RuntimeException("words should not have been empty here. "
-                        + "created nothing from these characters:" + sb);
-            }
+            /* combine split linenodes within same paragraph */
+            pageNode.combineChildren();
 
-
-            for (PhysicalText text : texts) {
-                root.addWord(new WordNode(text.getPosition(), currentPageNo, text.getStyle(),
-                                          text.getContent(), text.getCharSpacing()));
-            }
-            root.getPageNumber(currentPageNo).addWhitespace(notUsed.getWhitespaces());
-            root.getPageNumber(currentPageNo).addColumns(notUsed.getColumns());
+            root.addChild(pageNode);
         }
+        MDC.remove("page");
     }
 }
 }

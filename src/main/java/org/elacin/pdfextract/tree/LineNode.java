@@ -75,7 +75,7 @@ public String getText() {
  */
 public boolean accepts(final WordNode node) {
     /* assure the node is located vertically on the current line */
-    if (!isOnSameLine(node)) {
+    if (!isOnSameLine(node) && willMakeLineTooHigh(node)) {
         if (log.isTraceEnabled()) {
             log.trace(toString() + ": accepts() " + node
                     + "false: was not considered to be on same line");
@@ -174,5 +174,11 @@ private void writeTextTo(final Appendable sb) {
     } catch (IOException e) {
         throw new RuntimeException("something went wrong while writing text", e);
     }
+}
+
+protected boolean willMakeLineTooHigh(final AbstractNode node) {
+    final float ysize = Math.max(getStyle().ySize, node.getStyle().ySize);
+
+    return node.getPosition().union(getPosition()).getHeight() > ysize * 1.2f;
 }
 }

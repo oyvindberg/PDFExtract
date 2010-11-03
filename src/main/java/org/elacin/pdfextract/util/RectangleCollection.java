@@ -32,6 +32,7 @@ protected final List<PhysicalContent> contents = new ArrayList<PhysicalContent>(
 /* calculating all the intersections while searching is expensive, so keep this cached.
     will be pruned on update */
 private Map<Integer, List<PhysicalContent>> yCache = new HashMap<Integer, List<PhysicalContent>>();
+private Map<Integer, List<PhysicalContent>> xCache = new HashMap<Integer, List<PhysicalContent>>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -42,20 +43,50 @@ public RectangleCollection(final Rectangle bounds, final List<? extends Physical
 
 // -------------------------- STATIC METHODS --------------------------
 
-private static void sortListByXCoordinate(final List<PhysicalContent> result) {
-    final Comparator<PhysicalContent> sortByXIndex = new Comparator<PhysicalContent>() {
+private static void sortListByXCoordinate(final List<PhysicalContent> list) {
+    final Comparator<PhysicalContent> sortByX = new Comparator<PhysicalContent>() {
         @Override
         public int compare(final PhysicalContent o1, final PhysicalContent o2) {
             return Float.compare(o1.getPosition().getX(), o2.getPosition().getX());
         }
     };
-    Collections.sort(result, sortByXIndex);
+    Collections.sort(list, sortByX);
+}
+
+private static void sortListByYCoordinate(final List<PhysicalContent> list) {
+    final Comparator<PhysicalContent> sortByY = new Comparator<PhysicalContent>() {
+        @Override
+        public int compare(final PhysicalContent o1, final PhysicalContent o2) {
+            return Float.compare(o1.getPosition().getY(), o2.getPosition().getY());
+        }
+    };
+    Collections.sort(list, sortByY);
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
+public List<PhysicalContent> findContentAtXIndex(int x) {
+    if (!xCache.containsKey(x)) {
+        final Rectangle searchRectangle = new Rectangle((float) x, 0.0f, 1.0f, getHeight());
+        final List<PhysicalContent> result = findRectanglesIntersectingWith(searchRectangle);
+        sortListByYCoordinate(result);
+        xCache.put(x, result);
+    }
+    return xCache.get(x);
+}
+
+public List<PhysicalContent> findContentAtYIndex(int y) {
+    if (!yCache.containsKey(y)) {
+        final Rectangle searchRectangle = new Rectangle(0.0F, (float) y, getWidth(), 1.0F);
+        final List<PhysicalContent> result = findRectanglesIntersectingWith(searchRectangle);
+        sortListByXCoordinate(result);
+        yCache.put(y, result);
+    }
+    return yCache.get(y);
+}
+
 public List<PhysicalContent> findRectanglesIntersectingWith(final Rectangle search) {
-    final List<PhysicalContent> ret = new ArrayList<PhysicalContent>();
+    final List<PhysicalContent> ret = new ArrayList<PhysicalContent>(50);
     for (PhysicalContent r : contents) {
         if (search.intersectsWith(r.getPosition())) {
             ret.add(r);
@@ -109,26 +140,11 @@ public List<PhysicalContent> searchInDirectionFromOrigin(Direction dir,
     return ret;
 }
 
-public List<PhysicalContent> selectIntersectingWithYIndex(int y) {
-    if (!yCache.containsKey(y)) {
-        final Rectangle searchRectangle = new Rectangle(0.0F, (float) y, getWidth(), 1.0F);
-        final List<PhysicalContent> result = new ArrayList<PhysicalContent>(50);
-
-        for (PhysicalContent content : getContent()) {
-            if (searchRectangle.intersectsWith(content.getPosition())) {
-                result.add(content);
-            }
-        }
-        sortListByXCoordinate(result);
-        yCache.put(y, result);
-    }
-    return yCache.get(y);
-}
-
 // -------------------------- OTHER METHODS --------------------------
 
 protected void clearCache() {
     yCache.clear();
+    xCache.clear();
 }
 
 // -------------------------- ENUMERATIONS --------------------------

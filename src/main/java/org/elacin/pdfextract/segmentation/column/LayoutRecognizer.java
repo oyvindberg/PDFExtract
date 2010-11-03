@@ -66,7 +66,7 @@ public Map<Integer, List<Integer>> findColumnsForPage(final PhysicalPage page, f
     Map<Integer, List<Integer>> columns = new HashMap<Integer, List<Integer>>(height);
     for (int y = 0; y < height; y++) {
         /* find boundaries for this y */
-        final List<PhysicalContent> texts = page.selectIntersectingWithYIndex(y);
+        final List<PhysicalContent> texts = page.findContentAtYIndex(y);
         List<Integer> boundaries = findColumnBoundaries(page, texts);
 
         /* and save it for the next pass */
@@ -103,7 +103,7 @@ public Map<Integer, List<Integer>> findColumnsForPage(final PhysicalPage page, f
 
 public List<WhitespaceRectangle> findWhitespace(final PhysicalPage page) {
     AbstractWhitespaceFinder vert = new VerticalWhitespaceFinder(page, NUM_WHITESPACES_TO_BE_FOUND,
-                                                                 page.getAvgFontSizeX() * 0.8f,
+                                                                 page.getAvgFontSizeX() * 0.4f,
                                                                  page.getAvgFontSizeY());
 
     return vert.findWhitespace();

@@ -45,23 +45,23 @@ public boolean addWord(final WordNode node) {
         }
     }
 
-    if (isNewLineInThisParagraph(node)) {
-        if (log.isDebugEnabled()) {
-            log.debug(toString() + ": Node " + node
-                    + " is considered to be a new line in this paragraph");
-        }
-        addChild(new LineNode(node));
-        return true;
+    //    if (isNewLineInThisParagraph(node)) {
+    if (log.isDebugEnabled()) {
+        log.debug(toString() + ": Node " + node
+                + " is considered to be a new line in this paragraph");
     }
-
-
-    return false;
+    addChild(new LineNode(node));
+    return true;
+    //    }
+    //
+    //
+    //    return false;
 }
 
 @Override
 public void combineChildren() {
-    /* combine all contained line nodes which are clearly on the same line.
-*  using array to avoid concurrent modification of iterator */
+    /** combine all contained line nodes which are clearly on the same line. using array to avoid
+     * concurrent modification of iterator */
     LineNode[] lineNodes = getChildren().toArray(new LineNode[getChildren().size()]);
 
     for (int i = 0; i < lineNodes.length; i++) {
@@ -81,8 +81,9 @@ public void combineChildren() {
             }
             LineNode secondLine = lineNodes[j];
 
-            if (firstLine.isOnSameLine(secondLine) || firstLine.getPosition().intersectsWith(
-                    secondLine.getPosition())) {
+            //            if (firstLine.isOnSameLine(secondLine) || firstLine.getPosition().intersectsWith(
+            //                    secondLine.getPosition())) {
+            if (firstLine.isOnSameLine(secondLine) || !firstLine.willMakeLineTooHigh(secondLine)) {
                 if (log.isDebugEnabled()) {
                     log.debug("combining lines " + firstLine + " and " + secondLine);
                 }

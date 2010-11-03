@@ -19,6 +19,8 @@ package org.elacin.pdfextract.segmentation;
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.segmentation.column.LayoutRecognizer;
 import org.elacin.pdfextract.tree.PageNode;
+import org.elacin.pdfextract.tree.ParagraphNode;
+import org.elacin.pdfextract.tree.WordNode;
 import org.elacin.pdfextract.util.Rectangle;
 import org.elacin.pdfextract.util.RectangleCollection;
 
@@ -54,8 +56,6 @@ public PhysicalPage(List<PhysicalText> words, final float h, final float w, int 
     avgFontSizeY = ySizeSum / (float) words.size();
 }
 
-// -------------------------- STATIC METHODS --------------------------
-
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 public float getAvgFontSizeX() {
@@ -88,30 +88,98 @@ public PageNode compileLogicalPage() {
     /* then follow the trails left between the whitespace and construct blocks of text from that */
     int blockNum = 0;
     for (int y = 0; y < (int) getPosition().getHeight(); y++) {
-        final List<PhysicalContent> line = selectIntersectingWithYIndex(y);
+        final List<PhysicalContent> line = findContentAtYIndex(y);
 
         /* iterate through the line to find possible start of blocks */
         for (PhysicalContent content : line) {
-            if (content.isText()) {
-                PhysicalText text = content.getText();
-
-                if (text.isAssignedBlock()) {
-                    continue;
-                }
-
+            if (content.isText() && !content.getText().isAssignedBlock()) {
                 /* find all connected texts and mark with this blockNum*/
-                //                markEverythingConnectedFrom()
+                final PhysicalText text = content.getText();
+                markEverythingConnectedFrom(content, blockNum, text.getRotation(), text.style.font);
 
                 blockNum++;
             }
         }
     }
 
-
     PageNode ret = new PageNode(pageNumber);
+    for (int i = 0; i < blockNum; i++) {
+        ParagraphNode paragraphNode = new ParagraphNode();
+        for (PhysicalContent content : contents) {
+            if (content.isText() && content.getText().getBlockNum() == i) {
+                paragraphNode.addWord(createWordNode(content.getText()));
+            }
+        }
+        if (!paragraphNode.getChildren().isEmpty()) {
+            ret.addChild(paragraphNode);
+        }
+    }
+
     //    ret.addColumns(layoutRecognizer.findColumnsForPage(this, ret));
     ret.addWhitespace(whitespace);
+    if (log.isInfoEnabled()) {
+        log.info("LOG00230:compileLogicalPage took " + (System.currentTimeMillis() - t0) + " ms");
+    }
+    ;
     return ret;
 }
 
+// -------------------------- OTHER METHODS --------------------------
+
+private WordNode createWordNode(final PhysicalText text) {
+    return new WordNode(text.getPosition(), pageNumber, text.style, text.content, text.charSpacing);
+}
+
+private void markBothWaysFromCurrent(final PhysicalContent current,
+                                     final int blockNum,
+                                     final List<PhysicalContent> line,
+                                     final int rotation,
+                                     final String fontName)
+{
+    final int currentIndex = line.indexOf(current);
+
+    /* left/up*/
+    boolean continue_ = true;
+    for (int index = currentIndex - 1; index >= 0 && continue_; index--) {
+        continue_ &= markEverythingConnectedFrom(line.get(index), blockNum, rotation, fontName);
+    }
+    /* right / down */
+    continue_ = true;
+    for (int index = currentIndex + 1; index < line.size() && continue_; index++) {
+        continue_ &= markEverythingConnectedFrom(line.get(index), blockNum, rotation, fontName);
+    }
+}
+
+private boolean markEverythingConnectedFrom(final PhysicalContent current,
+                                            final int blockNum,
+                                            final int rotation,
+                                            final String fontName)
+{
+    if (current.isWhitespace()) {
+        return false;
+    }
+    if (current.isText() && current.getText().isAssignedBlock()) {
+        return false;
+    }
+    if (current.getText().getRotation() != rotation) {
+        return false;
+    }
+    //    if (!current.getText().getStyle().font.equals(fontName)){
+    //        return false;
+    //    }
+
+    current.getText().setBlockNum(blockNum);
+
+    final Rectangle pos = current.getPosition();
+
+    /* try searching for texts in all directions */
+    for (int y = (int) pos.getY(); y < (int) pos.getEndY(); y++) {
+        markBothWaysFromCurrent(current, blockNum, findContentAtYIndex(y), rotation, fontName);
+    }
+
+    for (int x = (int) pos.getX(); x < (int) pos.getEndX(); x++) {
+        markBothWaysFromCurrent(current, blockNum, findContentAtXIndex(x), rotation, fontName);
+    }
+    return true;
+}
 }

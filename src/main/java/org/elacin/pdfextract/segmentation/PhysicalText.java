@@ -33,6 +33,7 @@ public final float distanceToPreceeding;
 public float charSpacing;
 public final String content;
 public final Style style;
+public final int rotation;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -42,20 +43,23 @@ public PhysicalText(final String content,
                     final float y,
                     final float width,
                     final float height,
-                    final float distanceToPreceeding)
+                    final float distanceToPreceeding,
+                    final int rotation)
 {
-    this(content, style, new Rectangle(x, y, width, height), distanceToPreceeding);
+    this(content, style, new Rectangle(x, y, width, height), distanceToPreceeding, rotation);
 }
 
 PhysicalText(final String content,
              final Style style,
              final Rectangle position,
-             final float distanceToPreceeding)
+             final float distanceToPreceeding,
+             final int rotation)
 {
     super(position);
     this.distanceToPreceeding = distanceToPreceeding;
     this.style = style;
     this.content = content;
+    this.rotation = rotation;
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
@@ -113,6 +117,10 @@ public float getDistanceToPreceeding() {
     return distanceToPreceeding;
 }
 
+public int getRotation() {
+    return rotation;
+}
+
 public Style getStyle() {
     return style;
 }
@@ -121,7 +129,7 @@ public Style getStyle() {
 
 public PhysicalText combineWith(final PhysicalText next) {
     return new PhysicalText(content + next.content, style, position.union(next.position),
-                            distanceToPreceeding);
+                            distanceToPreceeding, rotation);
 }
 
 public float getAverageCharacterWidth() {
@@ -129,7 +137,7 @@ public float getAverageCharacterWidth() {
 }
 
 public boolean isAssignedBlock() {
-    return blockNum == BLOCK_NOT_ASSIGNED;
+    return blockNum != BLOCK_NOT_ASSIGNED;
 }
 
 public boolean isSameStyleAs(final PhysicalText next) {
