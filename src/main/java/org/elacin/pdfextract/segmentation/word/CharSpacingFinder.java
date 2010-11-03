@@ -98,13 +98,6 @@ static float calculateCharspacingForDistances(final List<Float> distances,
         return largest;
     }
 
-    /* lower than 0.35 does not realisticly happen with 7pt, scale that with bigger font sizes */
-    final float lowerLimit = (0.35f / 7.0f) * averageFontSize;
-    if (diff < lowerLimit) {
-        return lowerLimit;
-    }
-
-
     //    float minSize = 0.0f;
     //    for (int i = 0, distancesSize = distances.size() - 1; i < distancesSize; i++) {
     //        final Float d1 = distances.get(i);
@@ -144,8 +137,14 @@ static float calculateCharspacingForDistances(final List<Float> distances,
      *
      */
 
-    final float charSpacing = (averageFontSize / 10.0F) * (averageDistance * 0.4f)
-            + smallest * 0.6f;
+    float charSpacing = (averageFontSize / 10.0F) * (largest * 0.2f) + smallest * 0.6f;
+
+
+    /* lower than 0.35 does not realisticly happen with 7pt, scale that with bigger font sizes */
+    final float lowerLimit = (0.35f / 7.0f) * (averageFontSize * (1.3f));
+    if (charSpacing < lowerLimit) {
+        charSpacing = lowerLimit;
+    }
 
     return charSpacing;
 }

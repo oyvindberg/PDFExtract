@@ -16,7 +16,7 @@
 
 package org.elacin.pdfextract.tree;
 
-import org.elacin.pdfextract.segmentation.column.WhitespaceRectangle;
+import org.elacin.pdfextract.segmentation.WhitespaceRectangle;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -64,7 +64,7 @@ public void addColumns(final Map<Integer, List<Integer>> columns) {
     this.columns = columns;
 }
 
-public void addWhitespaces(final List<WhitespaceRectangle> whitespaces) {
+public void addWhitespace(final List<WhitespaceRectangle> whitespaces) {
     this.whitespaces.addAll(whitespaces);
 }
 

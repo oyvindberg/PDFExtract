@@ -17,7 +17,7 @@
 package org.elacin.pdfextract.segmentation.word;
 
 import org.apache.log4j.Logger;
-import org.apache.pdfbox.util.TextPosition;
+import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.util.TextPositionComparator;
 import org.elacin.pdfextract.pdfbox.ETextPosition;
 import org.elacin.pdfextract.segmentation.PhysicalText;
@@ -60,6 +60,12 @@ public WordSegmentatorImpl(final DocumentStyles styles) {
 // ------------------------ INTERFACE METHODS ------------------------
 
 
+private static List<String> strangeMathFonts = new ArrayList<String>() {
+    {
+        add("CMEX");
+        //        add("CMSY10");
+    }};
+
 // --------------------- Interface WordSegmentator ---------------------
 
 /**
@@ -72,13 +78,14 @@ public WordSegmentatorImpl(final DocumentStyles styles) {
 public List<PhysicalText> segmentWords(final List<ETextPosition> text) {
     long t0 = System.currentTimeMillis();
 
+
     List<PhysicalText> ret = new ArrayList<PhysicalText>(text.size());
 
     /* iterate through all incoming TextPositions, and process them
        in a line by line fashion. We do this to be able to calculate
        char and word distances for each line
     */
-    List<TextPosition> line = new ArrayList<TextPosition>();
+    List<ETextPosition> line = new ArrayList<ETextPosition>();
 
     Collections.sort(text, new TextPositionComparator());
 
@@ -89,8 +96,8 @@ public List<PhysicalText> segmentWords(final List<ETextPosition> text) {
     for (ETextPosition tp : text) {
         /* if this is the first text in a line */
         if (line.isEmpty()) {
-            minY = tp.getY();
-            maxY = minY + tp.getHeightDir();
+            minY = tp.getPos().getY();
+            maxY = minY + tp.getPos().getHeight();
             maxX = tp.getPos().getEndX();
         }
 
@@ -104,8 +111,8 @@ public List<PhysicalText> segmentWords(final List<ETextPosition> text) {
 
         /* then add the current text to start next line */
         line.add(tp);
-        minY = Math.min(tp.getYDirAdj(), minY);
-        maxY = Math.max(minY + tp.getHeightDir(), maxY);
+        minY = Math.min(tp.getPos().getY(), minY);
+        maxY = Math.max(minY + tp.getPos().getHeight(), maxY);
         maxX = tp.getPos().getEndX();
     }
 
@@ -121,6 +128,7 @@ public List<PhysicalText> segmentWords(final List<ETextPosition> text) {
     return ret;
 }
 
+
 // -------------------------- STATIC METHODS --------------------------
 
 /**
@@ -130,19 +138,20 @@ public List<PhysicalText> segmentWords(final List<ETextPosition> text) {
  * @param tp
  * @return
  */
-private static float getAdjustedHeight(final TextPosition tp) {
-    final float adjustedHeight;
-    //    final float maxHeight = tp.getFontSize() * tp.getYScale() * 1.2f;
+private static float getAdjustedHeight(final ETextPosition tp) {
+    //    final float adjustedHeight;
+    final float maxHeight = tp.getFontSize() * tp.getYScale() * 0.9f;
+    return Math.min(tp.getPos().getHeight(), maxHeight);
     //    if (tp.getHeightDir() > maxHeight) {
     //        adjustedHeight = maxHeight;
     //    } else {
-    adjustedHeight = tp.getHeightDir();
+    //        adjustedHeight = tp.getHeightDir();
     //    }
-    return adjustedHeight;
+    //    return adjustedHeight;
 }
 
 private static boolean isOnAnotherLine(final float y, final ETextPosition tp) {
-    return !isWithinVariance(y, tp.getYDirAdj(), 3.0f);
+    return !isWithinVariance(y, tp.getPos().getY(), 3.0f);
 }
 
 private static boolean isTooFarAwayHorizontally(final float endX, final ETextPosition tp) {
@@ -158,7 +167,7 @@ private static boolean isTooFarAwayHorizontally(final float endX, final ETextPos
  * @return
  */
 @SuppressWarnings({"ObjectAllocationInLoop"})
-List<PhysicalText> splitTextPositionsOnSpace(final List<TextPosition> texts) {
+List<PhysicalText> splitTextPositionsOnSpace(final List<ETextPosition> texts) {
     final List<PhysicalText> ret = new ArrayList<PhysicalText>(texts.size() * 2);
 
     final FloatPoint lastWordBoundary = new FloatPoint(0.0F, 0.0F);
@@ -168,12 +177,12 @@ List<PhysicalText> splitTextPositionsOnSpace(final List<TextPosition> texts) {
 
     float width = 0.0f;
     boolean firstInLine = true;
-    for (TextPosition tp : texts) {
+    for (ETextPosition tp : texts) {
         if (log.isDebugEnabled()) {
             log.debug("LOG00000:in:" + StringUtils.getTextPositionString(tp));
         }
-        float x = tp.getXDirAdj();
-        float y = tp.getYDirAdj();
+        float x = tp.getPos().getX();
+        float y = tp.getPos().getY();
         final String s = tp.getCharacter();
         final Style style = styles.getStyleForTextPosition(tp);
 
@@ -197,10 +206,11 @@ List<PhysicalText> splitTextPositionsOnSpace(final List<TextPosition> texts) {
                     /* this is a workaround for when pdfbox sometimes miscalculates the coordinates
                         of certain mathematical symbols */
                     final float adjustedY;
-                    if (contents.toString().matches("[∑√∏⊗]")) {
+
+                    if (fontSeemsToNeedAdjustment(tp.getFont())) {
                         adjustedY = y;
                     } else {
-                        adjustedY = y - tp.getHeightDir();
+                        adjustedY = y - tp.getPos().getHeight();
                     }
 
                     /* output this word */
@@ -233,13 +243,22 @@ List<PhysicalText> splitTextPositionsOnSpace(final List<TextPosition> texts) {
     return ret;
 }
 
+private boolean fontSeemsToNeedAdjustment(final PDFont font) {
+    for (String strangeMathFont : strangeMathFonts) {
+        if (font.getBaseFont().contains(strangeMathFont)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 /**
  * This method will process one line worth of TextPositions , and split and/or combine them as to
  * output words.
  *
  * @param line
  */
-private List<PhysicalText> createWordsInLine(final List<TextPosition> line) {
+private List<PhysicalText> createWordsInLine(final List<ETextPosition> line) {
     final Comparator<PhysicalText> sortByLowerX = new Comparator<PhysicalText>() {
         public int compare(final PhysicalText o1, final PhysicalText o2) {
             return Float.compare(o1.getPosition().getX(), o2.getPosition().getX());

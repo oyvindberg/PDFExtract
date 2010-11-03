@@ -16,7 +16,6 @@
 
 package org.elacin.pdfextract.segmentation;
 
-import org.elacin.pdfextract.HasPosition;
 import org.elacin.pdfextract.text.Style;
 import org.elacin.pdfextract.util.Rectangle;
 
@@ -24,16 +23,14 @@ import org.elacin.pdfextract.util.Rectangle;
  * Created by IntelliJ IDEA. User: elacin Date: Sep 23, 2010 Time: 2:36:44 PM To change this
  * template use File | Settings | File Templates.
  */
-public class PhysicalText implements HasPosition {
+public class PhysicalText extends PhysicalContent {
 // ------------------------------ FIELDS ------------------------------
 
-
-public int index;
+public int num;
 public final float distanceToPreceeding;
 public float charSpacing;
 public final String content;
 public final Style style;
-private final Rectangle position;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -53,19 +50,10 @@ PhysicalText(final String content,
              final Rectangle position,
              final float distanceToPreceeding)
 {
+    super(position);
     this.distanceToPreceeding = distanceToPreceeding;
     this.style = style;
     this.content = content;
-    this.position = position;
-}
-
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface HasPosition ---------------------
-
-public Rectangle getPosition() {
-    return position;
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
@@ -81,6 +69,18 @@ public String toString() {
     sb.append(", charSpacing=").append(charSpacing);
     sb.append('}');
     return sb.toString();
+}
+
+// ------------------------ OVERRIDING METHODS ------------------------
+
+@Override
+public PhysicalText getText() {
+    return this;
+}
+
+@Override
+public boolean isText() {
+    return true;
 }
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
@@ -103,20 +103,27 @@ public float getDistanceToPreceeding() {
     return distanceToPreceeding;
 }
 
+public int getNum() {
+    return num;
+}
+
+public void setNum(final int num) {
+    this.num = num;
+}
+
 public Style getStyle() {
     return style;
 }
-
-public float getAverageCharacterWidth() {
-    return getPosition().getWidth() / (float) getContent().length();
-}
-
 
 // -------------------------- PUBLIC METHODS --------------------------
 
 public PhysicalText combineWith(final PhysicalText next) {
     return new PhysicalText(content + next.content, style, position.union(next.position),
                             distanceToPreceeding);
+}
+
+public float getAverageCharacterWidth() {
+    return getPosition().getWidth() / (float) getContent().length();
 }
 
 public boolean isSameStyleAs(final PhysicalText next) {

@@ -47,7 +47,7 @@ import java.util.*;
 public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger log = Logger.getLogger(PDFStreamEngine.class);
+private static final Logger log = Logger.getLogger("org.apache.pdfbox.util.PDFStreamEngine");
 /**
  * Log instance.
  */

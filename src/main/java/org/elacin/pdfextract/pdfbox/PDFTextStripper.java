@@ -220,6 +220,7 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
         characterListMapping.clear();
 
         processStream(page, page.findResources(), content);
+
         WordSegmentator segmentator = new WordSegmentatorImpl(root.getStyles());
 
         if (!charactersForPage.isEmpty()) {
@@ -245,7 +246,7 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
                 root.addWord(new WordNode(text.getPosition(), currentPageNo, text.getStyle(),
                                           text.getContent(), text.getCharSpacing()));
             }
-            root.getPageNumber(currentPageNo).addWhitespaces(notUsed.getWhitespaces());
+            root.getPageNumber(currentPageNo).addWhitespace(notUsed.getWhitespaces());
             root.getPageNumber(currentPageNo).addColumns(notUsed.getColumns());
         }
     }

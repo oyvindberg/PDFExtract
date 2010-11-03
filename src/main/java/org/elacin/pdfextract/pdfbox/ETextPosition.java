@@ -54,7 +54,8 @@ public ETextPosition(final PDPage page,
     //        if (string.length() > 1){
     //            System.out.println("string = " + string);
     //        }
-    pos = new Rectangle(getXDirAdj(), getYDirAdj(), getWidthDirAdj(), getHeightDir());
+    //    pos = new Rectangle(getXDirAdj(), getYDirAdj(), getWidthDirAdj(), getHeightDir());
+    pos = new Rectangle(getX(), getY(), getWidth(), getHeight());
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------

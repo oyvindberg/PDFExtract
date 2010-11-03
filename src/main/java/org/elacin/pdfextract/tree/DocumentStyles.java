@@ -16,6 +16,7 @@
 
 package org.elacin.pdfextract.tree;
 
+import org.apache.log4j.Logger;
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.text.Style;
 
@@ -34,6 +35,7 @@ import java.util.Map;
 public class DocumentStyles implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
+private static final Logger log = Logger.getLogger(DocumentStyles.class);
 final Map<Float, Style> styles = new HashMap<Float, Style>();
 
 final Collection<Style> stylesCollection = styles.values();

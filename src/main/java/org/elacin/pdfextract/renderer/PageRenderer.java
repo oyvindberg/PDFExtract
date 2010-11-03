@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.elacin.pdfextract.Loggers;
+import org.elacin.pdfextract.segmentation.WhitespaceRectangle;
 import org.elacin.pdfextract.tree.*;
 import org.elacin.pdfextract.util.Rectangle;
 
@@ -112,22 +113,24 @@ public BufferedImage renderPage(final int pageNum) {
             for (WordNode wordNode : lineNode.getChildren()) {
                 drawRectangleInColor(graphics, xScale, yScale, Color.BLUE, wordNode.getPosition());
             }
-            drawRectangleInColor(graphics, xScale, yScale, Color.RED, lineNode.getPosition());
+            //            drawRectangleInColor(graphics, xScale, yScale, Color.RED, lineNode.getPosition());
         }
-        drawRectangleInColor(graphics, xScale, yScale, Color.GREEN, paragraphNode.getPosition());
+        //        drawRectangleInColor(graphics, xScale, yScale, Color.GREEN, paragraphNode.getPosition());
     }
 
-    for (Rectangle whitespace : pageNode.getWhitespaces()) {
-        drawRectangleInColor(graphics, xScale, yScale, Color.PINK, whitespace);
+    for (WhitespaceRectangle whitespace : pageNode.getWhitespaces()) {
+        drawRectangleInColor(graphics, xScale, yScale, Color.RED, whitespace.getPosition());
     }
-    for (Map.Entry<Integer, List<Integer>> columnIndicesForY : pageNode.getColumns().entrySet()) {
-        final Integer y = columnIndicesForY.getKey();
-        for (Integer index : columnIndicesForY.getValue()) {
-            drawRectangleInColor(graphics, xScale, yScale, Color.BLACK, new Rectangle(index, y, 1,
-                                                                                      1));
+    if (pageNode.getColumns() != null) {
+        for (Map.Entry<Integer, List<Integer>> columnIndicesForY : pageNode.getColumns()
+                .entrySet()) {
+            final Integer y = columnIndicesForY.getKey();
+            for (Integer index : columnIndicesForY.getValue()) {
+                drawRectangleInColor(graphics, xScale, yScale, Color.GREEN, new Rectangle(index, y,
+                                                                                          1, 1));
+            }
         }
     }
-
     Loggers.getInterfaceLog().info(
             "LOG00180:Rendered page " + pageNum + " in " + (System.currentTimeMillis() - t1)
                     + " ms");

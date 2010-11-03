@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.segmentation.column;
+package org.elacin.pdfextract.segmentation;
 
 import org.elacin.pdfextract.util.Rectangle;
 
@@ -22,12 +22,17 @@ import org.elacin.pdfextract.util.Rectangle;
  * Created by IntelliJ IDEA. User: elacin Date: Nov 2, 2010 Time: 1:33:50 AM To change this template
  * use File | Settings | File Templates.
  */
-public class WhitespaceRectangle extends Rectangle {
-public WhitespaceRectangle(final float x, final float y, final float width, final float height) {
-    super(x, y, width, height);
-}
+public class WhitespaceRectangle extends PhysicalContent {
+// --------------------------- CONSTRUCTORS ---------------------------
 
 public WhitespaceRectangle(final Rectangle bound) {
-    super(bound.getX(), bound.getY(), bound.getWidth(), bound.getHeight());
+    super(bound);
+}
+
+// ------------------------ OVERRIDING METHODS ------------------------
+
+@Override
+public boolean isWhitespace() {
+    return true;
 }
 }

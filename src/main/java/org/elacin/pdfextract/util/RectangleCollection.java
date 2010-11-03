@@ -16,68 +16,75 @@
 
 package org.elacin.pdfextract.util;
 
-import org.elacin.pdfextract.HasPosition;
+import org.elacin.pdfextract.segmentation.PhysicalContent;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Nov 2, 2010 Time: 1:20:36 AM To change this template
  * use File | Settings | File Templates.
  */
-public class RectangleCollection<R extends HasPosition> implements HasPosition {
+public class RectangleCollection extends PhysicalContent {
 // ------------------------------ FIELDS ------------------------------
 
-private final Rectangle bounds;
-private final List<R> contents = new ArrayList<R>();
+protected final List<PhysicalContent> contents = new ArrayList<PhysicalContent>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public RectangleCollection(final Rectangle bounds, final Collection<R> contents) {
-    this.bounds = bounds;
+public RectangleCollection(final Rectangle bounds, final List<? extends PhysicalContent> contents) {
+    super(bounds);
     this.contents.addAll(contents);
-}
-
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface HasPosition ---------------------
-
-@Override
-public Rectangle getPosition() {
-    return bounds;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-public List<R> searchDirection(Direction dir, HasPosition origin, float distance) {
-    final List<R> ret = new ArrayList<R>();
+public List<PhysicalContent> findRectanglesIntersectingWith(final Rectangle search) {
+    final List<PhysicalContent> ret = new ArrayList<PhysicalContent>();
+    for (PhysicalContent r : contents) {
+        if (search.intersectsWith(r.getPosition())) {
+            ret.add(r);
+        }
+    }
+    return ret;
+}
 
+public List<PhysicalContent> findTextsAroundPosition(final Rectangle bound) {
+    Rectangle searchRectangle = new Rectangle(bound.getX() - 5, bound.getY() - 5,
+                                              bound.getWidth() + 5, bound.getHeight() + 5);
+
+    final List<PhysicalContent> ret = findRectanglesIntersectingWith(searchRectangle);
+    if (ret.contains(bound)) {
+        ret.remove(bound);
+    }
+
+    return ret;
+}
+
+public List<? extends PhysicalContent> getContent() {
+    return contents;
+}
+
+public float getHeight() {
+    return getPosition().getHeight();
+}
+
+public float getWidth() {
+    return getPosition().getWidth();
+}
+
+public List<PhysicalContent> searchDirection(Direction dir,
+                                             PhysicalContent origin,
+                                             float distance)
+{
     final Rectangle pos = origin.getPosition();
     final float x = pos.getX() + dir.xDiff * distance;
     final float y = pos.getY() + dir.yDiff * distance;
     final Rectangle search = new Rectangle(x, y, pos.getWidth(), pos.getHeight());
 
-    for (R r : contents) {
-        if (search.intersectsWith(r.getPosition())) {
-            ret.add(r);
-        }
-    }
+    final List<PhysicalContent> ret = findRectanglesIntersectingWith(search);
     ret.remove(origin);
     return ret;
-}
-
-public float getHeight() {
-    return bounds.getHeight();
-}
-
-public List<R> getRectangles() {
-    return contents;
-}
-
-public float getWidth() {
-    return bounds.getWidth();
 }
 
 // -------------------------- ENUMERATIONS --------------------------

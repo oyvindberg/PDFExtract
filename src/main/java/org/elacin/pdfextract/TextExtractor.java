@@ -18,6 +18,7 @@ package org.elacin.pdfextract;
 
 import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
+import org.apache.log4j.MDC;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.elacin.pdfextract.pdfbox.PDFTextStripper;
 import org.elacin.pdfextract.renderer.PageRenderer;
@@ -107,7 +108,7 @@ protected static PrintStream openOutputStream(final File file) {
 protected static PDDocument openPdfDocument(final File pdfFile, final String password) {
     long t0 = System.currentTimeMillis();
     Loggers.getInterfaceLog().info("LOG00120:Opening PDF file " + pdfFile + ".");
-
+    MDC.put("doc", pdfFile.getName());
 
     try {
         final PDDocument document = PDDocument.load(pdfFile);
@@ -128,6 +129,7 @@ protected static PDDocument openPdfDocument(final File pdfFile, final String pas
                 "LOG00130:PDFBox load() took " + (System.currentTimeMillis() - t0) + "ms");
         return document;
     } catch (IOException e) {
+        MDC.put("doc", "");
         throw new RuntimeException("Error while reading " + pdfFile + ".", e);
     }
 }
@@ -206,8 +208,10 @@ protected void processFile(final File pdfFile) throws IOException {
         doc = openPdfDocument(pdfFile, password);
 
         long t1 = System.currentTimeMillis();
+
         PDFTextStripper stripper = new PDFTextStripper(doc, startPage, endPage);
         stripper.readText();
+
         Loggers.getInterfaceLog().debug(
                 "LOG00160:Document analysis took " + (System.currentTimeMillis() - t1) + "ms");
 
@@ -221,6 +225,7 @@ protected void processFile(final File pdfFile) throws IOException {
         throw new RuntimeException("Error while parsing document", e);
     } finally {
         if (doc != null) {
+            MDC.put("doc", "");
             doc.close();
         }
     }

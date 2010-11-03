@@ -16,9 +16,8 @@
 
 package org.elacin.pdfextract.segmentation.column;
 
-import org.elacin.pdfextract.HasPosition;
+import org.elacin.pdfextract.segmentation.PhysicalPage;
 import org.elacin.pdfextract.util.Rectangle;
-import org.elacin.pdfextract.util.RectangleCollection;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Sep 9, 2010 Time: 4:33:59 AM To change this template
@@ -27,35 +26,21 @@ import org.elacin.pdfextract.util.RectangleCollection;
 class VerticalWhitespaceFinder extends AbstractWhitespaceFinder {
 // --------------------------- CONSTRUCTORS ---------------------------
 
-VerticalWhitespaceFinder(RectangleCollection<? extends HasPosition> content,
+VerticalWhitespaceFinder(PhysicalPage page,
                          final int numWhitespacesToBeFound,
                          final float whitespaceMinWidth,
                          final float whitespaceMinHeight)
 {
-    super(content, numWhitespacesToBeFound, whitespaceMinWidth, whitespaceMinHeight);
+    super(page, numWhitespacesToBeFound, whitespaceMinWidth, whitespaceMinHeight);
 }
 
 // -------------------------- OTHER METHODS --------------------------
 
-/**
- * This is the quality function by which we sort rectangles to choose the 'best' one first.
- * <p/>
- * The current function bases itself on the area of the rectangle, and then heavily prefers high and
- * narrow ones
- *
- * @param r
- * @return
- */
 @Override
 protected float rectangleQuality(final Rectangle r) {
-    //    if (r.getWidth() < WHITESPACE_MIN_WIDTH || r.getHeight() < WHITESPACE_MIN_HEIGHT) {
-    //        return -1;
-    //    }
 
-    return r.area() * (1 + r.getHeight() /*/ 2.0f*/);
-    //    return (r.getWidth() * 0.05f) * (r.getHeight() * 5f);
-    //    return r.area() * r.getHeight() / Math.max(1.0f, r.getWidth() / 2.0f);<--
-    //    return r.area() * r.getHeight() / Math.max(1.0f, r.getWidth() / 2.0f);
-    //    return (r.getHeight()) * 25 * r.getWidth();
+    //    float aspect = Math.max(r.getHeight() /r.getWidth(), r.getWidth()/r.getHeight()) * 0.2f;
+
+    return r.area() * (1 + r.getHeight() * 0.25f /*/ 2.0f*/);
 }
 }
