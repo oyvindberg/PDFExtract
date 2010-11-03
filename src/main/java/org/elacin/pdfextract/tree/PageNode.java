@@ -16,6 +16,8 @@
 
 package org.elacin.pdfextract.tree;
 
+import org.elacin.pdfextract.segmentation.Figure;
+import org.elacin.pdfextract.segmentation.Picture;
 import org.elacin.pdfextract.segmentation.WhitespaceRectangle;
 
 import java.util.ArrayList;
@@ -33,6 +35,8 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
 private final int pageNumber;
 private final List<WhitespaceRectangle> whitespaces = new ArrayList<WhitespaceRectangle>();
 private Map<Integer, List<Integer>> columns;
+private final List<Figure> figures = new ArrayList<Figure>();
+private final List<Picture> pictures = new ArrayList<Picture>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -46,8 +50,16 @@ public Map<Integer, List<Integer>> getColumns() {
     return columns;
 }
 
+public List<Figure> getFigures() {
+    return figures;
+}
+
 public int getPageNumber() {
     return pageNumber;
+}
+
+public List<Picture> getPictures() {
+    return pictures;
 }
 
 public List<WhitespaceRectangle> getWhitespaces() {
@@ -62,6 +74,14 @@ public boolean accepts(final WordNode node) {
 
 public void addColumns(final Map<Integer, List<Integer>> columns) {
     this.columns = columns;
+}
+
+public void addFigures(final List<Figure> figures) {
+    this.figures.addAll(figures);
+}
+
+public void addPictures(final List<Picture> pictures) {
+    this.pictures.addAll(pictures);
 }
 
 public void addWhitespace(final List<WhitespaceRectangle> whitespaces) {
@@ -132,8 +152,6 @@ public void combineChildren() {
     for (ParagraphNode paragraphNode : getChildren()) {
         paragraphNode.combineChildren();
     }
-
-
 }
 
 /**

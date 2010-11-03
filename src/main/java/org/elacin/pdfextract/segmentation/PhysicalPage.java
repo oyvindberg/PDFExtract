@@ -40,10 +40,26 @@ private final int pageNumber;
 /* average font sizes for the page */
 private final float avgFontSizeX, avgFontSizeY;
 
+private final List<Figure> figures;
+private final List<Picture> pictures;
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public PhysicalPage(List<PhysicalText> words, final float h, final float w, int pageNumber) {
+public PhysicalPage(List<PhysicalText> words,
+                    final List<Figure> figures,
+                    final List<Picture> pictures,
+                    final float h,
+                    final float w,
+                    int pageNumber)
+{
     super(new Rectangle(0.0F, 0.0F, w, h), words);
+
+    this.figures = figures;
+    this.pictures = pictures;
+
+    contents.addAll(figures);
+    contents.addAll(pictures);
+
     this.pageNumber = pageNumber;
 
     /* find minimum font sizes, and set word indices */
@@ -78,11 +94,11 @@ public void addWhitespace(final Collection<WhitespaceRectangle> whitespace) {
 }
 
 public PageNode compileLogicalPage() {
-    long t0 = System.currentTimeMillis();
     final LayoutRecognizer layoutRecognizer = new LayoutRecognizer();
 
     /* start off by finding whitespace */
     final List<WhitespaceRectangle> whitespace = layoutRecognizer.findWhitespace(this);
+    long t0 = System.currentTimeMillis();
     addWhitespace(whitespace);
 
     /* then follow the trails left between the whitespace and construct blocks of text from that */
@@ -120,7 +136,8 @@ public PageNode compileLogicalPage() {
     if (log.isInfoEnabled()) {
         log.info("LOG00230:compileLogicalPage took " + (System.currentTimeMillis() - t0) + " ms");
     }
-    ;
+    ret.addFigures(figures);
+    ret.addPictures(pictures);
     return ret;
 }
 
@@ -155,20 +172,17 @@ private boolean markEverythingConnectedFrom(final PhysicalContent current,
                                             final int rotation,
                                             final String fontName)
 {
-    if (current.isWhitespace()) {
+    if (!current.isAssignablePhysicalContent()) {
         return false;
     }
-    if (current.isText() && current.getText().isAssignedBlock()) {
+    if (current.getAssignablePhysicalContent().isAssignedBlock()) {
         return false;
     }
-    if (current.getText().getRotation() != rotation) {
+    if (current.isText() && current.getText().getRotation() != rotation) {
         return false;
     }
-    //    if (!current.getText().getStyle().font.equals(fontName)){
-    //        return false;
-    //    }
 
-    current.getText().setBlockNum(blockNum);
+    current.getAssignablePhysicalContent().setBlockNum(blockNum);
 
     final Rectangle pos = current.getPosition();
 

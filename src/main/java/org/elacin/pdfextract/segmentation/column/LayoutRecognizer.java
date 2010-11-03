@@ -37,7 +37,7 @@ import static org.elacin.pdfextract.Loggers.getInterfaceLog;
 public class LayoutRecognizer {
 // ------------------------------ FIELDS ------------------------------
 
-private static final int NUM_WHITESPACES_TO_BE_FOUND = 60;
+private static final int NUM_WHITESPACES_TO_BE_FOUND = 50;
 private static final Logger log = Logger.getLogger(LayoutRecognizer.class);
 
 // -------------------------- STATIC METHODS --------------------------

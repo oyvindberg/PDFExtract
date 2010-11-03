@@ -19,6 +19,7 @@ package org.elacin.pdfextract.pdfbox;
 
 import org.apache.log4j.MDC;
 import org.apache.pdfbox.cos.COSStream;
+import org.apache.pdfbox.pdfviewer.PageDrawer;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDStream;
@@ -41,7 +42,7 @@ import java.util.List;
 import java.util.Map;
 
 
-public class PDFTextStripper extends PDFStreamEngine {
+public class PDFTextStripper extends PageDrawer {
 // ------------------------------ FIELDS ------------------------------
 
 protected final List<ETextPosition> charactersForPage = new ArrayList<ETextPosition>();
@@ -225,7 +226,8 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
             final List<PhysicalText> texts = segmentator.segmentWords(charactersForPage);
 
             /* and create the page subtree */
-            PhysicalPage physicalPage = new PhysicalPage(texts, height, width, currentPageNo);
+            PhysicalPage physicalPage = new PhysicalPage(texts, figures, pictures, height, width,
+                                                         currentPageNo);
             final PageNode pageNode = physicalPage.compileLogicalPage();
 
             /* combine split linenodes within same paragraph */
@@ -234,6 +236,8 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
             root.addChild(pageNode);
         }
         MDC.remove("page");
+        figures.clear();
+        pictures.clear();
     }
 }
 }

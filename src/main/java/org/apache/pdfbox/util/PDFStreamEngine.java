@@ -14,14 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.pdfbox.util;
 
-package org.elacin.pdfextract.pdfbox;
-
-
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.exceptions.WrappedIOException;
+import org.apache.pdfbox.pdfparser.PDFStreamParser;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.font.PDFont;
@@ -29,9 +30,8 @@ import org.apache.pdfbox.pdmodel.graphics.PDExtendedGraphicsState;
 import org.apache.pdfbox.pdmodel.graphics.PDGraphicsState;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColorSpace;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
-import org.apache.pdfbox.util.Matrix;
-import org.apache.pdfbox.util.PDFOperator;
 import org.apache.pdfbox.util.operator.OperatorProcessor;
+import org.elacin.pdfextract.pdfbox.ETextPosition;
 
 import java.io.IOException;
 import java.util.*;
@@ -44,13 +44,13 @@ import java.util.*;
  * @author <a href="mailto:ben@benlitchfield.com">Ben Litchfield</a>
  * @version $Revision: 1.38 $
  */
-public class PDFStreamEngine extends org.apache.pdfbox.util.PDFStreamEngine {
+public class PDFStreamEngine {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger log = Logger.getLogger("org.apache.pdfbox.util.PDFStreamEngine");
 /**
  * Log instance.
  */
+private static final Log log = LogFactory.getLog(PDFStreamEngine.class);
 
 private static final byte[] SPACE_BYTES = {(byte) 32};
 
@@ -59,22 +59,27 @@ private static final byte[] SPACE_BYTES = {(byte) 32};
  */
 private final Set<String> unsupportedOperators = new HashSet<String>();
 
-private PDGraphicsState graphicsState;
+private PDGraphicsState graphicsState = null;
 
-private Matrix textMatrix;
-private Matrix textLineMatrix;
-private Stack graphicsStack = new Stack();
+private Matrix textMatrix = null;
+private Matrix textLineMatrix = null;
+private Stack<PDGraphicsState> graphicsStack = new Stack<PDGraphicsState>();
 
-private final Map<String, OperatorProcessor> operators = new HashMap<String, OperatorProcessor>();
+private Map<String, OperatorProcessor> operators = new HashMap<String, OperatorProcessor>();
 
-private final Stack<StreamResources> streamResourcesStack = new Stack<StreamResources>();
+private Stack<StreamResources> streamResourcesStack = new Stack<StreamResources>();
 
-private PDPage page;
+protected PDPage page;
 
-private final Map documentFontCache = new HashMap();
+private Map<String, PDFont> documentFontCache = new HashMap<String, PDFont>();
 
 private int validCharCnt;
 private int totalCharCnt;
+
+/**
+ * Flag to skip malformed or otherwise unparseable input where possible.
+ */
+private boolean forceParsing;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -120,42 +125,19 @@ public PDFStreamEngine(Properties properties) throws IOException {
     totalCharCnt = 0;
 }
 
-// ------------------------ OVERRIDING METHODS ------------------------
-
-/**
- * @return Returns the colorSpaces.
- */
-public Map getColorSpaces() {
-    return (streamResourcesStack.peek()).colorSpaces;
-}
-
-/**
- * Get the current page that is being processed.
- *
- * @return The page being processed.
- */
-public PDPage getCurrentPage() {
-    return page;
-}
-
-/**
- * @return Returns the fonts.
- */
-public Map getFonts() {
-    return (streamResourcesStack.peek()).fonts;
-}
+// --------------------- GETTER / SETTER METHODS ---------------------
 
 /**
  * @return Returns the graphicsStack.
  */
-public Stack getGraphicsStack() {
+public Stack<PDGraphicsState> getGraphicsStack() {
     return graphicsStack;
 }
 
 /**
  * @param value The graphicsStack to set.
  */
-public void setGraphicsStack(Stack value) {
+public void setGraphicsStack(Stack<PDGraphicsState> value) {
     graphicsStack = value;
 }
 
@@ -171,20 +153,6 @@ public PDGraphicsState getGraphicsState() {
  */
 public void setGraphicsState(PDGraphicsState value) {
     graphicsState = value;
-}
-
-/**
- * @return Returns the graphicsStates.
- */
-public Map getGraphicsStates() {
-    return (streamResourcesStack.peek()).graphicsStates;
-}
-
-/**
- * @return Returns the resources.
- */
-public PDResources getResources() {
-    return (streamResourcesStack.peek()).resources;
 }
 
 /**
@@ -234,16 +202,63 @@ public int getValidCharCnt() {
     return validCharCnt;
 }
 
+public boolean isForceParsing() {
+    return forceParsing;
+}
+
+public void setForceParsing(boolean forceParsing) {
+    this.forceParsing = forceParsing;
+}
+
+// -------------------------- PUBLIC METHODS --------------------------
+
 /**
  * @return Returns the colorSpaces.
  */
-public Map getXObjects() {
-    return (streamResourcesStack.peek()).xobjects;
+public Map<String, PDColorSpace> getColorSpaces() {
+    return streamResourcesStack.peek().colorSpaces;
 }
 
 /**
- * Process encoded text from the PDF Stream. You should override this method if you want to perform
- * an action when encoded text is being processed.
+ * Get the current page that is being processed.
+ *
+ * @return The page being processed.
+ */
+public PDPage getCurrentPage() {
+    return page;
+}
+
+/**
+ * @return Returns the fonts.
+ */
+public Map<String, PDFont> getFonts() {
+    return streamResourcesStack.peek().fonts;
+}
+
+/**
+ * @return Returns the graphicsStates.
+ */
+public Map<String, PDExtendedGraphicsState> getGraphicsStates() {
+    return streamResourcesStack.peek().graphicsStates;
+}
+
+/**
+ * @return Returns the resources.
+ */
+public PDResources getResources() {
+    return streamResourcesStack.peek().resources;
+}
+
+/**
+ * @return Returns the colorSpaces.
+ */
+public Map<String, PDXObject> getXObjects() {
+    return streamResourcesStack.peek().xobjects;
+}
+
+/**
+ * Process encoded text from the PDF Stream. You should override this method if you want to
+ * perform an action when encoded text is being processed.
  *
  * @param string The encoded text
  * @throws IOException If there is an error processing the string
@@ -273,7 +288,7 @@ public void processEncodedText(byte[] string) throws IOException {
     //This will typically be 1000 but in the case of a type3 font
     //this might be a different number
     final float glyphSpaceToTextSpaceFactor = 1f / font.getFontMatrix().getValue(0, 0);
-    float spaceWidthText = 0.0F;
+    float spaceWidthText = 0;
 
     try { // to avoid crash as described in PDFBOX-614
         // lets see what the space displacement should be
@@ -282,7 +297,7 @@ public void processEncodedText(byte[] string) throws IOException {
         log.warn(exception, exception);
     }
 
-    if (spaceWidthText == 0.0F) {
+    if (spaceWidthText == 0) {
         spaceWidthText = (font.getAverageFontWidth() / glyphSpaceToTextSpaceFactor);
         //The average space width appears to be higher than necessary
         //so lets make it a little bit smaller.
@@ -292,15 +307,15 @@ public void processEncodedText(byte[] string) throws IOException {
 
     /* Convert textMatrix to display units */
     final Matrix initialMatrix = new Matrix();
-    initialMatrix.setValue(0, 0, 1.0F);
-    initialMatrix.setValue(0, 1, 0.0F);
-    initialMatrix.setValue(0, 2, 0.0F);
-    initialMatrix.setValue(1, 0, 0.0F);
-    initialMatrix.setValue(1, 1, 1.0F);
-    initialMatrix.setValue(1, 2, 0.0F);
-    initialMatrix.setValue(2, 0, 0.0F);
+    initialMatrix.setValue(0, 0, 1);
+    initialMatrix.setValue(0, 1, 0);
+    initialMatrix.setValue(0, 2, 0);
+    initialMatrix.setValue(1, 0, 0);
+    initialMatrix.setValue(1, 1, 1);
+    initialMatrix.setValue(1, 2, 0);
+    initialMatrix.setValue(2, 0, 0);
     initialMatrix.setValue(2, 1, riseText);
-    initialMatrix.setValue(2, 2, 1.0F);
+    initialMatrix.setValue(2, 2, 1);
 
     final Matrix ctm = graphicsState.getCurrentTransformationMatrix();
     final Matrix dispMatrix = initialMatrix.multiply(ctm);
@@ -314,7 +329,7 @@ public void processEncodedText(byte[] string) throws IOException {
     final float spaceWidthDisp = spaceWidthText * xScaleDisp * fontSizeText;
     final float wordSpacingDisp = wordSpacingText * xScaleDisp * fontSizeText;
 
-    float maxVerticalDisplacementText = 0.0F;
+    float maxVerticalDisplacementText = 0;
 
     float[] individualWidthsBuffer = new float[string.length];
     StringBuilder characterBuffer = new StringBuilder(string.length);
@@ -329,11 +344,12 @@ public void processEncodedText(byte[] string) throws IOException {
             codeLength++;
             c = font.encode(string, i, codeLength);
         }
+        c = inspectFontEncoding(c);
 
         //todo, handle horizontal displacement
         // get the width and height of this character in text units
-        float characterHorizontalDisplacementText = font.getFontWidth(string, i, codeLength)
-                / glyphSpaceToTextSpaceFactor;
+        float characterHorizontalDisplacementText = (font.getFontWidth(string, i, codeLength)
+                / glyphSpaceToTextSpaceFactor);
         maxVerticalDisplacementText = Math.max(maxVerticalDisplacementText, font.getFontHeight(
                 string, i, codeLength) / glyphSpaceToTextSpaceFactor);
 
@@ -356,7 +372,7 @@ public void processEncodedText(byte[] string) throws IOException {
         // code 32 non-space resulted in errors consistent with this interpretation.
         //
         float spacingText = characterSpacingText;
-        if ((string[i] == (byte) 0x20) && codeLength == 1) {
+        if ((string[i] == 0x20) && codeLength == 1) {
             spacingText += wordSpacingText;
         }
 
@@ -367,12 +383,12 @@ public void processEncodedText(byte[] string) throws IOException {
 
         //The adjustment will always be zero.  The adjustment as shown in the
         //TJ operator will be handled separately.
-        float adjustment = 0.0F;
+        float adjustment = 0;
         // TODO : tx should be set for horizontal text and ty for vertical text
         // which seems to be specified in the font (not the direction in the matrix).
         float tx = ((characterHorizontalDisplacementText - adjustment / glyphSpaceToTextSpaceFactor)
                 * fontSizeText) * horizontalScalingText;
-        float ty = 0.0F;
+        float ty = 0;
 
         Matrix td = new Matrix();
         td.setValue(2, 0, tx);
@@ -383,7 +399,7 @@ public void processEncodedText(byte[] string) throws IOException {
         Matrix glyphMatrixEndDisp = textMatrix.multiply(dispMatrix);
 
         float sx = spacingText * horizontalScalingText;
-        float sy = 0.0F;
+        float sy = 0;
 
         Matrix sd = new Matrix();
         sd.setValue(2, 0, sx);
@@ -408,7 +424,7 @@ public void processEncodedText(byte[] string) throws IOException {
         //glyphname that has no mapping like "visiblespace"
         if (c != null) {
             Arrays.fill(individualWidthsBuffer, characterBuffer.length(),
-                        characterBuffer.length() + c.length(), widthText / (float) c.length());
+                        characterBuffer.length() + c.length(), widthText / c.length());
 
             validCharCnt += c.length();
         } else {
@@ -422,7 +438,7 @@ public void processEncodedText(byte[] string) throws IOException {
 
         totalCharCnt += c.length();
 
-        if (spacingText == 0.0F && (i + codeLength) < (string.length - 1)) {
+        if (spacingText == 0 && (i + codeLength) < (string.length - 1)) {
             continue;
         }
 
@@ -455,36 +471,11 @@ public void processEncodedText(byte[] string) throws IOException {
  * @param arguments The list of arguments.
  * @throws IOException If there is an error processing the operation.
  */
-public void processOperator(String operation, List arguments) throws IOException {
+public void processOperator(String operation, List<COSBase> arguments) throws IOException {
     try {
         PDFOperator oper = PDFOperator.getOperator(operation);
         processOperator(oper, arguments);
     } catch (IOException e) {
-        log.warn(e, e);
-    }
-}
-
-/**
- * This is used to handle an operation.
- *
- * @param operator  The operation to perform.
- * @param arguments The list of arguments.
- * @throws IOException If there is an error processing the operation.
- */
-protected void processOperator(PDFOperator operator, List arguments) throws IOException {
-    try {
-        String operation = operator.getOperation();
-        OperatorProcessor processor = operators.get(operation);
-        if (processor != null) {
-            processor.setContext(this);
-            processor.process(operator, arguments);
-        } else {
-            if (!unsupportedOperators.contains(operation)) {
-                log.info("unsupported/disabled operation: " + operation);
-                unsupportedOperators.add(operation);
-            }
-        }
-    } catch (Exception e) {
         log.warn(e, e);
     }
 }
@@ -530,30 +521,15 @@ public void processSubStream(PDPage aPage,
         sr.xobjects = resources.getXObjects();
         sr.graphicsStates = resources.getGraphicsStates();
         sr.resources = resources;
+
         streamResourcesStack.push(sr);
-    }
-    try {
-        List<Object> arguments = new ArrayList<Object>();
-        List tokens = cosStream.getStreamTokens();
-        if (tokens != null) {
-            for (final Object next : tokens) {
-                if (next instanceof COSObject) {
-                    arguments.add(((COSObject) next).getObject());
-                } else if (next instanceof PDFOperator) {
-                    processOperator((PDFOperator) next, arguments);
-                    arguments = new ArrayList<Object>();
-                } else {
-                    arguments.add(next);
-                }
-                if (log.isDebugEnabled()) {
-                    log.debug("token: " + next);
-                }
-            }
-        }
-    } finally {
-        if (resources != null) {
+        try {
+            processSubStream(cosStream);
+        } finally {
             streamResourcesStack.pop();
         }
+    } else {
+        processSubStream(cosStream);
     }
 }
 
@@ -563,7 +539,7 @@ public void processSubStream(PDPage aPage,
  * @param operator The operator as a string.
  * @param op       Processor instance.
  */
-public final void registerOperatorProcessor(String operator, OperatorProcessor op) {
+public void registerOperatorProcessor(String operator, OperatorProcessor op) {
     op.setContext(this);
     operators.put(operator, op);
 }
@@ -582,25 +558,85 @@ public void resetEngine() {
 /**
  * @param value The colorSpaces to set.
  */
-public void setColorSpaces(Map value) {
-    (streamResourcesStack.peek()).colorSpaces = value;
+public void setColorSpaces(Map<String, PDColorSpace> value) {
+    streamResourcesStack.peek().colorSpaces = value;
 }
 
 /**
  * @param value The fonts to set.
  */
-public void setFonts(Map value) {
-    (streamResourcesStack.peek()).fonts = value;
+public void setFonts(Map<String, PDFont> value) {
+    streamResourcesStack.peek().fonts = value;
 }
 
 /**
  * @param value The graphicsStates to set.
  */
-public void setGraphicsStates(Map value) {
-    (streamResourcesStack.peek()).graphicsStates = value;
+public void setGraphicsStates(Map<String, PDExtendedGraphicsState> value) {
+    ((StreamResources) streamResourcesStack.peek()).graphicsStates = value;
 }
 
 // -------------------------- OTHER METHODS --------------------------
+
+private void processSubStream(COSStream cosStream) throws IOException {
+    List<COSBase> arguments = new ArrayList<COSBase>();
+    PDFStreamParser parser = new PDFStreamParser(cosStream, forceParsing);
+    try {
+        Iterator<Object> iter = parser.getTokenIterator();
+
+        while (iter.hasNext()) {
+            Object next = iter.next();
+            if (log.isDebugEnabled()) {
+                log.debug("processing substream token: " + next);
+            }
+            if (next instanceof COSObject) {
+                arguments.add(((COSObject) next).getObject());
+            } else if (next instanceof PDFOperator) {
+                processOperator((PDFOperator) next, arguments);
+                arguments = new ArrayList<COSBase>();
+            } else {
+                arguments.add((COSBase) next);
+            }
+        }
+    } finally {
+        parser.close();
+    }
+}
+
+/**
+ * A method provided as an event interface to allow a subclass to perform some specific
+ * functionality on the string encoded by a glyph.
+ *
+ * @param str The string to be processed.
+ */
+protected String inspectFontEncoding(String str) {
+    return str;
+}
+
+/**
+ * This is used to handle an operation.
+ *
+ * @param operator  The operation to perform.
+ * @param arguments The list of arguments.
+ * @throws IOException If there is an error processing the operation.
+ */
+protected void processOperator(PDFOperator operator, List<COSBase> arguments) throws IOException {
+    try {
+        String operation = operator.getOperation();
+        OperatorProcessor processor = (OperatorProcessor) operators.get(operation);
+        if (processor != null) {
+            processor.setContext(this);
+            processor.process(operator, arguments);
+        } else {
+            if (!unsupportedOperators.contains(operation)) {
+                log.info("unsupported/disabled operation: " + operation);
+                unsupportedOperators.add(operation);
+            }
+        }
+    } catch (Exception e) {
+        log.warn(e, e);
+    }
+}
 
 /**
  * A method provided as an event interface to allow a subclass to perform some specific
@@ -626,5 +662,7 @@ private static class StreamResources {
 
     private StreamResources() {
     }
+
+    ;
 }
 }

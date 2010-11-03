@@ -20,6 +20,9 @@ import org.apache.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.elacin.pdfextract.Loggers;
+import org.elacin.pdfextract.segmentation.Figure;
+import org.elacin.pdfextract.segmentation.Picture;
+import org.elacin.pdfextract.segmentation.WhitespaceRectangle;
 import org.elacin.pdfextract.tree.*;
 import org.elacin.pdfextract.util.Rectangle;
 
@@ -63,7 +66,8 @@ private static void drawRectangleInColor(final Graphics2D graphics,
                                          final float xScale,
                                          final float yScale,
                                          final Color color,
-                                         final Rectangle pos)
+                                         final Rectangle pos,
+                                         final boolean fill)
 {
     graphics.setColor(color);
     final int x = (int) ((float) pos.getX() * xScale);
@@ -72,10 +76,11 @@ private static void drawRectangleInColor(final Graphics2D graphics,
     final int height = (int) ((float) pos.getHeight() * yScale);
 
     graphics.drawRect(x, y, width, height);
-
-    graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 60));
-    graphics.fillRect(x, y, width, height);
-    graphics.fillRect(x, y, width, height);
+    if (fill) {
+        graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 60));
+        graphics.fillRect(x, y, width, height);
+        //        graphics.fillRect(x, y, width, height);
+    }
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
@@ -109,17 +114,31 @@ public BufferedImage renderPage(final int pageNum) {
     for (ParagraphNode paragraphNode : pageNode.getChildren()) {
         for (LineNode lineNode : paragraphNode.getChildren()) {
             for (WordNode wordNode : lineNode.getChildren()) {
-                drawRectangleInColor(graphics, xScale, yScale, Color.BLUE, wordNode.getPosition());
+                drawRectangleInColor(graphics, xScale, yScale, Color.BLUE, wordNode.getPosition(),
+                                     true);
             }
-            drawRectangleInColor(graphics, xScale, yScale, Color.RED, lineNode.getPosition());
+            drawRectangleInColor(graphics, xScale, yScale, Color.RED, lineNode.getPosition(), true);
         }
-        drawRectangleInColor(graphics, xScale, yScale, Color.GREEN, paragraphNode.getPosition());
+        drawRectangleInColor(graphics, xScale, yScale, Color.GREEN, paragraphNode.getPosition(),
+                             true);
     }
 
-    //    /* draw whitespace */
-    //    for (WhitespaceRectangle whitespace : pageNode.getWhitespaces()) {
-    //        drawRectangleInColor(graphics, xScale, yScale, Color.RED, whitespace.getPosition());
-    //    }
+    /* draw whitespace */
+    for (WhitespaceRectangle whitespace : pageNode.getWhitespaces()) {
+        drawRectangleInColor(graphics, xScale, yScale, Color.YELLOW, whitespace.getPosition(),
+                             true);
+    }
+
+    /* draw figures */
+    for (Figure figure : pageNode.getFigures()) {
+        drawRectangleInColor(graphics, xScale, yScale, Color.RED, figure.getPosition(),
+                             figure.isFilled());
+    }
+
+    /* draw pictures */
+    for (Picture picture : pageNode.getPictures()) {
+        drawRectangleInColor(graphics, xScale, yScale, Color.ORANGE, picture.getPosition(), true);
+    }
 
     /* draw columns if provided */
     if (pageNode.getColumns() != null) {
@@ -127,7 +146,7 @@ public BufferedImage renderPage(final int pageNum) {
             final Integer y = yCols.getKey();
             for (Integer index : yCols.getValue()) {
                 final Rectangle pos = new Rectangle(index, y, 1, 1);
-                drawRectangleInColor(graphics, xScale, yScale, Color.GREEN, pos);
+                drawRectangleInColor(graphics, xScale, yScale, Color.GREEN, pos, true);
             }
         }
     }

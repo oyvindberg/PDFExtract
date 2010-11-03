@@ -23,12 +23,9 @@ import org.elacin.pdfextract.util.Rectangle;
  * Created by IntelliJ IDEA. User: elacin Date: Sep 23, 2010 Time: 2:36:44 PM To change this
  * template use File | Settings | File Templates.
  */
-public class PhysicalText extends PhysicalContent {
+public class PhysicalText extends AssignablePhysicalContent {
 // ------------------------------ FIELDS ------------------------------
 
-public static final int BLOCK_NOT_ASSIGNED = -1;
-
-public int blockNum = BLOCK_NOT_ASSIGNED;
 public final float distanceToPreceeding;
 public float charSpacing;
 public final String content;
@@ -97,14 +94,6 @@ public static boolean isCloseEnoughToBelongToSameWord(final PhysicalText otherTe
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-public int getBlockNum() {
-    return blockNum;
-}
-
-public void setBlockNum(final int blockNum) {
-    this.blockNum = blockNum;
-}
-
 public float getCharSpacing() {
     return charSpacing;
 }
@@ -134,10 +123,6 @@ public PhysicalText combineWith(final PhysicalText next) {
 
 public float getAverageCharacterWidth() {
     return getPosition().getWidth() / (float) getContent().length();
-}
-
-public boolean isAssignedBlock() {
-    return blockNum != BLOCK_NOT_ASSIGNED;
 }
 
 public boolean isSameStyleAs(final PhysicalText next) {

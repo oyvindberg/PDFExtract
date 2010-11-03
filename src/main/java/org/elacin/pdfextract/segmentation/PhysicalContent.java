@@ -49,11 +49,23 @@ public PhysicalText getText() {
     throw new RuntimeException("not a text");
 }
 
+public AssignablePhysicalContent getAssignablePhysicalContent() {
+    throw new RuntimeException("not an AssignablePhysicalContent");
+}
+
 public boolean isText() {
     return false;
 }
 
+public boolean isAssignablePhysicalContent() {
+    return false;
+}
+
 public boolean isWhitespace() {
+    return false;
+}
+
+public boolean isFigure() {
     return false;
 }
 

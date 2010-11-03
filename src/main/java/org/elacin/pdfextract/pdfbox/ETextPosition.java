@@ -32,9 +32,7 @@ import org.elacin.pdfextract.util.Rectangle;
 public class ETextPosition extends TextPosition {
 // ------------------------------ FIELDS ------------------------------
 
-private float distanceToPreceeding;
 private final Rectangle pos;
-
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public ETextPosition(final PDPage page,
@@ -51,24 +49,15 @@ public ETextPosition(final PDPage page,
 {
     super(page, textPositionSt, textPositionEnd, maxFontH, individualWidths, spaceWidth, string,
           currentFont, fontSizeValue, fontSizeInPt, ws);
-    //        if (string.length() > 1){
-    //            System.out.println("string = " + string);
-    //        }
-    //    pos = new Rectangle(getXDirAdj(), getYDirAdj(), getWidthDirAdj(), getHeightDir());
     pos = new Rectangle(getX(), getY(), getWidth(), getHeight());
 }
 
+
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-public float getDistanceToPreceeding() {
-    return distanceToPreceeding;
-}
-
-public void setDistanceToPreceeding(final float distanceToPreceeding) {
-    this.distanceToPreceeding = distanceToPreceeding;
-}
 
 public Rectangle getPos() {
     return pos;
 }
+
 }
