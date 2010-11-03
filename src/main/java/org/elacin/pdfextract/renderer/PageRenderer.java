@@ -44,8 +44,6 @@ private final DocumentNode documentNode;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-//private final Map<Integer, BufferedImage> pagesCache = new HashMap<Integer, BufferedImage>();
-
 public PageRenderer(final PDDocument document,
                     final DocumentNode documentNode,
                     final int resolution)
@@ -108,6 +106,7 @@ public BufferedImage renderPage(final int pageNum) {
     final float xScale = (float) image.getWidth() / page.getArtBox().getWidth();
     final float yScale = (float) image.getHeight() / page.getArtBox().getHeight();
 
+    /* draw document tree */
     for (ParagraphNode paragraphNode : pageNode.getChildren()) {
         for (LineNode lineNode : paragraphNode.getChildren()) {
             for (WordNode wordNode : lineNode.getChildren()) {
@@ -118,22 +117,23 @@ public BufferedImage renderPage(final int pageNum) {
         //        drawRectangleInColor(graphics, xScale, yScale, Color.GREEN, paragraphNode.getPosition());
     }
 
+    /* draw whitespace */
     for (WhitespaceRectangle whitespace : pageNode.getWhitespaces()) {
         drawRectangleInColor(graphics, xScale, yScale, Color.RED, whitespace.getPosition());
     }
+
+    /* draw columns if provided */
     if (pageNode.getColumns() != null) {
-        for (Map.Entry<Integer, List<Integer>> columnIndicesForY : pageNode.getColumns()
-                .entrySet()) {
-            final Integer y = columnIndicesForY.getKey();
-            for (Integer index : columnIndicesForY.getValue()) {
-                drawRectangleInColor(graphics, xScale, yScale, Color.GREEN, new Rectangle(index, y,
-                                                                                          1, 1));
+        for (Map.Entry<Integer, List<Integer>> yCols : pageNode.getColumns().entrySet()) {
+            final Integer y = yCols.getKey();
+            for (Integer index : yCols.getValue()) {
+                final Rectangle pos = new Rectangle(index, y, 1, 1);
+                drawRectangleInColor(graphics, xScale, yScale, Color.GREEN, pos);
             }
         }
     }
-    Loggers.getInterfaceLog().info(
-            "LOG00180:Rendered page " + pageNum + " in " + (System.currentTimeMillis() - t1)
-                    + " ms");
+    Loggers.getInterfaceLog().info(String.format("LOG00180:Rendered page %d in %d ms", pageNum,
+                                                 (System.currentTimeMillis() - t1)));
     return image;
 }
 }

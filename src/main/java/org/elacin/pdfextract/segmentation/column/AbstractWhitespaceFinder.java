@@ -278,7 +278,7 @@ private boolean isNextToWhitespaceOrEdge(final WhitespaceRectangle newWhitespace
 }
 
 //private boolean rectangleIsTooThin(final Rectangle bound) {
-//    List<PhysicalContent> closest = page.findTextsAroundPosition(bound);
+//    List<PhysicalContent> closest = page.findSurrounding(bound);
 //
 //    float minWidth = Float.MIN_VALUE, minHeight = Float.MIN_VALUE;
 //    for (HasPosition text : closest) {

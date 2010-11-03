@@ -22,7 +22,8 @@ import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.util.Rectangle;
 import org.elacin.pdfextract.util.RectangleCollection;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Contains physicaltexts and whitespaces
@@ -45,8 +46,7 @@ public PhysicalPage(List<PhysicalText> words, final float h, final float w, int 
 
     /* find minimum font sizes, and set word indices */
     float xSizeSum = 0.0f, ySizeSum = 0.0f;
-    for (int i = 0, wordsSize = words.size(); i < wordsSize; i++) {
-        final PhysicalText word = words.get(i);
+    for (final PhysicalText word : words) {
         xSizeSum += word.getStyle().xSize;
         ySizeSum += word.getStyle().ySize;
     }
@@ -55,16 +55,6 @@ public PhysicalPage(List<PhysicalText> words, final float h, final float w, int 
 }
 
 // -------------------------- STATIC METHODS --------------------------
-
-private static void sortListByXCoordinate(final List<PhysicalContent> result) {
-    final Comparator<PhysicalContent> sortByXIndex = new Comparator<PhysicalContent>() {
-        @Override
-        public int compare(final PhysicalContent o1, final PhysicalContent o2) {
-            return Float.compare(o1.getPosition().getX(), o2.getPosition().getX());
-        }
-    };
-    Collections.sort(result, sortByXIndex);
-}
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -84,27 +74,39 @@ public int getPageNumber() {
 
 public void addWhitespace(final Collection<WhitespaceRectangle> whitespace) {
     contents.addAll(whitespace);
+    clearCache();
 }
 
 public PageNode compileLogicalPage() {
     long t0 = System.currentTimeMillis();
     final LayoutRecognizer layoutRecognizer = new LayoutRecognizer();
 
+    /* start off by finding whitespace */
     final List<WhitespaceRectangle> whitespace = layoutRecognizer.findWhitespace(this);
     addWhitespace(whitespace);
 
-
-    int num = 0;
+    /* then follow the trails left between the whitespace and construct blocks of text from that */
+    int blockNum = 0;
     for (int y = 0; y < (int) getPosition().getHeight(); y++) {
         final List<PhysicalContent> line = selectIntersectingWithYIndex(y);
-        boolean started = false;
+
+        /* iterate through the line to find possible start of blocks */
         for (PhysicalContent content : line) {
             if (content.isText()) {
                 PhysicalText text = content.getText();
-            } else {
+
+                if (text.isAssignedBlock()) {
+                    continue;
+                }
+
+                /* find all connected texts and mark with this blockNum*/
+                //                markEverythingConnectedFrom()
+
+                blockNum++;
             }
         }
     }
+
 
     PageNode ret = new PageNode(pageNumber);
     //    ret.addColumns(layoutRecognizer.findColumnsForPage(this, ret));
@@ -112,17 +114,4 @@ public PageNode compileLogicalPage() {
     return ret;
 }
 
-public List<PhysicalContent> selectIntersectingWithYIndex(int y) {
-    final Rectangle searchRectangle = new Rectangle(0.0F, (float) y, getWidth(), 1.0F);
-    final List<PhysicalContent> result = new ArrayList<PhysicalContent>(50);
-
-    for (PhysicalContent content : getContent()) {
-        if (searchRectangle.intersectsWith(content.getPosition())) {
-            result.add(content);
-        }
-    }
-    sortListByXCoordinate(result);
-
-    return result;
-}
 }

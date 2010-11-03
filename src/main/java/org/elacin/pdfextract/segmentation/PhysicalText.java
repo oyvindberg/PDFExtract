@@ -26,7 +26,9 @@ import org.elacin.pdfextract.util.Rectangle;
 public class PhysicalText extends PhysicalContent {
 // ------------------------------ FIELDS ------------------------------
 
-public int num;
+public static final int BLOCK_NOT_ASSIGNED = -1;
+
+public int blockNum = BLOCK_NOT_ASSIGNED;
 public final float distanceToPreceeding;
 public float charSpacing;
 public final String content;
@@ -91,6 +93,14 @@ public static boolean isCloseEnoughToBelongToSameWord(final PhysicalText otherTe
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
+public int getBlockNum() {
+    return blockNum;
+}
+
+public void setBlockNum(final int blockNum) {
+    this.blockNum = blockNum;
+}
+
 public float getCharSpacing() {
     return charSpacing;
 }
@@ -101,14 +111,6 @@ public String getContent() {
 
 public float getDistanceToPreceeding() {
     return distanceToPreceeding;
-}
-
-public int getNum() {
-    return num;
-}
-
-public void setNum(final int num) {
-    this.num = num;
 }
 
 public Style getStyle() {
@@ -124,6 +126,10 @@ public PhysicalText combineWith(final PhysicalText next) {
 
 public float getAverageCharacterWidth() {
     return getPosition().getWidth() / (float) getContent().length();
+}
+
+public boolean isAssignedBlock() {
+    return blockNum == BLOCK_NOT_ASSIGNED;
 }
 
 public boolean isSameStyleAs(final PhysicalText next) {

@@ -18,8 +18,7 @@ package org.elacin.pdfextract.util;
 
 import org.elacin.pdfextract.segmentation.PhysicalContent;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Nov 2, 2010 Time: 1:20:36 AM To change this template
@@ -30,11 +29,27 @@ public class RectangleCollection extends PhysicalContent {
 
 protected final List<PhysicalContent> contents = new ArrayList<PhysicalContent>();
 
+/* calculating all the intersections while searching is expensive, so keep this cached.
+    will be pruned on update */
+private Map<Integer, List<PhysicalContent>> yCache = new HashMap<Integer, List<PhysicalContent>>();
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public RectangleCollection(final Rectangle bounds, final List<? extends PhysicalContent> contents) {
     super(bounds);
     this.contents.addAll(contents);
+}
+
+// -------------------------- STATIC METHODS --------------------------
+
+private static void sortListByXCoordinate(final List<PhysicalContent> result) {
+    final Comparator<PhysicalContent> sortByXIndex = new Comparator<PhysicalContent>() {
+        @Override
+        public int compare(final PhysicalContent o1, final PhysicalContent o2) {
+            return Float.compare(o1.getPosition().getX(), o2.getPosition().getX());
+        }
+    };
+    Collections.sort(result, sortByXIndex);
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
@@ -49,13 +64,18 @@ public List<PhysicalContent> findRectanglesIntersectingWith(final Rectangle sear
     return ret;
 }
 
-public List<PhysicalContent> findTextsAroundPosition(final Rectangle bound) {
-    Rectangle searchRectangle = new Rectangle(bound.getX() - 5, bound.getY() - 5,
-                                              bound.getWidth() + 5, bound.getHeight() + 5);
+public List<PhysicalContent> findSurrounding(final PhysicalContent text, final int distance) {
+    final Rectangle bound = text.getPosition();
+
+    Rectangle searchRectangle = new Rectangle(bound.getX() - (float) distance,
+                                              bound.getY() - (float) distance,
+                                              bound.getWidth() + (float) distance,
+                                              bound.getHeight() + (float) distance);
 
     final List<PhysicalContent> ret = findRectanglesIntersectingWith(searchRectangle);
-    if (ret.contains(bound)) {
-        ret.remove(bound);
+
+    if (ret.contains(text)) {
+        ret.remove(text);
     }
 
     return ret;
@@ -73,9 +93,9 @@ public float getWidth() {
     return getPosition().getWidth();
 }
 
-public List<PhysicalContent> searchDirection(Direction dir,
-                                             PhysicalContent origin,
-                                             float distance)
+public List<PhysicalContent> searchInDirectionFromOrigin(Direction dir,
+                                                         PhysicalContent origin,
+                                                         float distance)
 {
     final Rectangle pos = origin.getPosition();
     final float x = pos.getX() + dir.xDiff * distance;
@@ -83,8 +103,32 @@ public List<PhysicalContent> searchDirection(Direction dir,
     final Rectangle search = new Rectangle(x, y, pos.getWidth(), pos.getHeight());
 
     final List<PhysicalContent> ret = findRectanglesIntersectingWith(search);
-    ret.remove(origin);
+    if (ret.contains(origin)) {
+        ret.remove(origin);
+    }
     return ret;
+}
+
+public List<PhysicalContent> selectIntersectingWithYIndex(int y) {
+    if (!yCache.containsKey(y)) {
+        final Rectangle searchRectangle = new Rectangle(0.0F, (float) y, getWidth(), 1.0F);
+        final List<PhysicalContent> result = new ArrayList<PhysicalContent>(50);
+
+        for (PhysicalContent content : getContent()) {
+            if (searchRectangle.intersectsWith(content.getPosition())) {
+                result.add(content);
+            }
+        }
+        sortListByXCoordinate(result);
+        yCache.put(y, result);
+    }
+    return yCache.get(y);
+}
+
+// -------------------------- OTHER METHODS --------------------------
+
+protected void clearCache() {
+    yCache.clear();
 }
 
 // -------------------------- ENUMERATIONS --------------------------
