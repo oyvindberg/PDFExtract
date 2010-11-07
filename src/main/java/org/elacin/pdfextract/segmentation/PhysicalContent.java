@@ -19,6 +19,8 @@ package org.elacin.pdfextract.segmentation;
 import org.elacin.pdfextract.HasPosition;
 import org.elacin.pdfextract.util.Rectangle;
 
+import java.util.List;
+
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Nov 3, 2010 Time: 4:37:52 AM To change this template
  * use File | Settings | File Templates.
@@ -32,6 +34,22 @@ protected final Rectangle position;
 
 public PhysicalContent(final Rectangle position) {
     this.position = position;
+}
+
+public PhysicalContent(final List<? extends PhysicalContent> contents) {
+    /* calculate bounds for this region */
+    float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
+    float maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE;
+
+    for (PhysicalContent content : contents) {
+        if (content.isText()) {
+            minX = Math.min(minX, content.getPosition().getX());
+            minY = Math.min(minY, content.getPosition().getY());
+            maxX = Math.max(maxX, content.getPosition().getEndX());
+            maxY = Math.max(maxY, content.getPosition().getEndY());
+        }
+    }
+    position = new Rectangle(minX, minY, maxX - minX, maxY - minY);
 }
 
 // ------------------------ INTERFACE METHODS ------------------------

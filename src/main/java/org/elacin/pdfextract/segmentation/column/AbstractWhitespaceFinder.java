@@ -18,10 +18,10 @@ package org.elacin.pdfextract.segmentation.column;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.HasPosition;
-import org.elacin.pdfextract.segmentation.PhysicalPage;
 import org.elacin.pdfextract.segmentation.WhitespaceRectangle;
 import org.elacin.pdfextract.util.FloatPoint;
 import org.elacin.pdfextract.util.Rectangle;
+import org.elacin.pdfextract.util.RectangleCollection;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,16 +64,16 @@ private final PriorityQueue<QueueEntry> queue;
 
 /* all the obstacles in the algorithm are found here, and are initially all the
     words on the page */
-private final PhysicalPage page;
+private final RectangleCollection region;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public AbstractWhitespaceFinder(PhysicalPage page,
+public AbstractWhitespaceFinder(RectangleCollection region,
                                 final int numWantedWhitespaces,
                                 final float minWidth,
                                 final float minHeight)
 {
-    this.page = page;
+    this.region = region;
 
     wantedWhitespaces = numWantedWhitespaces;
     foundWhitespace = new ArrayList<WhitespaceRectangle>(numWantedWhitespaces);
@@ -145,7 +145,7 @@ public List<WhitespaceRectangle> findWhitespace() {
 
     if (foundWhitespace.isEmpty()) {
         /* first add the whole page with all the obstacles to the priority queue */
-        queue.add(new QueueEntry(page.getPosition(), page.getContent()));
+        queue.add(new QueueEntry(region.getPosition(), region.getContent()));
 
         /* continue looking for whitespace until we have the wanted number or we run out*/
         while (getNumberOfWhitespacesFound() < wantedWhitespaces) {
@@ -192,7 +192,7 @@ private WhitespaceRectangle findNextWhitespace() {
                 surrounded on all sides by text. in that case, drop it
              */
             final WhitespaceRectangle newWhitespace = new WhitespaceRectangle(current.bound);
-            if (current.bound.getHeight() < page.getHeight() / 4.0f) {
+            if (current.bound.getHeight() < region.getHeight() / 4.0f) {
                 if (!isNextToWhitespaceOrEdge(newWhitespace)) {
                     continue;
                 }
@@ -262,8 +262,8 @@ private boolean isNextToWhitespaceOrEdge(final WhitespaceRectangle newWhitespace
     /* accept this rectangle if it is adjacent to the edge of the page */
     //noinspection FloatingPointEquality
     if (newWhitespace.getPosition().getX() == 0.0f || newWhitespace.getPosition().getY() == 0.0f
-            || newWhitespace.getPosition().getEndX() == page.getWidth()
-            || newWhitespace.getPosition().getEndY() == page.getHeight()) {
+            || newWhitespace.getPosition().getEndX() == region.getWidth()
+            || newWhitespace.getPosition().getEndY() == region.getHeight()) {
         return true;
     }
 
@@ -425,4 +425,6 @@ private class QueueEntry implements Comparable<QueueEntry> {
         return bound != null ? bound.hashCode() : 0;
     }
 }
+
+
 }

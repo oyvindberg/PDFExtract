@@ -36,8 +36,8 @@ private Map<Integer, List<PhysicalContent>> xCache = new HashMap<Integer, List<P
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public RectangleCollection(final Rectangle bounds, final List<? extends PhysicalContent> contents) {
-    super(bounds);
+public RectangleCollection(final List<? extends PhysicalContent> contents) {
+    super(contents);
     this.contents.addAll(contents);
 }
 
@@ -64,6 +64,11 @@ private static void sortListByYCoordinate(final List<PhysicalContent> list) {
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
+
+public void addContent(Collection<? extends PhysicalContent> newContents) {
+    contents.addAll(newContents);
+    clearCache();
+}
 
 public List<PhysicalContent> findContentAtXIndex(int x) {
     if (!xCache.containsKey(x)) {

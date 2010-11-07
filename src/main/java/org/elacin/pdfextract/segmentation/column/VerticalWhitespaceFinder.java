@@ -16,8 +16,8 @@
 
 package org.elacin.pdfextract.segmentation.column;
 
-import org.elacin.pdfextract.segmentation.PhysicalPage;
 import org.elacin.pdfextract.util.Rectangle;
+import org.elacin.pdfextract.util.RectangleCollection;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Sep 9, 2010 Time: 4:33:59 AM To change this template
@@ -26,12 +26,12 @@ import org.elacin.pdfextract.util.Rectangle;
 class VerticalWhitespaceFinder extends AbstractWhitespaceFinder {
 // --------------------------- CONSTRUCTORS ---------------------------
 
-VerticalWhitespaceFinder(PhysicalPage page,
+VerticalWhitespaceFinder(RectangleCollection region,
                          final int numWhitespacesToBeFound,
                          final float whitespaceMinWidth,
                          final float whitespaceMinHeight)
 {
-    super(page, numWhitespacesToBeFound, whitespaceMinWidth, whitespaceMinHeight);
+    super(region, numWhitespacesToBeFound, whitespaceMinWidth, whitespaceMinHeight);
 }
 
 // -------------------------- OTHER METHODS --------------------------

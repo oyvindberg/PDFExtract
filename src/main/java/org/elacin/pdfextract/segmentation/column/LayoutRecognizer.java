@@ -22,6 +22,7 @@ import org.elacin.pdfextract.segmentation.PhysicalPage;
 import org.elacin.pdfextract.segmentation.PhysicalText;
 import org.elacin.pdfextract.segmentation.WhitespaceRectangle;
 import org.elacin.pdfextract.tree.PageNode;
+import org.elacin.pdfextract.util.RectangleCollection;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,10 +55,12 @@ private static PhysicalText getNextText(final List<PhysicalContent> contents, fi
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-public Map<Integer, List<Integer>> findColumnsForPage(final PhysicalPage page, final PageNode ret) {
+public Map<Integer, List<Integer>> findColumnsForPage(final RectangleCollection region,
+                                                      final PageNode ret)
+{
     final long t0 = System.currentTimeMillis();
 
-    int height = (int) page.getPosition().getHeight();
+    int height = (int) region.getPosition().getHeight();
 
     /**
      * Establish column boundaries for every y-index 
@@ -66,8 +69,8 @@ public Map<Integer, List<Integer>> findColumnsForPage(final PhysicalPage page, f
     Map<Integer, List<Integer>> columns = new HashMap<Integer, List<Integer>>(height);
     for (int y = 0; y < height; y++) {
         /* find boundaries for this y */
-        final List<PhysicalContent> texts = page.findContentAtYIndex(y);
-        List<Integer> boundaries = findColumnBoundaries(page, texts);
+        final List<PhysicalContent> texts = region.findContentAtYIndex(y);
+        List<Integer> boundaries = findColumnBoundaries(region, texts);
 
         /* and save it for the next pass */
         columns.put(y, boundaries);
@@ -102,7 +105,8 @@ public Map<Integer, List<Integer>> findColumnsForPage(final PhysicalPage page, f
 }
 
 public List<WhitespaceRectangle> findWhitespace(final PhysicalPage page) {
-    AbstractWhitespaceFinder vert = new VerticalWhitespaceFinder(page, NUM_WHITESPACES_TO_BE_FOUND,
+    AbstractWhitespaceFinder vert = new VerticalWhitespaceFinder(page.getContents(),
+                                                                 NUM_WHITESPACES_TO_BE_FOUND,
                                                                  page.getAvgFontSizeX() * 0.4f,
                                                                  page.getAvgFontSizeY());
 
@@ -115,11 +119,11 @@ public List<WhitespaceRectangle> findWhitespace(final PhysicalPage page) {
  * Returns a list of integer x indices where a string of character ends, and a whitespace starts.
  * these indices will be considered start of columns
  *
- * @param page
+ * @param region
  * @param line
  * @return
  */
-private List<Integer> findColumnBoundaries(final PhysicalPage page,
+private List<Integer> findColumnBoundaries(final RectangleCollection region,
                                            final List<PhysicalContent> line)
 {
     List<Integer> boundaries = new ArrayList<Integer>();
@@ -138,7 +142,7 @@ private List<Integer> findColumnBoundaries(final PhysicalPage page,
             if (content.isWhitespace()) {
                 if (isNewBoundary(line, lastText, i)) {
                     int boundary = (int) content.getPosition().getEndX();
-                    boundary = Math.min(boundary, (int) page.getWidth() - 1);
+                    boundary = Math.min(boundary, (int) region.getWidth() - 1);
                     boundaries.add(boundary);
                     startOfColumnMarked = false;
                 }
@@ -155,13 +159,13 @@ private List<Integer> findColumnBoundaries(final PhysicalPage page,
                             boundary = (int) preceeding.getPosition().getEndX();
                         }
                     }
-                    boundary = Math.min(boundary, (int) page.getWidth() - 1);
+                    boundary = Math.min(boundary, (int) region.getWidth() - 1);
                     boundaries.add(boundary);
                 }
             }
         }
     } else {
-        boundaries.add((int) page.getWidth() - 1);
+        boundaries.add((int) region.getWidth() - 1);
     }
     return boundaries;
 }

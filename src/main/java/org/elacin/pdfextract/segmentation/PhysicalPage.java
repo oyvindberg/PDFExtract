@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.segmentation;
 
 import org.apache.log4j.Logger;
+import org.elacin.pdfextract.HasPosition;
 import org.elacin.pdfextract.segmentation.column.LayoutRecognizer;
 import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.tree.ParagraphNode;
@@ -24,13 +25,14 @@ import org.elacin.pdfextract.tree.WordNode;
 import org.elacin.pdfextract.util.Rectangle;
 import org.elacin.pdfextract.util.RectangleCollection;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 /**
  * Contains physicaltexts and whitespaces
  */
-public class PhysicalPage extends RectangleCollection {
+public class PhysicalPage implements HasPosition {
 // ------------------------------ FIELDS ------------------------------
 
 private static final Logger log = Logger.getLogger(PhysicalPage.class);
@@ -42,6 +44,9 @@ private final float avgFontSizeX, avgFontSizeY;
 
 private final List<Figure> figures;
 private final List<Picture> pictures;
+private final List<PhysicalText> words;
+
+private final RectangleCollection wholePage;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -52,24 +57,38 @@ public PhysicalPage(List<PhysicalText> words,
                     final float w,
                     int pageNumber)
 {
-    super(new Rectangle(0.0F, 0.0F, w, h), words);
-
+    this.words = words;
     this.figures = figures;
     this.pictures = pictures;
 
-    contents.addAll(figures);
-    contents.addAll(pictures);
+    List<PhysicalContent> list = new ArrayList<PhysicalContent>();
+    list.addAll(words);
+    list.addAll(figures);
+    list.addAll(pictures);
 
     this.pageNumber = pageNumber;
 
-    /* find minimum font sizes, and set word indices */
-    float xSizeSum = 0.0f, ySizeSum = 0.0f;
-    for (final PhysicalText word : words) {
-        xSizeSum += word.getStyle().xSize;
-        ySizeSum += word.getStyle().ySize;
+    /* find bounds and average font sizes for the page */
+    float xFontSizeSum = 0.0f, yFontSizeSum = 0.0f;
+    for (PhysicalContent content : list) {
+        if (content.isText()) {
+            xFontSizeSum += content.getText().getStyle().xSize;
+            yFontSizeSum += content.getText().getStyle().ySize;
+        }
     }
-    avgFontSizeX = xSizeSum / (float) words.size();
-    avgFontSizeY = ySizeSum / (float) words.size();
+    avgFontSizeX = xFontSizeSum / (float) words.size();
+    avgFontSizeY = yFontSizeSum / (float) words.size();
+
+    wholePage = new RectangleCollection(list);
+}
+
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface HasPosition ---------------------
+
+public Rectangle getPosition() {
+    return wholePage.getPosition();
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -86,11 +105,18 @@ public int getPageNumber() {
     return pageNumber;
 }
 
+public List<PhysicalText> getWords() {
+    return words;
+}
+
 // -------------------------- PUBLIC METHODS --------------------------
 
+public RectangleCollection getContents() {
+    return wholePage;
+}
+
 public void addWhitespace(final Collection<WhitespaceRectangle> whitespace) {
-    contents.addAll(whitespace);
-    clearCache();
+    wholePage.addContent(whitespace);
 }
 
 public PageNode compileLogicalPage() {
@@ -103,8 +129,8 @@ public PageNode compileLogicalPage() {
 
     /* then follow the trails left between the whitespace and construct blocks of text from that */
     int blockNum = 0;
-    for (int y = 0; y < (int) getPosition().getHeight(); y++) {
-        final List<PhysicalContent> line = findContentAtYIndex(y);
+    for (int y = 0; y < (int) wholePage.getPosition().getHeight(); y++) {
+        final List<PhysicalContent> line = wholePage.findContentAtYIndex(y);
 
         /* iterate through the line to find possible start of blocks */
         for (PhysicalContent content : line) {
@@ -121,9 +147,9 @@ public PageNode compileLogicalPage() {
     PageNode ret = new PageNode(pageNumber);
     for (int i = 0; i < blockNum; i++) {
         ParagraphNode paragraphNode = new ParagraphNode();
-        for (PhysicalContent content : contents) {
-            if (content.isText() && content.getText().getBlockNum() == i) {
-                paragraphNode.addWord(createWordNode(content.getText()));
+        for (PhysicalText word : words) {
+            if (word.getBlockNum() == i) {
+                paragraphNode.addWord(createWordNode(word.getText()));
             }
         }
         if (!paragraphNode.getChildren().isEmpty()) {
@@ -131,7 +157,7 @@ public PageNode compileLogicalPage() {
         }
     }
 
-    //    ret.addColumns(layoutRecognizer.findColumnsForPage(this, ret));
+    //        ret.addColumns(layoutRecognizer.findColumnsForPage(wholePage, ret));
     ret.addWhitespace(whitespace);
     if (log.isInfoEnabled()) {
         log.info("LOG00230:compileLogicalPage took " + (System.currentTimeMillis() - t0) + " ms");
@@ -188,11 +214,13 @@ private boolean markEverythingConnectedFrom(final PhysicalContent current,
 
     /* try searching for texts in all directions */
     for (int y = (int) pos.getY(); y < (int) pos.getEndY(); y++) {
-        markBothWaysFromCurrent(current, blockNum, findContentAtYIndex(y), rotation, fontName);
+        markBothWaysFromCurrent(current, blockNum, wholePage.findContentAtYIndex(y), rotation,
+                                fontName);
     }
 
     for (int x = (int) pos.getX(); x < (int) pos.getEndX(); x++) {
-        markBothWaysFromCurrent(current, blockNum, findContentAtXIndex(x), rotation, fontName);
+        markBothWaysFromCurrent(current, blockNum, wholePage.findContentAtXIndex(x), rotation,
+                                fontName);
     }
     return true;
 }
