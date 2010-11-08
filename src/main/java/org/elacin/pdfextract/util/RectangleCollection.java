@@ -34,11 +34,24 @@ protected final List<PhysicalContent> contents = new ArrayList<PhysicalContent>(
 private Map<Integer, List<PhysicalContent>> yCache = new HashMap<Integer, List<PhysicalContent>>();
 private Map<Integer, List<PhysicalContent>> xCache = new HashMap<Integer, List<PhysicalContent>>();
 
+/**
+ * if all the contents in this collection is contained within some content (say a figure with text
+ * embedded, that will be marked here
+ */
+private final PhysicalContent containedIn;
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public RectangleCollection(final List<? extends PhysicalContent> contents) {
+public RectangleCollection(final Collection<PhysicalContent> contents) {
+    this(contents, null);
+}
+
+public RectangleCollection(final Collection<PhysicalContent> contents,
+                           final PhysicalContent containedIn)
+{
     super(contents);
     this.contents.addAll(contents);
+    this.containedIn = containedIn;
 }
 
 // -------------------------- STATIC METHODS --------------------------
@@ -63,11 +76,22 @@ private static void sortListByYCoordinate(final List<PhysicalContent> list) {
     Collections.sort(list, sortByY);
 }
 
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+public PhysicalContent getContainedIn() {
+    return containedIn;
+}
+
 // -------------------------- PUBLIC METHODS --------------------------
 
 public void addContent(Collection<? extends PhysicalContent> newContents) {
     contents.addAll(newContents);
     clearCache();
+}
+
+@SuppressWarnings({"NumericCastThatLosesPrecision"})
+public List<PhysicalContent> findContentAtXIndex(float x) {
+    return findContentAtXIndex((int) x);
 }
 
 public List<PhysicalContent> findContentAtXIndex(int x) {
@@ -78,6 +102,11 @@ public List<PhysicalContent> findContentAtXIndex(int x) {
         xCache.put(x, result);
     }
     return xCache.get(x);
+}
+
+@SuppressWarnings({"NumericCastThatLosesPrecision"})
+public List<PhysicalContent> findContentAtYIndex(float y) {
+    return findContentAtYIndex((int) y);
 }
 
 public List<PhysicalContent> findContentAtYIndex(int y) {

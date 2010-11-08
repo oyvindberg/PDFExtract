@@ -16,6 +16,7 @@
 
 package org.elacin.pdfextract.segmentation;
 
+import org.apache.log4j.Logger;
 import org.elacin.pdfextract.util.Rectangle;
 
 /**
@@ -23,6 +24,8 @@ import org.elacin.pdfextract.util.Rectangle;
  * use File | Settings | File Templates.
  */
 public class Figure extends AssignablePhysicalContent {
+private static final Logger log = Logger.getLogger(Figure.class);
+
 // ------------------------------ FIELDS ------------------------------
 
 private final boolean filled;
@@ -32,6 +35,7 @@ private final boolean filled;
 public Figure(final Rectangle position, boolean filled) {
     super(position);
     this.filled = filled;
+    log.debug("LOG00280:Figure at " + position + ", filled: " + filled);
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------

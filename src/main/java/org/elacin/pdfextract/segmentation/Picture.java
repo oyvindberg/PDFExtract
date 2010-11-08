@@ -16,6 +16,7 @@
 
 package org.elacin.pdfextract.segmentation;
 
+import org.apache.log4j.Logger;
 import org.elacin.pdfextract.util.Rectangle;
 
 /**
@@ -23,9 +24,19 @@ import org.elacin.pdfextract.util.Rectangle;
  * use File | Settings | File Templates.
  */
 public class Picture extends AssignablePhysicalContent {
+private static final Logger log = Logger.getLogger(Picture.class);
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public Picture(final Rectangle position) {
     super(position);
+    log.debug("LOG00240:Created picture at " + position);
+}
+
+// ------------------------ OVERRIDING METHODS ------------------------
+
+@Override
+public boolean isPicture() {
+    return true;
 }
 }

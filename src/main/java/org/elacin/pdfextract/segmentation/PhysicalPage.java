@@ -42,9 +42,9 @@ private final int pageNumber;
 /* average font sizes for the page */
 private final float avgFontSizeX, avgFontSizeY;
 
-private final List<Figure> figures;
-private final List<Picture> pictures;
-private final List<PhysicalText> words;
+private final List<Figure> figures = new ArrayList<Figure>();
+private final List<Picture> pictures = new ArrayList<Picture>();
+private final List<PhysicalText> words = new ArrayList<PhysicalText>();
 
 private final RectangleCollection wholePage;
 
@@ -53,33 +53,30 @@ private final RectangleCollection wholePage;
 public PhysicalPage(List<PhysicalText> words,
                     final List<Figure> figures,
                     final List<Picture> pictures,
-                    final float h,
-                    final float w,
                     int pageNumber)
 {
-    this.words = words;
-    this.figures = figures;
-    this.pictures = pictures;
 
-    List<PhysicalContent> list = new ArrayList<PhysicalContent>();
-    list.addAll(words);
-    list.addAll(figures);
-    list.addAll(pictures);
-
+    this.words.addAll(words);
+    this.figures.addAll(figures);
+    this.pictures.addAll(pictures);
     this.pageNumber = pageNumber;
+
+
+    List<PhysicalContent> contentList = new ArrayList<PhysicalContent>();
+    contentList.addAll(words);
+    contentList.addAll(figures);
+    contentList.addAll(pictures);
 
     /* find bounds and average font sizes for the page */
     float xFontSizeSum = 0.0f, yFontSizeSum = 0.0f;
-    for (PhysicalContent content : list) {
-        if (content.isText()) {
-            xFontSizeSum += content.getText().getStyle().xSize;
-            yFontSizeSum += content.getText().getStyle().ySize;
-        }
+    for (PhysicalText word : words) {
+        xFontSizeSum += word.getStyle().xSize;
+        yFontSizeSum += word.getStyle().ySize;
     }
     avgFontSizeX = xFontSizeSum / (float) words.size();
     avgFontSizeY = yFontSizeSum / (float) words.size();
 
-    wholePage = new RectangleCollection(list);
+    wholePage = new RectangleCollection(contentList);
 }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -111,16 +108,17 @@ public List<PhysicalText> getWords() {
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-public RectangleCollection getContents() {
-    return wholePage;
-}
-
 public void addWhitespace(final Collection<WhitespaceRectangle> whitespace) {
     wholePage.addContent(whitespace);
 }
 
 public PageNode compileLogicalPage() {
     final LayoutRecognizer layoutRecognizer = new LayoutRecognizer();
+
+    ImageFiltering.filterImages(wholePage, pictures, figures);
+    wholePage.addContent(pictures);
+    wholePage.addContent(figures);
+
 
     /* start off by finding whitespace */
     final List<WhitespaceRectangle> whitespace = layoutRecognizer.findWhitespace(this);
@@ -129,7 +127,9 @@ public PageNode compileLogicalPage() {
 
     /* then follow the trails left between the whitespace and construct blocks of text from that */
     int blockNum = 0;
-    for (int y = 0; y < (int) wholePage.getPosition().getHeight(); y++) {
+    final Rectangle bound = wholePage.getPosition();
+
+    for (int y = (int) bound.getY(); y < (int) bound.getEndY(); y++) {
         final List<PhysicalContent> line = wholePage.findContentAtYIndex(y);
 
         /* iterate through the line to find possible start of blocks */
@@ -159,12 +159,17 @@ public PageNode compileLogicalPage() {
 
     //        ret.addColumns(layoutRecognizer.findColumnsForPage(wholePage, ret));
     ret.addWhitespace(whitespace);
+    ret.addFigures(figures);
+    ret.addPictures(pictures);
+
     if (log.isInfoEnabled()) {
         log.info("LOG00230:compileLogicalPage took " + (System.currentTimeMillis() - t0) + " ms");
     }
-    ret.addFigures(figures);
-    ret.addPictures(pictures);
     return ret;
+}
+
+public RectangleCollection getContents() {
+    return wholePage;
 }
 
 // -------------------------- OTHER METHODS --------------------------

@@ -49,7 +49,7 @@ protected final List<ETextPosition> charactersForPage = new ArrayList<ETextPosit
 
 private final DocumentNode root;
 
-private int currentPageNo = 0;
+private int currentPageNo;
 private int startPage = 1;
 private int endPage = Integer.MAX_VALUE;
 
@@ -210,7 +210,7 @@ private boolean suppressDuplicateOverlappingText(final ETextPosition text) {
  * @throws IOException If there is an error processing the page.
  */
 protected void processPage(PDPage page, COSStream content) throws IOException {
-    if (currentPageNo >= startPage && currentPageNo <= endPage) {
+    if (currentPageNo >= startPage && currentPageNo < endPage) {
         charactersForPage.clear();
         characterListMapping.clear();
         MDC.put("page", currentPageNo);
@@ -219,19 +219,16 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
         WordSegmentator segmentator = new WordSegmentatorImpl(root.getStyles());
 
         if (!charactersForPage.isEmpty()) {
-            final float width = page.getArtBox().getWidth();
-            final float height = page.getArtBox().getHeight();
 
             /* segment words */
             final List<PhysicalText> texts = segmentator.segmentWords(charactersForPage);
 
             /* and create the page subtree */
-            PhysicalPage physicalPage = new PhysicalPage(texts, figures, pictures, height, width,
-                                                         currentPageNo);
+            PhysicalPage physicalPage = new PhysicalPage(texts, figures, pictures, currentPageNo);
             final PageNode pageNode = physicalPage.compileLogicalPage();
 
             /* combine split linenodes within same paragraph */
-            pageNode.combineChildren();
+            //            pageNode.combineChildren();
 
             root.addChild(pageNode);
         }

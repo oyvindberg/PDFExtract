@@ -155,7 +155,7 @@ public double fixY(double y) {
  * @return The size of the page that is being drawn.
  */
 public Dimension getPageSize() {
-    final PDRectangle mediaBox = page.getMediaBox();
+    final PDRectangle mediaBox = page.getArtBox();
     return new Dimension((int) mediaBox.getWidth(), (int) mediaBox.getHeight());
 }
 

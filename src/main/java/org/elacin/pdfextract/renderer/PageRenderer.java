@@ -86,7 +86,7 @@ private static void drawRectangleInColor(final Graphics2D graphics,
 // -------------------------- PUBLIC METHODS --------------------------
 
 public BufferedImage renderPage(final int pageNum) {
-    final PageNode pageNode = documentNode.getPageNumber(pageNum + 1);
+    final PageNode pageNode = documentNode.getPageNumber(pageNum);
 
     if (pageNode == null) {
         throw new RuntimeException("Renderer: No contents found for page " + pageNum + ".");
@@ -129,9 +129,9 @@ public BufferedImage renderPage(final int pageNum) {
                              true);
     }
 
-    /* draw figures */
+    //    /* draw figures */
     for (Figure figure : pageNode.getFigures()) {
-        drawRectangleInColor(graphics, xScale, yScale, Color.RED, figure.getPosition(),
+        drawRectangleInColor(graphics, xScale, yScale, Color.BLUE, figure.getPosition(),
                              figure.isFilled());
     }
 
