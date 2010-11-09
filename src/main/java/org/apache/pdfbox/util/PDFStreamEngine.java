@@ -16,8 +16,7 @@
  */
 package org.apache.pdfbox.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.log4j.Logger;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.cos.COSObject;
 import org.apache.pdfbox.cos.COSStream;
@@ -53,10 +52,12 @@ import java.util.List;
 public class PDFStreamEngine {
 // ------------------------------ FIELDS ------------------------------
 
+
 /**
  * Log instance.
  */
-private static final Log log = LogFactory.getLog(PDFStreamEngine.class);
+private static final Logger log = Logger.getLogger(PDFStreamEngine.class);
+
 
 private static final byte[] SPACE_BYTES = {(byte) 32};
 
@@ -675,41 +676,48 @@ private static class StreamResources {
 }
 
 protected class ImageExtractor {
-    final List<GraphicContent> graphicContents = new ArrayList<GraphicContent>();
-    private Rectangle currentImagePos;
+    final List<Rectangle> filledFigures = new ArrayList<Rectangle>();
+    final List<Rectangle> unfilledFigures = new ArrayList<Rectangle>();
+    final List<Rectangle> images = new ArrayList<Rectangle>();
+
+    static final float combineDistance = 1.5f;
 
     public void drawImage(final Image awtImage, final AffineTransform at, final Object o) {
-        final Rectangle newImagePos = convertRectangle(currentClippingPath.getBounds());
+        addImageToList(images, currentClippingPath.getBounds());
+    }
 
-        if (currentImagePos == null) {
-            currentImagePos = newImagePos;
-        } else {
-            if (currentImagePos.distance(newImagePos) < 1.5f) {
-                /* if the new image is really close to the last one, combine them */
-                currentImagePos = currentImagePos.union(newImagePos);
+    private void addImageToList(final List<Rectangle> list, final java.awt.Rectangle pos) {
+        final Rectangle newImagePos = convertRectangle(pos);
+        if (!list.isEmpty()) {
+            final Rectangle last = list.get(list.size() - 1);
+            if (last.distance(newImagePos) < combineDistance) {
+                list.remove(list.size() - 1);
+                list.add(last.union(newImagePos));
             } else {
-                /* output the last one */
-                flushImage();
+                list.add(newImagePos);
             }
+        } else {
+            list.add(newImagePos);
         }
     }
 
+    @SuppressWarnings({"ObjectAllocationInLoop"})
     public List<GraphicContent> getGraphicContents() {
-        return graphicContents;
-    }
-
-    public void flushImage() {
-        if (currentImagePos != null) {
-            final GraphicContent wholeImage = new GraphicContent(currentImagePos, true, true);
-            graphicContents.add(wholeImage);
-            currentImagePos = null;
+        List<GraphicContent> ret = new ArrayList<GraphicContent>();
+        for (Rectangle unfilledFigure : unfilledFigures) {
+            ret.add(new GraphicContent(unfilledFigure, false, false));
         }
+        for (Rectangle filledFigure : filledFigures) {
+            ret.add(new GraphicContent(filledFigure, false, true));
+        }
+        for (Rectangle image : images) {
+            ret.add(new GraphicContent(image, true, true));
+        }
+        return ret;
     }
 
     public void fill(final GeneralPath linePath) {
-        graphicContents.add(new GraphicContent(convertRectangle(linePath.getBounds()), false,
-                                               true));
-        flushImage();
+        addImageToList(filledFigures, linePath.getBounds());
     }
 
     private Rectangle convertRectangle(final java.awt.Rectangle bounds) {
@@ -718,13 +726,13 @@ protected class ImageExtractor {
     }
 
     public void draw(final GeneralPath path) {
-        graphicContents.add(new GraphicContent(convertRectangle(path.getBounds()), false, false));
-        flushImage();
+        addImageToList(unfilledFigures, path.getBounds());
     }
 
     public void clear() {
-        currentImagePos = null;
-        graphicContents.clear();
+        filledFigures.clear();
+        unfilledFigures.clear();
+        images.clear();
     }
 }
 }

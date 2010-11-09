@@ -183,7 +183,7 @@ public List<ParagraphNode> createParagraphNodes() {
  * @param bound
  * @return the new region
  */
-public PhysicalPageRegion getSubRegion(final PhysicalContent bound) throws Exception {
+public PhysicalPageRegion extractSubRegion(final PhysicalContent bound) throws Exception {
     final List<PhysicalContent> subContents = findRectanglesIntersectingWith(bound.getPosition());
     if (subContents.isEmpty()) {
         log.warn("LOG00370:got empty subregion");
@@ -202,32 +202,21 @@ public PhysicalPageRegion getSubRegion(final PhysicalContent bound) throws Excep
     return newRegion;
 }
 
+@SuppressWarnings({"NumericCastThatLosesPrecision"})
+public List<Rectangle> findSubRegions() {
+    final List<Rectangle> ret = new ArrayList<Rectangle>();
+    boolean lastWasBoundary = false;
+    for (int y = (int) getPosition().getY(); y < (int) getPosition().getEndY(); y++) {
+
+    }
+
+
+    return ret;
+}
+
 // -------------------------- OTHER METHODS --------------------------
 
-private WordNode createWordNode(final PhysicalText text) {
-    return new WordNode(text.getPosition(), pageNumber, text.style, text.content, text.charSpacing);
-}
-
-private void markBothWaysFromCurrent(final PhysicalContent current,
-                                     final int blockNum,
-                                     final List<PhysicalContent> line,
-                                     final int rotation,
-                                     final String fontName)
-{
-    final int currentIndex = line.indexOf(current);
-
-    /* left/up*/
-    boolean continue_ = true;
-    for (int index = currentIndex - 1; index >= 0 && continue_; index--) {
-        continue_ &= markEverythingConnectedFrom(line.get(index), blockNum, rotation, fontName);
-    }
-    /* right / down */
-    continue_ = true;
-    for (int index = currentIndex + 1; index < line.size() && continue_; index++) {
-        continue_ &= markEverythingConnectedFrom(line.get(index), blockNum, rotation, fontName);
-    }
-}
-
+@SuppressWarnings({"NumericCastThatLosesPrecision"})
 private boolean markEverythingConnectedFrom(final PhysicalContent current,
                                             final int blockNum,
                                             final int rotation,
@@ -256,5 +245,29 @@ private boolean markEverythingConnectedFrom(final PhysicalContent current,
         markBothWaysFromCurrent(current, blockNum, findContentAtXIndex(x), rotation, fontName);
     }
     return true;
+}
+
+private WordNode createWordNode(final PhysicalText text) {
+    return new WordNode(text.getPosition(), pageNumber, text.style, text.content, text.charSpacing);
+}
+
+private void markBothWaysFromCurrent(final PhysicalContent current,
+                                     final int blockNum,
+                                     final List<PhysicalContent> line,
+                                     final int rotation,
+                                     final String fontName)
+{
+    final int currentIndex = line.indexOf(current);
+
+    /* left/up*/
+    boolean continue_ = true;
+    for (int index = currentIndex - 1; index >= 0 && continue_; index--) {
+        continue_ &= markEverythingConnectedFrom(line.get(index), blockNum, rotation, fontName);
+    }
+    /* right / down */
+    continue_ = true;
+    for (int index = currentIndex + 1; index < line.size() && continue_; index++) {
+        continue_ &= markEverythingConnectedFrom(line.get(index), blockNum, rotation, fontName);
+    }
 }
 }

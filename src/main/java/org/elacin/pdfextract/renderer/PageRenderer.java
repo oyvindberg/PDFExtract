@@ -92,7 +92,7 @@ public BufferedImage renderPage(final int pageNum) {
 
     /* first have PDFBox draw the pdf to a BufferedImage */
     long t1 = System.currentTimeMillis();
-    PDPage page = (PDPage) document.getDocumentCatalog().getAllPages().get(pageNum);
+    PDPage page = (PDPage) document.getDocumentCatalog().getAllPages().get(pageNum - 1);
 
     final BufferedImage image;
     try {

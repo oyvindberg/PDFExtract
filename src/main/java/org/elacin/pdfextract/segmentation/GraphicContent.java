@@ -72,4 +72,16 @@ public boolean isFilled() {
 public void setCanBeAssigned(final boolean canBeAssigned) {
     this.canBeAssigned = canBeAssigned;
 }
+
+
+@Override
+public String toString() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append("GraphicContent");
+    sb.append("{canBeAssigned=").append(canBeAssigned);
+    sb.append(", filled=").append(filled);
+    sb.append(", picture=").append(picture);
+    sb.append('}');
+    return sb.toString();
+}
 }

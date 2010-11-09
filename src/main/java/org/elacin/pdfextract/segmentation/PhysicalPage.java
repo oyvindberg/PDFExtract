@@ -81,6 +81,7 @@ public PhysicalPage(List<? extends PhysicalContent> contents,
             addToContents.add(graphic);
             graphicsToRender.add(graphic);
         } else if (isTooBigPicture(originalWholePage, graphic)) {
+            log.info("Dropping too big graphic " + graphic);
             //            addToContents.add(graphic);
         } else if (!doesContainSomething(originalWholePage, graphic)) {
             graphic.setCanBeAssigned(true);
@@ -98,6 +99,21 @@ public PhysicalPage(List<? extends PhysicalContent> contents,
 }
 
 // -------------------------- STATIC METHODS --------------------------
+
+private static PriorityQueue<GraphicContent> createSmallestFirstQueue(final List<GraphicContent> graphicalRegions) {
+    final Comparator<GraphicContent> smallestComparator = new Comparator<GraphicContent>() {
+        @Override
+        public int compare(final GraphicContent o1, final GraphicContent o2) {
+            return Float.compare(o1.getPosition().getHeight(), o2.getPosition().getHeight());
+        }
+    };
+
+    final int capacity = Math.max(1, graphicalRegions.size());
+    PriorityQueue<GraphicContent> queue = new PriorityQueue<GraphicContent>(capacity,
+                                                                            smallestComparator);
+    queue.addAll(graphicalRegions);
+    return queue;
+}
 
 private static boolean doesContainSomething(final PhysicalPageRegion region,
                                             final GraphicContent graphic)
@@ -132,25 +148,16 @@ public int getPageNumber() {
 // -------------------------- PUBLIC METHODS --------------------------
 
 public PageNode compileLogicalPage() {
-
-    /** separate out the content which is contained within a graphic. sort them by smallest,
-     * because they frequently overlap. filter out the ones which covers the whole page */
-    final Comparator<GraphicContent> smallestComparator = new Comparator<GraphicContent>() {
-        @Override
-        public int compare(final GraphicContent o1, final GraphicContent o2) {
-            return Float.compare(o1.getPosition().getHeight(), o2.getPosition().getHeight());
-        }
-    };
-    PriorityQueue<GraphicContent> queue = new PriorityQueue<GraphicContent>(Math.max(1,
-                                                                                     graphicalRegions.size()),
-                                                                            smallestComparator);
-    queue.addAll(graphicalRegions);
+    /** separate out the content which is contained within a graphic.
+     * sort the graphics by smallest, because they frequently do overlap.
+     * */
+    PriorityQueue<GraphicContent> queue = createSmallestFirstQueue(graphicalRegions);
 
     while (!queue.isEmpty()) {
         final GraphicContent graphic = queue.remove();
 
         try {
-            final PhysicalPageRegion region = originalWholePage.getSubRegion(graphic);
+            final PhysicalPageRegion region = originalWholePage.extractSubRegion(graphic);
             if (null != region) {
                 regions.add(region);
                 if (log.isInfoEnabled()) {
@@ -163,7 +170,11 @@ public PageNode compileLogicalPage() {
         }
     }
 
-    //    originalWholePage.addContent(graphicalRegions);
+    //    for (PhysicalPageRegion region : regions) {
+    //        region.findSubRegions();
+    //    }
+
+    originalWholePage.addContent(graphicalRegions);
 
 
     long t0 = System.currentTimeMillis();
@@ -180,7 +191,7 @@ public PageNode compileLogicalPage() {
 
     ret.addDebugFeatures(Color.RED, regions);
     //    ret.addDebugFeatures(Color.YELLOW, allWhitespace);
-    //    ret.addDebugFeatures(Color.BLUE, graphicsToRender);
+    ret.addDebugFeatures(Color.BLUE, graphicsToRender);
     //        ret.addColumns(layoutRecognizer.findColumnsForPage(wholePage, ret));
 
     if (log.isInfoEnabled()) {

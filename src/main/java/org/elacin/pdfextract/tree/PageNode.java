@@ -19,6 +19,7 @@ package org.elacin.pdfextract.tree;
 import org.elacin.pdfextract.HasPosition;
 
 import java.awt.*;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -33,6 +34,23 @@ private final int pageNumber;
 private final Map<Color, List<HasPosition>> debugFeatures = new HashMap<Color, List<HasPosition>>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
+
+
+@Override
+protected void appendLocalInfo(final Appendable out, final int indent) throws IOException {
+    for (int i = 0; i < indent; i++) {
+        out.append(" ");
+    }
+    out.append("Page ").append(Integer.toString(pageNumber));
+    out.append("{").append(getPosition().toString());
+
+    out.append(":\n");
+
+    for (ParagraphNode child : getChildren()) {
+        child.appendLocalInfo(out, indent + 4);
+    }
+
+}
 
 public PageNode(int pageNumber) {
     this.pageNumber = pageNumber;

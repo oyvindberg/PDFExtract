@@ -44,10 +44,9 @@ import java.util.Map;
 
 
 public class PDFTextStripper extends PageDrawer {
-private static final Logger log1 = Logger.getLogger(PDFTextStripper.class);
-
 // ------------------------------ FIELDS ------------------------------
 
+private static final Logger log = Logger.getLogger(PDFTextStripper.class);
 protected final List<ETextPosition> charactersForPage = new ArrayList<ETextPosition>();
 
 private final DocumentNode root;
@@ -76,7 +75,6 @@ public PDFTextStripper(final PDDocument doc,
     super(ResourceLoader.loadProperties("org.elacin.PdfTextStripper.properties", true));
 
     root = new DocumentNode();
-
     this.doc = doc;
     this.startPage = startPage;
     this.endPage = endPage;
@@ -91,6 +89,7 @@ public PDFTextStripper(final PDDocument doc,
  * @param text The text to process.
  */
 protected void processTextPosition(ETextPosition text) {
+    super.processTextPosition(text);
     final boolean showCharacter = suppressDuplicateOverlappingText(text);
 
     if (showCharacter) {
@@ -213,7 +212,7 @@ private boolean suppressDuplicateOverlappingText(final ETextPosition text) {
  * @throws IOException If there is an error processing the page.
  */
 protected void processPage(PDPage page, COSStream content) throws IOException {
-    if (currentPageNo >= startPage && currentPageNo < endPage) {
+    if (currentPageNo >= startPage && currentPageNo <= endPage) {
         charactersForPage.clear();
         characterListMapping.clear();
         imageExtractor.clear();
@@ -223,19 +222,16 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
         WordSegmentator segmentator = new WordSegmentatorImpl(root.getStyles());
 
         if (!charactersForPage.isEmpty()) {
-
             /* segment words */
             final List<PhysicalText> texts = segmentator.segmentWords(charactersForPage);
 
-            /* save an eventual last picture */
-            imageExtractor.flushImage();
             /* and create the page subtree */
             PhysicalPage physicalPage = null;
             try {
                 physicalPage = new PhysicalPage(texts, imageExtractor.getGraphicContents(),
                                                 currentPageNo);
             } catch (Exception e) {
-                log1.error("LOG00350:Error while creating physical page", e);
+                log.error("LOG00350:Error while creating physical page", e);
             }
             final PageNode pageNode = physicalPage.compileLogicalPage();
 
@@ -245,7 +241,6 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
             root.addChild(pageNode);
         }
         MDC.remove("page");
-
     }
 }
 }

@@ -237,7 +237,8 @@ protected void renderPDF(final File pdfFile, final PDDocument doc, final Documen
     List pages = doc.getDocumentCatalog().getAllPages();
     final PageRenderer renderer = new PageRenderer(doc, root);
 
-    for (int i = Math.max(1, startPage); i < Math.min(pages.size(), endPage); i++) {
+    /* one indexed pages */
+    for (int i = Math.max(1, startPage); i <= Math.min(pages.size(), endPage); i++) {
 
         BufferedImage image;
         try {
