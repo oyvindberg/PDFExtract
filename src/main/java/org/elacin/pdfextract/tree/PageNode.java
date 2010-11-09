@@ -16,13 +16,11 @@
 
 package org.elacin.pdfextract.tree;
 
-import org.elacin.pdfextract.segmentation.GraphicContent;
-import org.elacin.pdfextract.segmentation.WhitespaceRectangle;
+import org.elacin.pdfextract.HasPosition;
 
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.awt.*;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Mar 23, 2010 Time: 9:33:52 PM To change this
@@ -32,9 +30,7 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
 // ------------------------------ FIELDS ------------------------------
 
 private final int pageNumber;
-private final List<WhitespaceRectangle> whitespaces = new ArrayList<WhitespaceRectangle>();
-private Map<Integer, List<Integer>> columns;
-private final List<GraphicContent> graphics = new ArrayList<GraphicContent>();
+private final Map<Color, List<HasPosition>> debugFeatures = new HashMap<Color, List<HasPosition>>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -44,38 +40,25 @@ public PageNode(int pageNumber) {
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-public Map<Integer, List<Integer>> getColumns() {
-    return columns;
-}
-
-public List<GraphicContent> getGraphics() {
-    return graphics;
-}
-
 public int getPageNumber() {
     return pageNumber;
 }
 
-public List<WhitespaceRectangle> getWhitespaces() {
-    return whitespaces;
+public Map<Color, List<HasPosition>> getDebugFeatures() {
+    return debugFeatures;
 }
-
 // -------------------------- PUBLIC METHODS --------------------------
 
 public boolean accepts(final WordNode node) {
     return pageNumber == node.getPageNum();
 }
 
-public void addColumns(final Map<Integer, List<Integer>> columns) {
-    this.columns = columns;
-}
+public void addDebugFeatures(final Color color, final List<? extends HasPosition> list) {
+    if (!debugFeatures.containsKey(color)) {
+        debugFeatures.put(color, new ArrayList<HasPosition>());
+    }
+    debugFeatures.get(color).addAll(list);
 
-public void addGraphics(final List<GraphicContent> graphicContents) {
-    this.graphics.addAll(graphicContents);
-}
-
-public void addWhitespace(final List<WhitespaceRectangle> whitespaces) {
-    this.whitespaces.addAll(whitespaces);
 }
 
 @Override

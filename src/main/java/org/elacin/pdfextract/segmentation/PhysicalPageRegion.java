@@ -40,6 +40,8 @@ private static final Logger log = Logger.getLogger(PhysicalPageRegion.class);
 private final float avgFontSizeX, avgFontSizeY;
 private final int pageNumber;
 
+private List<WhitespaceRectangle> whitespace = new ArrayList<WhitespaceRectangle>();
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public PhysicalPageRegion(final List<? extends PhysicalContent> contents,
@@ -119,14 +121,18 @@ public float getAvgFontSizeY() {
     return avgFontSizeY;
 }
 
+public List<WhitespaceRectangle> getWhitespace() {
+    return whitespace;
+}
+
 // -------------------------- PUBLIC METHODS --------------------------
 
 public void addWhitespace(final Collection<WhitespaceRectangle> whitespace) {
+    this.whitespace.addAll(whitespace);
     addContent(whitespace);
 }
 
 public List<ParagraphNode> createParagraphNodes() {
-
     /* start off by finding whitespace */
     final List<WhitespaceRectangle> whitespace = new LayoutRecognizer().findWhitespace(this);
     addWhitespace(whitespace);

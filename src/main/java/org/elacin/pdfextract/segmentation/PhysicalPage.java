@@ -21,6 +21,7 @@ import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.tree.ParagraphNode;
 import org.elacin.pdfextract.util.RectangleCollection;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -162,7 +163,7 @@ public PageNode compileLogicalPage() {
         }
     }
 
-    originalWholePage.addContent(graphicalRegions);
+    //    originalWholePage.addContent(graphicalRegions);
 
 
     long t0 = System.currentTimeMillis();
@@ -171,14 +172,16 @@ public PageNode compileLogicalPage() {
     final List<WhitespaceRectangle> allWhitespace = new ArrayList<WhitespaceRectangle>();
     for (PhysicalPageRegion region : regions) {
         List<ParagraphNode> paragraphs = region.createParagraphNodes();
+        allWhitespace.addAll(region.getWhitespace());
         for (ParagraphNode paragraph : paragraphs) {
             ret.addChild(paragraph);
         }
     }
 
+    ret.addDebugFeatures(Color.RED, regions);
+    //    ret.addDebugFeatures(Color.YELLOW, allWhitespace);
+    //    ret.addDebugFeatures(Color.BLUE, graphicsToRender);
     //        ret.addColumns(layoutRecognizer.findColumnsForPage(wholePage, ret));
-    ret.addWhitespace(allWhitespace);
-    ret.addGraphics(graphicsToRender);
 
     if (log.isInfoEnabled()) {
         log.info("LOG00230:compileLogicalPage took " + (System.currentTimeMillis() - t0) + " ms");

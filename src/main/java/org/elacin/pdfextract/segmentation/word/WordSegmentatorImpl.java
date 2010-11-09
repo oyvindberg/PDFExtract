@@ -48,6 +48,11 @@ public class WordSegmentatorImpl implements WordSegmentator {
 // ------------------------------ FIELDS ------------------------------
 
 private static final Logger log = Logger.getLogger(WordSegmentatorImpl.class);
+private static List<String> strangeMathFonts = new ArrayList<String>() {
+    {
+        add("CMEX");
+        //        add("CMSY10");
+    }};
 
 private final DocumentStyles styles;
 
@@ -59,12 +64,6 @@ public WordSegmentatorImpl(final DocumentStyles styles) {
 
 // ------------------------ INTERFACE METHODS ------------------------
 
-
-private static List<String> strangeMathFonts = new ArrayList<String>() {
-    {
-        add("CMEX");
-        //        add("CMSY10");
-    }};
 
 // --------------------- Interface WordSegmentator ---------------------
 
@@ -128,26 +127,32 @@ public List<PhysicalText> segmentWords(final List<ETextPosition> text) {
     return ret;
 }
 
-
 // -------------------------- STATIC METHODS --------------------------
+
+private static boolean fontSeemsToNeedAdjustment(final PDFont font) {
+    for (String strangeMathFont : strangeMathFonts) {
+        if (font.getBaseFont() != null && font.getBaseFont().contains(strangeMathFont)) {
+            return true;
+        }
+    }
+    return false;
+}
 
 /**
  * it happens that some of the TextPositions are unreasonably tall. This destroys my algorithms, so
- * for those we will use a lower value
+ * for those we will use a lower value. Also avoid negative heights
  *
  * @param tp
  * @return
  */
 private static float getAdjustedHeight(final ETextPosition tp) {
-    //    final float adjustedHeight;
     final float maxHeight = tp.getFontSize() * tp.getYScale() * 0.9f;
-    return Math.min(tp.getPos().getHeight(), maxHeight);
-    //    if (tp.getHeightDir() > maxHeight) {
-    //        adjustedHeight = maxHeight;
-    //    } else {
-    //        adjustedHeight = tp.getHeightDir();
-    //    }
-    //    return adjustedHeight;
+    float h = Math.min(tp.getPos().getHeight(), maxHeight);
+
+    if (h <= 0.0f) {
+        h = tp.getFontSizeInPt();
+    }
+    return h;
 }
 
 private static boolean isOnAnotherLine(final float y, final ETextPosition tp) {
@@ -241,15 +246,6 @@ List<PhysicalText> splitTextPositionsOnSpace(final List<ETextPosition> texts) {
     }
 
     return ret;
-}
-
-private boolean fontSeemsToNeedAdjustment(final PDFont font) {
-    for (String strangeMathFont : strangeMathFonts) {
-        if (font.getBaseFont() != null && font.getBaseFont().contains(strangeMathFont)) {
-            return true;
-        }
-    }
-    return false;
 }
 
 /**

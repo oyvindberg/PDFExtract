@@ -16,6 +16,7 @@
  */
 package org.apache.pdfbox.pdfviewer;
 
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDMatrix;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -76,6 +77,10 @@ public GeneralPath getLinePath() {
  */
 public PDPage getPage() {
     return page;
+}
+
+public void SHFill(COSName asd) {
+    //Dummy
 }
 
 /**

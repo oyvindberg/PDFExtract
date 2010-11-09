@@ -19,9 +19,8 @@ package org.elacin.pdfextract.renderer;
 import org.apache.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.elacin.pdfextract.HasPosition;
 import org.elacin.pdfextract.Loggers;
-import org.elacin.pdfextract.segmentation.GraphicContent;
-import org.elacin.pdfextract.segmentation.WhitespaceRectangle;
 import org.elacin.pdfextract.tree.*;
 import org.elacin.pdfextract.util.Rectangle;
 
@@ -61,12 +60,12 @@ public PageRenderer(final PDDocument document, final DocumentNode documentNode) 
 // -------------------------- STATIC METHODS --------------------------
 
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
-private static void drawRectangleInColor(final Graphics2D graphics,
-                                         final float xScale,
-                                         final float yScale,
-                                         final Color color,
-                                         final Rectangle pos,
-                                         final boolean fill)
+private static void drawRectangle(final Graphics2D graphics,
+                                  final float xScale,
+                                  final float yScale,
+                                  final Color color,
+                                  final Rectangle pos,
+                                  final boolean fill)
 {
     graphics.setColor(color);
     final int x = (int) ((float) pos.getX() * xScale);
@@ -113,38 +112,19 @@ public BufferedImage renderPage(final int pageNum) {
     for (ParagraphNode paragraphNode : pageNode.getChildren()) {
         for (LineNode lineNode : paragraphNode.getChildren()) {
             for (WordNode wordNode : lineNode.getChildren()) {
-                drawRectangleInColor(graphics, xScale, yScale, Color.BLUE, wordNode.getPosition(),
-                                     true);
+                drawRectangle(graphics, xScale, yScale, Color.BLUE, wordNode.getPosition(), true);
             }
-            drawRectangleInColor(graphics, xScale, yScale, Color.RED, lineNode.getPosition(), true);
+            drawRectangle(graphics, xScale, yScale, Color.RED, lineNode.getPosition(), true);
         }
-        drawRectangleInColor(graphics, xScale, yScale, Color.GREEN, paragraphNode.getPosition(),
-                             true);
+        drawRectangle(graphics, xScale, yScale, Color.GREEN, paragraphNode.getPosition(), true);
     }
 
-    /* draw whitespace */
-    for (WhitespaceRectangle whitespace : pageNode.getWhitespaces()) {
-        drawRectangleInColor(graphics, xScale, yScale, Color.YELLOW, whitespace.getPosition(),
-                             true);
-    }
-
-    //    /* draw graphicContents */
-    for (GraphicContent graphic : pageNode.getGraphics()) {
-        Color color = graphic.isPicture() ? Color.ORANGE : Color.BLUE;
-        drawRectangleInColor(graphics, xScale, yScale, color, graphic.getPosition(),
-                             graphic.isFilled());
-    }
-
-    /* draw columns if provided */
-    if (pageNode.getColumns() != null) {
-        for (Map.Entry<Integer, List<Integer>> yCols : pageNode.getColumns().entrySet()) {
-            final Integer y = yCols.getKey();
-            for (Integer index : yCols.getValue()) {
-                final Rectangle pos = new Rectangle(index, y, 1, 1);
-                drawRectangleInColor(graphics, xScale, yScale, Color.GREEN, pos, true);
-            }
+    for (Map.Entry<Color, List<HasPosition>> o : pageNode.getDebugFeatures().entrySet()) {
+        for (HasPosition position : o.getValue()) {
+            drawRectangle(graphics, xScale, yScale, o.getKey(), position.getPosition(), true);
         }
     }
+
     Loggers.getInterfaceLog().info(String.format("LOG00180:Rendered page %d in %d ms", pageNum,
                                                  (System.currentTimeMillis() - t1)));
     return image;

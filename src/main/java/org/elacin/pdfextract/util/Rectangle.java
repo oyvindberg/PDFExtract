@@ -34,6 +34,12 @@ private final float x, y, width, height;
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public Rectangle(final float x, final float y, final float width, final float height) {
+    if (height < 0.0f) {
+        throw new IllegalArgumentException("height can not be negative");
+    }
+    if (width < 0.0f) {
+        throw new IllegalArgumentException("width can not be negative");
+    }
     this.height = height;
     this.width = width;
     this.x = x;

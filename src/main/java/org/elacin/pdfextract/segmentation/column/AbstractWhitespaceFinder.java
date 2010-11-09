@@ -214,10 +214,7 @@ private WhitespaceRectangle findNextWhitespace() {
         final QueueEntry[] subrectangles = splitSearchAreaAround(current, pivot);
 
         for (QueueEntry sub : subrectangles) {
-            /** check that the subrectangle is contained by the current bound. this will happen
-             * if the pivot we used was itself not contained. This breaks the algorithm if it
-             * happens */
-            if (!sub.bound.containedBy(current.bound)) {
+            if (sub == null) {
                 continue;
             }
 
@@ -288,17 +285,30 @@ private QueueEntry[] splitSearchAreaAround(final QueueEntry current, final HasPo
     final Rectangle p = current.bound;
     final Rectangle split = pivot.getPosition();
 
-    final Rectangle left, above, right, below;
-    left = new Rectangle(p.getX(), p.getY(), split.getX() - p.getX(), p.getHeight());
+    Rectangle left = null;
+    if (split.getX() > p.getX()) {
+        left = new Rectangle(p.getX(), p.getY(), split.getX() - p.getX(), p.getHeight());
+    }
     List<HasPosition> leftObstacles = new ArrayList<HasPosition>();
 
-    above = new Rectangle(p.getX(), p.getY(), p.getWidth(), split.getY() - p.getY());
+    Rectangle above = null;
+    if (split.getY() > p.getY()) {
+        above = new Rectangle(p.getX(), p.getY(), p.getWidth(), split.getY() - p.getY());
+    }
     List<HasPosition> aboveObstacles = new ArrayList<HasPosition>();
 
-    right = new Rectangle(split.getEndX(), p.getY(), p.getEndX() - split.getEndX(), p.getHeight());
+    Rectangle right = null;
+    if (split.getEndX() < p.getEndX()) {
+        right = new Rectangle(split.getEndX(), p.getY(), p.getEndX() - split.getEndX(),
+                              p.getHeight());
+    }
     List<HasPosition> rightObstacles = new ArrayList<HasPosition>();
 
-    below = new Rectangle(p.getX(), split.getEndY(), p.getWidth(), p.getEndY() - split.getEndY());
+    Rectangle below = null;
+    if (split.getEndY() < p.getEndY()) {
+        below = new Rectangle(p.getX(), split.getEndY(), p.getWidth(),
+                              p.getEndY() - split.getEndY());
+    }
     List<HasPosition> belowObstacles = new ArrayList<HasPosition>();
 
     /**
@@ -324,10 +334,11 @@ private QueueEntry[] splitSearchAreaAround(final QueueEntry current, final HasPo
         }
     }
 
-    return new QueueEntry[]{new QueueEntry(left, leftObstacles),
-                            new QueueEntry(above, aboveObstacles),
-                            new QueueEntry(right, rightObstacles),
-                            new QueueEntry(below, belowObstacles)};
+
+    return new QueueEntry[]{left == null ? null : new QueueEntry(left, leftObstacles),
+                            right == null ? null : new QueueEntry(right, rightObstacles),
+                            above == null ? null : new QueueEntry(above, aboveObstacles),
+                            below == null ? null : new QueueEntry(below, belowObstacles)};
 }
 
 /**
