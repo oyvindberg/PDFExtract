@@ -18,7 +18,7 @@ package org.elacin.pdfextract.segmentation.column;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.segmentation.PhysicalContent;
-import org.elacin.pdfextract.segmentation.PhysicalPage;
+import org.elacin.pdfextract.segmentation.PhysicalPageRegion;
 import org.elacin.pdfextract.segmentation.PhysicalText;
 import org.elacin.pdfextract.segmentation.WhitespaceRectangle;
 import org.elacin.pdfextract.tree.PageNode;
@@ -38,7 +38,6 @@ import static org.elacin.pdfextract.Loggers.getInterfaceLog;
 public class LayoutRecognizer {
 // ------------------------------ FIELDS ------------------------------
 
-private static final int NUM_WHITESPACES_TO_BE_FOUND = 50;
 private static final Logger log = Logger.getLogger(LayoutRecognizer.class);
 
 // -------------------------- STATIC METHODS --------------------------
@@ -104,11 +103,15 @@ public Map<Integer, List<Integer>> findColumnsForPage(final RectangleCollection 
     return columns;
 }
 
-public List<WhitespaceRectangle> findWhitespace(final PhysicalPage page) {
-    AbstractWhitespaceFinder vert = new VerticalWhitespaceFinder(page.getContents(),
-                                                                 NUM_WHITESPACES_TO_BE_FOUND,
-                                                                 page.getAvgFontSizeX() * 0.4f,
-                                                                 page.getAvgFontSizeY());
+public List<WhitespaceRectangle> findWhitespace(final PhysicalPageRegion region) {
+    final int numWhitespaces = Math.max(10, Math.min(40, region.getContents().size() / 10));
+    if (log.isInfoEnabled()) {
+        log.info("LOG00380:Finding " + numWhitespaces + " whitespaces for " + region);
+    }
+    ;
+    AbstractWhitespaceFinder vert = new VerticalWhitespaceFinder(region, numWhitespaces,
+                                                                 region.getAvgFontSizeX() * 0.4f,
+                                                                 region.getAvgFontSizeY());
 
     return vert.findWhitespace();
 }

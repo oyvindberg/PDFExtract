@@ -25,9 +25,6 @@ import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.PDFStreamEngine;
 import org.apache.pdfbox.util.ResourceLoader;
 import org.apache.pdfbox.util.TextPosition;
-import org.elacin.pdfextract.segmentation.Figure;
-import org.elacin.pdfextract.segmentation.Picture;
-import org.elacin.pdfextract.util.Rectangle;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -35,24 +32,16 @@ import java.awt.geom.Area;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 
 public class PageDrawer extends PDFStreamEngine {
 // ------------------------------ FIELDS ------------------------------
 
-protected List<Figure> figures = new ArrayList<Figure>();
-protected List<Picture> pictures = new ArrayList<Picture>();
 protected Color currentColor;
 /* pdfbox things */
 private GeneralPath linePath = new GeneralPath();
-private Shape currentClippingPath;
 private BasicStroke stroke;
-
-
-private final MyGraphics graphics = new MyGraphics();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -118,7 +107,7 @@ public void setStroke(BasicStroke newStroke) {
  */
 public void drawImage(Image awtImage, AffineTransform at) {
     currentClippingPath = getGraphicsState().getCurrentClippingPath();
-    graphics.drawImage(awtImage, at, null);
+    imageExtractor.drawImage(awtImage, at, null);
 }
 
 public void drawPage(Graphics g, PDPage p, Dimension pageDimension) throws IOException {
@@ -135,7 +124,7 @@ public void fillPath(int windingRule) throws IOException {
     currentColor = getGraphicsState().getNonStrokingColor().getJavaColor();
     getLinePath().setWindingRule(windingRule);
     currentClippingPath = getGraphicsState().getCurrentClippingPath();
-    graphics.fill(getLinePath());
+    imageExtractor.fill(getLinePath());
     getLinePath().reset();
 }
 
@@ -202,7 +191,7 @@ public void strokePath() throws IOException {
     currentColor = getGraphicsState().getStrokingColor().getJavaColor();
     currentClippingPath = getGraphicsState().getCurrentClippingPath();
     GeneralPath path = getLinePath();
-    graphics.draw(path);
+    imageExtractor.draw(path);
     path.reset();
 }
 
@@ -281,26 +270,5 @@ protected void processTextPosition(TextPosition text) {
     //    } catch (IOException io) {
     //        io.printStackTrace();
     //    }
-}
-
-// -------------------------- INNER CLASSES --------------------------
-
-class MyGraphics {
-    public void drawImage(final Image awtImage, final AffineTransform at, final Object o) {
-        pictures.add(new Picture(convertRectangle(currentClippingPath.getBounds())));
-    }
-
-    public void fill(final GeneralPath linePath) {
-        figures.add(new Figure(convertRectangle(linePath.getBounds()), true));
-    }
-
-    private Rectangle convertRectangle(final java.awt.Rectangle bounds) {
-        return new Rectangle((float) bounds.x, (float) bounds.y, (float) bounds.width,
-                             (float) bounds.height);
-    }
-
-    public void draw(final GeneralPath path) {
-        figures.add(new Figure(convertRectangle(path.getBounds()), false));
-    }
 }
 }

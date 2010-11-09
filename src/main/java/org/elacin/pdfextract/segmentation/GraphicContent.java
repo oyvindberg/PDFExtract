@@ -23,36 +23,53 @@ import org.elacin.pdfextract.util.Rectangle;
  * Created by IntelliJ IDEA. User: elacin Date: Nov 3, 2010 Time: 4:43:12 PM To change this template
  * use File | Settings | File Templates.
  */
-public class Figure extends AssignablePhysicalContent {
-private static final Logger log = Logger.getLogger(Figure.class);
-
+public class GraphicContent extends AssignablePhysicalContent {
 // ------------------------------ FIELDS ------------------------------
 
+private static final Logger log = Logger.getLogger(GraphicContent.class);
 private final boolean filled;
+private final boolean picture;
+
+private volatile boolean canBeAssigned = false;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public Figure(final Rectangle position, boolean filled) {
+public GraphicContent(final Rectangle position, boolean picture, boolean filled) {
     super(position);
     this.filled = filled;
-    log.debug("LOG00280:Figure at " + position + ", filled: " + filled);
+    this.picture = picture;
+
+    if (log.isDebugEnabled()) {
+        log.debug("LOG00280:GraphicContent at " + position + ", filled: " + filled + ", picture = "
+                + picture);
+    }
+    ;
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
 
-//@Override
-//public boolean isAssignablePhysicalContent() {
-//    return isFilled();
-//}
+@Override
+public boolean isAssignablePhysicalContent() {
+    return canBeAssigned;
+}
 
 @Override
 public boolean isFigure() {
     return true;
 }
 
+@Override
+public boolean isPicture() {
+    return picture;
+}
+
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 public boolean isFilled() {
     return filled;
+}
+
+public void setCanBeAssigned(final boolean canBeAssigned) {
+    this.canBeAssigned = canBeAssigned;
 }
 }

@@ -32,9 +32,15 @@ import org.apache.pdfbox.pdmodel.graphics.color.PDColorSpace;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
 import org.apache.pdfbox.util.operator.OperatorProcessor;
 import org.elacin.pdfextract.pdfbox.ETextPosition;
+import org.elacin.pdfextract.segmentation.GraphicContent;
+import org.elacin.pdfextract.util.Rectangle;
 
+import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.GeneralPath;
 import java.io.IOException;
 import java.util.*;
+import java.util.List;
 
 /**
  * This class will run through a PDF content stream and execute certain operations and provide a
@@ -54,6 +60,10 @@ private static final Log log = LogFactory.getLog(PDFStreamEngine.class);
 
 private static final byte[] SPACE_BYTES = {(byte) 32};
 
+protected PDPage page;
+protected Shape currentClippingPath;
+protected final ImageExtractor imageExtractor = new ImageExtractor();
+
 /**
  * The PDF operators that are ignored by this engine.
  */
@@ -68,8 +78,6 @@ private Stack<PDGraphicsState> graphicsStack = new Stack<PDGraphicsState>();
 private Map<String, OperatorProcessor> operators = new HashMap<String, OperatorProcessor>();
 
 private Stack<StreamResources> streamResourcesStack = new Stack<StreamResources>();
-
-protected PDPage page;
 
 private Map<String, PDFont> documentFontCache = new HashMap<String, PDFont>();
 
@@ -257,8 +265,8 @@ public Map<String, PDXObject> getXObjects() {
 }
 
 /**
- * Process encoded text from the PDF Stream. You should override this method if you want to
- * perform an action when encoded text is being processed.
+ * Process encoded text from the PDF Stream. You should override this method if you want to perform
+ * an action when encoded text is being processed.
  *
  * @param string The encoded text
  * @throws IOException If there is an error processing the string
@@ -573,7 +581,7 @@ public void setFonts(Map<String, PDFont> value) {
  * @param value The graphicsStates to set.
  */
 public void setGraphicsStates(Map<String, PDExtendedGraphicsState> value) {
-    ((StreamResources) streamResourcesStack.peek()).graphicsStates = value;
+    streamResourcesStack.peek().graphicsStates = value;
 }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -623,7 +631,7 @@ protected String inspectFontEncoding(String str) {
 protected void processOperator(PDFOperator operator, List<COSBase> arguments) throws IOException {
     try {
         String operation = operator.getOperation();
-        OperatorProcessor processor = (OperatorProcessor) operators.get(operation);
+        OperatorProcessor processor = operators.get(operation);
         if (processor != null) {
             processor.setContext(this);
             processor.process(operator, arguments);
@@ -664,5 +672,59 @@ private static class StreamResources {
     }
 
     ;
+}
+
+protected class ImageExtractor {
+    final List<GraphicContent> graphicContents = new ArrayList<GraphicContent>();
+    private Rectangle currentImagePos;
+
+    public void drawImage(final Image awtImage, final AffineTransform at, final Object o) {
+        final Rectangle newImagePos = convertRectangle(currentClippingPath.getBounds());
+
+        if (currentImagePos == null) {
+            currentImagePos = newImagePos;
+        } else {
+            if (currentImagePos.distance(newImagePos) < 1.5f) {
+                /* if the new image is really close to the last one, combine them */
+                currentImagePos = currentImagePos.union(newImagePos);
+            } else {
+                /* output the last one */
+                flushImage();
+            }
+        }
+    }
+
+    public List<GraphicContent> getGraphicContents() {
+        return graphicContents;
+    }
+
+    public void flushImage() {
+        if (currentImagePos != null) {
+            final GraphicContent wholeImage = new GraphicContent(currentImagePos, true, true);
+            graphicContents.add(wholeImage);
+            currentImagePos = null;
+        }
+    }
+
+    public void fill(final GeneralPath linePath) {
+        graphicContents.add(new GraphicContent(convertRectangle(linePath.getBounds()), false,
+                                               true));
+        flushImage();
+    }
+
+    private Rectangle convertRectangle(final java.awt.Rectangle bounds) {
+        return new Rectangle((float) bounds.x, (float) bounds.y, (float) bounds.width,
+                             (float) bounds.height);
+    }
+
+    public void draw(final GeneralPath path) {
+        graphicContents.add(new GraphicContent(convertRectangle(path.getBounds()), false, false));
+        flushImage();
+    }
+
+    public void clear() {
+        currentImagePos = null;
+        graphicContents.clear();
+    }
 }
 }

@@ -27,7 +27,7 @@ import java.util.*;
 public class RectangleCollection extends PhysicalContent {
 // ------------------------------ FIELDS ------------------------------
 
-protected final List<PhysicalContent> contents = new ArrayList<PhysicalContent>();
+private final List<PhysicalContent> contents = new ArrayList<PhysicalContent>();
 
 /* calculating all the intersections while searching is expensive, so keep this cached.
     will be pruned on update */
@@ -42,11 +42,11 @@ private final PhysicalContent containedIn;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public RectangleCollection(final Collection<PhysicalContent> contents) {
+public RectangleCollection(final List<? extends PhysicalContent> contents) {
     this(contents, null);
 }
 
-public RectangleCollection(final Collection<PhysicalContent> contents,
+public RectangleCollection(final List<? extends PhysicalContent> contents,
                            final PhysicalContent containedIn)
 {
     super(contents);
@@ -82,11 +82,16 @@ public PhysicalContent getContainedIn() {
     return containedIn;
 }
 
+public List<PhysicalContent> getContents() {
+    return contents;
+}
+
 // -------------------------- PUBLIC METHODS --------------------------
 
 public void addContent(Collection<? extends PhysicalContent> newContents) {
     contents.addAll(newContents);
     clearCache();
+    setPositionFromContentList(contents);
 }
 
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
@@ -96,7 +101,8 @@ public List<PhysicalContent> findContentAtXIndex(float x) {
 
 public List<PhysicalContent> findContentAtXIndex(int x) {
     if (!xCache.containsKey(x)) {
-        final Rectangle searchRectangle = new Rectangle((float) x, 0.0f, 1.0f, getHeight());
+        final Rectangle searchRectangle = new Rectangle((float) x, getPosition().getY(), 1.0f,
+                                                        getPosition().getHeight());
         final List<PhysicalContent> result = findRectanglesIntersectingWith(searchRectangle);
         sortListByYCoordinate(result);
         xCache.put(x, result);
@@ -111,7 +117,8 @@ public List<PhysicalContent> findContentAtYIndex(float y) {
 
 public List<PhysicalContent> findContentAtYIndex(int y) {
     if (!yCache.containsKey(y)) {
-        final Rectangle searchRectangle = new Rectangle(0.0F, (float) y, getWidth(), 1.0F);
+        final Rectangle searchRectangle = new Rectangle(getPosition().getX(), (float) y,
+                                                        getPosition().getWidth(), 1.0F);
         final List<PhysicalContent> result = findRectanglesIntersectingWith(searchRectangle);
         sortListByXCoordinate(result);
         yCache.put(y, result);
@@ -146,16 +153,22 @@ public List<PhysicalContent> findSurrounding(final PhysicalContent text, final i
     return ret;
 }
 
-public List<? extends PhysicalContent> getContent() {
-    return contents;
-}
-
 public float getHeight() {
     return getPosition().getHeight();
 }
 
 public float getWidth() {
     return getPosition().getWidth();
+}
+
+public void removeContent(List<PhysicalContent> listToRemove) throws Exception {
+    for (PhysicalContent toRemove : listToRemove) {
+        if (!contents.remove(toRemove)) {
+            throw new Exception("Region " + this + ": Could not remove " + toRemove);
+        }
+    }
+    clearCache();
+    setPositionFromContentList(contents);
 }
 
 public List<PhysicalContent> searchInDirectionFromOrigin(Direction dir,

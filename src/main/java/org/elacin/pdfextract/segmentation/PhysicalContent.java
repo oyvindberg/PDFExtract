@@ -19,6 +19,8 @@ package org.elacin.pdfextract.segmentation;
 import org.elacin.pdfextract.HasPosition;
 import org.elacin.pdfextract.util.Rectangle;
 
+import java.util.List;
+
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Nov 3, 2010 Time: 4:37:52 AM To change this template
  * use File | Settings | File Templates.
@@ -26,7 +28,7 @@ import org.elacin.pdfextract.util.Rectangle;
 public abstract class PhysicalContent implements HasPosition {
 // ------------------------------ FIELDS ------------------------------
 
-protected final Rectangle position;
+protected Rectangle position;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -34,7 +36,77 @@ public PhysicalContent(final Rectangle position) {
     this.position = position;
 }
 
-public PhysicalContent(final Iterable<? extends PhysicalContent> contents) {
+public PhysicalContent(final List<? extends PhysicalContent> contents) {
+    setPositionFromContentList(contents);
+}
+
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface HasPosition ---------------------
+
+public Rectangle getPosition() {
+    return position;
+}
+
+// ------------------------ CANONICAL METHODS ------------------------
+
+@Override
+public String toString() {
+    final StringBuilder sb = new StringBuilder();
+    sb.append(getClass().getSimpleName());
+    sb.append("{position=").append(position);
+    sb.append('}');
+    return sb.toString();
+}
+
+// -------------------------- PUBLIC METHODS --------------------------
+
+public AssignablePhysicalContent getAssignablePhysicalContent() {
+    throw new RuntimeException("not an AssignablePhysicalContent");
+}
+
+public PhysicalText getText() {
+    throw new RuntimeException("not a text");
+}
+
+public boolean isAssignablePhysicalContent() {
+    return false;
+}
+
+public boolean isFigure() {
+    return false;
+}
+
+public boolean isPicture() {
+    return false;
+}
+
+public boolean isText() {
+    return false;
+}
+
+public boolean isWhitespace() {
+    return false;
+}
+
+// -------------------------- OTHER METHODS --------------------------
+
+protected final void setPositionFromContentList(final List<? extends PhysicalContent> contents) {
+    if (contents.isEmpty()) {
+        /* this should only happen if this is the original region which contained everything,
+         *  that means that region.containedIn should be null. if it happens elsewhere something
+         * is probably wrong */
+        if (this instanceof PhysicalPageRegion) {
+            PhysicalPageRegion region = (PhysicalPageRegion) this;
+            assert region.getContainedIn() == null;
+        } else {
+            assert false;
+        }
+        position = new Rectangle(0.0f, 0.0f, 0.0f, 0.0f);
+        return;
+    }
+
     /* calculate bounds for this region */
     float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
     float maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE;
@@ -48,54 +120,5 @@ public PhysicalContent(final Iterable<? extends PhysicalContent> contents) {
         }
     }
     position = new Rectangle(minX, minY, maxX - minX, maxY - minY);
-}
-
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface HasPosition ---------------------
-
-public Rectangle getPosition() {
-    return position;
-}
-
-// -------------------------- PUBLIC METHODS --------------------------
-
-public PhysicalText getText() {
-    throw new RuntimeException("not a text");
-}
-
-public AssignablePhysicalContent getAssignablePhysicalContent() {
-    throw new RuntimeException("not an AssignablePhysicalContent");
-}
-
-public boolean isText() {
-    return false;
-}
-
-public boolean isAssignablePhysicalContent() {
-    return false;
-}
-
-public boolean isWhitespace() {
-    return false;
-}
-
-public boolean isFigure() {
-    return false;
-}
-
-public boolean isPicture() {
-    return false;
-}
-
-
-@Override
-public String toString() {
-    final StringBuilder sb = new StringBuilder();
-    sb.append(getClass().getSimpleName());
-    sb.append("{position=").append(position);
-    sb.append('}');
-    return sb.toString();
 }
 }

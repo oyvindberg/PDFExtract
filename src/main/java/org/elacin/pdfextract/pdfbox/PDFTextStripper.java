@@ -17,6 +17,7 @@
 
 package org.elacin.pdfextract.pdfbox;
 
+import org.apache.log4j.Logger;
 import org.apache.log4j.MDC;
 import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.pdfviewer.PageDrawer;
@@ -43,6 +44,8 @@ import java.util.Map;
 
 
 public class PDFTextStripper extends PageDrawer {
+private static final Logger log1 = Logger.getLogger(PDFTextStripper.class);
+
 // ------------------------------ FIELDS ------------------------------
 
 protected final List<ETextPosition> charactersForPage = new ArrayList<ETextPosition>();
@@ -213,6 +216,7 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
     if (currentPageNo >= startPage && currentPageNo < endPage) {
         charactersForPage.clear();
         characterListMapping.clear();
+        imageExtractor.clear();
         MDC.put("page", currentPageNo);
         processStream(page, page.findResources(), content);
 
@@ -223,8 +227,16 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
             /* segment words */
             final List<PhysicalText> texts = segmentator.segmentWords(charactersForPage);
 
+            /* save an eventual last picture */
+            imageExtractor.flushImage();
             /* and create the page subtree */
-            PhysicalPage physicalPage = new PhysicalPage(texts, figures, pictures, currentPageNo);
+            PhysicalPage physicalPage = null;
+            try {
+                physicalPage = new PhysicalPage(texts, imageExtractor.getGraphicContents(),
+                                                currentPageNo);
+            } catch (Exception e) {
+                log1.error("LOG00350:Error while creating physical page", e);
+            }
             final PageNode pageNode = physicalPage.compileLogicalPage();
 
             /* combine split linenodes within same paragraph */
@@ -233,8 +245,7 @@ protected void processPage(PDPage page, COSStream content) throws IOException {
             root.addChild(pageNode);
         }
         MDC.remove("page");
-        figures.clear();
-        pictures.clear();
+
     }
 }
 }

@@ -20,8 +20,7 @@ import org.apache.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.elacin.pdfextract.Loggers;
-import org.elacin.pdfextract.segmentation.Figure;
-import org.elacin.pdfextract.segmentation.Picture;
+import org.elacin.pdfextract.segmentation.GraphicContent;
 import org.elacin.pdfextract.segmentation.WhitespaceRectangle;
 import org.elacin.pdfextract.tree.*;
 import org.elacin.pdfextract.util.Rectangle;
@@ -129,15 +128,11 @@ public BufferedImage renderPage(final int pageNum) {
                              true);
     }
 
-    //    /* draw figures */
-    for (Figure figure : pageNode.getFigures()) {
-        drawRectangleInColor(graphics, xScale, yScale, Color.BLUE, figure.getPosition(),
-                             figure.isFilled());
-    }
-
-    /* draw pictures */
-    for (Picture picture : pageNode.getPictures()) {
-        drawRectangleInColor(graphics, xScale, yScale, Color.ORANGE, picture.getPosition(), true);
+    //    /* draw graphicContents */
+    for (GraphicContent graphic : pageNode.getGraphics()) {
+        Color color = graphic.isPicture() ? Color.ORANGE : Color.BLUE;
+        drawRectangleInColor(graphics, xScale, yScale, color, graphic.getPosition(),
+                             graphic.isFilled());
     }
 
     /* draw columns if provided */

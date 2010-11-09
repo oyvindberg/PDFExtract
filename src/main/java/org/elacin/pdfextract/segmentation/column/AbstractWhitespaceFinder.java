@@ -145,7 +145,7 @@ public List<WhitespaceRectangle> findWhitespace() {
 
     if (foundWhitespace.isEmpty()) {
         /* first add the whole page with all the obstacles to the priority queue */
-        queue.add(new QueueEntry(region.getPosition(), region.getContent()));
+        queue.add(new QueueEntry(region.getPosition(), region.getContents()));
 
         /* continue looking for whitespace until we have the wanted number or we run out*/
         while (getNumberOfWhitespacesFound() < wantedWhitespaces) {
@@ -216,7 +216,7 @@ private WhitespaceRectangle findNextWhitespace() {
         for (QueueEntry sub : subrectangles) {
             /** check that the subrectangle is contained by the current bound. this will happen
              * if the pivot we used was itself not contained. This breaks the algorithm if it
-             * happens, as we will have overlapping rectangles */
+             * happens */
             if (!sub.bound.containedBy(current.bound)) {
                 continue;
             }
@@ -225,9 +225,6 @@ private WhitespaceRectangle findNextWhitespace() {
             if (sub.bound.getWidth() < minWidth || sub.bound.getHeight() < minHeight) {
                 continue;
             }
-            //            if (rectangleIsTooThin(sub.bound)) {
-            //                continue;
-            //            }
 
             /** It does not make sense to include rectangles which are completely
              *  contained within one of the obstacles, so skip those */
@@ -261,9 +258,10 @@ private int getNumberOfWhitespacesFound() {
 private boolean isNextToWhitespaceOrEdge(final WhitespaceRectangle newWhitespace) {
     /* accept this rectangle if it is adjacent to the edge of the page */
     //noinspection FloatingPointEquality
-    if (newWhitespace.getPosition().getX() == 0.0f || newWhitespace.getPosition().getY() == 0.0f
-            || newWhitespace.getPosition().getEndX() == region.getWidth()
-            || newWhitespace.getPosition().getEndY() == region.getHeight()) {
+    if (newWhitespace.getPosition().getX() == region.getPosition().getX()
+            || newWhitespace.getPosition().getY() == region.getPosition().getY()
+            || newWhitespace.getPosition().getEndX() == region.getPosition().getEndX()
+            || newWhitespace.getPosition().getEndY() == region.getPosition().getEndY()) {
         return true;
     }
 
@@ -277,19 +275,6 @@ private boolean isNextToWhitespaceOrEdge(final WhitespaceRectangle newWhitespace
     return false;
 }
 
-//private boolean rectangleIsTooThin(final Rectangle bound) {
-//    List<PhysicalContent> closest = page.findSurrounding(bound);
-//
-//    float minWidth = Float.MIN_VALUE, minHeight = Float.MIN_VALUE;
-//    for (HasPosition text : closest) {
-//        minWidth = Math.max(minWidth, text.getPosition().getWidth());
-//        minHeight = Math.max(minHeight, text.getPosition().getHeight());
-//    }
-//    minWidth *= 0.5f;
-//    minHeight *= 0.5f;
-//
-//    return bound.getWidth() < minWidth || bound.getHeight() < minHeight;
-//}
 
 /**
  * Creates four rectangles with the remaining space left after splitting the current rectangle
