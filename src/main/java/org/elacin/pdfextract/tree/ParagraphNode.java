@@ -16,9 +16,9 @@
 
 package org.elacin.pdfextract.tree;
 
-import java.util.Comparator;
+import org.jetbrains.annotations.NotNull;
 
-import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
+import java.util.Comparator;
 
 
 /**
@@ -28,165 +28,12 @@ import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
 public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
 // -------------------------- PUBLIC METHODS --------------------------
 
-@Override
-public boolean addWord(final WordNode node) {
-    if (getChildren().isEmpty()) {
-        if (log.isDebugEnabled()) {
-            log.debug(toString() + ": Adding a new LineNode for node " + node);
-        }
-        addChild(new LineNode(node));
-        return true;
-    }
 
-    /* try the lines already added and see if this fits at the end of one of them */
-    for (LineNode line : getChildren()) {
-        if (line.addWord(node)) {
-            return true;
-        }
-    }
-
-    //    if (isNewLineInThisParagraph(node)) {
-    if (log.isDebugEnabled()) {
-        log.debug(toString() + ": Node " + node
-                + " is considered to be a new line in this paragraph");
-    }
-    addChild(new LineNode(node));
-    return true;
-    //    }
-    //
-    //
-    //    return false;
-}
-
-@Override
-public void combineChildren() {
-    /** combine all contained line nodes which are clearly on the same line. using array to avoid
-     * concurrent modification of iterator */
-    LineNode[] lineNodes = getChildren().toArray(new LineNode[getChildren().size()]);
-
-    for (int i = 0; i < lineNodes.length; i++) {
-        if (lineNodes[i] == null) {
-            continue;
-        }
-
-        LineNode firstLine = lineNodes[i];
-
-        for (int j = 0; j < lineNodes.length; j++) {
-            if (i == j) {
-                continue;
-            }
-
-            if (lineNodes[j] == null) {
-                continue;
-            }
-            LineNode secondLine = lineNodes[j];
-
-            //            if (firstLine.isOnSameLine(secondLine) || firstLine.getPosition().intersectsWith(
-            //                    secondLine.getPosition())) {
-            if (firstLine.isOnSameLine(secondLine) || !firstLine.willMakeLineTooHigh(secondLine)) {
-                if (log.isDebugEnabled()) {
-                    log.debug("combining lines " + firstLine + " and " + secondLine);
-                }
-                firstLine.combineWith(secondLine);
-
-                /* remove secondLine */
-                lineNodes[j] = null;
-                getChildren().remove(secondLine);
-            }
-        }
-    }
-
-    /* call one level further down the tree */
-    for (LineNode lineNode : getChildren()) {
-        lineNode.combineChildren();
-    }
-}
-
-/**
- * Adds all lines from otherParagraph to this paragraph. No checks here!
- *
- * @param otherParagraph
- */
-public void combineWith(final ParagraphNode otherParagraph) {
-    /* add the lines which we could not combine with the existing lines in the paragraph */
-    for (LineNode lineNode : otherParagraph.getChildren()) {
-        addChild(lineNode);
-    }
-}
-
-/**
- * Returns a Comparator which compares coordinates within a page
- *
- * @return
- */
+/** Returns a Comparator which compares coordinates within a page */
+@NotNull
 @Override
 public Comparator<LineNode> getChildComparator() {
-    return new StandardNodeComparator();
+	return new StandardNodeComparator();
 }
 
-public boolean isNewLineInThisParagraph(final AbstractNode newNode) {
-    LineNode lastLineNode = getChildren().get(getChildren().size() - 1);
-
-    /* if the last line still has no text, accept this */
-    if (lastLineNode.getChildren().isEmpty()) {
-        return true;
-    }
-
-    /* Use the size of the preceding and new text to determine if the two lines are
-        logically part of the same paragraph. Use the smaller of the two values.
-    */
-    //TODO: style!
-    //        int ySize = Math.min(lastLineNode.getCurrentStyle().ySize, newNode.getStyle().ySize);
-
-    /* if the new node seems to be a headline, dont let it continue this paragraph */
-    //        if (isProbableTitle(newNode)) {
-    //            return false;
-    //        }
-
-    //TODO:
-    if (!newNode.getStyle().font.equals(getStyle().font)
-            || newNode.getStyle().ySize != getStyle().ySize
-            || newNode.getStyle().xSize != getStyle().xSize) {
-        return false;
-    }
-
-    //        if (isWithinVariance(getPosition().getEndY(), newNode.getPosition().getY(), ySize*2)) {
-    if (isWithinVariance(getPosition().getEndY(), newNode.getPosition().getY(),
-                         lastLineNode.getCurrentStyle().ySize * 3.0F)) {
-        float widthOfSpace = lastLineNode.getCurrentStyle().widthOfSpace;
-
-        /* if the new node STARTS at more or less the same X position, accept it */
-        if (isWithinVariance(getPosition().getX(), newNode.getPosition().getX(), widthOfSpace)) {
-            //            if (isWithinVariance(lastLineNode.getPosition().getX(), newNode.getPosition().getX(), widthOfSpace)) {
-            return true;
-        }
-
-        /* if the new node ENDS at more or less the same X position, also accept it */
-        if (isWithinVariance(getPosition().getEndX(), newNode.getPosition().getEndX(),
-                             widthOfSpace)) {
-            return true;
-        }
-
-        /* also accept it if its X value IS CONTAINED between current position's lower X and (higher X + widthOfSpace)*/
-        if (getPosition().getX() <= newNode.getPosition().getX()
-                && getPosition().getX() + getPosition().getWidth() + widthOfSpace
-                >= newNode.getPosition().getX()) {
-            return true;
-        }
-    }
-    return false;
-}
-
-// -------------------------- OTHER METHODS --------------------------
-
-private boolean isProbableTitle(final AbstractNode newNode) {
-    final LineNode lastLineNode = getChildren().get(getChildren().size() - 1);
-    if (lastLineNode.getStyle().xSize * 1.05f < newNode.getStyle().xSize) {
-        return true;
-    }
-    if (!newNode.getStyle().font.toLowerCase().contains("bold")) {
-        return newNode.getStyle().font.toLowerCase().contains("bold");
-    }
-    return false;
-}
 }

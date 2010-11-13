@@ -16,6 +16,9 @@
 
 package org.elacin.pdfextract.util;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
@@ -36,46 +39,46 @@ public class FileWalker {
  * @param aStartingDir is a valid directory, which can be read.
  * @param extension    asd
  */
-public static List<File> getFileListing(final File aStartingDir,
+@NotNull
+public static List<File> getFileListing(@NotNull final File aStartingDir,
                                         final String extension) throws FileNotFoundException
 {
-    validateDirectory(aStartingDir);
-    List<File> result = getFileListingNoSort(aStartingDir, extension);
-    Collections.sort(result);
-    return result;
+	validateDirectory(aStartingDir);
+	List<File> result = getFileListingNoSort(aStartingDir, extension);
+	Collections.sort(result);
+	return result;
 }
 
 // -------------------------- STATIC METHODS --------------------------
 
-static List<File> getFileListingNoSort(File aStartingDir, final String extension) {
-    List<File> ret = new ArrayList<File>();
+@NotNull
+static List<File> getFileListingNoSort(@NotNull File aStartingDir, final String extension) {
+	List<File> ret = new ArrayList<File>();
 
-    for (File file : aStartingDir.listFiles()) {
-        if (file.getName().endsWith(extension)) {
-            ret.add(file);
-        }
-        if (file.isDirectory()) {
-            ret.addAll(getFileListingNoSort(file, extension));
-        }
-    }
-    return ret;
+	for (File file : aStartingDir.listFiles()) {
+		if (file.getName().endsWith(extension)) {
+			ret.add(file);
+		}
+		if (file.isDirectory()) {
+			ret.addAll(getFileListingNoSort(file, extension));
+		}
+	}
+	return ret;
 }
 
-/**
- * Directory is valid if it exists, does not represent a file, and can be read.
- */
-static void validateDirectory(final File aDirectory) throws FileNotFoundException {
-    if (aDirectory == null) {
-        throw new IllegalArgumentException("Directory should not be null.");
-    }
-    if (!aDirectory.exists()) {
-        throw new FileNotFoundException("Directory does not exist: " + aDirectory);
-    }
-    if (!aDirectory.isDirectory()) {
-        throw new IllegalArgumentException("Is not a directory: " + aDirectory);
-    }
-    if (!aDirectory.canRead()) {
-        throw new IllegalArgumentException("Directory cannot be read: " + aDirectory);
-    }
+/** Directory is valid if it exists, does not represent a file, and can be read. */
+static void validateDirectory(@Nullable final File aDirectory) throws FileNotFoundException {
+	if (aDirectory == null) {
+		throw new IllegalArgumentException("Directory should not be null.");
+	}
+	if (!aDirectory.exists()) {
+		throw new FileNotFoundException("Directory does not exist: " + aDirectory);
+	}
+	if (!aDirectory.isDirectory()) {
+		throw new IllegalArgumentException("Is not a directory: " + aDirectory);
+	}
+	if (!aDirectory.canRead()) {
+		throw new IllegalArgumentException("Directory cannot be read: " + aDirectory);
+	}
 }
 }

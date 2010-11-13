@@ -14,16 +14,22 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.segmentation;
+package org.elacin.pdfextract.util;
 
-import org.elacin.pdfextract.pdfbox.ETextPosition;
-
-import java.util.List;
+import org.apache.log4j.Logger;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Nov 1, 2010 Time: 6:37:35 AM To change this template
- * use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Apr 19, 2010 Time: 2:50:18 AM To change this
+ * template use File | Settings | File Templates.
  */
-public interface WordSegmentator {
-List<PhysicalText> segmentWords(List<ETextPosition> text);
+public class Loggers {
+// ------------------------------ FIELDS ------------------------------
+
+private static final Logger interfaceLog = Logger.getLogger("pdfextract-interface");
+
+// -------------------------- PUBLIC STATIC METHODS --------------------------
+
+public static Logger getInterfaceLog() {
+	return interfaceLog;
+}
 }

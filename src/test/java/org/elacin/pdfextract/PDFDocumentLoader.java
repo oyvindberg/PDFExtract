@@ -19,6 +19,7 @@ package org.elacin.pdfextract;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.elacin.pdfextract.pdfbox.PDFTextStripper;
 import org.elacin.pdfextract.tree.DocumentNode;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.URL;
@@ -29,19 +30,20 @@ import java.net.URL;
  */
 public class PDFDocumentLoader {
 
+@NotNull
 public static DocumentNode readPDF(String filename,
                                    final String outFile,
                                    final int endPage) throws IOException
 {
-    final URL url = PDFDocumentLoader.class.getClassLoader().getResource(filename);
-    PDDocument document = PDDocument.load(url);
-    PDFTextStripper stripper = new PDFTextStripper(document, -1, endPage);
-    stripper.processDocument();
+	final URL url = PDFDocumentLoader.class.getClassLoader().getResource(filename);
+	PDDocument document = PDDocument.load(url);
+	PDFTextStripper stripper = new PDFTextStripper(document, -1, endPage);
+	stripper.processDocument();
 
-    final DocumentNode documentNode = stripper.getDocumentNode();
-    documentNode.printTree(outFile);
-    document.close();
-    return documentNode;
+	final DocumentNode documentNode = stripper.getDocumentNode();
+	documentNode.printTree(outFile);
+	document.close();
+	return documentNode;
 
 }
 }

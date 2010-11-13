@@ -14,9 +14,10 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.segmentation;
+package org.elacin.pdfextract.physical.content;
 
 import org.elacin.pdfextract.util.Rectangle;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Nov 3, 2010 Time: 5:17:33 PM To change this template
@@ -25,40 +26,41 @@ import org.elacin.pdfextract.util.Rectangle;
 public class AssignablePhysicalContent extends PhysicalContent {
 // ------------------------------ FIELDS ------------------------------
 
-public static final int BLOCK_NOT_ASSIGNED = -1;
-public int blockNum = BLOCK_NOT_ASSIGNED;
+private static final int BLOCK_NOT_ASSIGNED = -1;
+public               int blockNum           = BLOCK_NOT_ASSIGNED;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public AssignablePhysicalContent(final Rectangle position) {
-    super(position);
+	super(position);
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
 
+@NotNull
 @Override
 public AssignablePhysicalContent getAssignablePhysicalContent() {
-    return this;
+	return this;
 }
 
 @Override
 public boolean isAssignablePhysicalContent() {
-    return true;
+	return true;
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 public int getBlockNum() {
-    return blockNum;
+	return blockNum;
 }
 
 public void setBlockNum(final int blockNum) {
-    this.blockNum = blockNum;
+	this.blockNum = blockNum;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
 public boolean isAssignedBlock() {
-    return blockNum != BLOCK_NOT_ASSIGNED;
+	return blockNum != BLOCK_NOT_ASSIGNED;
 }
 }

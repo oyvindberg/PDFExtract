@@ -22,6 +22,7 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.util.Rectangle;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This represents a string and a position on the screen of those characters.
@@ -47,17 +48,19 @@ public ETextPosition(final PDPage page,
                      final int fontSizeInPt,
                      final float ws)
 {
-    super(page, textPositionSt, textPositionEnd, maxFontH, individualWidths, spaceWidth, string,
-          currentFont, fontSizeValue, fontSizeInPt, ws);
-    pos = new Rectangle(getX(), getY(), getWidth(), getHeight());
+	super(page, textPositionSt, textPositionEnd, maxFontH, individualWidths, spaceWidth, string,
+	      currentFont, fontSizeValue, fontSizeInPt, ws);
+	//    pos = new Rectangle(getX(), getY(), getWidth(), getHeight());
+	pos = new Rectangle(getXDirAdj(), getYDirAdj(), getWidthDirAdj(), getHeightDir());
 }
 
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 
+@NotNull
 public Rectangle getPos() {
-    return pos;
+	return pos;
 }
 
 }

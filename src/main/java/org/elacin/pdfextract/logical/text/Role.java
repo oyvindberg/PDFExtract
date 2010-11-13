@@ -14,22 +14,23 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract;
-
-import org.apache.log4j.Logger;
+package org.elacin.pdfextract.logical.text;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Apr 19, 2010 Time: 2:50:18 AM To change this
+ * Created by IntelliJ IDEA. User: elacin Date: Mar 18, 2010 Time: 2:32:32 PM To change this
  * template use File | Settings | File Templates.
  */
-public class Loggers {
-// ------------------------------ FIELDS ------------------------------
-
-private static final Logger interfaceLog = Logger.getLogger("pdfextract-interface");
-
-// -------------------------- PUBLIC STATIC METHODS --------------------------
-
-public static Logger getInterfaceLog() {
-    return interfaceLog;
-}
+public enum Role {
+	MAINTITLE,
+	SECTION,
+	SUBSECTION,
+	FOOTNOTE,
+	HEADNOTE,
+	PAGENUMBER,
+	EMPHASIS,
+	NORMAL,
+	UNKNOWN,
+	INDEXNUMBER,
+	TITLE,
+	IDENTIFIER;
 }

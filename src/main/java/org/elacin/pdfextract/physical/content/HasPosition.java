@@ -1,4 +1,4 @@
-package org.elacin.pdfextract;
+package org.elacin.pdfextract.physical.content;
 
 import org.elacin.pdfextract.util.Rectangle;
 

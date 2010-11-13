@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.util;
 
 import org.apache.pdfbox.util.TextPosition;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
@@ -27,24 +28,23 @@ import java.util.Arrays;
 public class StringUtils {
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-public static String getTextPositionString(final TextPosition position) {
-    StringBuilder sb = new StringBuilder("pos{");
-    sb.append("c=\"").append(position.getCharacter()).append("\"");
-    sb.append(", XDirAdj=").append(position.getXDirAdj());
-    sb.append(", YDirAdj=").append(position.getYDirAdj());
-    sb.append(", endY=").append(position.getYDirAdj() + position.getHeightDir());
-    sb.append(", endX=").append(position.getXDirAdj() + position.getWidthDirAdj());
+public static String getTextPositionString(@NotNull final TextPosition position) {
+	StringBuilder sb = new StringBuilder("pos{");
+	sb.append("c=\"").append(position.getCharacter()).append("\"");
+	sb.append(", XDirAdj=").append(position.getXDirAdj());
+	sb.append(", YDirAdj=").append(position.getYDirAdj());
+	sb.append(", endY=").append(position.getYDirAdj() + position.getHeightDir());
+	sb.append(", endX=").append(position.getXDirAdj() + position.getWidthDirAdj());
 
-    sb.append(", HeightDir=").append(position.getHeightDir());
-    sb.append(", WidthDirAdj=").append(position.getWidthDirAdj());
+	sb.append(", HeightDir=").append(position.getHeightDir());
+	sb.append(", WidthDirAdj=").append(position.getWidthDirAdj());
 
-    sb.append(", WidthOfSpace=").append(position.getWidthOfSpace());
-    sb.append(", WordSpacing()=").append(position.getWordSpacing());
-    sb.append(", FontSize=").append(position.getFontSize());
-    sb.append(", getIndividualWidths=").append(Arrays.toString(position.getIndividualWidths()));
-    sb.append(", font=").append(position.getFont().getBaseFont());
+	sb.append(", WidthOfSpace=").append(position.getWidthOfSpace());
+	sb.append(", FontSize=").append(position.getFontSize());
+	sb.append(", getIndividualWidths=").append(Arrays.toString(position.getIndividualWidths()));
+	sb.append(", font=").append(position.getFont().getBaseFont());
 
-    sb.append("}");
-    return sb.toString();
+	sb.append("}");
+	return sb.toString();
 }
 }

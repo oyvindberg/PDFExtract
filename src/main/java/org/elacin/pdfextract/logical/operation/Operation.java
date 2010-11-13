@@ -14,25 +14,16 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.segmentation;
+package org.elacin.pdfextract.logical.operation;
 
-import org.elacin.pdfextract.util.Rectangle;
+import org.elacin.pdfextract.tree.DocumentNode;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Nov 2, 2010 Time: 1:33:50 AM To change this template
- * use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Mar 23, 2010 Time: 3:09:37 AM To change this
+ * template use File | Settings | File Templates.
  */
-public class WhitespaceRectangle extends PhysicalContent {
-// --------------------------- CONSTRUCTORS ---------------------------
+public interface Operation {
+// -------------------------- PUBLIC METHODS --------------------------
 
-public WhitespaceRectangle(final Rectangle bound) {
-    super(bound);
-}
-
-// ------------------------ OVERRIDING METHODS ------------------------
-
-@Override
-public boolean isWhitespace() {
-    return true;
-}
+void doOperation(DocumentNode root);
 }

@@ -16,7 +16,9 @@
 
 package org.elacin.pdfextract.util;
 
-import org.elacin.pdfextract.segmentation.PhysicalContent;
+import org.elacin.pdfextract.physical.content.HasPosition;
+import org.elacin.pdfextract.physical.content.PhysicalContent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -27,11 +29,14 @@ import java.util.*;
 public class RectangleCollection extends PhysicalContent {
 // ------------------------------ FIELDS ------------------------------
 
+@NotNull
 private final List<PhysicalContent> contents = new ArrayList<PhysicalContent>();
 
 /* calculating all the intersections while searching is expensive, so keep this cached.
     will be pruned on update */
+@NotNull
 private Map<Integer, List<PhysicalContent>> yCache = new HashMap<Integer, List<PhysicalContent>>();
+@NotNull
 private Map<Integer, List<PhysicalContent>> xCache = new HashMap<Integer, List<PhysicalContent>>();
 
 /**
@@ -42,175 +47,192 @@ private final PhysicalContent containedIn;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public RectangleCollection(final List<? extends PhysicalContent> contents) {
-    this(contents, null);
+public RectangleCollection(@NotNull final List<? extends PhysicalContent> contents) {
+	this(contents, null);
 }
 
-public RectangleCollection(final List<? extends PhysicalContent> contents,
+public RectangleCollection(@NotNull final Collection<? extends PhysicalContent> contents,
                            final PhysicalContent containedIn)
 {
-    super(contents);
-    this.contents.addAll(contents);
-    this.containedIn = containedIn;
+	super(contents);
+	this.containedIn = containedIn;
+	this.contents.addAll(contents);
+	//	if (containedIn != null){
+	//		setPosition(containedIn.getPosition());
+	//	}
 }
 
 // -------------------------- STATIC METHODS --------------------------
 
 private static void sortListByXCoordinate(final List<PhysicalContent> list) {
-    final Comparator<PhysicalContent> sortByX = new Comparator<PhysicalContent>() {
-        @Override
-        public int compare(final PhysicalContent o1, final PhysicalContent o2) {
-            return Float.compare(o1.getPosition().getX(), o2.getPosition().getX());
-        }
-    };
-    Collections.sort(list, sortByX);
+	final Comparator<PhysicalContent> sortByX = new Comparator<PhysicalContent>() {
+		@Override
+		public int compare(@NotNull final PhysicalContent o1, @NotNull final PhysicalContent o2) {
+			return Float.compare(o1.getPosition().getX(), o2.getPosition().getX());
+		}
+	};
+	Collections.sort(list, sortByX);
 }
 
 private static void sortListByYCoordinate(final List<PhysicalContent> list) {
-    final Comparator<PhysicalContent> sortByY = new Comparator<PhysicalContent>() {
-        @Override
-        public int compare(final PhysicalContent o1, final PhysicalContent o2) {
-            return Float.compare(o1.getPosition().getY(), o2.getPosition().getY());
-        }
-    };
-    Collections.sort(list, sortByY);
+	final Comparator<PhysicalContent> sortByY = new Comparator<PhysicalContent>() {
+		@Override
+		public int compare(@NotNull final PhysicalContent o1, @NotNull final PhysicalContent o2) {
+			return Float.compare(o1.getPosition().getY(), o2.getPosition().getY());
+		}
+	};
+	Collections.sort(list, sortByY);
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 public PhysicalContent getContainedIn() {
-    return containedIn;
+	return containedIn;
 }
 
+@NotNull
 public List<PhysicalContent> getContents() {
-    return contents;
+	return contents;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
 public void addContent(Collection<? extends PhysicalContent> newContents) {
-    contents.addAll(newContents);
-    clearCache();
-    setPositionFromContentList(contents);
+	contents.addAll(newContents);
+	clearCache();
+	setPositionFromContentList(contents);
 }
+
+public void addContent(final PhysicalContent content) {
+	contents.add(content);
+	clearCache();
+	setPositionFromContentList(contents);
+}
+
 
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 public List<PhysicalContent> findContentAtXIndex(float x) {
-    return findContentAtXIndex((int) x);
+	return findContentAtXIndex((int) x);
 }
 
 public List<PhysicalContent> findContentAtXIndex(int x) {
-    if (!xCache.containsKey(x)) {
-        final Rectangle searchRectangle = new Rectangle((float) x, getPosition().getY(), 1.0f,
-                                                        getPosition().getHeight());
-        final List<PhysicalContent> result = findRectanglesIntersectingWith(searchRectangle);
-        sortListByYCoordinate(result);
-        xCache.put(x, result);
-    }
-    return xCache.get(x);
+	if (!xCache.containsKey(x)) {
+		final Rectangle searchRectangle = new Rectangle((float) x, getPosition().getY(), 1.0f,
+		                                                getPosition().getHeight());
+		final List<PhysicalContent> result = findRectanglesIntersectingWith(searchRectangle);
+		sortListByYCoordinate(result);
+		xCache.put(x, result);
+	}
+	return xCache.get(x);
 }
 
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 public List<PhysicalContent> findContentAtYIndex(float y) {
-    return findContentAtYIndex((int) y);
+	return findContentAtYIndex((int) y);
 }
 
 public List<PhysicalContent> findContentAtYIndex(int y) {
-    if (!yCache.containsKey(y)) {
-        final Rectangle searchRectangle = new Rectangle(getPosition().getX(), (float) y,
-                                                        getPosition().getWidth(), 1.0F);
-        final List<PhysicalContent> result = findRectanglesIntersectingWith(searchRectangle);
-        sortListByXCoordinate(result);
-        yCache.put(y, result);
-    }
-    return yCache.get(y);
+	if (!yCache.containsKey(y)) {
+		final Rectangle searchRectangle = new Rectangle(getPosition().getX(), (float) y,
+		                                                getPosition().getWidth(), 1.0F);
+		final List<PhysicalContent> result = findRectanglesIntersectingWith(searchRectangle);
+		sortListByXCoordinate(result);
+		yCache.put(y, result);
+	}
+	return yCache.get(y);
 }
 
-public List<PhysicalContent> findRectanglesIntersectingWith(final Rectangle search) {
-    final List<PhysicalContent> ret = new ArrayList<PhysicalContent>(50);
-    for (PhysicalContent r : contents) {
-        if (search.intersectsWith(r.getPosition())) {
-            ret.add(r);
-        }
-    }
-    return ret;
+@NotNull
+public List<PhysicalContent> findRectanglesIntersectingWith(@NotNull final HasPosition search) {
+	final List<PhysicalContent> ret = new ArrayList<PhysicalContent>(50);
+	for (PhysicalContent r : contents) {
+		if (search.getPosition().intersectsWith(r.getPosition())) {
+			ret.add(r);
+		}
+	}
+	return ret;
 }
 
-public List<PhysicalContent> findSurrounding(final PhysicalContent text, final int distance) {
-    final Rectangle bound = text.getPosition();
+@NotNull
+public List<PhysicalContent> findSurrounding(@NotNull final PhysicalContent text,
+                                             final int distance)
+{
+	final Rectangle bound = text.getPosition();
 
-    Rectangle searchRectangle = new Rectangle(bound.getX() - (float) distance,
-                                              bound.getY() - (float) distance,
-                                              bound.getWidth() + (float) distance,
-                                              bound.getHeight() + (float) distance);
+	Rectangle searchRectangle = new Rectangle(bound.getX() - (float) distance,
+	                                          bound.getY() - (float) distance,
+	                                          bound.getWidth() + (float) distance,
+	                                          bound.getHeight() + (float) distance);
 
-    final List<PhysicalContent> ret = findRectanglesIntersectingWith(searchRectangle);
+	final List<PhysicalContent> ret = findRectanglesIntersectingWith(searchRectangle);
 
-    if (ret.contains(text)) {
-        ret.remove(text);
-    }
+	if (ret.contains(text)) {
+		ret.remove(text);
+	}
 
-    return ret;
+	return ret;
 }
 
 public float getHeight() {
-    return getPosition().getHeight();
+	return getPosition().getHeight();
 }
 
 public float getWidth() {
-    return getPosition().getWidth();
+	return getPosition().getWidth();
 }
 
-public void removeContent(List<PhysicalContent> listToRemove) throws Exception {
-    for (PhysicalContent toRemove : listToRemove) {
-        if (!contents.remove(toRemove)) {
-            throw new Exception("Region " + this + ": Could not remove " + toRemove);
-        }
-    }
-    clearCache();
-    setPositionFromContentList(contents);
+public void removeContent(@NotNull Collection<PhysicalContent> listToRemove) {
+	for (PhysicalContent toRemove : listToRemove) {
+		if (!contents.remove(toRemove)) {
+			throw new RuntimeException("Region " + this + ": Could not remove " + toRemove);
+		}
+	}
+	clearCache();
+	setPositionFromContentList(contents);
 }
 
-public List<PhysicalContent> searchInDirectionFromOrigin(Direction dir,
-                                                         PhysicalContent origin,
+@NotNull
+public List<PhysicalContent> searchInDirectionFromOrigin(@NotNull Direction dir,
+                                                         @NotNull PhysicalContent origin,
                                                          float distance)
 {
-    final Rectangle pos = origin.getPosition();
-    final float x = pos.getX() + dir.xDiff * distance;
-    final float y = pos.getY() + dir.yDiff * distance;
-    final Rectangle search = new Rectangle(x, y, pos.getWidth(), pos.getHeight());
+	final Rectangle pos = origin.getPosition();
+	final float x = pos.getX() + dir.xDiff * distance;
+	final float y = pos.getY() + dir.yDiff * distance;
+	final Rectangle search = new Rectangle(x, y, pos.getWidth(), pos.getHeight());
 
-    final List<PhysicalContent> ret = findRectanglesIntersectingWith(search);
-    if (ret.contains(origin)) {
-        ret.remove(origin);
-    }
-    return ret;
+	final List<PhysicalContent> ret = findRectanglesIntersectingWith(search);
+	if (ret.contains(origin)) {
+		ret.remove(origin);
+	}
+	return ret;
 }
 
 // -------------------------- OTHER METHODS --------------------------
 
 protected void clearCache() {
-    yCache.clear();
-    xCache.clear();
+	yCache.clear();
+	xCache.clear();
 }
 
 // -------------------------- ENUMERATIONS --------------------------
 
 public enum Direction {
-    N(0, 1),
-    NE(1, 1),
-    E(1, 0),
-    SE(1, -1),
-    S(0, -1),
-    SW(-1, -1),
-    W(-1, 0),
-    NW(-1, 1);
-    float xDiff;
-    float yDiff;
+	N(0, 1),
+	NE(1, 1),
+	E(1, 0),
+	SE(1, -1),
+	S(0, -1),
+	SW(-1, -1),
+	W(-1, 0),
+	NW(-1, 1);
+	float xDiff;
+	float yDiff;
 
-    Direction(final float xDiff, final float yDiff) {
-        this.xDiff = xDiff;
-        this.yDiff = yDiff;
-    }
+	Direction(final float xDiff, final float yDiff) {
+		this.xDiff = xDiff;
+		this.yDiff = yDiff;
+	}
 }
+
 }

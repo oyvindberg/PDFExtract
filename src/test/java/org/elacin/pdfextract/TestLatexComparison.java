@@ -17,6 +17,7 @@
 package org.elacin.pdfextract;
 
 import org.elacin.pdfextract.tree.DocumentNode;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -28,33 +29,38 @@ import java.io.PrintStream;
  * use File | Settings | File Templates.
  */
 public abstract class TestLatexComparison {
+
 protected final String TESTNAME;
+@NotNull
 protected final String PDFFILENAME;
+@NotNull
 protected final String LATEXFILENAME;
+@NotNull
 protected final String XMLFILENAME;
+@NotNull
 protected final String ELCXMLFILENAME;
 
 protected DocumentNode pdfDOM;
-protected String latexDOMString;
+protected String       latexDOMString;
 
 public TestLatexComparison(String inputname) {
-    TESTNAME = inputname;
-    PDFFILENAME = TESTNAME + ".pdf";
-    XMLFILENAME = TESTNAME + ".xml";
-    ELCXMLFILENAME = TESTNAME + ".elc.xml";
-    LATEXFILENAME = TESTNAME + ".tex";
+	TESTNAME = inputname;
+	PDFFILENAME = TESTNAME + ".pdf";
+	XMLFILENAME = TESTNAME + ".xml";
+	ELCXMLFILENAME = TESTNAME + ".elc.xml";
+	LATEXFILENAME = TESTNAME + ".tex";
 }
 
 protected void readFiles() throws IOException {
-    pdfDOM = PDFDocumentLoader.readPDF(PDFFILENAME, ELCXMLFILENAME, 4);
-    latexDOMString = LatexDocumentLoader.readLatex(LATEXFILENAME);
-    printLatexDOMToFile();
+	pdfDOM = PDFDocumentLoader.readPDF(PDFFILENAME, ELCXMLFILENAME, 4);
+	latexDOMString = LatexDocumentLoader.readLatex(LATEXFILENAME);
+	printLatexDOMToFile();
 }
 
 
 protected void printLatexDOMToFile() throws FileNotFoundException {
-    PrintStream out = new PrintStream(new File(XMLFILENAME));
-    out.print(latexDOMString);
-    out.close();
+	PrintStream out = new PrintStream(new File(XMLFILENAME));
+	out.print(latexDOMString);
+	out.close();
 }
 }

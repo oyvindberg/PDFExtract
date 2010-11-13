@@ -16,13 +16,10 @@
 
 package org.elacin.pdfextract.tree;
 
-import org.elacin.pdfextract.HasPosition;
-import org.elacin.pdfextract.text.Style;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Comparator;
-
-import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Apr 8, 2010 Time: 8:29:43 AM To change this template
@@ -31,154 +28,83 @@ import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
 public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
 // ------------------------------ FIELDS ------------------------------
 
-private final boolean SHOW_DETAILS = false;
+private final boolean SHOW_DETAILS = true;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public LineNode(final WordNode child) {
-    super(child);
+public LineNode(@NotNull final WordNode child) {
+	super(child);
+}
+
+public LineNode() {
+	super();
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
 
 @Override
-protected void appendLocalInfo(final Appendable out, final int indent) throws IOException {
-    if (SHOW_DETAILS) {
-        super.appendLocalInfo(out, indent);
-    } else {
-        for (int i = 0; i < indent; i++) {
-            out.append(" ");
-        }
-        out.append(getClass().getSimpleName());
-        out.append(": \"");
-        writeTextTo(out);
-        out.append("\"");
-        out.append("\n");
-    }
+protected void appendLocalInfo(@NotNull final Appendable out, final int indent) throws IOException {
+	if (SHOW_DETAILS) {
+		super.appendLocalInfo(out, indent);
+	} else {
+		for (int i = 0; i < indent; i++) {
+			out.append(" ");
+		}
+		out.append(getClass().getSimpleName());
+		out.append(": \"");
+		writeTextTo(out);
+		out.append("\"");
+		out.append("\n");
+	}
 }
 
 @Override
 public String getText() {
-    StringBuilder sb = new StringBuilder();
-    writeTextTo(sb);
+	StringBuilder sb = new StringBuilder();
+	writeTextTo(sb);
 
-    return sb.toString();
+	return sb.toString();
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-/**
- * Decides whether or not node node belongs to this line
- *
- * @param node
- * @return
- */
-public boolean accepts(final WordNode node) {
-    /* assure the node is located vertically on the current line */
-    if (!isOnSameLine(node) && willMakeLineTooHigh(node)) {
-        if (log.isTraceEnabled()) {
-            log.trace(toString() + ": accepts() " + node
-                    + "false: was not considered to be on same line");
-        }
-        return false;
-    }
-
-
-    if (getPosition().intersectsWith(node.getPosition())) {
-        return true;
-    }
-
-    final boolean ret = isWithinVariance(getPosition().getX() + getPosition().getWidth(),
-                                         node.getPosition().getX(),
-                                         (node.getStyle().xSize * 1.01f));
-
-    if (log.isTraceEnabled()) {
-        log.trace(toString() + ": accepts() " + node + ret + ": after isWithinVariance");
-    }
-    return ret;
-}
-
-@Override
-public boolean addWord(final WordNode node) {
-    /* check that node belongs to this line, return if it doesn't */
-    if (!accepts(node)) {
-        return false;
-    }
-    addChild(node);
-    return true;
-}
-
-@Override
-public void combineChildren() {
-    //do nothing for now:
-}
-
-/**
- * adds all the text from otherLine to this line. no checking!
- *
- * @param otherLine
- */
-public void combineWith(final LineNode otherLine) {
-    for (WordNode word : otherLine.getChildren()) {
-        addChild(word);
-    }
-}
-
-/**
- * Returns a Comparator which compares only X coordinates
- *
- * @return
- */
+/** Returns a Comparator which compares only X coordinates */
+@NotNull
 @Override
 public Comparator<WordNode> getChildComparator() {
-    return new Comparator<WordNode>() {
-        public int compare(final WordNode o1, final WordNode o2) {
-            if (o1.getPosition().getX() < o2.getPosition().getX()) {
-                return -1;
-            } else if (o1.getPosition().getX() > o2.getPosition().getX()) {
-                return 1;
-            }
+	return new Comparator<WordNode>() {
+		public int compare(@NotNull final WordNode o1, @NotNull final WordNode o2) {
+			if (o1.getPosition().getX() < o2.getPosition().getX()) {
+				return -1;
+			} else if (o1.getPosition().getX() > o2.getPosition().getX()) {
+				return 1;
+			}
 
-            return 0;
-        }
-    };
-}
-
-public Style getCurrentStyle() {
-    return getChildren().get(getChildren().size() - 1).getStyle();
-}
-
-/**
- * checks if the the average height of node falls within current line
- *
- * @param node
- * @return
- */
-public boolean isOnSameLine(final HasPosition node) {
-    float otherMiddleY = node.getPosition().getY() + (node.getPosition().getHeight() * 0.5f);
-    return getPosition().getY() <= otherMiddleY && getPosition().getEndY() >= otherMiddleY;
+			return 0;
+		}
+	};
 }
 
 // -------------------------- OTHER METHODS --------------------------
 
-private void writeTextTo(final Appendable sb) {
-    try {
-        for (int i = 0; i < getChildren().size(); i++) {
-            final WordNode word = getChildren().get(i);
-            sb.append(word.getText());
-            if (i != getChildren().size() - 1 && !word.isPartOfSameWordAs(getChildren().get(
-                    i + 1))) {
-                sb.append(" ");
-            }
-        }
-    } catch (IOException e) {
-        throw new RuntimeException("something went wrong while writing text", e);
-    }
+private void writeTextTo(@NotNull final Appendable sb) {
+	try {
+		for (int i = 0; i < getChildren().size(); i++) {
+			final WordNode word = getChildren().get(i);
+			sb.append(word.getText());
+			if (i != getChildren().size() - 1 && !word.isPartOfSameWordAs(
+					getChildren().get(i + 1))) {
+				sb.append(" ");
+			}
+		}
+	} catch (IOException e) {
+		throw new RuntimeException("something went wrong while writing text", e);
+	}
 }
 
-protected boolean willMakeLineTooHigh(final AbstractNode node) {
-    final float ysize = Math.max(getStyle().ySize, node.getStyle().ySize);
+protected boolean willMakeLineTooHigh(@NotNull final AbstractNode node) {
+	final float ysize = Math.max(getStyle().ySize, node.getStyle().ySize);
 
-    return node.getPosition().union(getPosition()).getHeight() > ysize * 1.2f;
+	return node.getPosition().union(getPosition()).getHeight() > ysize * 1.2f;
 }
 }

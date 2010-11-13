@@ -14,33 +14,34 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.segmentation.column;
+package org.elacin.pdfextract.physical.segmentation.column;
 
 import org.elacin.pdfextract.util.Rectangle;
 import org.elacin.pdfextract.util.RectangleCollection;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Sep 9, 2010 Time: 4:33:59 AM To change this template
  * use File | Settings | File Templates.
  */
-class VerticalWhitespaceFinder extends AbstractWhitespaceFinder {
+class WhitespaceFinder extends AbstractWhitespaceFinder {
 // --------------------------- CONSTRUCTORS ---------------------------
 
-VerticalWhitespaceFinder(RectangleCollection region,
-                         final int numWhitespacesToBeFound,
-                         final float whitespaceMinWidth,
-                         final float whitespaceMinHeight)
+WhitespaceFinder(RectangleCollection region,
+                 final int numWhitespacesToBeFound,
+                 final float whitespaceMinWidth,
+                 final float whitespaceMinHeight)
 {
-    super(region, numWhitespacesToBeFound, whitespaceMinWidth, whitespaceMinHeight);
+	super(region, numWhitespacesToBeFound, whitespaceMinWidth, whitespaceMinHeight);
 }
 
 // -------------------------- OTHER METHODS --------------------------
 
 @Override
-protected float rectangleQuality(final Rectangle r) {
+protected float rectangleQuality(@NotNull final Rectangle r) {
 
-    //    float aspect = Math.max(r.getHeight() /r.getWidth(), r.getWidth()/r.getHeight()) * 0.2f;
+	//    float aspect = Math.max(r.getHeight() /r.getWidth(), r.getWidth()/r.getHeight()) * 0.2f;
 
-    return r.area() * (1 + r.getHeight() * 0.25f /*/ 2.0f*/);
+	return r.area() * (1 + r.getHeight() * 0.25f /*/ 2.0f*/);
 }
 }

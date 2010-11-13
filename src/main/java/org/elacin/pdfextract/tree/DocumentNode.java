@@ -16,7 +16,10 @@
 
 package org.elacin.pdfextract.tree;
 
-import org.elacin.pdfextract.text.Style;
+import org.elacin.pdfextract.style.DocumentStyles;
+import org.elacin.pdfextract.style.Style;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,93 +33,63 @@ import java.util.List;
 public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
 // ------------------------------ FIELDS ------------------------------
 
+@NotNull
 public final List<WordNode> words = new ArrayList<WordNode>();
 
-/**
- * this contains all the different styles used in the document
- */
+/** this contains all the different styles used in the document */
+@NotNull
 protected final DocumentStyles styles = new DocumentStyles();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public DocumentNode() {
-    setRoot(this);
+	setRoot(this);
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
 
 @Override
-protected void appendLocalInfo(final Appendable out, final int indent) throws IOException {
-    super.appendLocalInfo(out, indent);
-    out.append("Styles used in document:\n");
-    for (Style style : styles.stylesCollection) {
-        out.append(style.toString()).append("\n");
-    }
+protected void appendLocalInfo(@NotNull final Appendable out, final int indent) throws IOException {
+	super.appendLocalInfo(out, indent);
+	out.append("Styles used in document:\n");
+	for (Style style : styles.getStyles().values()) {
+		out.append(style.toString()).append("\n");
+	}
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
+@NotNull
 public DocumentStyles getStyles() {
-    return styles;
+	return styles;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-@Override
-public boolean addWord(final WordNode node) {
-    if (node.getText().trim().length() == 0) {
-        if (log.isTraceEnabled()) {
-            log.trace("Ignoring word " + node + " because it contains no text");
-        }
-        return false;
-    }
-
-
-    for (PageNode pageNode : getChildren()) {
-        if (pageNode.addWord(node)) {
-            return true;
-        }
-    }
-
-    final PageNode newPage = new PageNode(node.getPageNum());
-    addChild(newPage);
-    newPage.addWord(node);
-    return false;
-}
-
-@Override
-public void combineChildren() {
-    for (PageNode pageNode : getChildren()) {
-        pageNode.combineChildren();
-    }
-}
-
-/**
- * Returns a Comparator which will compare pagenumbers of the pages
- *
- * @return
- */
+/** Returns a Comparator which will compare pagenumbers of the pages */
+@NotNull
 @Override
 public Comparator<PageNode> getChildComparator() {
-    return new Comparator<PageNode>() {
-        public int compare(final PageNode o1, final PageNode o2) {
-            if (o1.getPage().getPageNumber() < o2.getPage().getPageNumber()) {
-                return -1;
-            } else if (o1.getPage().getPageNumber() > o2.getPage().getPageNumber()) {
-                return 1;
-            }
+	return new Comparator<PageNode>() {
+		public int compare(@NotNull final PageNode o1, @NotNull final PageNode o2) {
+			if (o1.getPage().getPageNumber() < o2.getPage().getPageNumber()) {
+				return -1;
+			} else if (o1.getPage().getPageNumber() > o2.getPage().getPageNumber()) {
+				return 1;
+			}
 
-            return 0;
-        }
-    };
+			return 0;
+		}
+	};
 }
 
+@Nullable
 public PageNode getPageNumber(final int pageNumber) {
-    for (PageNode pageNode : getChildren()) {
-        if (pageNode.getPageNumber() == pageNumber) {
-            return pageNode;
-        }
-    }
-    return null;
+	for (PageNode pageNode : getChildren()) {
+		if (pageNode.getPageNumber() == pageNumber) {
+			return pageNode;
+		}
+	}
+	return null;
 }
 }

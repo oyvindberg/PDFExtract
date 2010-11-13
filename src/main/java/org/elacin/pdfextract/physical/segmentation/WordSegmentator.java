@@ -14,19 +14,20 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.operation;
+package org.elacin.pdfextract.physical.segmentation;
 
-import org.elacin.pdfextract.tree.DocumentNode;
+import org.elacin.pdfextract.pdfbox.ETextPosition;
+import org.elacin.pdfextract.physical.content.PhysicalText;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: Mar 23, 2010
- * Time: 3:09:37 AM
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Nov 1, 2010 Time: 6:37:35 AM To change this template
+ * use File | Settings | File Templates.
  */
-public interface Operation {
-    // -------------------------- PUBLIC METHODS --------------------------
+public interface WordSegmentator {
 
-    void doOperation(DocumentNode root);
+@NotNull
+List<PhysicalText> segmentWords(List<ETextPosition> text);
 }

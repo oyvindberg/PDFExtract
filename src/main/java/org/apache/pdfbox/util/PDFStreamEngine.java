@@ -31,12 +31,16 @@ import org.apache.pdfbox.pdmodel.graphics.color.PDColorSpace;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
 import org.apache.pdfbox.util.operator.OperatorProcessor;
 import org.elacin.pdfextract.pdfbox.ETextPosition;
-import org.elacin.pdfextract.segmentation.GraphicContent;
+import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.util.Rectangle;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -53,52 +57,53 @@ public class PDFStreamEngine {
 // ------------------------------ FIELDS ------------------------------
 
 
-/**
- * Log instance.
- */
+/** Log instance. */
 private static final Logger log = Logger.getLogger(PDFStreamEngine.class);
 
 
+@NotNull
 private static final byte[] SPACE_BYTES = {(byte) 32};
 
 protected PDPage page;
-protected Shape currentClippingPath;
+protected Shape  currentClippingPath;
+@NotNull
 protected final ImageExtractor imageExtractor = new ImageExtractor();
 
-/**
- * The PDF operators that are ignored by this engine.
- */
+/** The PDF operators that are ignored by this engine. */
+@NotNull
 private final Set<String> unsupportedOperators = new HashSet<String>();
 
+@Nullable
 private PDGraphicsState graphicsState = null;
 
-private Matrix textMatrix = null;
-private Matrix textLineMatrix = null;
-private Stack<PDGraphicsState> graphicsStack = new Stack<PDGraphicsState>();
+@Nullable
+private Matrix                 textMatrix     = null;
+@Nullable
+private Matrix                 textLineMatrix = null;
+private Stack<PDGraphicsState> graphicsStack  = new Stack<PDGraphicsState>();
 
+@NotNull
 private Map<String, OperatorProcessor> operators = new HashMap<String, OperatorProcessor>();
 
+@NotNull
 private Stack<StreamResources> streamResourcesStack = new Stack<StreamResources>();
 
+@NotNull
 private Map<String, PDFont> documentFontCache = new HashMap<String, PDFont>();
 
 private int validCharCnt;
 private int totalCharCnt;
 
-/**
- * Flag to skip malformed or otherwise unparseable input where possible.
- */
+/** Flag to skip malformed or otherwise unparseable input where possible. */
 private boolean forceParsing;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-/**
- * Constructor.
- */
+/** Constructor. */
 public PDFStreamEngine() {
-    //default constructor
-    validCharCnt = 0;
-    totalCharCnt = 0;
+	//default constructor
+	validCharCnt = 0;
+	totalCharCnt = 0;
 }
 
 /**
@@ -109,87 +114,74 @@ public PDFStreamEngine() {
  * @param properties The engine properties.
  * @throws IOException If there is an error setting the engine properties.
  */
-public PDFStreamEngine(Properties properties) throws IOException {
-    if (properties == null) {
-        throw new NullPointerException("properties cannot be null");
-    }
-    Enumeration<?> names = properties.propertyNames();
-    for (Object name : Collections.list(names)) {
-        String operator = name.toString();
-        String processorClassName = properties.getProperty(operator);
-        if ("".equals(processorClassName)) {
-            unsupportedOperators.add(operator);
-        } else {
-            try {
-                Class<?> klass = Class.forName(processorClassName);
-                OperatorProcessor processor = (OperatorProcessor) klass.newInstance();
-                registerOperatorProcessor(operator, processor);
-            } catch (Exception e) {
-                throw new WrappedIOException("OperatorProcessor class " + processorClassName
-                        + " could not be instantiated", e);
-            }
-        }
-    }
-    validCharCnt = 0;
-    totalCharCnt = 0;
+public PDFStreamEngine(@Nullable Properties properties) throws IOException {
+	if (properties == null) {
+		throw new NullPointerException("properties cannot be null");
+	}
+	Enumeration<?> names = properties.propertyNames();
+	for (Object name : Collections.list(names)) {
+		String operator = name.toString();
+		String processorClassName = properties.getProperty(operator);
+		if ("".equals(processorClassName)) {
+			unsupportedOperators.add(operator);
+		} else {
+			try {
+				Class<?> klass = Class.forName(processorClassName);
+				OperatorProcessor processor = (OperatorProcessor) klass.newInstance();
+				registerOperatorProcessor(operator, processor);
+			} catch (Exception e) {
+				throw new WrappedIOException("OperatorProcessor class " + processorClassName
+						                             + " could not be instantiated", e);
+			}
+		}
+	}
+	validCharCnt = 0;
+	totalCharCnt = 0;
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-/**
- * @return Returns the graphicsStack.
- */
+/** @return Returns the graphicsStack. */
 public Stack<PDGraphicsState> getGraphicsStack() {
-    return graphicsStack;
+	return graphicsStack;
 }
 
-/**
- * @param value The graphicsStack to set.
- */
+/** @param value The graphicsStack to set. */
 public void setGraphicsStack(Stack<PDGraphicsState> value) {
-    graphicsStack = value;
+	graphicsStack = value;
 }
 
-/**
- * @return Returns the graphicsState.
- */
+/** @return Returns the graphicsState. */
+@Nullable
 public PDGraphicsState getGraphicsState() {
-    return graphicsState;
+	return graphicsState;
 }
 
-/**
- * @param value The graphicsState to set.
- */
+/** @param value The graphicsState to set. */
 public void setGraphicsState(PDGraphicsState value) {
-    graphicsState = value;
+	graphicsState = value;
 }
 
-/**
- * @return Returns the textLineMatrix.
- */
+/** @return Returns the textLineMatrix. */
+@Nullable
 public Matrix getTextLineMatrix() {
-    return textLineMatrix;
+	return textLineMatrix;
 }
 
-/**
- * @param value The textLineMatrix to set.
- */
+/** @param value The textLineMatrix to set. */
 public void setTextLineMatrix(Matrix value) {
-    textLineMatrix = value;
+	textLineMatrix = value;
 }
 
-/**
- * @return Returns the textMatrix.
- */
+/** @return Returns the textMatrix. */
+@Nullable
 public Matrix getTextMatrix() {
-    return textMatrix;
+	return textMatrix;
 }
 
-/**
- * @param value The textMatrix to set.
- */
+/** @param value The textMatrix to set. */
 public void setTextMatrix(Matrix value) {
-    textMatrix = value;
+	textMatrix = value;
 }
 
 /**
@@ -198,7 +190,7 @@ public void setTextMatrix(Matrix value) {
  * @return The number of characters.
  */
 public int getTotalCharCnt() {
-    return totalCharCnt;
+	return totalCharCnt;
 }
 
 /**
@@ -208,24 +200,22 @@ public int getTotalCharCnt() {
  * @return The number of valid characters.
  */
 public int getValidCharCnt() {
-    return validCharCnt;
+	return validCharCnt;
 }
 
 public boolean isForceParsing() {
-    return forceParsing;
+	return forceParsing;
 }
 
 public void setForceParsing(boolean forceParsing) {
-    this.forceParsing = forceParsing;
+	this.forceParsing = forceParsing;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-/**
- * @return Returns the colorSpaces.
- */
+/** @return Returns the colorSpaces. */
 public Map<String, PDColorSpace> getColorSpaces() {
-    return streamResourcesStack.peek().colorSpaces;
+	return streamResourcesStack.peek().colorSpaces;
 }
 
 /**
@@ -234,35 +224,28 @@ public Map<String, PDColorSpace> getColorSpaces() {
  * @return The page being processed.
  */
 public PDPage getCurrentPage() {
-    return page;
+	return page;
 }
 
-/**
- * @return Returns the fonts.
- */
+/** @return Returns the fonts. */
 public Map<String, PDFont> getFonts() {
-    return streamResourcesStack.peek().fonts;
+	return streamResourcesStack.peek().fonts;
 }
 
-/**
- * @return Returns the graphicsStates.
- */
+/** @return Returns the graphicsStates. */
 public Map<String, PDExtendedGraphicsState> getGraphicsStates() {
-    return streamResourcesStack.peek().graphicsStates;
+	return streamResourcesStack.peek().graphicsStates;
 }
 
-/**
- * @return Returns the resources.
- */
+/** @return Returns the resources. */
+@Nullable
 public PDResources getResources() {
-    return streamResourcesStack.peek().resources;
+	return streamResourcesStack.peek().resources;
 }
 
-/**
- * @return Returns the colorSpaces.
- */
+/** @return Returns the colorSpaces. */
 public Map<String, PDXObject> getXObjects() {
-    return streamResourcesStack.peek().xobjects;
+	return streamResourcesStack.peek().xobjects;
 }
 
 /**
@@ -272,205 +255,207 @@ public Map<String, PDXObject> getXObjects() {
  * @param string The encoded text
  * @throws IOException If there is an error processing the string
  */
-public void processEncodedText(byte[] string) throws IOException {
-    /* Note on variable names.  There are three different units being used
-    * in this code.  Character sizes are given in glyph units, text locations
-    * are initially given in text units, and we want to save the data in
-    * display units. The variable names should end with Text or Disp to
-    * represent if the values are in text or disp units (no glyph units are saved).
-    */
-    final float fontSizeText = graphicsState.getTextState().getFontSize();
-    final float horizontalScalingText = graphicsState.getTextState().getHorizontalScalingPercent()
-            / 100f;
-    //float verticalScalingText = horizontalScaling;//not sure if this is right but what else to do???
-    final float riseText = graphicsState.getTextState().getRise();
-    final float wordSpacingText = graphicsState.getTextState().getWordSpacing();
-    final float characterSpacingText = graphicsState.getTextState().getCharacterSpacing();
+public void processEncodedText(@NotNull byte[] string) throws IOException {
+	/* Note on variable names.  There are three different units being used
+		* in this code.  Character sizes are given in glyph units, text locations
+		* are initially given in text units, and we want to save the data in
+		* display units. The variable names should end with Text or Disp to
+		* represent if the values are in text or disp units (no glyph units are saved).
+		*/
+	final float fontSizeText = graphicsState.getTextState().getFontSize();
+	final float horizontalScalingText = graphicsState.getTextState().getHorizontalScalingPercent()
+			/ 100f;
+	//float verticalScalingText = horizontalScaling;//not sure if this is right but what else to do???
+	final float riseText = graphicsState.getTextState().getRise();
+	final float wordSpacingText = graphicsState.getTextState().getWordSpacing();
+	final float characterSpacingText = graphicsState.getTextState().getCharacterSpacing();
 
-    //We won't know the actual number of characters until
-    //we process the byte data(could be two bytes each) but
-    //it won't ever be more than string.length*2(there are some cases
-    //were a single byte will result in two output characters "fi"
+	//We won't know the actual number of characters until
+	//we process the byte data(could be two bytes each) but
+	//it won't ever be more than string.length*2(there are some cases
+	//were a single byte will result in two output characters "fi"
 
-    final PDFont font = graphicsState.getTextState().getFont();
+	final PDFont font = graphicsState.getTextState().getFont();
 
-    //This will typically be 1000 but in the case of a type3 font
-    //this might be a different number
-    final float glyphSpaceToTextSpaceFactor = 1f / font.getFontMatrix().getValue(0, 0);
-    float spaceWidthText = 0;
+	//This will typically be 1000 but in the case of a type3 font
+	//this might be a different number
+	final float glyphSpaceToTextSpaceFactor = 1f / font.getFontMatrix().getValue(0, 0);
+	float spaceWidthText = 0.0F;
 
-    try { // to avoid crash as described in PDFBOX-614
-        // lets see what the space displacement should be
-        spaceWidthText = (font.getFontWidth(SPACE_BYTES, 0, 1) / glyphSpaceToTextSpaceFactor);
-    } catch (Throwable exception) {
-        log.warn(exception, exception);
-    }
+	try { // to avoid crash as described in PDFBOX-614
+		// lets see what the space displacement should be
+		spaceWidthText = (font.getFontWidth(SPACE_BYTES, 0, 1) / glyphSpaceToTextSpaceFactor);
+	} catch (Throwable exception) {
+		log.warn(exception, exception);
+	}
 
-    if (spaceWidthText == 0) {
-        spaceWidthText = (font.getAverageFontWidth() / glyphSpaceToTextSpaceFactor);
-        //The average space width appears to be higher than necessary
-        //so lets make it a little bit smaller.
-        spaceWidthText *= .80f;
-    }
+	if (spaceWidthText == 0.0F) {
+		spaceWidthText = (font.getAverageFontWidth() / glyphSpaceToTextSpaceFactor);
+		//The average space width appears to be higher than necessary
+		//so lets make it a little bit smaller.
+		spaceWidthText *= .80f;
+	}
 
 
-    /* Convert textMatrix to display units */
-    final Matrix initialMatrix = new Matrix();
-    initialMatrix.setValue(0, 0, 1);
-    initialMatrix.setValue(0, 1, 0);
-    initialMatrix.setValue(0, 2, 0);
-    initialMatrix.setValue(1, 0, 0);
-    initialMatrix.setValue(1, 1, 1);
-    initialMatrix.setValue(1, 2, 0);
-    initialMatrix.setValue(2, 0, 0);
-    initialMatrix.setValue(2, 1, riseText);
-    initialMatrix.setValue(2, 2, 1);
+	/* Convert textMatrix to display units */
+	final Matrix initialMatrix = new Matrix();
+	initialMatrix.setValue(0, 0, 1.0F);
+	initialMatrix.setValue(0, 1, 0.0F);
+	initialMatrix.setValue(0, 2, 0.0F);
+	initialMatrix.setValue(1, 0, 0.0F);
+	initialMatrix.setValue(1, 1, 1.0F);
+	initialMatrix.setValue(1, 2, 0.0F);
+	initialMatrix.setValue(2, 0, 0.0F);
+	initialMatrix.setValue(2, 1, riseText);
+	initialMatrix.setValue(2, 2, 1.0F);
 
-    final Matrix ctm = graphicsState.getCurrentTransformationMatrix();
-    final Matrix dispMatrix = initialMatrix.multiply(ctm);
+	final Matrix ctm = graphicsState.getCurrentTransformationMatrix();
+	final Matrix dispMatrix = initialMatrix.multiply(ctm);
 
-    Matrix textMatrixStDisp = textMatrix.multiply(dispMatrix);
-    Matrix textMatrixEndDisp = null;
+	Matrix textMatrixStDisp = textMatrix.multiply(dispMatrix);
+	Matrix textMatrixEndDisp = null;
 
-    final float xScaleDisp = textMatrixStDisp.getXScale();
-    final float yScaleDisp = textMatrixStDisp.getYScale();
+	final float xScaleDisp = textMatrixStDisp.getXScale();
+	final float yScaleDisp = textMatrixStDisp.getYScale();
 
-    final float spaceWidthDisp = spaceWidthText * xScaleDisp * fontSizeText;
-    final float wordSpacingDisp = wordSpacingText * xScaleDisp * fontSizeText;
+	final float spaceWidthDisp = spaceWidthText * xScaleDisp * fontSizeText;
+	final float wordSpacingDisp = wordSpacingText * xScaleDisp * fontSizeText;
 
-    float maxVerticalDisplacementText = 0;
+	float maxVerticalDisplacementText = 0.0F;
 
-    float[] individualWidthsBuffer = new float[string.length];
-    StringBuilder characterBuffer = new StringBuilder(string.length);
+	float[] individualWidthsBuffer = new float[string.length];
+	StringBuilder characterBuffer = new StringBuilder(string.length);
 
-    int codeLength = 1;
-    for (int i = 0; i < string.length; i += codeLength) {
-        // Decode the value to a Unicode character
-        codeLength = 1;
-        String c = font.encode(string, i, codeLength);
-        if (c == null && i + 1 < string.length) {
-            //maybe a multibyte encoding
-            codeLength++;
-            c = font.encode(string, i, codeLength);
-        }
-        c = inspectFontEncoding(c);
+	int codeLength = 1;
+	for (int i = 0; i < string.length; i += codeLength) {
+		// Decode the value to a Unicode character
+		codeLength = 1;
+		String c = font.encode(string, i, codeLength);
+		if (c == null && i + 1 < string.length) {
+			//maybe a multibyte encoding
+			codeLength++;
+			c = font.encode(string, i, codeLength);
+		}
+		c = inspectFontEncoding(c);
 
-        //todo, handle horizontal displacement
-        // get the width and height of this character in text units
-        float characterHorizontalDisplacementText = (font.getFontWidth(string, i, codeLength)
-                / glyphSpaceToTextSpaceFactor);
-        maxVerticalDisplacementText = Math.max(maxVerticalDisplacementText, font.getFontHeight(
-                string, i, codeLength) / glyphSpaceToTextSpaceFactor);
+		//todo, handle horizontal displacement
+		// get the width and height of this character in text units
+		float characterHorizontalDisplacementText = (font.getFontWidth(string, i, codeLength)
+				/ glyphSpaceToTextSpaceFactor);
+		maxVerticalDisplacementText = Math.max(maxVerticalDisplacementText,
+		                                       font.getFontHeight(string, i, codeLength)
+				                                       / glyphSpaceToTextSpaceFactor);
 
-        // PDF Spec - 5.5.2 Word Spacing
-        //
-        // Word spacing works the same was as character spacing, but applies
-        // only to the space character, code 32.
-        //
-        // Note: Word spacing is applied to every occurrence of the single-byte
-        // character code 32 in a string.  This can occur when using a simple
-        // font or a composite font that defines code 32 as a single-byte code.
-        // It does not apply to occurrences of the byte value 32 in multiple-byte
-        // codes.
-        //
-        // RDD - My interpretation of this is that only character code 32's that
-        // encode to spaces should have word spacing applied.  Cases have been
-        // observed where a font has a space character with a character code
-        // other than 32, and where word spacing (Tw) was used.  In these cases,
-        // applying word spacing to either the non-32 space or to the character
-        // code 32 non-space resulted in errors consistent with this interpretation.
-        //
-        float spacingText = characterSpacingText;
-        if ((string[i] == 0x20) && codeLength == 1) {
-            spacingText += wordSpacingText;
-        }
+		// PDF Spec - 5.5.2 Word Spacing
+		//
+		// Word spacing works the same was as character spacing, but applies
+		// only to the space character, code 32.
+		//
+		// Note: Word spacing is applied to every occurrence of the single-byte
+		// character code 32 in a string.  This can occur when using a simple
+		// font or a composite font that defines code 32 as a single-byte code.
+		// It does not apply to occurrences of the byte value 32 in multiple-byte
+		// codes.
+		//
+		// RDD - My interpretation of this is that only character code 32's that
+		// encode to spaces should have word spacing applied.  Cases have been
+		// observed where a font has a space character with a character code
+		// other than 32, and where word spacing (Tw) was used.  In these cases,
+		// applying word spacing to either the non-32 space or to the character
+		// code 32 non-space resulted in errors consistent with this interpretation.
+		//
+		float spacingText = characterSpacingText;
+		if ((string[i] == (byte) 0x20) && codeLength == 1) {
+			spacingText += wordSpacingText;
+		}
 
-        /* The text matrix gets updated after each glyph is placed.  The updated
-        * version will have the X and Y coordinates for the next glyph.
-        */
-        Matrix glyphMatrixStDisp = textMatrix.multiply(dispMatrix);
+		/* The text matrix gets updated after each glyph is placed.  The updated
+				* version will have the X and Y coordinates for the next glyph.
+				*/
+		Matrix glyphMatrixStDisp = textMatrix.multiply(dispMatrix);
 
-        //The adjustment will always be zero.  The adjustment as shown in the
-        //TJ operator will be handled separately.
-        float adjustment = 0;
-        // TODO : tx should be set for horizontal text and ty for vertical text
-        // which seems to be specified in the font (not the direction in the matrix).
-        float tx = ((characterHorizontalDisplacementText - adjustment / glyphSpaceToTextSpaceFactor)
-                * fontSizeText) * horizontalScalingText;
-        float ty = 0;
+		//The adjustment will always be zero.  The adjustment as shown in the
+		//TJ operator will be handled separately.
+		float adjustment = 0.0F;
+		// TODO : tx should be set for horizontal text and ty for vertical text
+		// which seems to be specified in the font (not the direction in the matrix).
+		float tx = ((characterHorizontalDisplacementText - adjustment / glyphSpaceToTextSpaceFactor)
+				* fontSizeText) * horizontalScalingText;
+		float ty = 0.0F;
 
-        Matrix td = new Matrix();
-        td.setValue(2, 0, tx);
-        td.setValue(2, 1, ty);
+		Matrix td = new Matrix();
+		td.setValue(2, 0, tx);
+		td.setValue(2, 1, ty);
 
-        textMatrix = td.multiply(textMatrix);
+		textMatrix = td.multiply(textMatrix);
 
-        Matrix glyphMatrixEndDisp = textMatrix.multiply(dispMatrix);
+		Matrix glyphMatrixEndDisp = textMatrix.multiply(dispMatrix);
 
-        float sx = spacingText * horizontalScalingText;
-        float sy = 0;
+		float sx = spacingText * horizontalScalingText;
+		float sy = 0.0F;
 
-        Matrix sd = new Matrix();
-        sd.setValue(2, 0, sx);
-        sd.setValue(2, 1, sy);
+		Matrix sd = new Matrix();
+		sd.setValue(2, 0, sx);
+		sd.setValue(2, 1, sy);
 
-        textMatrix = sd.multiply(textMatrix);
+		textMatrix = sd.multiply(textMatrix);
 
-        // determine the width of this character
-        // XXX: Note that if we handled vertical text, we should be using Y here
+		// determine the width of this character
+		// XXX: Note that if we handled vertical text, we should be using Y here
 
-        float widthText = glyphMatrixEndDisp.getXPosition() - glyphMatrixStDisp.getXPosition();
 
-        while (characterBuffer.length() + (c != null ? c.length() : 1)
-                > individualWidthsBuffer.length) {
-            float[] tmp = new float[individualWidthsBuffer.length * 2];
-            System.arraycopy(individualWidthsBuffer, 0, tmp, 0, individualWidthsBuffer.length);
-            individualWidthsBuffer = tmp;
-        }
+		float widthText = glyphMatrixEndDisp.getXPosition() - glyphMatrixStDisp.getXPosition();
 
-        //there are several cases where one character code will
-        //output multiple characters.  For example "fi" or a
-        //glyphname that has no mapping like "visiblespace"
-        if (c != null) {
-            Arrays.fill(individualWidthsBuffer, characterBuffer.length(),
-                        characterBuffer.length() + c.length(), widthText / c.length());
+		while (characterBuffer.length() + (c != null ? c.length() : 1)
+				> individualWidthsBuffer.length) {
+			float[] tmp = new float[individualWidthsBuffer.length * 2];
+			System.arraycopy(individualWidthsBuffer, 0, tmp, 0, individualWidthsBuffer.length);
+			individualWidthsBuffer = tmp;
+		}
 
-            validCharCnt += c.length();
-        } else {
-            // PDFBOX-373: Replace a null entry with "?" so it is
-            // not printed as "(null)"
-            c = "?";
+		//there are several cases where one character code will
+		//output multiple characters.  For example "fi" or a
+		//glyphname that has no mapping like "visiblespace"
+		if (c != null) {
+			Arrays.fill(individualWidthsBuffer, characterBuffer.length(),
+			            characterBuffer.length() + c.length(), widthText / (float) c.length());
 
-            individualWidthsBuffer[characterBuffer.length()] = widthText;
-        }
-        characterBuffer.append(c);
+			validCharCnt += c.length();
+		} else {
+			// PDFBOX-373: Replace a null entry with "?" so it is
+			// not printed as "(null)"
+			c = "?";
 
-        totalCharCnt += c.length();
+			individualWidthsBuffer[characterBuffer.length()] = widthText;
+		}
+		characterBuffer.append(c);
 
-        if (spacingText == 0 && (i + codeLength) < (string.length - 1)) {
-            continue;
-        }
+		totalCharCnt += c.length();
 
-        textMatrixEndDisp = glyphMatrixEndDisp;
+		if (spacingText == 0.0F && (i + codeLength) < (string.length - 1)) {
+			continue;
+		}
 
-        float totalVerticalDisplacementDisp = maxVerticalDisplacementText * fontSizeText
-                * yScaleDisp;
+		textMatrixEndDisp = glyphMatrixEndDisp;
 
-        float[] individualWidths = new float[characterBuffer.length()];
-        System.arraycopy(individualWidthsBuffer, 0, individualWidths, 0, individualWidths.length);
+		float totalVerticalDisplacementDisp = maxVerticalDisplacementText * fontSizeText
+				* yScaleDisp;
 
-        // process the decoded text
-        processTextPosition(new ETextPosition(page, textMatrixStDisp, textMatrixEndDisp,
-                                              totalVerticalDisplacementDisp, individualWidths,
-                                              spaceWidthDisp, characterBuffer.toString(), font,
-                                              fontSizeText,
-                                              (int) (fontSizeText * textMatrix.getXScale()),
-                                              wordSpacingDisp));
+		float[] individualWidths = new float[characterBuffer.length()];
+		System.arraycopy(individualWidthsBuffer, 0, individualWidths, 0, individualWidths.length);
 
-        textMatrixStDisp = textMatrix.multiply(dispMatrix);
+		// process the decoded text
+		processTextPosition(new ETextPosition(page, textMatrixStDisp, textMatrixEndDisp,
+		                                      totalVerticalDisplacementDisp, individualWidths,
+		                                      spaceWidthDisp, characterBuffer.toString(), font,
+		                                      fontSizeText,
+		                                      (int) (fontSizeText * textMatrix.getXScale()),
+		                                      wordSpacingDisp));
 
-        characterBuffer.setLength(0);
-    }
+		textMatrixStDisp = textMatrix.multiply(dispMatrix);
+
+		characterBuffer.setLength(0);
+	}
 }
 
 /**
@@ -481,12 +466,12 @@ public void processEncodedText(byte[] string) throws IOException {
  * @throws IOException If there is an error processing the operation.
  */
 public void processOperator(String operation, List<COSBase> arguments) throws IOException {
-    try {
-        PDFOperator oper = PDFOperator.getOperator(operation);
-        processOperator(oper, arguments);
-    } catch (IOException e) {
-        log.warn(e, e);
-    }
+	try {
+		PDFOperator oper = PDFOperator.getOperator(operation);
+		processOperator(oper, arguments);
+	} catch (IOException e) {
+		log.warn(e, e);
+	}
 }
 
 /**
@@ -497,17 +482,17 @@ public void processOperator(String operation, List<COSBase> arguments) throws IO
  * @param cosStream the Stream to execute.
  * @throws IOException if there is an error accessing the stream.
  */
-public void processStream(PDPage aPage,
+public void processStream(@NotNull PDPage aPage,
                           PDResources resources,
                           COSStream cosStream) throws IOException
 {
-    graphicsState = new PDGraphicsState(aPage.findCropBox());
-    textMatrix = null;
-    textLineMatrix = null;
-    graphicsStack.clear();
-    streamResourcesStack.clear();
+	graphicsState = new PDGraphicsState(aPage.findCropBox());
+	textMatrix = null;
+	textLineMatrix = null;
+	graphicsStack.clear();
+	streamResourcesStack.clear();
 
-    processSubStream(aPage, resources, cosStream);
+	processSubStream(aPage, resources, cosStream);
 }
 
 /**
@@ -519,27 +504,27 @@ public void processStream(PDPage aPage,
  * @throws IOException If there is an exception while processing the stream.
  */
 public void processSubStream(PDPage aPage,
-                             PDResources resources,
+                             @Nullable PDResources resources,
                              COSStream cosStream) throws IOException
 {
-    page = aPage;
-    if (resources != null) {
-        StreamResources sr = new StreamResources();
-        sr.fonts = resources.getFonts(documentFontCache);
-        sr.colorSpaces = resources.getColorSpaces();
-        sr.xobjects = resources.getXObjects();
-        sr.graphicsStates = resources.getGraphicsStates();
-        sr.resources = resources;
+	page = aPage;
+	if (resources != null) {
+		StreamResources sr = new StreamResources();
+		sr.fonts = resources.getFonts(documentFontCache);
+		sr.colorSpaces = resources.getColorSpaces();
+		sr.xobjects = resources.getXObjects();
+		sr.graphicsStates = resources.getGraphicsStates();
+		sr.resources = resources;
 
-        streamResourcesStack.push(sr);
-        try {
-            processSubStream(cosStream);
-        } finally {
-            streamResourcesStack.pop();
-        }
-    } else {
-        processSubStream(cosStream);
-    }
+		streamResourcesStack.push(sr);
+		try {
+			processSubStream(cosStream);
+		} finally {
+			streamResourcesStack.pop();
+		}
+	} else {
+		processSubStream(cosStream);
+	}
 }
 
 /**
@@ -548,9 +533,9 @@ public void processSubStream(PDPage aPage,
  * @param operator The operator as a string.
  * @param op       Processor instance.
  */
-public void registerOperatorProcessor(String operator, OperatorProcessor op) {
-    op.setContext(this);
-    operators.put(operator, op);
+public void registerOperatorProcessor(String operator, @NotNull OperatorProcessor op) {
+	op.setContext(this);
+	operators.put(operator, op);
 }
 
 /**
@@ -559,57 +544,51 @@ public void registerOperatorProcessor(String operator, OperatorProcessor op) {
  * be called if processing a new document.
  */
 public void resetEngine() {
-    documentFontCache.clear();
-    validCharCnt = 0;
-    totalCharCnt = 0;
+	documentFontCache.clear();
+	validCharCnt = 0;
+	totalCharCnt = 0;
 }
 
-/**
- * @param value The colorSpaces to set.
- */
+/** @param value The colorSpaces to set. */
 public void setColorSpaces(Map<String, PDColorSpace> value) {
-    streamResourcesStack.peek().colorSpaces = value;
+	streamResourcesStack.peek().colorSpaces = value;
 }
 
-/**
- * @param value The fonts to set.
- */
+/** @param value The fonts to set. */
 public void setFonts(Map<String, PDFont> value) {
-    streamResourcesStack.peek().fonts = value;
+	streamResourcesStack.peek().fonts = value;
 }
 
-/**
- * @param value The graphicsStates to set.
- */
+/** @param value The graphicsStates to set. */
 public void setGraphicsStates(Map<String, PDExtendedGraphicsState> value) {
-    streamResourcesStack.peek().graphicsStates = value;
+	streamResourcesStack.peek().graphicsStates = value;
 }
 
 // -------------------------- OTHER METHODS --------------------------
 
 private void processSubStream(COSStream cosStream) throws IOException {
-    List<COSBase> arguments = new ArrayList<COSBase>();
-    PDFStreamParser parser = new PDFStreamParser(cosStream, forceParsing);
-    try {
-        Iterator<Object> iter = parser.getTokenIterator();
+	List<COSBase> arguments = new ArrayList<COSBase>();
+	PDFStreamParser parser = new PDFStreamParser(cosStream, forceParsing);
+	try {
+		Iterator<Object> iter = parser.getTokenIterator();
 
-        while (iter.hasNext()) {
-            Object next = iter.next();
-            if (log.isDebugEnabled()) {
-                log.debug("processing substream token: " + next);
-            }
-            if (next instanceof COSObject) {
-                arguments.add(((COSObject) next).getObject());
-            } else if (next instanceof PDFOperator) {
-                processOperator((PDFOperator) next, arguments);
-                arguments = new ArrayList<COSBase>();
-            } else {
-                arguments.add((COSBase) next);
-            }
-        }
-    } finally {
-        parser.close();
-    }
+		while (iter.hasNext()) {
+			Object next = iter.next();
+			if (log.isDebugEnabled()) {
+				log.debug("processing substream token: " + next);
+			}
+			if (next instanceof COSObject) {
+				arguments.add(((COSObject) next).getObject());
+			} else if (next instanceof PDFOperator) {
+				processOperator((PDFOperator) next, arguments);
+				arguments = new ArrayList<COSBase>();
+			} else {
+				arguments.add((COSBase) next);
+			}
+		}
+	} finally {
+		parser.close();
+	}
 }
 
 /**
@@ -619,7 +598,7 @@ private void processSubStream(COSStream cosStream) throws IOException {
  * @param str The string to be processed.
  */
 protected String inspectFontEncoding(String str) {
-    return str;
+	return str;
 }
 
 /**
@@ -629,22 +608,24 @@ protected String inspectFontEncoding(String str) {
  * @param arguments The list of arguments.
  * @throws IOException If there is an error processing the operation.
  */
-protected void processOperator(PDFOperator operator, List<COSBase> arguments) throws IOException {
-    try {
-        String operation = operator.getOperation();
-        OperatorProcessor processor = operators.get(operation);
-        if (processor != null) {
-            processor.setContext(this);
-            processor.process(operator, arguments);
-        } else {
-            if (!unsupportedOperators.contains(operation)) {
-                log.info("unsupported/disabled operation: " + operation);
-                unsupportedOperators.add(operation);
-            }
-        }
-    } catch (Exception e) {
-        log.warn(e, e);
-    }
+protected void processOperator(@NotNull PDFOperator operator,
+                               List<COSBase> arguments) throws IOException
+{
+	try {
+		String operation = operator.getOperation();
+		OperatorProcessor processor = operators.get(operation);
+		if (processor != null) {
+			processor.setContext(this);
+			processor.process(operator, arguments);
+		} else {
+			if (!unsupportedOperators.contains(operation)) {
+				log.info("unsupported/disabled operation: " + operation);
+				unsupportedOperators.add(operation);
+			}
+		}
+	} catch (Exception e) {
+		log.warn(e, e);
+	}
 }
 
 /**
@@ -654,85 +635,109 @@ protected void processOperator(PDFOperator operator, List<COSBase> arguments) th
  * @param text The text to be processed.
  */
 protected void processTextPosition(ETextPosition text) {
-    //subclasses can override to provide specific functionality.
+	//subclasses can override to provide specific functionality.
 }
 
 // -------------------------- INNER CLASSES --------------------------
 
-/**
- * This is a simple internal class used by the Stream engine to handle the resources stack.
- */
+/** This is a simple internal class used by the Stream engine to handle the resources stack. */
 private static class StreamResources {
-    private Map<String, PDFont> fonts;
-    private Map<String, PDColorSpace> colorSpaces;
-    private Map<String, PDXObject> xobjects;
-    private Map<String, PDExtendedGraphicsState> graphicsStates;
-    private PDResources resources;
 
-    private StreamResources() {
-    }
+	private Map<String, PDFont>                  fonts;
+	private Map<String, PDColorSpace>            colorSpaces;
+	private Map<String, PDXObject>               xobjects;
+	private Map<String, PDExtendedGraphicsState> graphicsStates;
+	@Nullable
+	private PDResources                          resources;
 
-    ;
+	private StreamResources() {
+	}
 }
 
 protected class ImageExtractor {
-    final List<Rectangle> filledFigures = new ArrayList<Rectangle>();
-    final List<Rectangle> unfilledFigures = new ArrayList<Rectangle>();
-    final List<Rectangle> images = new ArrayList<Rectangle>();
 
-    static final float combineDistance = 1.5f;
+	@NotNull
+	final List<Rectangle> filledFigures   = new ArrayList<Rectangle>();
+	@NotNull
+	final List<Rectangle> unfilledFigures = new ArrayList<Rectangle>();
+	@NotNull
+	final List<Rectangle> images          = new ArrayList<Rectangle>();
 
-    public void drawImage(final Image awtImage, final AffineTransform at, final Object o) {
-        addImageToList(images, currentClippingPath.getBounds());
-    }
+	static final float combineDistance = 1.5f;
 
-    private void addImageToList(final List<Rectangle> list, final java.awt.Rectangle pos) {
-        final Rectangle newImagePos = convertRectangle(pos);
-        if (!list.isEmpty()) {
-            final Rectangle last = list.get(list.size() - 1);
-            if (last.distance(newImagePos) < combineDistance) {
-                list.remove(list.size() - 1);
-                list.add(last.union(newImagePos));
-            } else {
-                list.add(newImagePos);
-            }
-        } else {
-            list.add(newImagePos);
-        }
-    }
+	public void drawImage(final Image awtImage, final AffineTransform at, final Object o) {
+		/* transform the coordinates by using the affinetransform. */
+		Point2D upperLeft = at.transform(new Point2D.Float(0.0F, 0.0F), null);
 
-    @SuppressWarnings({"ObjectAllocationInLoop"})
-    public List<GraphicContent> getGraphicContents() {
-        List<GraphicContent> ret = new ArrayList<GraphicContent>();
-        for (Rectangle unfilledFigure : unfilledFigures) {
-            ret.add(new GraphicContent(unfilledFigure, false, false));
-        }
-        for (Rectangle filledFigure : filledFigures) {
-            ret.add(new GraphicContent(filledFigure, false, true));
-        }
-        for (Rectangle image : images) {
-            ret.add(new GraphicContent(image, true, true));
-        }
-        return ret;
-    }
+		final Point2D.Float imageDimensions = new Point2D.Float((float) awtImage.getWidth(null),
+		                                                        (float) awtImage.getHeight(null));
+		Point2D lowerRight = at.transform(imageDimensions, null);
 
-    public void fill(final GeneralPath linePath) {
-        addImageToList(filledFigures, linePath.getBounds());
-    }
+		final Rectangle2D bounds = getGraphicsState().getCurrentClippingPath().getBounds2D();
 
-    private Rectangle convertRectangle(final java.awt.Rectangle bounds) {
-        return new Rectangle((float) bounds.x, (float) bounds.y, (float) bounds.width,
-                             (float) bounds.height);
-    }
+		/* this is necessary because the image might be rotated */
+		float x = (float) Math.min(upperLeft.getX(), lowerRight.getX());
+		float endX = (float) Math.max(upperLeft.getX(), lowerRight.getX());
+		float y = (float) Math.min(upperLeft.getY(), lowerRight.getY());
+		float endY = (float) Math.max(upperLeft.getY(), lowerRight.getY());
 
-    public void draw(final GeneralPath path) {
-        addImageToList(unfilledFigures, path.getBounds());
-    }
+		x = (float) Math.max(bounds.getMinX(), x);
+		y = (float) Math.max(bounds.getMinY(), y);
+		endX = (float) Math.min(bounds.getMaxX(), endX);
+		endY = (float) Math.min(bounds.getMaxY(), endY);
 
-    public void clear() {
-        filledFigures.clear();
-        unfilledFigures.clear();
-        images.clear();
-    }
+		final Rectangle pos = new Rectangle(x, y, endX - x, endY - y);
+		addImageToList(images, pos);
+	}
+
+	private void addImageToList(@NotNull final List<Rectangle> list, @NotNull final Rectangle pos) {
+		if (!list.isEmpty()) {
+			final Rectangle last = list.get(list.size() - 1);
+			if (last.distance(pos) < combineDistance && !last.intersectsWith(pos)) {
+				list.remove(list.size() - 1);
+				list.add(last.union(pos));
+			} else {
+				list.add(pos);
+			}
+		} else {
+			list.add(pos);
+		}
+	}
+
+	@NotNull
+	@SuppressWarnings({"ObjectAllocationInLoop"})
+	public List<GraphicContent> getGraphicContents() {
+		List<GraphicContent> ret = new ArrayList<GraphicContent>();
+		for (Rectangle unfilledFigure : unfilledFigures) {
+			ret.add(new GraphicContent(unfilledFigure, false, false));
+		}
+		for (Rectangle filledFigure : filledFigures) {
+			ret.add(new GraphicContent(filledFigure, false, true));
+		}
+		for (Rectangle image : images) {
+			ret.add(new GraphicContent(image, true, true));
+		}
+		return ret;
+	}
+
+	public void fill(@NotNull final GeneralPath linePath) {
+		addImageToList(filledFigures, convertRectangle(linePath.getBounds()));
+	}
+
+	@NotNull
+	private Rectangle convertRectangle(@NotNull final java.awt.Rectangle bounds) {
+		return new Rectangle((float) bounds.x, (float) bounds.y, (float) bounds.width,
+		                     (float) bounds.height);
+	}
+
+	public void draw(@NotNull final GeneralPath path) {
+		addImageToList(unfilledFigures, convertRectangle(path.getBounds()));
+	}
+
+	public void clear() {
+		filledFigures.clear();
+		unfilledFigures.clear();
+		images.clear();
+	}
 }
 }

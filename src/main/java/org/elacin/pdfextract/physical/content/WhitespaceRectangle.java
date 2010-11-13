@@ -14,23 +14,27 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.text;
+package org.elacin.pdfextract.physical.content;
+
+import org.elacin.pdfextract.util.Rectangle;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Mar 18, 2010 Time: 2:32:32 PM To change this
- * template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: Nov 2, 2010 Time: 1:33:50 AM To change this template
+ * use File | Settings | File Templates.
  */
-public enum Role {
-    MAINTITLE,
-    SECTION,
-    SUBSECTION,
-    FOOTNOTE,
-    HEADNOTE,
-    PAGENUMBER,
-    EMPHASIS,
-    NORMAL,
-    UNKNOWN,
-    INDEXNUMBER,
-    TITLE,
-    IDENTIFIER;
+public class WhitespaceRectangle extends PhysicalContent {
+// --------------------------- CONSTRUCTORS ---------------------------
+
+public WhitespaceRectangle(final Rectangle bound) {
+
+	super(bound);
+}
+
+// ------------------------ OVERRIDING METHODS ------------------------
+
+@Override
+public boolean isWhitespace() {
+
+	return true;
+}
 }

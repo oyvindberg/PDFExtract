@@ -15,7 +15,8 @@
   ~    limitations under the License.
   -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <name>elacins PDFExtract</name>
@@ -84,8 +85,9 @@
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>1.2.1</version>
-            <!--<version>1.3.0-SNAPSHOT</version>-->
+            <!--<version>1.2.1</version>-->
+            <!--<version>1.3.1</version>-->
+            <version>1.4.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -123,6 +125,18 @@
         <!--<artifactId>oscar3</artifactId>-->
         <!--<version>1.0-SNAPSHOT</version>-->
         <!--</dependency>-->
+
+        <!--<dependency>-->
+        <!--<groupId>com.vividsolutions</groupId>-->
+        <!--<artifactId>jts</artifactId>-->
+        <!--<version>1.11</version>-->
+        <!--</dependency>-->
+
+        <dependency>
+            <groupId>com.intellij</groupId>
+            <artifactId>annotations</artifactId>
+            <version>7.0.3</version>
+        </dependency>
 
     </dependencies>
 
@@ -184,10 +198,11 @@
                         <argument>-classpath</argument>
                         <classpath/>
                         <argument>org.elacin.pdfextract.TextExtractor</argument>
+                        <argument>-render</argument>
                         <!--<argument>-endpage</argument>-->
                         <!--<argument>5</argument>-->
-                        <!--<argument>target/classes/article4.pdf</argument>-->
-                        <argument>/Users/elacin/utvalg/38220.pdf</argument>
+                        <argument>target/classes/article4.pdf</argument>
+                        <!--argument>/Users/elacin/utvalg/38220.pdf</argument-->
                         <!--<argument>/Users/elacin/Desktop/arxiv.org/0705.0001/0705.0001.pdf</argument>-->
                         <argument>out.xml</argument>
                     </arguments>
@@ -269,7 +284,8 @@
                 <configuration>
                     <configLocation>${basedir}/src/checkstyle/checkstyle.xml</configLocation>
                     <!--<suppressionsLocation>checkstyle-suppressions.xml</suppressionsLocation>-->
-                    <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
+                    <suppressionsFileExpression>checkstyle.suppressions.file
+                    </suppressionsFileExpression>
                 </configuration>
 
             </plugin>

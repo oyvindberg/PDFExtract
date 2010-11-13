@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.gui;
 
 import org.elacin.pdfextract.renderer.PageRenderer;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -28,20 +29,21 @@ import java.awt.*;
 public class PageViewer extends JPanel {
 // ------------------------ OVERRIDING METHODS ------------------------
 
+@NotNull
 @Override
 public Dimension getMinimumSize() {
-    return new Dimension(500, 500);
+	return new Dimension(500, 500);
 }
 
 @Override
 public Dimension getPreferredSize() {
-    return new Dimension(700, 1000);
+	return new Dimension(700, 1000);
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
 public void setData(PageRenderer renderer) {
-    //        BufferedImage myPicture = ImageIO.read(new File("path-to-file"));
-    //        JLabel picLabel = new JLabel(new ImageIcon(myPicture))
+	//        BufferedImage myPicture = ImageIO.read(new File("path-to-file"));
+	//        JLabel picLabel = new JLabel(new ImageIcon(myPicture))
 }
 }
