@@ -223,7 +223,14 @@ protected void processPage(@NotNull PDPage page, COSStream content) throws IOExc
 		MDC.put("page", currentPageNo);
 		processStream(page, page.findResources(), content);
 
-		WordSegmentator segmentator = new WordSegmentatorImpl(root.getStyles());
+		final Integer rotation = page.getRotation();
+		final int rot;
+		if (rotation == null) {
+			rot = 0;
+		} else {
+			rot = rotation;
+		}
+		WordSegmentator segmentator = new WordSegmentatorImpl(root.getStyles(), rot);
 
 		if (!charactersForPage.isEmpty()) {
 			/* segment words */

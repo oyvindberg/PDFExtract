@@ -1,19 +1,19 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+* Licensed to the Apache Software Foundation (ASF) under one or more
+* contributor license agreements.  See the NOTICE file distributed with
+* this work for additional information regarding copyright ownership.
+* The ASF licenses this file to You under the Apache License, Version 2.0
+* (the "License"); you may not use this file except in compliance with
+* the License.  You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 package org.apache.pdfbox.util;
 
 import org.apache.log4j.Logger;
@@ -444,13 +444,19 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
 		float[] individualWidths = new float[characterBuffer.length()];
 		System.arraycopy(individualWidthsBuffer, 0, individualWidths, 0, individualWidths.length);
 
-		// process the decoded text
-		processTextPosition(new ETextPosition(page, textMatrixStDisp, textMatrixEndDisp,
-		                                      totalVerticalDisplacementDisp, individualWidths,
-		                                      spaceWidthDisp, characterBuffer.toString(), font,
-		                                      fontSizeText,
-		                                      (int) (fontSizeText * textMatrix.getXScale()),
-		                                      wordSpacingDisp));
+
+		try {
+			// process the decoded text
+			processTextPosition(new ETextPosition(page, textMatrixStDisp, textMatrixEndDisp,
+			                                      totalVerticalDisplacementDisp, individualWidths,
+			                                      spaceWidthDisp, characterBuffer.toString(), font,
+			                                      fontSizeText,
+			                                      (int) (fontSizeText * textMatrix.getXScale()),
+			                                      wordSpacingDisp));
+		} catch (Exception e) {
+			log.warn("LOG00570:Error while adding text " + characterBuffer.toString() + ": "
+					         + e.getMessage());
+		}
 
 		textMatrixStDisp = textMatrix.multiply(dispMatrix);
 
@@ -666,6 +672,7 @@ protected class ImageExtractor {
 	static final float combineDistance = 1.5f;
 
 	public void drawImage(final Image awtImage, final AffineTransform at, final Object o) {
+
 		/* transform the coordinates by using the affinetransform. */
 		Point2D upperLeft = at.transform(new Point2D.Float(0.0F, 0.0F), null);
 
@@ -686,11 +693,18 @@ protected class ImageExtractor {
 		endX = (float) Math.min(bounds.getMaxX(), endX);
 		endY = (float) Math.min(bounds.getMaxY(), endY);
 
-		final Rectangle pos = new Rectangle(x, y, endX - x, endY - y);
+		Rectangle pos = null;
+		try {
+			pos = new Rectangle(x, y, endX - x, endY - y);
+		} catch (Exception e) {
+			log.warn("LOG00580:Error while adding image: " + e.getMessage());
+			return;
+		}
 		addImageToList(images, pos);
 	}
 
 	private void addImageToList(@NotNull final List<Rectangle> list, @NotNull final Rectangle pos) {
+
 		if (!list.isEmpty()) {
 			final Rectangle last = list.get(list.size() - 1);
 			if (last.distance(pos) < combineDistance && !last.intersectsWith(pos)) {
@@ -721,17 +735,26 @@ protected class ImageExtractor {
 	}
 
 	public void fill(@NotNull final GeneralPath linePath) {
-		addImageToList(filledFigures, convertRectangle(linePath.getBounds()));
+		try {
+			addImageToList(filledFigures, convertRectangle(linePath.getBounds()));
+		} catch (Exception e) {
+			log.warn("LOG00580:Error while filling path " + linePath + ": " + e.getMessage());
+		}
 	}
 
 	@NotNull
 	private Rectangle convertRectangle(@NotNull final java.awt.Rectangle bounds) {
 		return new Rectangle((float) bounds.x, (float) bounds.y, (float) bounds.width,
 		                     (float) bounds.height);
+
 	}
 
 	public void draw(@NotNull final GeneralPath path) {
-		addImageToList(unfilledFigures, convertRectangle(path.getBounds()));
+		try {
+			addImageToList(unfilledFigures, convertRectangle(path.getBounds()));
+		} catch (Exception e) {
+			log.warn("LOG00580:Error while drawing " + path + ": " + e.getMessage());
+		}
 	}
 
 	public void clear() {

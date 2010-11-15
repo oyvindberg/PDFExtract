@@ -50,8 +50,8 @@ public ETextPosition(final PDPage page,
 {
 	super(page, textPositionSt, textPositionEnd, maxFontH, individualWidths, spaceWidth, string,
 	      currentFont, fontSizeValue, fontSizeInPt, ws);
-	//    pos = new Rectangle(getX(), getY(), getWidth(), getHeight());
-	pos = new Rectangle(getXDirAdj(), getYDirAdj(), getWidthDirAdj(), getHeightDir());
+	pos = new Rectangle(getX(), getY(), getWidth(), getHeight());
+	//	pos = new Rectangle(getXDirAdj(), getYDirAdj(), getWidthDirAdj(), getHeightDir());
 }
 
 

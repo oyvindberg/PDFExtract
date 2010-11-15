@@ -90,8 +90,8 @@ public void setCanBeAssigned(final boolean canBeAssigned) {
 // -------------------------- PUBLIC METHODS --------------------------
 
 public boolean canBeConsideredContentInRegion(@NotNull final PhysicalPageRegion region) {
-	return getPosition().getHeight() < region.getAvgFontSizeY() * 2.0f
-			&& getPosition().getWidth() < region.getAvgFontSizeX() * 2.0f;
+	return getPosition().getHeight() < region.getAvgFontSizeY() * 4.0f
+			&& getPosition().getWidth() < region.getAvgFontSizeX() * 4.0f;
 }
 
 /** consider the graphic a separator if the aspect ratio is really high */

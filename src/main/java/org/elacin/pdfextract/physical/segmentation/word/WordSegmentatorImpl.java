@@ -63,12 +63,14 @@ private static List<String> strangeMathFonts = new ArrayList<String>() {
 };
 
 private final DocumentStyles styles;
+private final float          pageRotation;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public WordSegmentatorImpl(final DocumentStyles styles) {
+public WordSegmentatorImpl(final DocumentStyles styles, final float rotation) {
 
 	this.styles = styles;
+	pageRotation = rotation;
 }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -102,6 +104,11 @@ public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) 
 	float maxX = 0.0f;
 
 	for (ETextPosition tp : text) {
+		if (tp.getDir() != pageRotation) {
+			log.warn("LOG00560: ignoring textposition " + tp.getCharacter() + " because it has "
+					         + "wrong rotation. TODO :)");
+			continue;
+		}
 		/* if this is the first text in a line */
 		if (line.isEmpty()) {
 			minY = tp.getPos().getY();
@@ -223,13 +230,17 @@ List<PhysicalText> splitTextPositionsOnSpace(@NotNull final List<ETextPosition> 
 					final float adjustedY;
 					if (fontSeemsToNeedVerticalAdjustment(tp.getFont())) {
 						adjustedY = y;
+						//						adjustedY = y + tp.getPos().getHeight();
+						//						adjustedY = y + tp.getPos().getHeight() / 2.0f;
 					} else {
 						adjustedY = y - tp.getPos().getHeight();
+						//						adjustedY = y;
+						//						adjustedY = y - tp.getPos().getHeight() / 2.0f;
 					}
 
-					if (contents.toString().contains("M")) {
-						System.out.println("adjustedY = " + adjustedY);
-					}
+					//					if (contents.toString().contains("M")) {
+					//						System.out.println("adjustedY = " + adjustedY);
+					//					}
 
 					/** output this word */
 					ret.add(new PhysicalText(contents.toString(), style, x, adjustedY, width,
@@ -287,9 +298,6 @@ private List<PhysicalText> createWordsInLine(@NotNull final List<ETextPosition> 
 	while (!queue.isEmpty()) {
 		final PhysicalText current = queue.remove();
 		final PhysicalText next = queue.peek();
-		if (current.content.contains("M")) {
-			System.out.println("WordSegmentatorImpl.createWordsInLine");
-		}
 
 		if (next != null && PhysicalText.isCloseEnoughToBelongToSameWord(next)
 				&& current.isSameStyleAs(next)) {
@@ -299,6 +307,10 @@ private List<PhysicalText> createWordsInLine(@NotNull final List<ETextPosition> 
 			continue;
 		}
 		ret.add(current);
+	}
+	for (PhysicalText text : ret) {
+		if (log.isInfoEnabled()) { log.info("LOG00540: created PhysicalText" + text); }
+		;
 	}
 
 	return ret;

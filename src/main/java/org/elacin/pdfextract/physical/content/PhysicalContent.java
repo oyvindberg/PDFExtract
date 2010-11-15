@@ -103,20 +103,6 @@ public boolean isWhitespace() {
 protected final void setPositionFromContentList(@NotNull final Collection<? extends
 		PhysicalContent> contents)
 {
-	if (contents.isEmpty()) {
-		//		/** this should only happen if this is the original region which contained everything,
-		//		 *  that means that region.containedIn should be null. if it happens elsewhere something
-		//		 * is probably wrong */
-		//		if (this instanceof PhysicalPageRegion) {
-		//			PhysicalPageRegion region = (PhysicalPageRegion) this;
-		//			assert region.getContainedIn() == null;
-		//		} else {
-		//			assert false;
-		//		}
-		position = new Rectangle(0.0f, 0.0f, 0.0f, 0.0f);
-		return;
-	}
-
 	/* calculate bounds for this region */
 	float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
 	float maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE;

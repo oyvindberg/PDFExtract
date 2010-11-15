@@ -151,7 +151,7 @@ public List<ParagraphNode> createParagraphNodes() {
 	//
 	//	/* then follow the trails left between the whitespace and construct blocks of text from that */
 	//	int blockNum = 0;
-	//	for (int y = (int) getPosition().getY(); y < (int) getPosition().getEndY(); y++) {
+	//	for (float y = getPosition().getY(); y < getPosition().getEndY(); y++) {
 	//		final List<PhysicalContent> row = findContentAtYIndex(y);
 	//
 	//		/* iterate through the line to find possible start of blocks */
@@ -169,60 +169,40 @@ public List<ParagraphNode> createParagraphNodes() {
 	//
 	//	/* compile paragraphs of text based on the assigned block numbers */
 	//	List<ParagraphNode> ret = new ArrayList<ParagraphNode>();
+	//	final LineSegmentator segmentator = new LineSegmentator();
+	//
 	//	for (int i = 0; i < blockNum; i++) {
-	//		ParagraphNode paragraphNode = new ParagraphNode();
+	//		//		ParagraphNode paragraphNode = new ParagraphNode();
+	//		/* collect all the words logically belonging to this paragraph */
+	//		List<PhysicalContent> paragraphContent = new ArrayList<PhysicalContent>();
 	//		for (PhysicalContent word : getContents()) {
 	//			if (word.isAssignablePhysicalContent()) {
 	//				if (word.getAssignablePhysicalContent().getBlockNum() == i) {
 	//					if (word.isText()) {
-	//						paragraphNode.addWord(createWordNode(word.getText()));
+	//						paragraphContent.add(word);
+	//						//						paragraphNode.addWord(createWordNode(word.getText()));
 	//					}
 	//				}
 	//			}
 	//		}
-	//		if (!paragraphNode.getChildren().isEmpty()) {
-	//			ret.add(paragraphNode);
+	//		/* then group words in lines */
+	//
+	//		final List<LineNode> lines = segmentator.segmentLines(paragraphContent, pageNumber);
+	//		final ParagraphNode paragraph = new ParagraphNode();
+	//		for (LineNode line : lines) {
+	//			paragraph.addChild(line);
 	//		}
+	//		ret.add(paragraph);
+	//		//		if (!paragraphNode.getChildren().isEmpty()) {
+	//		//			ret.add(paragraphNode);
+	//		//		}
 	//	}
 
-	List<PhysicalPageRegion> subregions = new ArrayList<PhysicalPageRegion>();
-	subregions.add(this);
-
-	Set<PhysicalContent> workingSet = new HashSet<PhysicalContent>();
-
-	final float endX = getPosition().getEndX();
-	for (float x = getPosition().getX(); x <= endX; x++) {
-		final List<PhysicalContent> column = findContentAtXIndex(x);
-		workingSet.addAll(column);
-		if (listContainsNoText(column)) {
-
-			//			if (!workingSet.isEmpty()) {
-			//
-			//				log.info("createParagraphNodes " + this + ": splitting at x:" + x);
-
-			//				final Rectangle bound = new Rectangle(getPosition().getX(), getPosition().getY(),
-			//				                                      x - getPosition().getX(),
-			//				                                      getPosition().getHeight());
-			//
-			//				final PhysicalPageRegion subRegion = extractSubRegion(bound, null);
-			//				if (subRegion == null){
-			//					System.out.println("subRegion = " + subRegion);
-			//				}
-			if (!workingSet.isEmpty()) {
-				PhysicalPageRegion subRegion = new PhysicalPageRegion(workingSet, this, pageNumber);
-				if (log.isInfoEnabled()) { log.info("LOG00510: got subregion " + subRegion); }
-
-				subregions.add(subRegion);
-				removeContent(workingSet);
-				workingSet.clear();
-			}
-		}
-	}
-
-
 	List<ParagraphNode> ret = new ArrayList<ParagraphNode>();
-	for (PhysicalPageRegion subregion : subregions) {
-		final List<LineNode> lines = new LineSegmentator().segment(subregion);
+	final LineSegmentator segmentator = new LineSegmentator();
+
+	final List<LineNode> lines = segmentator.segmentLines(this, 2.0f);
+	if (!lines.isEmpty()) {
 		final ParagraphNode paragraph = new ParagraphNode();
 		for (LineNode line : lines) {
 			paragraph.addChild(line);
@@ -230,15 +210,6 @@ public List<ParagraphNode> createParagraphNodes() {
 		ret.add(paragraph);
 	}
 	return ret;
-}
-
-private boolean listContainsNoText(final List<PhysicalContent> workingSet) {
-	for (PhysicalContent content : workingSet) {
-		if (content.isText()) {
-			return false;
-		}
-	}
-	return true;
 }
 
 /**
@@ -252,7 +223,7 @@ private boolean listContainsNoText(final List<PhysicalContent> workingSet) {
 public PhysicalPageRegion extractSubRegion(@NotNull final HasPosition bound,
                                            @Nullable final PhysicalContent containedIn)
 {
-	final List<PhysicalContent> subContents = findRectanglesIntersectingWith(bound);
+	final List<PhysicalContent> subContents = findRectanglesIntersectingWith(makeSmaller(bound));
 	if (subContents.isEmpty()) {
 		log.warn("LOG00370:got empty subregion for bound " + bound);
 		return null;
@@ -271,27 +242,128 @@ public PhysicalPageRegion extractSubRegion(@NotNull final HasPosition bound,
 	return newRegion;
 }
 
-@NotNull
-@SuppressWarnings({"NumericCastThatLosesPrecision"})
-public List<Rectangle> findSubRegions() {
-	final List<Rectangle> ret = new ArrayList<Rectangle>();
-	boolean lastWasBoundary = false;
-	for (int y = (int) getPosition().getY(); y < (int) getPosition().getEndY(); y++) {
-	}
-
-
-	return ret;
-}
-
-public void findVerticalBoundaries() {
-	for (int y = (int) getPosition().getY(); y < (int) getPosition().getEndY(); y++) {
-		final List<PhysicalContent> row = findContentAtYIndex(y);
-	}
+private static HasPosition makeSmaller(final HasPosition bound) {
+	final Rectangle p = bound.getPosition();
+	return new Rectangle(p.getX() + 1.0f, p.getY() + 1.0f, p.getWidth() - 1.0f,
+	                     p.getHeight() - 1.0f);
 }
 
 public boolean isContainedInFigure() {
 	return getContainedIn() != null && (getContainedIn().isFigure()
 			|| getContainedIn().isPicture());
+}
+
+public List<PhysicalPageRegion> splitInHorizontalColumns() {
+	List<PhysicalPageRegion> subregions = new ArrayList<PhysicalPageRegion>();
+
+
+	if (getPosition().getHeight() < avgFontSizeY * 2) {
+		return subregions;
+	}
+	if (position.getWidth() < avgFontSizeX * 2) {
+		return subregions;
+	}
+
+
+	/* start of by finding the median of a sample of vertical distances */
+	final int LIMIT = (int) avgFontSizeY * 3;
+
+	int[] distanceCount = new int[LIMIT];
+	final Rectangle pos = getPosition();
+	for (float x = pos.getX(); x <= pos.getEndX(); x += pos.getWidth() / 3) {
+
+		final List<PhysicalContent> column = findContentAtXIndex(x);
+		for (int i = 1; i < column.size(); i++) {
+			final PhysicalContent current = column.get(i - 1);
+			final PhysicalContent below = column.get(i);
+			/* increase count for this distance (rounded to int) */
+			final int d = (int) (below.getPosition().getY() - current.getPosition().getEndY());
+			if (d > 0 && d < LIMIT) {
+				distanceCount[d]++;
+			}
+		}
+	}
+
+	int highestFrequency = -1;
+	int index = -1;
+	//((int) (avgFontSizeY * 0.5f))
+	for (int i = 2; i < distanceCount.length; i++) {
+		if (distanceCount[i] >= highestFrequency) {
+			index = i;
+			highestFrequency = distanceCount[i];
+		}
+	}
+	if (index == -1) {
+		return subregions;
+	}
+
+	int boundaryLimit = index;
+	if (log.isInfoEnabled()) { log.info("LOG00550:boundarylimit = " + boundaryLimit); }
+
+
+	Set<PhysicalContent> workingSet = new HashSet<PhysicalContent>();
+
+	float lastBoundary = -1000.0f;
+	for (float y = pos.getY(); y <= pos.getEndY(); y++) {
+		final List<PhysicalContent> row = findContentAtYIndex(y);
+
+		workingSet.addAll(row);
+		if (listContainsNoText(row)) {
+			if (!workingSet.isEmpty() && workingSet.size() != getContents().size() && (
+					y - lastBoundary > boundaryLimit)) {
+				PhysicalPageRegion subRegion = new PhysicalPageRegion(workingSet, this, pageNumber);
+
+				if (log.isInfoEnabled()) {
+					log.info(String.format("LOG00530:horizontal split at y =%s for %s ", y, this));
+					log.info("LOG00510: created subregion " + subRegion);
+				}
+
+				subregions.add(subRegion);
+				removeContent(workingSet);
+				workingSet.clear();
+				lastBoundary = y;
+			}
+		} else {
+			lastBoundary = y;
+		}
+	}
+	return subregions;
+}
+
+public List<PhysicalPageRegion> splitInVerticalColumns() {
+	List<PhysicalPageRegion> subregions = new ArrayList<PhysicalPageRegion>();
+
+	if (getPosition().getWidth() < avgFontSizeX * 3) {
+		return subregions;
+	}
+
+	Set<PhysicalContent> workingSet = new HashSet<PhysicalContent>();
+
+	float lastBoundary = -1000.0f;
+	for (float x = getPosition().getX(); x <= getPosition().getEndX(); x++) {
+		final List<PhysicalContent> column = findContentAtXIndex(x);
+		workingSet.addAll(column);
+		if (listContainsNoText(column)) {
+			if (!workingSet.isEmpty() && workingSet.size() != getContents().size()
+					&& x - lastBoundary >= avgFontSizeX * 0.5f) {
+
+				PhysicalPageRegion subRegion = new PhysicalPageRegion(workingSet, this, pageNumber);
+
+				if (log.isInfoEnabled()) {
+					log.info(this + " vertical split at x " + "=" + x);
+					log.info("LOG00510: got subregion " + subRegion);
+				}
+
+				subregions.add(subRegion);
+				removeContent(workingSet);
+				workingSet.clear();
+				lastBoundary = x;
+			}
+		} else {
+			lastBoundary = x;
+		}
+	}
+	return subregions;
 }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -323,6 +395,15 @@ private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent curre
 
 	for (int x = (int) pos.getX(); x < (int) pos.getEndX(); x++) {
 		markBothWaysFromCurrent(current, blockNum, findContentAtXIndex(x), rotation, fontName);
+	}
+	return true;
+}
+
+private boolean listContainsNoText(final List<PhysicalContent> workingSet) {
+	for (PhysicalContent content : workingSet) {
+		if (content.isText()) {
+			return false;
+		}
 	}
 	return true;
 }

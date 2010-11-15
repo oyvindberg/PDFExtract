@@ -43,7 +43,7 @@ private static WordNode createWordNode(@NotNull final PhysicalText text, int pag
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-public List<LineNode> segment(PhysicalPageRegion region) {
+public List<LineNode> segmentLines(PhysicalPageRegion region, float tolerance) {
 	final Rectangle pos = region.getPosition();
 
 	final List<LineNode> ret = new ArrayList<LineNode>();
@@ -54,19 +54,57 @@ public List<LineNode> segment(PhysicalPageRegion region) {
 		final List<PhysicalContent> row = region.findContentAtYIndex(y);
 		workingSet.addAll(row);
 
+		final boolean isLineBoundary;
 		if (row.isEmpty()) {
-			LineNode lineNode = new LineNode();
-			for (PhysicalContent word : workingSet) {
-				if (word.isText()) {
-					lineNode.addChild(createWordNode(word.getText(), region.getPageNumber()));
+			isLineBoundary = true;
+		} else if (row.size() < 3) {
+			int ok = 0;
+			for (PhysicalContent content : row) {
+				/* if this content starts right over this line */
+				if (content.getPosition().getY() - y <= tolerance) {
+					ok++;
+
+					/** or if it end right after this line. if it does, include it in the next
+					 * line instead */
+				} else if (content.getPosition().getEndY() - y <= tolerance) {
+					ok++;
+					workingSet.remove(content);
 				}
 			}
+
+			isLineBoundary = (ok == row.size());
+		} else {
+			isLineBoundary = false;
+		}
+
+
+		if (isLineBoundary || (y + 1.0f) >= pos.getEndY()) {
 			if (!workingSet.isEmpty()) {
+				LineNode lineNode = new LineNode();
+				for (PhysicalContent word : workingSet) {
+
+					if (word.isText() && !word.getText().isAssignedBlock()) {
+						lineNode.addChild(createWordNode(word.getText(), region.getPageNumber()));
+						word.getText().setBlockNum(1);
+					}
+				}
+				//				region.removeContent(workingSet);
+				if (!lineNode.getChildren().isEmpty()) {
+					ret.add(lineNode);
+				}
 				workingSet.clear();
-				ret.add(lineNode);
 			}
 		}
 	}
+
+	//
+	//	//	for (PhysicalPageRegion region : regions) {
+	//	for (PhysicalContent content : region.getContents()) {
+	//		if (content.isText() && content.getText().getContent().contains("inlunde")) {
+	//			System.out.println("PhysicalPage.compileLogicalPage");
+	//		}
+	//	}
+	//	//	}
 
 	return ret;
 }

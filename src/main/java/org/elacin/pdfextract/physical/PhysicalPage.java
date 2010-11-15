@@ -80,11 +80,10 @@ public PhysicalPage(@NotNull List<? extends PhysicalContent> contents,
 	List<GraphicContent> separators = new ArrayList<GraphicContent>();
 
 	for (GraphicContent graphic : graphicContents) {
-
 		if (isTooBigPicture(originalWholePage, graphic)) {
 			if (log.isInfoEnabled()) { log.info("LOG00510::considered too big " + graphic); }
 			//ta vekk
-			graphicsToRender.add(graphic);
+			//			graphicsToRender.add(graphic);
 			continue;
 		}
 
@@ -92,18 +91,15 @@ public PhysicalPage(@NotNull List<? extends PhysicalContent> contents,
 			if (log.isInfoEnabled()) { log.info("LOG00500:contains content " + graphic); }
 			graphic.setCanBeAssigned(false);
 			graphicalRegions.add(graphic);
-
 		} else if (graphic.canBeConsideredContentInRegion(originalWholePage)) {
 			if (log.isInfoEnabled()) { log.info("LOG00520:considered content " + graphic); }
 			graphic.setCanBeAssigned(true);
 			addToContents.add(graphic);
-
 		} else if (graphic.canBeConsideredSeparatorInRegion(originalWholePage)) {
 			if (log.isInfoEnabled()) { log.info("LOG00490:considered separator " + graphic); }
 			graphic.setCanBeAssigned(true);
 			addToContents.add(graphic);
 			separators.add(graphic);
-
 		} else {
 			log.warn("LOG00510: unknown function " + graphic);
 			graphic.setCanBeAssigned(false);
@@ -118,8 +114,6 @@ public PhysicalPage(@NotNull List<? extends PhysicalContent> contents,
 		if (separator.isAssignedBlock()) {
 			continue;
 		}
-
-
 	}
 
 
@@ -156,13 +150,11 @@ private static boolean doesContainSomething(@NotNull final PhysicalPageRegion re
 	return false;
 }
 
-
 private static boolean isTooBigPicture(@NotNull final RectangleCollection region,
                                        @NotNull final PhysicalContent graphic)
 {
 	return graphic.getPosition().area() >= region.getPosition().area();
 }
-
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -185,10 +177,9 @@ public PageNode compileLogicalPage() {
 		final GraphicContent graphic = queue.remove();
 
 		try {
-
-			if (isContentContainedWithinAnyContentInList(queue, graphic)) {
-				continue;
-			}
+			//			if (isContentContainedWithinAnyContentInList(queue, graphic)) {
+			//				continue;
+			//			}
 
 			final PhysicalPageRegion region = originalWholePage.extractSubRegion(graphic, graphic);
 			if (null != region) {
@@ -207,10 +198,32 @@ public PageNode compileLogicalPage() {
 		}
 	}
 
+	List<PhysicalPageRegion> newRegions = new ArrayList<PhysicalPageRegion>();
 	for (PhysicalPageRegion region : regions) {
-		region.findVerticalBoundaries();
-		region.findSubRegions();
+		newRegions.addAll(region.splitInHorizontalColumns());
 	}
+	regions.addAll(newRegions);
+
+
+	newRegions.clear();
+	for (PhysicalPageRegion region : regions) {
+		newRegions.addAll(region.splitInVerticalColumns());
+	}
+	regions.addAll(newRegions);
+
+	newRegions.clear();
+	for (PhysicalPageRegion region : regions) {
+		newRegions.addAll(region.splitInHorizontalColumns());
+	}
+	regions.addAll(newRegions);
+
+
+	newRegions.clear();
+	for (PhysicalPageRegion region : regions) {
+		newRegions.addAll(region.splitInVerticalColumns());
+	}
+	regions.addAll(newRegions);
+
 
 	//	originalWholePage.addContent(graphicalRegions);
 
@@ -229,7 +242,7 @@ public PageNode compileLogicalPage() {
 
 	ret.addDebugFeatures(Color.RED, regions);
 	//		ret.addDebugFeatures(Color.BLACK, allWhitespace);
-	ret.addDebugFeatures(Color.GREEN, graphicsToRender);
+	ret.addDebugFeatures(Color.MAGENTA, graphicsToRender);
 	//        ret.addColumns(layoutRecognizer.findColumnsForPage(wholePage, ret));
 
 	if (log.isInfoEnabled()) {
@@ -237,6 +250,13 @@ public PageNode compileLogicalPage() {
 	}
 	return ret;
 }
+
+@NotNull
+public RectangleCollection getContents() {
+	return originalWholePage;
+}
+
+// -------------------------- OTHER METHODS --------------------------
 
 private boolean isContentContainedWithinAnyContentInList(final Collection<GraphicContent> queue,
                                                          final PhysicalContent graphic)
@@ -251,10 +271,5 @@ private boolean isContentContainedWithinAnyContentInList(final Collection<Graphi
 		}
 	}
 	return found;
-}
-
-@NotNull
-public RectangleCollection getContents() {
-	return originalWholePage;
 }
 }

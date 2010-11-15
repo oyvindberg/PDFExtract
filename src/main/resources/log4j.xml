@@ -78,13 +78,19 @@
     </logger>
 
     <logger name="org.elacin.pdfextract.physical.segmentation.word" additivity="false">
-        <level value="DEBUG"/>
+        <level value="WARN"/>
+        <appender-ref ref="wordSegmentation"/>
+        <appender-ref ref="console"/>
+    </logger>
+
+    <logger name="org.elacin.pdfextract.physical" additivity="false">
+        <level value="INFO"/>
         <appender-ref ref="wordSegmentation"/>
         <appender-ref ref="console"/>
     </logger>
 
     <logger name="org.apache.pdfbox" additivity="false">
-        <level value="ERROR"/>
+        <level value="DEBUG"/>
         <appender-ref ref="pdfbox"/>
         <appender-ref ref="console"/>
     </logger>

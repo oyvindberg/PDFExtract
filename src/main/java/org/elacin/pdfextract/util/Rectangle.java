@@ -39,13 +39,25 @@ public Rectangle(final float x, final float y, final float width, final float he
 		throw new IllegalArgumentException("height can not be negative");
 	}
 	if (width < 0.0f) {
-		System.out.println("width = " + width);
 		throw new IllegalArgumentException("width can not be negative");
 	}
+	if (x < 0.0f) {
+		throw new IllegalArgumentException("x can not be negative");
+	}
+	if (y < 0.0f) {
+		throw new IllegalArgumentException("y can not be negative");
+	}
+
 	this.height = height;
 	this.width = width;
 	this.x = x;
 	this.y = y;
+
+	if (isEmpty()) {
+		throw new IllegalArgumentException("area can not be 0");
+	}
+
+
 }
 
 // ------------------------ INTERFACE METHODS ------------------------
