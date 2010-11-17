@@ -22,7 +22,6 @@ import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
 import org.elacin.pdfextract.physical.content.WhitespaceRectangle;
 import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentator;
-import org.elacin.pdfextract.physical.segmentation.line.LineSegmentator;
 import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.tree.ParagraphNode;
 import org.elacin.pdfextract.util.RectangleCollection;
@@ -132,18 +131,21 @@ public PageNode compileLogicalPage() {
 				}
 			}
 		} catch (Exception e) {
-			log.warn("LOG00320:Error while dividing page by " + graphic + ":" + e.getMessage());
-			graphics.getGraphicsToRender().remove(graphic);
+			log.info("LOG00320:Could not divide page::" + e.getMessage());
+			if (graphic.getPosition().area() < getContents().getPosition().area() * 0.4f) {
+
+				if (log.isInfoEnabled()) { log.info("LOG00690:Adding " + graphic + " as content");}
+				graphic.setCanBeAssigned(true);
+				originalWholePage.addContent(graphic);
+
+			} else {
+				graphics.getGraphicsToRender().remove(graphic);
+			}
 		}
 	}
 
-	List<PhysicalPageRegion> newRegions = new ArrayList<PhysicalPageRegion>();
 
-	//	newRegions.clear();
-	//	for (PhysicalPageRegion region : regions) {
-	//		newRegions.addAll(region.splitInHorizontalColumnsByStyle());
-	//	}
-	//	regions.addAll(newRegions);
+	List<PhysicalPageRegion> newRegions = new ArrayList<PhysicalPageRegion>();
 
 	newRegions.clear();
 	for (PhysicalPageRegion region : regions) {
@@ -163,13 +165,7 @@ public PageNode compileLogicalPage() {
 	//	 * pass 2
 	//	 */
 	//
-	//	newRegions.clear();
-	//	for (PhysicalPageRegion region : regions) {
-	//		newRegions.addAll(region.splitInHorizontalColumnsByStyle());
-	//	}
-	//	regions.addAll(newRegions);
-	//
-	//
+
 	newRegions.clear();
 	for (PhysicalPageRegion region : regions) {
 		newRegions.addAll(region.splitInHorizontalColumnsBySpacing());
@@ -189,9 +185,8 @@ public PageNode compileLogicalPage() {
 	PageNode ret = new PageNode(pageNumber);
 
 	final List<WhitespaceRectangle> allWhitespace = new ArrayList<WhitespaceRectangle>();
-	LineSegmentator lineSegmentator = new LineSegmentator(5.0f);
 	for (PhysicalPageRegion region : regions) {
-		List<ParagraphNode> paragraphs = region.createParagraphNodes(lineSegmentator);
+		List<ParagraphNode> paragraphs = region.createParagraphNodes();
 
 		allWhitespace.addAll(region.getWhitespace());
 		for (ParagraphNode paragraph : paragraphs) {
@@ -199,6 +194,27 @@ public PageNode compileLogicalPage() {
 		}
 	}
 
+	for (PhysicalPageRegion region : regions) {
+		for (PhysicalPageRegion subRegion : region.getSubregions()) {
+			for (PhysicalContent content : subRegion.getContents()) {
+				if (content.isAssignablePhysicalContent()
+						&& !content.getAssignablePhysicalContent().isAssignedBlock()) {
+					throw new RuntimeException("content not assigned line");
+				}
+			}
+
+		}
+		for (PhysicalContent content : region.getContents()) {
+			if (content.isAssignablePhysicalContent()
+					&& !content.getAssignablePhysicalContent().isAssignedBlock()) {
+				throw new RuntimeException("content not assigned line");
+			}
+		}
+
+	}
+	for (PhysicalContent rectangle : getContents().getContents()) {
+
+	}
 
 	/* for rendering only */
 	List<GraphicContent> filled = new ArrayList<GraphicContent>();
@@ -217,11 +233,6 @@ public PageNode compileLogicalPage() {
 	ret.addDebugFeatures(Color.green, pictures);
 	ret.addDebugFeatures(Color.MAGENTA, filled);
 	ret.addDebugFeatures(Color.ORANGE, unFilled);
-
-
-	//	ret.addDebugFeatures(Color.RED, regions);
-	//		ret.addDebugFeatures(Color.BLACK, allWhitespace);
-
 	//        ret.addColumns(layoutRecognizer.findColumnsForPage(wholePage, ret));
 
 	if (log.isInfoEnabled()) {

@@ -93,8 +93,7 @@ public List<ParagraphNode> createParagraphNodes(@NotNull final LineSegmentator s
 			}
 		}
 		/* then group words in lines */
-
-		final List<LineNode> lines = createLineNodes(segmentator);
+		final List<LineNode> lines = lineSegmentator.segmentLines(this);
 		final ParagraphNode paragraph = new ParagraphNode();
 		for (LineNode line : lines) {
 			paragraph.addChild(line);

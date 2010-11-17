@@ -49,6 +49,7 @@ private final int        startPage;
 private final int        endPage;
 private final String     password;
 private final boolean    render;
+private       boolean    verbose;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -57,7 +58,8 @@ public TextExtractor(final List<File> pdfFiles,
                      final int startPage,
                      final int endPage,
                      final String password,
-                     final boolean render)
+                     final boolean render,
+                     final boolean verbose)
 {
 	this.pdfFiles = pdfFiles;
 	this.destination = destination;
@@ -66,6 +68,7 @@ public TextExtractor(final List<File> pdfFiles,
 	this.endPage = endPage;
 	this.password = password;
 	this.render = render;
+	this.verbose = verbose;
 }
 
 // -------------------------- STATIC METHODS --------------------------
@@ -97,6 +100,7 @@ private static Options getOptions() {
 	options.addOption("s", "startpage", true, "First page to parse");
 	options.addOption("e", "endpage", true, "Last page to parse");
 	options.addOption("r", "render", false, "Render document");
+	options.addOption("v", "verbose", false, "Output verbose xml");
 	return options;
 }
 
@@ -196,7 +200,7 @@ protected void printTree(@NotNull final File pdfFile, @NotNull final DocumentNod
 	}
 
 	final PrintStream outStream = openOutputStream(output);
-	root.printTree(outStream);
+	root.printTree(outStream, verbose);
 	outStream.close();
 }
 
@@ -306,6 +310,11 @@ public static void main(String[] args) {
 		render = true;
 	}
 
+	boolean verbose = false;
+	if (cmd.hasOption("verbose")) {
+		verbose = true;
+	}
+
 	List<File> pdfFiles = findAllPdfFilesUnderDirectory(cmd.getArgs()[0]);
 
 	final File destination = new File(cmd.getArgs()[1]);
@@ -326,7 +335,7 @@ public static void main(String[] args) {
 	}
 
 	final TextExtractor textExtractor
-			= new TextExtractor(pdfFiles, destination, startPage, endPage, password, render);
+			= new TextExtractor(pdfFiles, destination, startPage, endPage, password, render, verbose);
 	textExtractor.processFiles();
 }
 }

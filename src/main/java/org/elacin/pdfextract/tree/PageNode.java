@@ -44,18 +44,30 @@ public PageNode(int pageNumber) {
 // ------------------------ OVERRIDING METHODS ------------------------
 
 @Override
-protected void appendLocalInfo(@NotNull final Appendable out, final int indent) throws IOException {
+public void writeXmlRepresentation(@NotNull final Appendable out,
+                                   final int indent,
+                                   final boolean verbose) throws IOException
+{
 	for (int i = 0; i < indent; i++) {
 		out.append(" ");
 	}
-	out.append("Page ").append(Integer.toString(pageNumber));
-	out.append("{").append(getPosition().toString());
-
-	out.append(":\n");
+	out.append("<page");
+	out.append(" num=\"").append(Integer.toString(pageNumber)).append("\"");
+	if (verbose) {
+		getPosition().writeXmlRepresentation(out, indent, verbose);
+	}
+	out.append(">\n");
 
 	for (ParagraphNode child : getChildren()) {
-		child.appendLocalInfo(out, indent + 4);
+		child.writeXmlRepresentation(out, indent + 4, verbose);
 	}
+
+	for (int i = 0; i < indent; i++) {
+		out.append(" ");
+	}
+	out.append("</page>\n");
+
+
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------

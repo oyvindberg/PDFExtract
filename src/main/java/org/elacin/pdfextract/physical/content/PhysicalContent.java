@@ -33,8 +33,8 @@ protected Rectangle position;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public PhysicalContent(final Rectangle position) {
-	this.position = position;
+public PhysicalContent(final Rectangle pos) {
+	this.position = pos;
 }
 
 public PhysicalContent(@NotNull final Collection<? extends PhysicalContent> contents) {

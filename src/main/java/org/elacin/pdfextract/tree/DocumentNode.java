@@ -17,7 +17,6 @@
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.style.DocumentStyles;
-import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,12 +48,19 @@ public DocumentNode() {
 // ------------------------ OVERRIDING METHODS ------------------------
 
 @Override
-protected void appendLocalInfo(@NotNull final Appendable out, final int indent) throws IOException {
-	super.appendLocalInfo(out, indent);
-	out.append("Styles used in document:\n");
-	for (Style style : styles.getStyles().values()) {
-		out.append(style.toString()).append("\n");
+public void writeXmlRepresentation(@NotNull final Appendable out,
+                                   final int indent,
+                                   final boolean verbose) throws IOException
+{
+	out.append("<document>\n");
+
+	styles.writeXmlRepresentation(out, indent + 4, verbose);
+
+	for (PageNode node : getChildren()) {
+		node.writeXmlRepresentation(out, indent + 4, verbose);
 	}
+	out.append("</document");
+
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------

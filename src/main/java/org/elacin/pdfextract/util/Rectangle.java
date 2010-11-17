@@ -17,17 +17,18 @@
 package org.elacin.pdfextract.util;
 
 import org.elacin.pdfextract.physical.content.HasPosition;
+import org.elacin.pdfextract.tree.XmlPrinter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.Serializable;
+import java.io.IOException;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: May 19, 2010 Time: 9:43:07 PM <p/> A non-mutable
  * rectangle, with union and intercepts bits stolen from javas Rectangle2D. The problem with just
  * using that class was that is isnt available in an integer version.
  */
-public class Rectangle implements Serializable, HasPosition {
+public class Rectangle implements HasPosition, XmlPrinter {
 // ------------------------------ FIELDS ------------------------------
 
 private final float x, y, width, height;
@@ -287,5 +288,16 @@ public Rectangle union(@NotNull HasPosition that) {
 		y2 = t;
 	}
 	return new Rectangle(x1, y1, x2 - x1, y2 - y1);
+}
+
+@Override
+public void writeXmlRepresentation(final Appendable sb,
+                                   final int indent,
+                                   final boolean verbose) throws IOException
+{
+	sb.append(" x=\"").append(String.valueOf(x)).append("\"");
+	sb.append(" y=\"").append(String.valueOf(y)).append("\"");
+	sb.append(" w=\"").append(String.valueOf(width)).append("\"");
+	sb.append(" h=\"").append(String.valueOf(height)).append("\"");
 }
 }

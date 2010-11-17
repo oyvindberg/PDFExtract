@@ -51,19 +51,26 @@ public Comparator<LineNode> getChildComparator() {
 }
 
 @Override
-protected void appendLocalInfo(@NotNull final Appendable out, final int indent) throws IOException {
+public void writeXmlRepresentation(@NotNull final Appendable out,
+                                   final int indent,
+                                   final boolean verbose) throws IOException
+{
 	for (int i = 0; i < indent; i++) {
 		out.append(" ");
 	}
-	out.append(getClass().getSimpleName());
-	out.append("{");
-	out.append(getPosition().toString());
-	out.append(", containedInGraphics:").append(String.valueOf(containedInImage));
-	out.append(":\n");
+	out.append("<paragraph");
+	out.append(" inPicture=\"").append(String.valueOf(containedInImage)).append("\"");
 
+	getPosition().writeXmlRepresentation(out, indent, verbose);
+
+	out.append(">\n");
 	for (LineNode child : getChildren()) {
-		child.appendLocalInfo(out, indent + 4);
+		child.writeXmlRepresentation(out, indent + 4, verbose);
 	}
 
+	for (int i = 0; i < indent; i++) {
+		out.append(" ");
+	}
+	out.append("</paragraph>\n");
 }
 }

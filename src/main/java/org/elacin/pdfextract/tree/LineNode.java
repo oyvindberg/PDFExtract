@@ -16,20 +16,19 @@
 
 package org.elacin.pdfextract.tree;
 
+import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Apr 8, 2010 Time: 8:29:43 AM To change this template
  * use File | Settings | File Templates.
  */
 public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
-// ------------------------------ FIELDS ------------------------------
-
-private final boolean SHOW_DETAILS = false;
-
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public LineNode(@NotNull final WordNode child) {
@@ -40,34 +39,95 @@ public LineNode() {
 	super();
 }
 
-// ------------------------ OVERRIDING METHODS ------------------------
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface XmlPrinter ---------------------
 
 @Override
-protected void appendLocalInfo(@NotNull final Appendable out, final int indent) throws IOException {
-	if (SHOW_DETAILS) {
-		super.appendLocalInfo(out, indent);
-	} else {
+public void writeXmlRepresentation(@NotNull final Appendable out,
+                                   final int indent,
+                                   final boolean verbose) throws IOException
+{
+	for (int i = 0; i < indent; i++) {
+		out.append(" ");
+	}
+
+	out.append("<line");
+	out.append(" styleRef=\"").append(String.valueOf(findDominatingStyle().id)).append("\"");
+
+	if (verbose) {
+		getPosition().writeXmlRepresentation(out, indent, verbose);
+		out.append(">\n");
+
+		for (WordNode child : getChildren()) {
+			child.writeXmlRepresentation(out, indent + 4, verbose);
+		}
 		for (int i = 0; i < indent; i++) {
 			out.append(" ");
 		}
-		out.append(getClass().getSimpleName());
-		out.append(": \"");
-		writeTextTo(out);
-		out.append("\"");
-		out.append("\n");
+		out.append("</line>\n");
+	} else {
+		out.append(">");
+		out.append(getText());
+		out.append("</line>\n");
 	}
 }
+
+// ------------------------ OVERRIDING METHODS ------------------------
 
 @NotNull
 @Override
 public String getText() {
 	StringBuilder sb = new StringBuilder();
-	writeTextTo(sb);
+
+	for (int i = 0; i < getChildren().size(); i++) {
+		final WordNode word = getChildren().get(i);
+		sb.append(word.getText());
+		if (i != getChildren().size() - 1 && !word.isPartOfSameWordAs(getChildren().get(i + 1))) {
+			sb.append(" ");
+		}
+	}
 
 	return sb.toString();
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
+
+public boolean containsWordWithStyle(final Style style) {
+	for (WordNode node : getChildren()) {
+		if (node.getStyle().isCompatibleWith(style)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+@NotNull
+public Style findDominatingStyle() {
+	boolean textFound = false;
+	Map<Style, Integer> letterCountPerStyle = new HashMap<Style, Integer>(10);
+	for (WordNode word : getChildren()) {
+		final Style style = word.getStyle();
+		if (!letterCountPerStyle.containsKey(style)) {
+			letterCountPerStyle.put(style, 0);
+		}
+		final int numChars = word.getText().length();
+		letterCountPerStyle.put(style, letterCountPerStyle.get(style) + numChars);
+		textFound = true;
+	}
+
+	assert textFound;
+
+	int highestNumChars = -1;
+	Style style = null;
+	for (Map.Entry<Style, Integer> entry : letterCountPerStyle.entrySet()) {
+		if (entry.getValue() > highestNumChars) {
+			style = entry.getKey();
+		}
+	}
+	return style;
+}
 
 /** Returns a Comparator which compares only X coordinates */
 @NotNull
@@ -85,22 +145,4 @@ public Comparator<WordNode> getChildComparator() {
 		}
 	};
 }
-
-// -------------------------- OTHER METHODS --------------------------
-
-private void writeTextTo(@NotNull final Appendable sb) {
-	try {
-		for (int i = 0; i < getChildren().size(); i++) {
-			final WordNode word = getChildren().get(i);
-			sb.append(word.getText());
-			if (i != getChildren().size() - 1 && !word.isPartOfSameWordAs(getChildren().get(
-					i + 1))) {
-				sb.append(" ");
-			}
-		}
-	} catch (IOException e) {
-		throw new RuntimeException("something went wrong while writing text", e);
-	}
-}
-
 }

@@ -74,6 +74,12 @@ public final Rectangle getPosition() {
 	return posCache;
 }
 
+// --------------------- Interface XmlPrinter ---------------------
+
+public abstract void writeXmlRepresentation(@NotNull final Appendable out,
+                                            final int indent,
+                                            final boolean verbose) throws IOException;
+
 // ------------------------ CANONICAL METHODS ------------------------
 
 @NotNull
@@ -82,7 +88,7 @@ public String toString() {
 	if (toStringCache == null) {
 		final StringBuilder sb = new StringBuilder();
 		try {
-			appendLocalInfo(sb, 0);
+			writeXmlRepresentation(sb, 0, false);
 		} catch (IOException e) {
 			throw new RuntimeException("Could not write string", e);
 		}
@@ -152,20 +158,6 @@ public String getText() {
 }
 
 // -------------------------- OTHER METHODS --------------------------
-
-protected void appendLocalInfo(@NotNull final Appendable out, final int indent) throws IOException {
-	for (int i = 0; i < indent; i++) {
-		out.append(" ");
-	}
-	out.append(getClass().getSimpleName());
-	out.append("{").append(getPosition().toString());
-
-	out.append(":\n");
-
-	for (ChildType child : children) {
-		child.appendLocalInfo(out, indent + 4);
-	}
-}
 
 protected void invalidateThisAndParents() {
 	posCache = null;

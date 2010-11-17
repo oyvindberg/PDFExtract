@@ -32,6 +32,7 @@ import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
 import org.apache.pdfbox.util.operator.OperatorProcessor;
 import org.elacin.pdfextract.pdfbox.ETextPosition;
 import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentatorImpl;
+import org.elacin.pdfextract.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -341,6 +342,7 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
 			fontWidth = spaceWidthDisp;
 		}
 		float characterHorizontalDisplacementText = (fontWidth / glyphSpaceToTextSpaceFactor);
+
 		maxVerticalDisplacementText = Math.max(maxVerticalDisplacementText,
 		                                       font.getFontHeight(string, i, codeLength)
 				                                       / glyphSpaceToTextSpaceFactor);
@@ -445,13 +447,31 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
 
 		if (characterBuffer.toString().trim().isEmpty()) {
 			if (log.isDebugEnabled()) { log.debug("Dropping empty string"); }
-			;
+
 		} else {
 			try {
 
-				processTextPosition(new ETextPosition(page, textMatrixStDisp, textMatrixEndDisp, totalVerticalDisplacementDisp, individualWidths, spaceWidthDisp, characterBuffer.toString(), font, fontSizeText, (int) (
+				final ETextPosition text
+						= new ETextPosition(page, textMatrixStDisp, textMatrixEndDisp, totalVerticalDisplacementDisp, individualWidths, spaceWidthDisp, characterBuffer.toString(), font, fontSizeText, (int) (
 						fontSizeText
-								* textMatrix.getXScale()), wordSpacingDisp, textPositionSequenceNumber));
+								* textMatrix.getXScale()), wordSpacingDisp, textPositionSequenceNumber);
+
+
+				if (font.getBaseFont().contains("CMEX10")) {
+					byte[] smallOperators = new byte[]{0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56,
+							0x57, 0x60, 0x70};
+
+					for (int index = 0, length = smallOperators.length; index < length; index++) {
+						if (smallOperators[index] == string[i]) {
+							text.setIsSmallOperator(true);
+							break;
+						}
+					}
+
+				}
+
+
+				processTextPosition(text);
 				textPositionSequenceNumber++;
 
 			} catch (Exception e) {
@@ -642,6 +662,9 @@ protected void processOperator(@NotNull PDFOperator operator,
  */
 protected void processTextPosition(ETextPosition text) {
 	//subclasses can override to provide specific functionality.
+	if ("∫".equals(text.getCharacter()) || "3".equals(text.getCharacter())) {
+		System.out.println(StringUtils.getTextPositionString(text));
+	}
 }
 
 // -------------------------- INNER CLASSES --------------------------

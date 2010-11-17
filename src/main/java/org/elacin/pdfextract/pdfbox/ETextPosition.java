@@ -33,14 +33,14 @@ import org.jetbrains.annotations.NotNull;
  * @version $Revision: 1.12 $
  */
 public class ETextPosition extends TextPosition {
-
-private static final Logger log = Logger.getLogger(ETextPosition.class);
-
 // ------------------------------ FIELDS ------------------------------
 
+private static final Logger log = Logger.getLogger(ETextPosition.class);
 @NotNull
 private final Rectangle pos;
 private final int       sequenceNum;
+private       boolean   smallOperator;
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public ETextPosition(final PDPage page,
@@ -60,6 +60,9 @@ public ETextPosition(final PDPage page,
 
 	sequenceNum = num;
 
+	if ("∫".equals(string)) {
+		System.out.println("this = " + this);
+	}
 
 	float x = getX();
 	float y = getY();
@@ -132,9 +135,7 @@ public ETextPosition(final PDPage page,
 	pos = new Rectangle(x, y, w, h);
 }
 
-
 // --------------------- GETTER / SETTER METHODS ---------------------
-
 
 @NotNull
 public Rectangle getPos() {
@@ -143,5 +144,18 @@ public Rectangle getPos() {
 
 public int getSequenceNum() {
 	return sequenceNum;
+}
+
+public boolean isSmallOperator() {
+	return smallOperator;
+}
+
+// -------------------------- PUBLIC METHODS --------------------------
+
+public void setIsSmallOperator(final boolean smallOperator) {
+	if (log.isInfoEnabled()) {
+		log.info("LOG00680:" + this + " is small operator");
+	}
+	this.smallOperator = smallOperator;
 }
 }

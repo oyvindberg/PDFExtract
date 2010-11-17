@@ -59,6 +59,7 @@ private static final Logger log = Logger.getLogger(WordSegmentatorImpl.class);
 private static List<String> strangeMathFonts = new ArrayList<String>() {
 	{
 		add("CMEX");
+		//		add("CMMI");
 		//        add("CMSY10");
 	}
 };
@@ -146,35 +147,30 @@ public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) 
 
 // -------------------------- STATIC METHODS --------------------------
 
-private static boolean fontSeemsToNeedVerticalAdjustment(@NotNull final PDFont font) {
+//private static List<String> mathGlyphsWithProblems = new ArrayList<String>(){
+//	{
+////		add("|");
+//		add("∫");
+//		add("∑");
+//		add("√");
+//	}
+//};
 
+private static boolean fontSeemsToNeedVerticalAdjustment(@NotNull final ETextPosition tp) {
+	final PDFont font = tp.getFont();
+	boolean badFont = false;
 	for (String strangeMathFont : strangeMathFonts) {
 		if (font.getBaseFont() != null && font.getBaseFont().contains(strangeMathFont)) {
-			return true;
+			badFont = true;
+			break;
 		}
 	}
-	return false;
-}
-
-/**
- * it happens that some of the TextPositions are unreasonably tall. This destroys my algorithms, so
- * for those we will use a lower value. Also avoid negative heights
- */
-private static float getAdjustedHeight(@NotNull final ETextPosition tp) {
-
-	final float maxHeight = tp.getFontSize() * tp.getYScale() * 0.9f;
-
-	float h;
-	if (maxHeight > 0.0f) {
-		h = Math.min(tp.getPos().getHeight(), maxHeight);
-	} else {
-		h = tp.getPos().getHeight();
-	}
-
-	if (h <= 0.0f) {
-		h = tp.getFontSizeInPt() * 0.8f;
-	}
-	return h;
+	return badFont;
+	//	if (!badFont){
+	//		return false;
+	//	}
+	//	return mathGlyphsWithProblems.contains(tp.getCharacter());
+	//	return false;
 }
 
 private static boolean isOnAnotherLine(final float y, @NotNull final ETextPosition tp) {
@@ -231,21 +227,21 @@ List<PhysicalText> splitTextPositionsOnSpace(@NotNull final List<ETextPosition> 
 
 					/** this is a workaround for when pdfbox sometimes miscalculates the
 					 * coordinates of certain mathematical symbols */
-					//					final float adjustedY = y;
 
-					final float adjustedY;
-					if (fontSeemsToNeedVerticalAdjustment(tp.getFont())) {
+					float adjustedHeight = tp.getPos().getHeight();
+
+					float adjustedY = y - adjustedHeight;
+					if (fontSeemsToNeedVerticalAdjustment(tp)) {
 						adjustedY = y;
-						//						adjustedY = y + tp.getPos().getHeight();
-						//						adjustedY = y + tp.getPos().getHeight() / 2.0f;
-					} else {
-						adjustedY = y - tp.getPos().getHeight();
-						//						adjustedY = y;
-						//						adjustedY = y - tp.getPos().getHeight() / 2.0f;
+					}
+
+					if (tp.isSmallOperator()) {
+						adjustedHeight *= 0.4f;
+						//						adjustedY += adjustedHeight;
 					}
 
 					/** output this word */
-					ret.add(new PhysicalText(contents.toString(), style, x, adjustedY, width, getAdjustedHeight(tp), distance, (int) tp.getDir(), tp.getSequenceNum()));
+					ret.add(new PhysicalText(contents.toString(), style, x, adjustedY, width, adjustedHeight, distance, (int) tp.getDir(), tp.getSequenceNum()));
 
 					/** change X coordinate to include this text */
 					x += width;

@@ -17,8 +17,6 @@
 package org.elacin.pdfextract.style;
 
 
-import org.jetbrains.annotations.Nullable;
-
 import java.io.Serializable;
 
 /**
@@ -29,60 +27,48 @@ import java.io.Serializable;
 public class Style implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-public final float xSize, ySize;
+public final int xSize, ySize;
 public final String font;
+public final int    id;
 
 private transient boolean toStringCreated;
 private transient String  toStringCache;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-Style(final String font, final float xSize, final float ySize) {
-
+public Style(final String font, final int xSize, final int ySize, final int id) {
 	this.font = font;
 	this.xSize = xSize;
 	this.ySize = ySize;
+	this.id = id;
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
 
 @Override
-public boolean equals(@Nullable final Object o) {
-
-	if (this == o) {
-		return true;
-	}
-	if (o == null || getClass() != o.getClass()) {
-		return false;
-	}
+public boolean equals(final Object o) {
+	if (this == o) { return true; }
+	if (o == null || getClass() != o.getClass()) { return false; }
 
 	final Style style = (Style) o;
 
-	if (Float.compare(style.xSize, xSize) != 0) {
-		return false;
-	}
-	if (Float.compare(style.ySize, ySize) != 0) {
-		return false;
-	}
-	if (!font.equals(style.font)) {
-		return false;
-	}
+	if (xSize != style.xSize) { return false; }
+	if (ySize != style.ySize) { return false; }
+	if (font != null ? !font.equals(style.font) : style.font != null) { return false; }
 
 	return true;
 }
 
 @Override
 public int hashCode() {
-
-	int result = (xSize != +0.0f ? Float.floatToIntBits(xSize) : 0);
-	result = 31 * result + (ySize != +0.0f ? Float.floatToIntBits(ySize) : 0);
-	result = 31 * result + font.hashCode();
+	int result = xSize;
+	result = 31 * result + ySize;
+	result = 31 * result + (font != null ? font.hashCode() : 0);
 	return result;
 }
 
 @Override
 public String toString() {
-
 	if (!toStringCreated) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append("{");
@@ -95,5 +81,50 @@ public String toString() {
 	}
 
 	return toStringCache;
+}
+
+public boolean isCompatibleWith(final Style style) {
+	if (xSize != style.xSize) {
+		return false;
+	}
+
+	if (ySize != style.ySize) {
+		return false;
+	}
+
+	/* for this purpose, ignore font styles like bold and italic.
+	*   this means that we need to separate out that part from the name of the font
+	* Two typical font names can be:
+	* - LPPMinionUnicode-Italic
+	* - LPPMyriadCondLightUnicode (as apposed to for example LPPMyriadCondUnicode and
+	* LPPMyriadLightUnicode-Bold)
+	*
+	* I want to separate the LPPMinion part for example from the first, so i look for the
+	 *  index of the first capital letter after a small one. Then i compare the substring
+	  * preceeding that letter to the same lengt substring of the other string
+	*
+	* */
+	if (font.equals(style.font)) {
+		return true;
+	}
+
+	boolean foundLowercase = false;
+	int index = -1;
+	for (int i = 0; i < font.length(); i++) {
+		if (!foundLowercase && Character.isLowerCase(font.charAt(i))) {
+			foundLowercase = true;
+		}
+		if (foundLowercase && Character.isUpperCase(font.charAt(i))) {
+			index = i;
+			break;
+		}
+	}
+
+	if (index == -1) {
+		return false;
+	}
+
+	return font.substring(0, index).equals(style.font.substring(0, index));
+
 }
 }

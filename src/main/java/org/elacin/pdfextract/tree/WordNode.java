@@ -68,6 +68,22 @@ public Rectangle getPosition() {
 	return position;
 }
 
+// --------------------- Interface XmlPrinter ---------------------
+
+public void writeXmlRepresentation(@NotNull final Appendable out,
+                                   final int indent,
+                                   final boolean verbose) throws IOException
+{
+	for (int i = 0; i < indent; i++) {
+		out.append(" ");
+	}
+	out.append("<word");
+	out.append(" value=\"").append(text).append("\"");
+	out.append(" styleRef=\"").append(String.valueOf(style.id)).append("\" ");
+	position.writeXmlRepresentation(out, indent, verbose);
+	out.append("/>\n");
+}
+
 // ------------------------ CANONICAL METHODS ------------------------
 
 @NotNull
@@ -76,7 +92,7 @@ public String toString() {
 	if (toStringCache == null) {
 		final StringBuilder sb = new StringBuilder();
 		try {
-			appendLocalInfo(sb, 0);
+			writeXmlRepresentation(sb, 0, false);
 		} catch (IOException e) {
 			throw new RuntimeException("Could not write string", e);
 		}
@@ -112,25 +128,6 @@ public boolean isPartOfSameWordAs(@NotNull final WordNode nextNode) {
 }
 
 // -------------------------- OTHER METHODS --------------------------
-
-protected void appendLocalInfo(@NotNull final Appendable out, final int indent) throws IOException {
-	for (int i = 0; i < indent; i++) {
-		out.append(" ");
-	}
-	out.append("WordNode{");
-	out.append("'").append(text).append("\' ");
-
-	out.append(position.toString());
-	out.append(", charSpacing=").append(String.valueOf(charSpacing));
-
-	out.append(", style:").append(style != null ? style.toString() : null);
-
-	if (roles != null) {
-		out.append(", ").append(roles.keySet().toString());
-	}
-	out.append('}');
-	out.append("\n");
-}
 
 protected void invalidateThisAndParents() {
 	textCache = null;

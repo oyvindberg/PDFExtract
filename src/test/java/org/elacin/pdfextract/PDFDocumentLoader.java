@@ -41,7 +41,7 @@ public static DocumentNode readPDF(String filename,
 	stripper.processDocument();
 
 	final DocumentNode documentNode = stripper.getDocumentNode();
-	documentNode.printTree(outFile);
+	documentNode.printTree(outFile, false);
 	document.close();
 	return documentNode;
 

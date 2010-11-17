@@ -56,8 +56,8 @@ public void setUp() throws IOException {
 @Test()
 public void testHeader() {
 	check("Text Attributes - Character and Word Spacing");
-	check("Page 1");
-	check("Text Attributes - Character and Word Spacing");
+	//	check("Page 1");
+	//	check("Text Attributes - Character and Word Spacing");
 	check("This test contains examples of character and word spacing.");
 	check("Character spacing:");
 

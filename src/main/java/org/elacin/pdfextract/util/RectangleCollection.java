@@ -51,7 +51,18 @@ public RectangleCollection(@NotNull final Collection<? extends PhysicalContent> 
                            final PhysicalContent containedIn)
 {
 	super(newContents);
-	this.containedIn = containedIn;
+	//TODO: flytt dette til et litt mer sane sted
+	PhysicalContent finalContainedIn = containedIn;
+	for (Iterator<? extends PhysicalContent> iterator
+			     = newContents.iterator(); iterator.hasNext();) {
+		final PhysicalContent content = iterator.next();
+		if (content.isGraphic() && content.getPosition().area() > getPosition().area() * 0.6f) {
+			finalContainedIn = content;
+			//			iterator.remove();
+			break;
+		}
+	}
+	this.containedIn = finalContainedIn;
 
 	contents = new ArrayList<PhysicalContent>(newContents.size());
 	contents.addAll(newContents);

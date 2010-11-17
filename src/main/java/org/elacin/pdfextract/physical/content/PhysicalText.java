@@ -49,7 +49,9 @@ public PhysicalText(final String content,
                     final int rotation,
                     final int seqNo)
 {
-	this(content, style, new Rectangle(x, y, width, height), distanceToPreceeding, rotation);
+	this(content, style, new Rectangle(x,
+	                                   y * 1.01f, width,
+	                                   height * 0.98f), distanceToPreceeding, rotation);
 	seqNums.add(seqNo);
 }
 

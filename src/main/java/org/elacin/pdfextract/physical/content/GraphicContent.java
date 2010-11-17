@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.physical.content;
 
 import org.apache.log4j.Logger;
+import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,7 +30,8 @@ import java.awt.*;
 public class GraphicContent extends AssignablePhysicalContent {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger log = Logger.getLogger(GraphicContent.class);
+public static        Style  STYLE_FOR_GRAPHIC = new Style("Image", -1, -1, -1);
+private static final Logger log               = Logger.getLogger(GraphicContent.class);
 private final boolean filled;
 private final boolean picture;
 
@@ -63,7 +65,6 @@ public GraphicContent(final Rectangle position,
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
-
 
 @Override
 public String toString() {

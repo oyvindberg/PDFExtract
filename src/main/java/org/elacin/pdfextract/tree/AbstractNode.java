@@ -24,7 +24,10 @@ import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.Set;
@@ -33,12 +36,10 @@ import java.util.Set;
  * Created by IntelliJ IDEA. User: elacin Date: Mar 23, 2010 Time: 7:44:33 AM To change this
  * template use File | Settings | File Templates.
  */
-public abstract class AbstractNode<ParentType extends AbstractParentNode> implements Serializable, HasPosition {
-
-protected static final Logger log = Logger.getLogger(AbstractNode.class);
-
+public abstract class AbstractNode<ParentType extends AbstractParentNode> implements HasPosition, XmlPrinter {
 // ------------------------------ FIELDS ------------------------------
 
+protected static final Logger log = Logger.getLogger(AbstractNode.class);
 protected Map<Role, String> roles;
 protected ParentType        parent;
 protected DocumentNode      root;
@@ -111,13 +112,13 @@ public boolean overlapsWith(@NotNull final HasPosition two) {
 	return getPosition().intersectsWith(two.getPosition());
 }
 
-public void printTree(String filename) {
+public void printTree(String filename, boolean verbose) {
 	log.info("Opening " + filename + " for output");
 	PrintStream stream = null;
 	try {
 		stream = new PrintStream(new BufferedOutputStream(new FileOutputStream(filename, false),
 		                                                  8192 * 4), false, "UTF-8");
-		printTree(stream);
+		printTree(stream, verbose);
 	} catch (Exception e) {
 		log.error("Could not open output file", e);
 	} finally {
@@ -127,19 +128,16 @@ public void printTree(String filename) {
 	}
 }
 
-public void printTree(final PrintStream output) {
-	long t1 = System.currentTimeMillis();
+public void printTree(final PrintStream output, boolean verbose) {
+	output.append("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
 	try {
-		appendLocalInfo(output, 0);
-		log.info("printTree took " + (System.currentTimeMillis() - t1) + " ms");
+		writeXmlRepresentation(output, 0, verbose);
 	} catch (IOException e) {
 		log.warn("error while printing tree", e);
 	}
 }
 
 // -------------------------- OTHER METHODS --------------------------
-
-protected abstract void appendLocalInfo(Appendable sb, int indent) throws IOException;
 
 protected abstract void invalidateThisAndParents();
 }
