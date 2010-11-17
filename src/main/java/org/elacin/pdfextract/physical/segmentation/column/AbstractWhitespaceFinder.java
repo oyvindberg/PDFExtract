@@ -112,7 +112,7 @@ private static HasPosition choosePivot(@NotNull final Rectangle bound,
  * Returns true if subrectangle is completely contained withing one of the obstacles. This happens
  * rarely, but a check is necessary
  */
-private static boolean isNotContainedByAnyObstacle(final Rectangle subrectangle,
+private static boolean isNotContainedByAnyObstacle(@NotNull final Rectangle subrectangle,
                                                    @NotNull final Iterable<HasPosition> obstacles)
 {
 
@@ -284,8 +284,8 @@ private QueueEntry[] splitSearchAreaAround(@NotNull final QueueEntry current,
 
 	Rectangle right = null;
 	if (split.getEndX() < p.getEndX()) {
-		right = new Rectangle(split.getEndX(), p.getY(), p.getEndX() - split.getEndX(),
-		                      p.getHeight());
+		right = new Rectangle(split.getEndX(), p.getY(),
+		                      p.getEndX() - split.getEndX(), p.getHeight());
 	}
 	List<HasPosition> rightObstacles = new ArrayList<HasPosition>();
 

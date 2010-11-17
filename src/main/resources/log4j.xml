@@ -52,7 +52,7 @@
     </appender>
 
     <appender name="console" class="org.apache.log4j.ConsoleAppender">
-        <param name="Threshold" value="INFO"/>
+        <param name="Threshold" value="DEBUG"/>
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="%-5p: |%c| [doc:%X{doc}:%X{page}]: %m%n"/>
         </layout>
@@ -83,6 +83,12 @@
         <appender-ref ref="console"/>
     </logger>
 
+    <logger name="org.elacin.pdfextract.physical.segmentation.graphics" additivity="false">
+        <level value="DEBUG"/>
+        <appender-ref ref="wordSegmentation"/>
+        <appender-ref ref="console"/>
+    </logger>
+
     <logger name="org.elacin.pdfextract.physical" additivity="false">
         <level value="INFO"/>
         <appender-ref ref="wordSegmentation"/>
@@ -90,7 +96,7 @@
     </logger>
 
     <logger name="org.apache.pdfbox" additivity="false">
-        <level value="DEBUG"/>
+        <level value="WARN"/>
         <appender-ref ref="pdfbox"/>
         <appender-ref ref="console"/>
     </logger>

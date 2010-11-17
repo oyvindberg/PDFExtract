@@ -58,6 +58,7 @@ protected void appendLocalInfo(@NotNull final Appendable out, final int indent) 
 	}
 }
 
+@NotNull
 @Override
 public String getText() {
 	StringBuilder sb = new StringBuilder();
@@ -92,8 +93,8 @@ private void writeTextTo(@NotNull final Appendable sb) {
 		for (int i = 0; i < getChildren().size(); i++) {
 			final WordNode word = getChildren().get(i);
 			sb.append(word.getText());
-			if (i != getChildren().size() - 1 && !word.isPartOfSameWordAs(
-					getChildren().get(i + 1))) {
+			if (i != getChildren().size() - 1 && !word.isPartOfSameWordAs(getChildren().get(
+					i + 1))) {
 				sb.append(" ");
 			}
 		}
@@ -102,9 +103,4 @@ private void writeTextTo(@NotNull final Appendable sb) {
 	}
 }
 
-protected boolean willMakeLineTooHigh(@NotNull final AbstractNode node) {
-	final float ysize = Math.max(getStyle().ySize, node.getStyle().ySize);
-
-	return node.getPosition().union(getPosition()).getHeight() > ysize * 1.2f;
-}
 }

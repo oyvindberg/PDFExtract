@@ -21,14 +21,18 @@ import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
 import org.elacin.pdfextract.physical.content.WhitespaceRectangle;
+import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentator;
+import org.elacin.pdfextract.physical.segmentation.line.LineSegmentator;
 import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.tree.ParagraphNode;
 import org.elacin.pdfextract.util.RectangleCollection;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.PriorityQueue;
 
 
 public class PhysicalPage {
@@ -39,19 +43,6 @@ private static final Logger log = Logger.getLogger(PhysicalPage.class);
 /** The physical page number (ie the sequence encountered in the document) */
 private final int pageNumber;
 
-/**
- * During analysis this will contain a list of figures which has been confirmed to contain text,
- * before they are separated into PhysicalPageRegions a bit later in the process.
- */
-@NotNull
-private final List<GraphicContent> graphicalRegions = new ArrayList<GraphicContent>();
-
-/**
- * This contains all images except those which has been dropped (because they are too big), and is
- * only here for rendering purposes.
- */
-@NotNull
-private final List<GraphicContent> graphicsToRender = new ArrayList<GraphicContent>();
 
 /**
  * The analysis will split the contents into regions based on how things are contained within images
@@ -67,58 +58,21 @@ private final List<PhysicalPageRegion> regions = new ArrayList<PhysicalPageRegio
 @NotNull
 private final PhysicalPageRegion originalWholePage;
 
+/** Contains all the graphics on the page */
+@NotNull
+private final GraphicSegmentator graphics;
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public PhysicalPage(@NotNull List<? extends PhysicalContent> contents,
-                    @NotNull final List<GraphicContent> graphicContents,
+                    @NotNull final GraphicSegmentator graphics,
                     int pageNumber) throws Exception
 {
 	this.pageNumber = pageNumber;
 	originalWholePage = new PhysicalPageRegion(contents, pageNumber);
-
-	List<GraphicContent> addToContents = new ArrayList<GraphicContent>();
-	List<GraphicContent> separators = new ArrayList<GraphicContent>();
-
-	for (GraphicContent graphic : graphicContents) {
-		if (isTooBigPicture(originalWholePage, graphic)) {
-			if (log.isInfoEnabled()) { log.info("LOG00510::considered too big " + graphic); }
-			//ta vekk
-			//			graphicsToRender.add(graphic);
-			continue;
-		}
-
-		if (doesContainSomething(originalWholePage, graphic)) {
-			if (log.isInfoEnabled()) { log.info("LOG00500:contains content " + graphic); }
-			graphic.setCanBeAssigned(false);
-			graphicalRegions.add(graphic);
-		} else if (graphic.canBeConsideredContentInRegion(originalWholePage)) {
-			if (log.isInfoEnabled()) { log.info("LOG00520:considered content " + graphic); }
-			graphic.setCanBeAssigned(true);
-			addToContents.add(graphic);
-		} else if (graphic.canBeConsideredSeparatorInRegion(originalWholePage)) {
-			if (log.isInfoEnabled()) { log.info("LOG00490:considered separator " + graphic); }
-			graphic.setCanBeAssigned(true);
-			addToContents.add(graphic);
-			separators.add(graphic);
-		} else {
-			log.warn("LOG00510: unknown function " + graphic);
-			graphic.setCanBeAssigned(false);
-		}
-
-		graphicsToRender.add(graphic);
-	}
-
-	int num = 0;
-	for (int i = 0, size = separators.size(); i < size; i++) {
-		final GraphicContent separator = separators.get(i);
-		if (separator.isAssignedBlock()) {
-			continue;
-		}
-	}
-
-
-	originalWholePage.addContent(addToContents);
 	regions.add(originalWholePage);
+
+	this.graphics = graphics;
 }
 
 // -------------------------- STATIC METHODS --------------------------
@@ -128,32 +82,15 @@ private static PriorityQueue<GraphicContent> createSmallestFirstQueue(@NotNull f
 	final Comparator<GraphicContent> smallestComparator = new Comparator<GraphicContent>() {
 		@Override
 		public int compare(@NotNull final GraphicContent o1, @NotNull final GraphicContent o2) {
-			return Float.compare(o1.getPosition().getHeight(), o2.getPosition().getHeight());
+			return Float.compare(o1.getPosition().area(), o2.getPosition().area());
 		}
 	};
 
 	final int capacity = Math.max(1, graphicalRegions.size());
-	PriorityQueue<GraphicContent> queue = new PriorityQueue<GraphicContent>(capacity,
-	                                                                        smallestComparator);
+	PriorityQueue<GraphicContent> queue
+			= new PriorityQueue<GraphicContent>(capacity, smallestComparator);
 	queue.addAll(graphicalRegions);
 	return queue;
-}
-
-private static boolean doesContainSomething(@NotNull final PhysicalPageRegion region,
-                                            @NotNull final GraphicContent graphic)
-{
-	for (PhysicalContent content : region.getContents()) {
-		if (graphic.getPosition().contains(content.getPosition())) {
-			return true;
-		}
-	}
-	return false;
-}
-
-private static boolean isTooBigPicture(@NotNull final RectangleCollection region,
-                                       @NotNull final PhysicalContent graphic)
-{
-	return graphic.getPosition().area() >= region.getPosition().area();
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -168,19 +105,20 @@ public int getPageNumber() {
 public PageNode compileLogicalPage() {
 	long t0 = System.currentTimeMillis();
 
+	graphics.segmentGraphicsUsingContentInRegion(originalWholePage);
+	originalWholePage.addContent(graphics.getContentGraphics());
+
 	/** separate out the content which is contained within a graphic.
 	 * sort the graphics by smallest, because they frequently do overlap.
 	 * */
-	PriorityQueue<GraphicContent> queue = createSmallestFirstQueue(graphicalRegions);
+	PriorityQueue<GraphicContent> queue = createSmallestFirstQueue(graphics.getGraphicalRegions());
 
 	while (!queue.isEmpty()) {
 		final GraphicContent graphic = queue.remove();
 
 		try {
-			//			if (isContentContainedWithinAnyContentInList(queue, graphic)) {
-			//				continue;
-			//			}
-
+			/* if we extract by a white graphic, dont set it as belonging to that. these are
+			 *  oftenly used just to separate text in the pdf but are not visible */
 			final PhysicalPageRegion region = originalWholePage.extractSubRegion(graphic, graphic);
 			if (null != region) {
 				regions.add(region);
@@ -188,22 +126,24 @@ public PageNode compileLogicalPage() {
 					log.info("LOG00340:Added subregion " + region);
 				}
 			} else {
-				graphic.setCanBeAssigned(true);
-				originalWholePage.addContent(graphic);
+				if (!graphic.isBackgroundColor()) {
+					graphic.setCanBeAssigned(true);
+					originalWholePage.addContent(graphic);
+				}
 			}
 		} catch (Exception e) {
 			log.warn("LOG00320:Error while dividing page by " + graphic + ":" + e.getMessage());
-			//legg til
-			//			graphicsToRender.remove(graphic);
+			graphics.getGraphicsToRender().remove(graphic);
 		}
 	}
 
 	List<PhysicalPageRegion> newRegions = new ArrayList<PhysicalPageRegion>();
-	for (PhysicalPageRegion region : regions) {
-		newRegions.addAll(region.splitInHorizontalColumns());
-	}
-	regions.addAll(newRegions);
 
+	//	newRegions.clear();
+	//	for (PhysicalPageRegion region : regions) {
+	//		newRegions.addAll(region.splitInHorizontalColumnsByStyle());
+	//	}
+	//	regions.addAll(newRegions);
 
 	newRegions.clear();
 	for (PhysicalPageRegion region : regions) {
@@ -211,9 +151,28 @@ public PageNode compileLogicalPage() {
 	}
 	regions.addAll(newRegions);
 
+
 	newRegions.clear();
 	for (PhysicalPageRegion region : regions) {
-		newRegions.addAll(region.splitInHorizontalColumns());
+		newRegions.addAll(region.splitInHorizontalColumnsBySpacing());
+	}
+	regions.addAll(newRegions);
+
+
+	//	/**
+	//	 * pass 2
+	//	 */
+	//
+	//	newRegions.clear();
+	//	for (PhysicalPageRegion region : regions) {
+	//		newRegions.addAll(region.splitInHorizontalColumnsByStyle());
+	//	}
+	//	regions.addAll(newRegions);
+	//
+	//
+	newRegions.clear();
+	for (PhysicalPageRegion region : regions) {
+		newRegions.addAll(region.splitInHorizontalColumnsBySpacing());
 	}
 	regions.addAll(newRegions);
 
@@ -230,8 +189,9 @@ public PageNode compileLogicalPage() {
 	PageNode ret = new PageNode(pageNumber);
 
 	final List<WhitespaceRectangle> allWhitespace = new ArrayList<WhitespaceRectangle>();
+	LineSegmentator lineSegmentator = new LineSegmentator(5.0f);
 	for (PhysicalPageRegion region : regions) {
-		List<ParagraphNode> paragraphs = region.createParagraphNodes();
+		List<ParagraphNode> paragraphs = region.createParagraphNodes(lineSegmentator);
 
 		allWhitespace.addAll(region.getWhitespace());
 		for (ParagraphNode paragraph : paragraphs) {
@@ -240,9 +200,28 @@ public PageNode compileLogicalPage() {
 	}
 
 
-	ret.addDebugFeatures(Color.RED, regions);
+	/* for rendering only */
+	List<GraphicContent> filled = new ArrayList<GraphicContent>();
+	List<GraphicContent> unFilled = new ArrayList<GraphicContent>();
+	List<GraphicContent> pictures = new ArrayList<GraphicContent>();
+
+	for (GraphicContent content : graphics.getGraphicsToRender()) {
+		if (content.isPicture()) {
+			pictures.add(content);
+		} else if (content.isFilled()) {
+			filled.add(content);
+		} else {
+			unFilled.add(content);
+		}
+	}
+	ret.addDebugFeatures(Color.green, pictures);
+	ret.addDebugFeatures(Color.MAGENTA, filled);
+	ret.addDebugFeatures(Color.ORANGE, unFilled);
+
+
+	//	ret.addDebugFeatures(Color.RED, regions);
 	//		ret.addDebugFeatures(Color.BLACK, allWhitespace);
-	ret.addDebugFeatures(Color.MAGENTA, graphicsToRender);
+
 	//        ret.addColumns(layoutRecognizer.findColumnsForPage(wholePage, ret));
 
 	if (log.isInfoEnabled()) {
@@ -254,22 +233,5 @@ public PageNode compileLogicalPage() {
 @NotNull
 public RectangleCollection getContents() {
 	return originalWholePage;
-}
-
-// -------------------------- OTHER METHODS --------------------------
-
-private boolean isContentContainedWithinAnyContentInList(final Collection<GraphicContent> queue,
-                                                         final PhysicalContent graphic)
-{
-	boolean found = false;
-	for (GraphicContent content : queue) {
-		if (content.getPosition().contains(graphic.getPosition())) {
-			if (log.isInfoEnabled()) {
-				log.info("LOG00520:" + graphic + "contained in " + content + ", dropping");
-				found = true;
-			}
-		}
-	}
-	return found;
 }
 }

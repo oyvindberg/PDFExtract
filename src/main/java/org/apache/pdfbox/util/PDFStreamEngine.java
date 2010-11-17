@@ -31,16 +31,11 @@ import org.apache.pdfbox.pdmodel.graphics.color.PDColorSpace;
 import org.apache.pdfbox.pdmodel.graphics.xobject.PDXObject;
 import org.apache.pdfbox.util.operator.OperatorProcessor;
 import org.elacin.pdfextract.pdfbox.ETextPosition;
-import org.elacin.pdfextract.physical.content.GraphicContent;
-import org.elacin.pdfextract.util.Rectangle;
+import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentatorImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.GeneralPath;
-import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
@@ -56,7 +51,6 @@ import java.util.List;
 public class PDFStreamEngine {
 // ------------------------------ FIELDS ------------------------------
 
-
 /** Log instance. */
 private static final Logger log = Logger.getLogger(PDFStreamEngine.class);
 
@@ -66,8 +60,6 @@ private static final byte[] SPACE_BYTES = {(byte) 32};
 
 protected PDPage page;
 protected Shape  currentClippingPath;
-@NotNull
-protected final ImageExtractor imageExtractor = new ImageExtractor();
 
 /** The PDF operators that are ignored by this engine. */
 @NotNull
@@ -96,6 +88,10 @@ private int totalCharCnt;
 
 /** Flag to skip malformed or otherwise unparseable input where possible. */
 private boolean forceParsing;
+
+protected GraphicSegmentatorImpl graphicSegmentator;
+
+protected int textPositionSequenceNumber = 0;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -340,8 +336,11 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
 
 		//todo, handle horizontal displacement
 		// get the width and height of this character in text units
-		float characterHorizontalDisplacementText = (font.getFontWidth(string, i, codeLength)
-				/ glyphSpaceToTextSpaceFactor);
+		float fontWidth = font.getFontWidth(string, i, codeLength);
+		if (fontWidth == 0.0f) {
+			fontWidth = spaceWidthDisp;
+		}
+		float characterHorizontalDisplacementText = (fontWidth / glyphSpaceToTextSpaceFactor);
 		maxVerticalDisplacementText = Math.max(maxVerticalDisplacementText,
 		                                       font.getFontHeight(string, i, codeLength)
 				                                       / glyphSpaceToTextSpaceFactor);
@@ -444,20 +443,21 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
 		float[] individualWidths = new float[characterBuffer.length()];
 		System.arraycopy(individualWidthsBuffer, 0, individualWidths, 0, individualWidths.length);
 
+		if (characterBuffer.toString().trim().isEmpty()) {
+			if (log.isDebugEnabled()) { log.debug("Dropping empty string"); }
+			;
+		} else {
+			try {
 
-		try {
-			// process the decoded text
-			processTextPosition(new ETextPosition(page, textMatrixStDisp, textMatrixEndDisp,
-			                                      totalVerticalDisplacementDisp, individualWidths,
-			                                      spaceWidthDisp, characterBuffer.toString(), font,
-			                                      fontSizeText,
-			                                      (int) (fontSizeText * textMatrix.getXScale()),
-			                                      wordSpacingDisp));
-		} catch (Exception e) {
-			log.warn("LOG00570:Error while adding text " + characterBuffer.toString() + ": "
-					         + e.getMessage());
+				processTextPosition(new ETextPosition(page, textMatrixStDisp, textMatrixEndDisp, totalVerticalDisplacementDisp, individualWidths, spaceWidthDisp, characterBuffer.toString(), font, fontSizeText, (int) (
+						fontSizeText
+								* textMatrix.getXScale()), wordSpacingDisp, textPositionSequenceNumber));
+				textPositionSequenceNumber++;
+
+			} catch (Exception e) {
+				log.warn("LOG00570:Error adding '" + characterBuffer + "': " + e.getMessage());
+			}
 		}
-
 		textMatrixStDisp = textMatrix.multiply(dispMatrix);
 
 		characterBuffer.setLength(0);
@@ -657,110 +657,6 @@ private static class StreamResources {
 	private PDResources                          resources;
 
 	private StreamResources() {
-	}
-}
-
-protected class ImageExtractor {
-
-	@NotNull
-	final List<Rectangle> filledFigures   = new ArrayList<Rectangle>();
-	@NotNull
-	final List<Rectangle> unfilledFigures = new ArrayList<Rectangle>();
-	@NotNull
-	final List<Rectangle> images          = new ArrayList<Rectangle>();
-
-	static final float combineDistance = 1.5f;
-
-	public void drawImage(final Image awtImage, final AffineTransform at, final Object o) {
-
-		/* transform the coordinates by using the affinetransform. */
-		Point2D upperLeft = at.transform(new Point2D.Float(0.0F, 0.0F), null);
-
-		final Point2D.Float imageDimensions = new Point2D.Float((float) awtImage.getWidth(null),
-		                                                        (float) awtImage.getHeight(null));
-		Point2D lowerRight = at.transform(imageDimensions, null);
-
-		final Rectangle2D bounds = getGraphicsState().getCurrentClippingPath().getBounds2D();
-
-		/* this is necessary because the image might be rotated */
-		float x = (float) Math.min(upperLeft.getX(), lowerRight.getX());
-		float endX = (float) Math.max(upperLeft.getX(), lowerRight.getX());
-		float y = (float) Math.min(upperLeft.getY(), lowerRight.getY());
-		float endY = (float) Math.max(upperLeft.getY(), lowerRight.getY());
-
-		x = (float) Math.max(bounds.getMinX(), x);
-		y = (float) Math.max(bounds.getMinY(), y);
-		endX = (float) Math.min(bounds.getMaxX(), endX);
-		endY = (float) Math.min(bounds.getMaxY(), endY);
-
-		Rectangle pos = null;
-		try {
-			pos = new Rectangle(x, y, endX - x, endY - y);
-		} catch (Exception e) {
-			log.warn("LOG00580:Error while adding image: " + e.getMessage());
-			return;
-		}
-		addImageToList(images, pos);
-	}
-
-	private void addImageToList(@NotNull final List<Rectangle> list, @NotNull final Rectangle pos) {
-
-		if (!list.isEmpty()) {
-			final Rectangle last = list.get(list.size() - 1);
-			if (last.distance(pos) < combineDistance && !last.intersectsWith(pos)) {
-				list.remove(list.size() - 1);
-				list.add(last.union(pos));
-			} else {
-				list.add(pos);
-			}
-		} else {
-			list.add(pos);
-		}
-	}
-
-	@NotNull
-	@SuppressWarnings({"ObjectAllocationInLoop"})
-	public List<GraphicContent> getGraphicContents() {
-		List<GraphicContent> ret = new ArrayList<GraphicContent>();
-		for (Rectangle unfilledFigure : unfilledFigures) {
-			ret.add(new GraphicContent(unfilledFigure, false, false));
-		}
-		for (Rectangle filledFigure : filledFigures) {
-			ret.add(new GraphicContent(filledFigure, false, true));
-		}
-		for (Rectangle image : images) {
-			ret.add(new GraphicContent(image, true, true));
-		}
-		return ret;
-	}
-
-	public void fill(@NotNull final GeneralPath linePath) {
-		try {
-			addImageToList(filledFigures, convertRectangle(linePath.getBounds()));
-		} catch (Exception e) {
-			log.warn("LOG00580:Error while filling path " + linePath + ": " + e.getMessage());
-		}
-	}
-
-	@NotNull
-	private Rectangle convertRectangle(@NotNull final java.awt.Rectangle bounds) {
-		return new Rectangle((float) bounds.x, (float) bounds.y, (float) bounds.width,
-		                     (float) bounds.height);
-
-	}
-
-	public void draw(@NotNull final GeneralPath path) {
-		try {
-			addImageToList(unfilledFigures, convertRectangle(path.getBounds()));
-		} catch (Exception e) {
-			log.warn("LOG00580:Error while drawing " + path + ": " + e.getMessage());
-		}
-	}
-
-	public void clear() {
-		filledFigures.clear();
-		unfilledFigures.clear();
-		images.clear();
 	}
 }
 }

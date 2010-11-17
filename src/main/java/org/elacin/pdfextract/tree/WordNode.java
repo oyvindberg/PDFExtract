@@ -123,7 +123,7 @@ protected void appendLocalInfo(@NotNull final Appendable out, final int indent) 
 	out.append(position.toString());
 	out.append(", charSpacing=").append(String.valueOf(charSpacing));
 
-	out.append(", style:").append(style.toString());
+	out.append(", style:").append(style != null ? style.toString() : null);
 
 	if (roles != null) {
 		out.append(", ").append(roles.keySet().toString());

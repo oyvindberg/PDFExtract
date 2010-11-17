@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 √òyvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.elacin.pdfextract.physical.content;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.physical.segmentation.line.LineSegmentator;
+import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.tree.LineNode;
 import org.elacin.pdfextract.tree.ParagraphNode;
 import org.elacin.pdfextract.util.Rectangle;
@@ -36,15 +37,21 @@ public class PhysicalPageRegion extends RectangleCollection {
 
 private static final Logger log = Logger.getLogger(PhysicalPageRegion.class);
 
-/* average font sizes for the page region */
-private final float avgFontSizeX;
-private final float avgFontSizeY;
+/* average font sizes, and most common style for this page region */
+private transient boolean fontInfoFound;
+private transient float   _avgFontSizeX;
+private transient float   _avgFontSizeY;
+@Nullable
+private transient Style   _mostCommonStyle;
+private transient boolean _containsNoText;
 
 /* the physical page containing this region */
 private final int pageNumber;
 
 @NotNull
 private List<WhitespaceRectangle> whitespace = new ArrayList<WhitespaceRectangle>();
+@NotNull
+private List<PhysicalPageRegion>  subregions = new ArrayList<PhysicalPageRegion>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -54,18 +61,6 @@ public PhysicalPageRegion(@NotNull final Collection<? extends PhysicalContent> c
 {
 	super(contents, containedIn);
 	this.pageNumber = pageNumber;
-
-	/* find bounds and average font sizes for the page */
-	float xFontSizeSum = 0.0f, yFontSizeSum = 0.0f;
-	for (PhysicalContent content : contents) {
-		if (content.isText()) {
-			final PhysicalText text = content.getText();
-			xFontSizeSum += text.getStyle().xSize;
-			yFontSizeSum += text.getStyle().ySize;
-		}
-	}
-	avgFontSizeX = xFontSizeSum / (float) contents.size();
-	avgFontSizeY = yFontSizeSum / (float) contents.size();
 }
 
 public PhysicalPageRegion(@NotNull final List<? extends PhysicalContent> contents,
@@ -74,16 +69,100 @@ public PhysicalPageRegion(@NotNull final List<? extends PhysicalContent> content
 	this(contents, null, pageNumber);
 }
 
+// ------------------------ OVERRIDING METHODS ------------------------
+
+@Override
+protected void clearCache() {
+	super.clearCache();
+	fontInfoFound = false;
+}
+
 // -------------------------- STATIC METHODS --------------------------
 
-private static boolean tooMuchContentCrossesBoundary(@NotNull RectangleCollection contents,
-                                                     @NotNull final HasPosition boundary)
+protected static boolean columnContainsBlockingGraphics(@NotNull final List<PhysicalContent> column,
+                                                        final float x,
+                                                        final float minY,
+                                                        final float maxY)
+{
+	HasPosition search = new Rectangle(x, minY, 1.0f, maxY - minY);
+	for (PhysicalContent obstacle : column) {
+		if (obstacle.isGraphic()) {
+			if (obstacle.getPosition().intersectsWith(search)) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+@Nullable
+private static Style findDominatingStyleFor(@NotNull final Collection<PhysicalContent> contentsList) {
+	boolean textFound = false;
+	Map<Style, Integer> letterCountPerStyle = new HashMap<Style, Integer>(10);
+	for (PhysicalContent content : contentsList) {
+		if (content.isText()) {
+			final Style style = content.getText().getStyle();
+
+			if (!letterCountPerStyle.containsKey(style)) {
+				letterCountPerStyle.put(style, 0);
+			}
+			final int numChars = content.getText().getContent().length();
+			letterCountPerStyle.put(style, letterCountPerStyle.get(style) + numChars);
+			textFound = true;
+		}
+	}
+	if (!textFound) {
+		System.out.println("textFound = " + textFound);
+	}
+
+	assert textFound;
+
+	int highestNumChars = -1;
+	Style style = null;
+	for (Map.Entry<Style, Integer> entry : letterCountPerStyle.entrySet()) {
+		if (entry.getValue() > highestNumChars) {
+			style = entry.getKey();
+		}
+	}
+
+	return style;
+}
+
+private static boolean listContainsText(@NotNull final Collection<PhysicalContent> workingSet) {
+	for (PhysicalContent content : workingSet) {
+		if (content.isText()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+private static boolean listContainsTextOrSeparator(@NotNull final Collection<PhysicalContent> workingSet) {
+	for (PhysicalContent content : workingSet) {
+		if (content.isText()) {
+			return true;
+		}
+		if (content.isGraphic() && content.getGraphicContent().canBeConsideredSeparator()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+@NotNull
+protected static Rectangle returnABitSmallerPosition(@NotNull final HasPosition bound) {
+	final Rectangle p = bound.getPosition();
+	return new Rectangle(
+			p.getX() + 1.0f, p.getY() + 1.0f, p.getWidth() - 1.0f, p.getHeight() - 1.0f);
+}
+
+protected static boolean tooMuchContentCrossesBoundary(@NotNull RectangleCollection contents,
+                                                       @NotNull final HasPosition boundary)
 {
 	List<PhysicalContent> list = contents.findContentAtXIndex(boundary.getPosition().getX());
 	list.addAll(contents.findContentAtXIndex(boundary.getPosition().getEndX()));
 
 	int intersecting = 0;
-	//    int intersectingLimit = Math.max((int) (picture.getPosition().getHeight() / HIT_PER_PIXELS), 2);
 	int intersectingLimit = 2;
 
 	for (PhysicalContent content : list) {
@@ -94,7 +173,7 @@ private static boolean tooMuchContentCrossesBoundary(@NotNull RectangleCollectio
 					&& content.getPosition().getEndX() > boundary.getPosition().getX() + 1.0f) {
 				makesFiltered = true;
 				if (log.isInfoEnabled()) {
-					log.info("LOG00300: image = " + boundary + ", content = " + content);
+					log.info("LOG00300: graphics = " + boundary + ", content = " + content);
 				}
 			}
 			/* starts inside picture, and ends right of it */
@@ -102,7 +181,7 @@ private static boolean tooMuchContentCrossesBoundary(@NotNull RectangleCollectio
 					&& content.getPosition().getX() < boundary.getPosition().getEndX())) {
 				makesFiltered = true;
 				if (log.isInfoEnabled()) {
-					log.info("LOG00310:image = " + boundary + ", content = " + content);
+					log.info("LOG00310:graphics = " + boundary + ", content = " + content);
 				}
 			}
 
@@ -119,14 +198,6 @@ private static boolean tooMuchContentCrossesBoundary(@NotNull RectangleCollectio
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-public float getAvgFontSizeX() {
-	return avgFontSizeX;
-}
-
-public float getAvgFontSizeY() {
-	return avgFontSizeY;
-}
-
 public int getPageNumber() {
 	return pageNumber;
 }
@@ -138,77 +209,25 @@ public List<WhitespaceRectangle> getWhitespace() {
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-public void addWhitespace(final Collection<WhitespaceRectangle> whitespace) {
-	this.whitespace.addAll(whitespace);
-	addContent(whitespace);
-}
-
 @NotNull
-public List<ParagraphNode> createParagraphNodes() {
-	//	/* start off by finding whitespace */
-	//	final List<WhitespaceRectangle> whitespace = new LayoutRecognizer().findWhitespace(this);
-	//	addWhitespace(whitespace);
-	//
-	//	/* then follow the trails left between the whitespace and construct blocks of text from that */
-	//	int blockNum = 0;
-	//	for (float y = getPosition().getY(); y < getPosition().getEndY(); y++) {
-	//		final List<PhysicalContent> row = findContentAtYIndex(y);
-	//
-	//		/* iterate through the line to find possible start of blocks */
-	//		for (PhysicalContent contentInRow : row) {
-	//			if (contentInRow.isText() && !contentInRow.getText().isAssignedBlock()) {
-	//				/* find all connected texts and mark with this blockNum*/
-	//				final PhysicalText text = contentInRow.getText();
-	//				markEverythingConnectedFrom(contentInRow, blockNum, text.getRotation(),
-	//				                            text.style.font);
-	//
-	//				blockNum++;
-	//			}
-	//		}
-	//	}
-	//
-	//	/* compile paragraphs of text based on the assigned block numbers */
-	//	List<ParagraphNode> ret = new ArrayList<ParagraphNode>();
-	//	final LineSegmentator segmentator = new LineSegmentator();
-	//
-	//	for (int i = 0; i < blockNum; i++) {
-	//		//		ParagraphNode paragraphNode = new ParagraphNode();
-	//		/* collect all the words logically belonging to this paragraph */
-	//		List<PhysicalContent> paragraphContent = new ArrayList<PhysicalContent>();
-	//		for (PhysicalContent word : getContents()) {
-	//			if (word.isAssignablePhysicalContent()) {
-	//				if (word.getAssignablePhysicalContent().getBlockNum() == i) {
-	//					if (word.isText()) {
-	//						paragraphContent.add(word);
-	//						//						paragraphNode.addWord(createWordNode(word.getText()));
-	//					}
-	//				}
-	//			}
-	//		}
-	//		/* then group words in lines */
-	//
-	//		final List<LineNode> lines = segmentator.segmentLines(paragraphContent, pageNumber);
-	//		final ParagraphNode paragraph = new ParagraphNode();
-	//		for (LineNode line : lines) {
-	//			paragraph.addChild(line);
-	//		}
-	//		ret.add(paragraph);
-	//		//		if (!paragraphNode.getChildren().isEmpty()) {
-	//		//			ret.add(paragraphNode);
-	//		//		}
-	//	}
-
+public List<ParagraphNode> createParagraphNodes(@NotNull final LineSegmentator segmentator) {
 	List<ParagraphNode> ret = new ArrayList<ParagraphNode>();
-	final LineSegmentator segmentator = new LineSegmentator();
 
-	final List<LineNode> lines = segmentator.segmentLines(this, 2.0f);
+	final List<LineNode> lines = createLineNodes(segmentator);
+
 	if (!lines.isEmpty()) {
 		final ParagraphNode paragraph = new ParagraphNode();
+		paragraph.setContainedInImage(isContainedInGraphic());
 		for (LineNode line : lines) {
 			paragraph.addChild(line);
 		}
 		ret.add(paragraph);
 	}
+
+	for (PhysicalPageRegion subregion : subregions) {
+		ret.addAll(subregion.createParagraphNodes(segmentator));
+	}
+
 	return ret;
 }
 
@@ -223,60 +242,374 @@ public List<ParagraphNode> createParagraphNodes() {
 public PhysicalPageRegion extractSubRegion(@NotNull final HasPosition bound,
                                            @Nullable final PhysicalContent containedIn)
 {
-	final List<PhysicalContent> subContents = findRectanglesIntersectingWith(makeSmaller(bound));
-	if (subContents.isEmpty()) {
-		log.warn("LOG00370:got empty subregion for bound " + bound);
-		return null;
-	}
+	/* decrease the area within which we are looking for content a big, this is related to
+	*   the neverending problems of iffy character positioning for some fonts*/
+	final Rectangle smallerBound = returnABitSmallerPosition(bound);
+	final List<PhysicalContent> subContents = findRectanglesIntersectingWith(smallerBound);
 
-	final PhysicalPageRegion newRegion = new PhysicalPageRegion(subContents, containedIn,
-	                                                            pageNumber);
-
-	if (tooMuchContentCrossesBoundary(newRegion, bound)) {
-		throw new RuntimeException("Considering bound " + bound
-				                           + " as wallpaper. too much contents crossed the boundary");
-	}
-
-	removeContent(subContents);
-
-	return newRegion;
+	return extractSubRegionFromContentList(bound, containedIn, subContents);
 }
 
-private static HasPosition makeSmaller(final HasPosition bound) {
-	final Rectangle p = bound.getPosition();
-	return new Rectangle(p.getX() + 1.0f, p.getY() + 1.0f, p.getWidth() - 1.0f,
-	                     p.getHeight() - 1.0f);
-}
-
-public boolean isContainedInFigure() {
-	return getContainedIn() != null && (getContainedIn().isFigure()
-			|| getContainedIn().isPicture());
-}
-
-public List<PhysicalPageRegion> splitInHorizontalColumns() {
-	List<PhysicalPageRegion> subregions = new ArrayList<PhysicalPageRegion>();
-
-
-	if (getPosition().getHeight() < avgFontSizeY * 2) {
-		return subregions;
+public float getAvgFontSizeX() {
+	if (!fontInfoFound) {
+		findAndSetFontInformation();
 	}
-	if (position.getWidth() < avgFontSizeX * 2) {
-		return subregions;
+	return _avgFontSizeX;
+}
+
+public float getAvgFontSizeY() {
+	if (!fontInfoFound) {
+		findAndSetFontInformation();
+	}
+	return _avgFontSizeY;
+}
+
+@NotNull
+public List<PhysicalPageRegion> splitInHorizontalColumnsBySpacing() {
+	List<PhysicalPageRegion> ret = new ArrayList<PhysicalPageRegion>();
+
+	/* If the size of this region is this small, dont bother splitting it further */
+	if (getPosition().getHeight() < getAvgFontSizeY() * 2) {
+		return ret;
+	}
+	if (position.getWidth() < getAvgFontSizeX() * 2) {
+		return ret;
 	}
 
 
 	/* start of by finding the median of a sample of vertical distances */
-	final int LIMIT = (int) avgFontSizeY * 3;
+	int boundaryLimit = findMedianOfVerticalDistancesForRegion();
+	boundaryLimit++;
+	if (log.isInfoEnabled()) { log.info("LOG00620:boundaryLimit=" + boundaryLimit); }
+
+	/* if none we found, return an empty list */
+	if (boundaryLimit == -1) {
+		return ret;
+	}
+
+
+	Set<PhysicalContent> workingSet = new HashSet<PhysicalContent>();
+	final Rectangle pos = getPosition();
+
+	float lastBoundary = -1000.0f;
+	for (float y = pos.getY(); y <= pos.getEndY(); y++) {
+		final List<PhysicalContent> row = findContentAtYIndex(y);
+
+		workingSet.addAll(row);
+		if (row.isEmpty()) {
+			if (!listContainsTextOrSeparator(workingSet)) {
+				continue;
+			}
+
+			if (containsAllRemainingContent(workingSet)) {
+				continue;
+			}
+
+			if ((y - lastBoundary < boundaryLimit)) {
+				continue;
+			}
+
+			if (log.isInfoEnabled()) {
+				log.info(String.format("LOG00530:horizontal split at y=%s for %s ", y, this));
+			}
+
+			PhysicalPageRegion sub
+					= extractSubRegionFromContentList(null, getContainedIn(), workingSet);
+			if (sub != null) {
+				ret.add(sub);
+			}
+
+			workingSet.clear();
+			lastBoundary = y;
+		} else {
+			lastBoundary = y;
+		}
+	}
+	return ret;
+}
+
+@NotNull
+public List<PhysicalPageRegion> splitInHorizontalColumnsByStyle() {
+	List<PhysicalPageRegion> ret = new ArrayList<PhysicalPageRegion>();
+
+
+	Set<PhysicalContent> workingSet = new HashSet<PhysicalContent>();
+	final Rectangle pos = getPosition();
+
+	Style currentStyle = null;
+	for (float y = pos.getY(); y <= pos.getEndY(); y++) {
+		final List<PhysicalContent> row = findContentAtYIndex(y);
+
+
+		if (!listContainsText(workingSet)) {
+			/* if this is the first text we encounter, just add it */
+			workingSet.addAll(row);
+			continue;
+		}
+
+		if (!listContainsText(row)) {
+			/* now we have collected a whole line. if its the first, determine its style */
+
+			if (currentStyle == null) {
+				currentStyle = findDominatingStyleFor(workingSet);
+				workingSet.addAll(row);
+				continue;
+			}
+
+			/* this is not the first, check if the main style of this line matches that of the
+				preceeding one */
+			final Style newStyle = findDominatingStyleFor(workingSet);
+
+			// == compare is ok here, there is only one style instance per different style
+			//noinspection ObjectEquality
+			if (currentStyle == newStyle) {
+				/* its the same, so continue on to next line */
+				workingSet.addAll(row);
+				continue;
+			}
+
+			/* oh, new dominant style. split the region right here*/
+
+			if (!containsAllRemainingContent(workingSet)) {
+				if (log.isInfoEnabled()) {
+					log.info("LOG00610:splitting region based on style. former= " + currentStyle
+							         + ", current= " + newStyle + "\n\tregion= " + this);
+				}
+
+				PhysicalPageRegion sub
+						= extractSubRegionFromContentList(null, getContainedIn(), workingSet);
+				if (sub != null) {
+					ret.add(sub);
+				}
+
+				row.removeAll(workingSet);
+				workingSet.clear();
+			}
+			workingSet.clear();
+
+			/* start new region */
+			currentStyle = null;
+		}
+	}
+	return ret;
+}
+
+@NotNull
+public List<PhysicalPageRegion> splitInVerticalColumns() {
+	List<PhysicalPageRegion> ret = new ArrayList<PhysicalPageRegion>();
+
+	/**
+	 * Dont bother splitting columns narrower than this
+	 */
+	if (getPosition().getWidth() < getAvgFontSizeX() * 3) {
+		return ret;
+	}
+
+	/* state for the algorithm */
+	Set<PhysicalContent> workingSet = new HashSet<PhysicalContent>();
+	PhysicalContent currentUpperRightAddedToWorkingSet = null;
+	float lastBoundary = -1000.0f;
+	float minY = Float.MAX_VALUE, maxY = Float.MIN_VALUE;
+
+
+	/**
+	 * check for every x index if is a column boundary
+	 */
+	for (float x = getPosition().getX(); x <= getPosition().getEndX(); x++) {
+		/* start by finding the content of this column, that is everything which
+			intersects, and make a decision based on that
+		 */
+		final List<PhysicalContent> column = findContentAtXIndex(x);
+		workingSet.addAll(column);
+
+		/* keep track of current vertical bounds */
+		for (PhysicalContent newContent : column) {
+			minY = Math.min(newContent.getPosition().getY(), minY);
+			maxY = Math.max(newContent.getPosition().getEndY(), maxY);
+		}
+
+		/**
+		 * Check if this column could be a boundary... there are a whole group of checks here :)
+		 */
+		if (!listContainsText(column)) {
+			if (!listContainsText(workingSet)) {
+				continue;
+			}
+
+			if (columnContainsBlockingGraphics(column, x, minY, maxY)) {
+				continue;
+			}
+
+			if (containsAllRemainingContent(workingSet)) {
+				continue;
+			}
+
+			if (columnBoundaryWouldBeTooNarrow(lastBoundary, x)) {
+				/* accept it anyway if it divides a lot of text*/
+				if (workingSet.size() < 20) {
+					continue;
+				}
+
+				/* check also how much text exists to the right of this boundary */
+				HasPosition search = new Rectangle(x, minY, getPosition().getEndX(), maxY);
+				final List<PhysicalContent> contentRight = findRectanglesIntersectingWith(search);
+				if (contentRight.size() < 20) {
+					continue;
+				}
+			}
+
+			if (checkIfBelongsWithContentOnRight(currentUpperRightAddedToWorkingSet)) {
+				continue;
+			}
+
+
+			if (log.isInfoEnabled()) {
+				log.info(String.format("LOG00510:vertical split at x =%s for %s ", x, this));
+			}
+			PhysicalPageRegion sub
+					= extractSubRegionFromContentList(null, getContainedIn(), workingSet);
+
+			/* reset vertical values */
+			minY = Float.MAX_VALUE;
+			maxY = Float.MIN_VALUE;
+
+			if (sub != null) {
+				ret.add(sub);
+			}
+
+			workingSet.clear();
+			lastBoundary = x;
+		} else {
+			lastBoundary = x;
+			currentUpperRightAddedToWorkingSet = column.get(0);
+		}
+	}
+
+	return ret;
+}
+
+// -------------------------- OTHER METHODS --------------------------
+
+protected boolean checkIfBelongsWithContentOnRight(@Nullable final PhysicalContent content) {
+	if (content == null || !content.isText()) {
+		return false;
+	}
+
+	final float y = content.getPosition().getY() + content.getPosition().getHeight() * 0.5f;
+	final List<PhysicalContent> row = findContentAtYIndex(y);
+	final int index = row.indexOf(content);
+	if (index == -1) {
+		throw new RuntimeException("Region " + this + " Could not find " + content + " at y=" + y);
+	}
+
+	if (index == row.size() - 1) {
+		return false;
+	}
+
+	final PhysicalContent next = row.get(index + 1);
+	if (!next.isText()) {
+		return false;
+	}
+
+	/** i'll consider this too far away for now - splitting this distance should be fine*/
+	if (next.getPosition().distance(getPosition()) > content.getText().getStyle().xSize * 4) {
+		return false;
+	}
+
+	return next.getText().getSeqNums().first() == content.getText().getSeqNums().last() + 1;
+}
+
+protected boolean columnBoundaryWouldBeTooNarrow(final float lastBoundary, final float x) {
+	return x - lastBoundary < getAvgFontSizeX() * 0.5f;
+}
+
+protected boolean containsAllRemainingContent(@NotNull final Collection<PhysicalContent> list) {
+	return list.size() == getContents().size();
+}
+
+protected List<LineNode> createLineNodes(@NotNull final LineSegmentator segmentator) {
+	return segmentator.segmentLines(this);
+}
+
+@Nullable
+protected PhysicalPageRegion extractSubRegionFromContentList(@Nullable final HasPosition bound,
+                                                             @Nullable final PhysicalContent containedIn,
+                                                             @NotNull final Collection<PhysicalContent> subContents)
+{
+	if (subContents.isEmpty()) {
+		log.warn("LOG00370:Tried to extract empty region " + bound);
+		return null;
+	}
+
+	PhysicalContent contained = containedIn != null ? containedIn : this;
+
+	final PhysicalPageRegion newRegion = new PhysicalPageRegion(subContents, contained, pageNumber);
+	if (bound != null) {
+		if (tooMuchContentCrossesBoundary(newRegion, bound)) {
+			throw new RuntimeException("Too much content crossed the bounds we tried to divide by."
+					                           + "This happens often with background pictures. "
+					                           + bound);
+		}
+	}
+
+	removeContent(subContents);
+
+	if (isContainedInGraphic()) {
+		subregions.add(newRegion);
+		return null;
+	}
+
+	return newRegion;
+}
+
+/* find average font sizes, and most used style for the region */
+
+protected void findAndSetFontInformation() {
+	float xFontSizeSum = 0.0f, yFontSizeSum = 0.0f;
+	int numCharsFound = 0;
+	for (PhysicalContent content : getContents()) {
+		if (content.isText()) {
+			final Style style = content.getText().getStyle();
+
+			final int length = content.getText().getContent().length();
+			xFontSizeSum += style.xSize * length;
+			yFontSizeSum += style.ySize * length;
+			numCharsFound += length;
+		}
+	}
+	if (numCharsFound == 0) {
+		_avgFontSizeX = Float.MIN_VALUE;
+		_avgFontSizeY = Float.MIN_VALUE;
+		_mostCommonStyle = null;
+	} else {
+		_avgFontSizeX = xFontSizeSum / (float) numCharsFound;
+		_avgFontSizeY = yFontSizeSum / (float) numCharsFound;
+		_mostCommonStyle = findDominatingStyleFor(getContents());
+	}
+	_containsNoText = numCharsFound == 0;
+	fontInfoFound = true;
+}
+
+/**
+ * Finds an approximation of the normal vertical line spacing for the region.
+ *
+ * This is done by looking at three vertical rays, calculating distances between all the lines
+ * intersecting those lines, and then returning the median of all those distances.
+ *
+ * minimum value is 2, max is (avgFontSize * 3) -1. -1 if nothing is found;
+ */
+protected int findMedianOfVerticalDistancesForRegion() {
+	final int LIMIT = (int) getAvgFontSizeY() * 3;
 
 	int[] distanceCount = new int[LIMIT];
 	final Rectangle pos = getPosition();
 	for (float x = pos.getX(); x <= pos.getEndX(); x += pos.getWidth() / 3) {
-
 		final List<PhysicalContent> column = findContentAtXIndex(x);
 		for (int i = 1; i < column.size(); i++) {
 			final PhysicalContent current = column.get(i - 1);
 			final PhysicalContent below = column.get(i);
-			/* increase count for this distance (rounded to int) */
+
+			/* increase count for this distance (rounded down to an int) */
 			final int d = (int) (below.getPosition().getY() - current.getPosition().getEndY());
 			if (d > 0 && d < LIMIT) {
 				distanceCount[d]++;
@@ -286,145 +619,19 @@ public List<PhysicalPageRegion> splitInHorizontalColumns() {
 
 	int highestFrequency = -1;
 	int index = -1;
-	//((int) (avgFontSizeY * 0.5f))
 	for (int i = 2; i < distanceCount.length; i++) {
 		if (distanceCount[i] >= highestFrequency) {
 			index = i;
 			highestFrequency = distanceCount[i];
 		}
 	}
-	if (index == -1) {
-		return subregions;
-	}
 
-	int boundaryLimit = index;
-	if (log.isInfoEnabled()) { log.info("LOG00550:boundarylimit = " + boundaryLimit); }
-
-
-	Set<PhysicalContent> workingSet = new HashSet<PhysicalContent>();
-
-	float lastBoundary = -1000.0f;
-	for (float y = pos.getY(); y <= pos.getEndY(); y++) {
-		final List<PhysicalContent> row = findContentAtYIndex(y);
-
-		workingSet.addAll(row);
-		if (listContainsNoText(row)) {
-			if (!workingSet.isEmpty() && workingSet.size() != getContents().size() && (
-					y - lastBoundary > boundaryLimit)) {
-				PhysicalPageRegion subRegion = new PhysicalPageRegion(workingSet, this, pageNumber);
-
-				if (log.isInfoEnabled()) {
-					log.info(String.format("LOG00530:horizontal split at y =%s for %s ", y, this));
-					log.info("LOG00510: created subregion " + subRegion);
-				}
-
-				subregions.add(subRegion);
-				removeContent(workingSet);
-				workingSet.clear();
-				lastBoundary = y;
-			}
-		} else {
-			lastBoundary = y;
-		}
-	}
-	return subregions;
+	return index;
 }
 
-public List<PhysicalPageRegion> splitInVerticalColumns() {
-	List<PhysicalPageRegion> subregions = new ArrayList<PhysicalPageRegion>();
-
-	if (getPosition().getWidth() < avgFontSizeX * 3) {
-		return subregions;
-	}
-
-	Set<PhysicalContent> workingSet = new HashSet<PhysicalContent>();
-
-	float lastBoundary = -1000.0f;
-	for (float x = getPosition().getX(); x <= getPosition().getEndX(); x++) {
-		final List<PhysicalContent> column = findContentAtXIndex(x);
-		workingSet.addAll(column);
-		if (listContainsNoText(column)) {
-			if (!workingSet.isEmpty() && workingSet.size() != getContents().size()
-					&& x - lastBoundary >= avgFontSizeX * 0.5f) {
-
-				PhysicalPageRegion subRegion = new PhysicalPageRegion(workingSet, this, pageNumber);
-
-				if (log.isInfoEnabled()) {
-					log.info(this + " vertical split at x " + "=" + x);
-					log.info("LOG00510: got subregion " + subRegion);
-				}
-
-				subregions.add(subRegion);
-				removeContent(workingSet);
-				workingSet.clear();
-				lastBoundary = x;
-			}
-		} else {
-			lastBoundary = x;
-		}
-	}
-	return subregions;
-}
-
-// -------------------------- OTHER METHODS --------------------------
-
-@SuppressWarnings({"NumericCastThatLosesPrecision"})
-private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent current,
-                                            final int blockNum,
-                                            final int rotation,
-                                            final String fontName)
-{
-	if (!current.isAssignablePhysicalContent()) {
-		return false;
-	}
-	if (current.getAssignablePhysicalContent().isAssignedBlock()) {
-		return false;
-	}
-	if (current.isText() && current.getText().getRotation() != rotation) {
-		return false;
-	}
-
-	current.getAssignablePhysicalContent().setBlockNum(blockNum);
-
-	final Rectangle pos = current.getPosition();
-
-	/* try searching for texts in all directions */
-	for (int y = (int) pos.getY(); y < (int) pos.getEndY(); y++) {
-		markBothWaysFromCurrent(current, blockNum, findContentAtYIndex(y), rotation, fontName);
-	}
-
-	for (int x = (int) pos.getX(); x < (int) pos.getEndX(); x++) {
-		markBothWaysFromCurrent(current, blockNum, findContentAtXIndex(x), rotation, fontName);
-	}
-	return true;
-}
-
-private boolean listContainsNoText(final List<PhysicalContent> workingSet) {
-	for (PhysicalContent content : workingSet) {
-		if (content.isText()) {
-			return false;
-		}
-	}
-	return true;
-}
-
-private void markBothWaysFromCurrent(final PhysicalContent current,
-                                     final int blockNum,
-                                     @NotNull final List<PhysicalContent> line,
-                                     final int rotation,
-                                     final String fontName)
-{
-	final int currentIndex = line.indexOf(current);
-
-	/* left/up*/
-	boolean continue_ = true;
-	for (int index = currentIndex - 1; index >= 0 && continue_; index--) {
-		continue_ &= markEverythingConnectedFrom(line.get(index), blockNum, rotation, fontName);
-	}
-	/* right / down */
-	continue_ = true;
-	for (int index = currentIndex + 1; index < line.size() && continue_; index++) {
-		continue_ &= markEverythingConnectedFrom(line.get(index), blockNum, rotation, fontName);
-	}
+protected boolean isContainedInGraphic() {
+	return getContainedIn() != null && getContainedIn().isGraphic()
+			&& !getContainedIn().getGraphicContent().isBackgroundColor();
 }
 }
+

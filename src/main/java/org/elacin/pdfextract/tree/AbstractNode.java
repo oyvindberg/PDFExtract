@@ -48,6 +48,7 @@ protected DocumentNode      root;
 protected String textCache;
 
 /* a cache of current toString-String */
+@Nullable
 protected transient String toStringCache;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -114,9 +115,8 @@ public void printTree(String filename) {
 	log.info("Opening " + filename + " for output");
 	PrintStream stream = null;
 	try {
-		stream = new PrintStream(
-				new BufferedOutputStream(new FileOutputStream(filename, false), 8192 * 4), false,
-				"UTF-8");
+		stream = new PrintStream(new BufferedOutputStream(new FileOutputStream(filename, false),
+		                                                  8192 * 4), false, "UTF-8");
 		printTree(stream);
 	} catch (Exception e) {
 		log.error("Could not open output file", e);

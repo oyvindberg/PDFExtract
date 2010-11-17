@@ -16,11 +16,7 @@
 
 package org.elacin.pdfextract.util;
 
-/**
- * Created by IntelliJ IDEA. User: elacin Date: May 19, 2010 Time: 9:56:04 PM
- * <p/>
- * A mutable point
- */
+/** Created by IntelliJ IDEA. User: elacin Date: May 19, 2010 Time: 9:56:04 PM <p/> A mutable point */
 public class FloatPoint {
 // ------------------------------ FIELDS ------------------------------
 
@@ -29,35 +25,35 @@ float x, y;
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public FloatPoint(final float x, final float y) {
-    setPosition(x, y);
+	setPosition(x, y);
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
 
 @Override
 public String toString() {
-    final StringBuilder sb = new StringBuilder();
-    sb.append("Point");
-    sb.append(", x=").append(x);
-    sb.append(", y=").append(y);
-    sb.append('}');
-    return sb.toString();
+	final StringBuilder sb = new StringBuilder();
+	sb.append("Point");
+	sb.append(", x=").append(x);
+	sb.append(", y=").append(y);
+	sb.append('}');
+	return sb.toString();
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 public float getX() {
-    return x;
+	return x;
 }
 
 public float getY() {
-    return y;
+	return y;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
 public final void setPosition(float x, float y) {
-    this.x = x;
-    this.y = y;
+	this.x = x;
+	this.y = y;
 }
 }

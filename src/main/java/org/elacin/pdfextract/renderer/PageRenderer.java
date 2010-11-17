@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.HasPosition;
 import org.elacin.pdfextract.tree.*;
 import org.elacin.pdfextract.util.Loggers;
@@ -84,6 +85,7 @@ private static void drawRectangle(@NotNull final Graphics2D graphics,
 
 // -------------------------- PUBLIC METHODS --------------------------
 
+@NotNull
 public BufferedImage renderPage(final int pageNum) {
 	final PageNode pageNode = documentNode.getPageNumber(pageNum);
 
@@ -104,32 +106,42 @@ public BufferedImage renderPage(final int pageNum) {
 	final float xScale = (float) image.getWidth() / page.getArtBox().getWidth();
 	final float yScale = (float) image.getHeight() / page.getArtBox().getHeight();
 
+	for (Map.Entry<Color, List<HasPosition>> o : pageNode.getDebugFeatures().entrySet()) {
+		for (HasPosition position : o.getValue()) {
+			final GraphicContent graphicContent = (GraphicContent) position;
+			if (!graphicContent.isBackgroundColor()) {
+				drawRectangle(graphics, xScale, yScale, o.getKey(), position.getPosition(), true);
+			}
+
+		}
+	}
+
 	/* draw document tree */
 	for (ParagraphNode paragraphNode : pageNode.getChildren()) {
 		for (LineNode lineNode : paragraphNode.getChildren()) {
 			for (WordNode wordNode : lineNode.getChildren()) {
 				drawRectangle(graphics, xScale, yScale, Color.BLUE, wordNode.getPosition(), true);
 			}
-			drawRectangle(graphics, xScale, yScale, Color.YELLOW, lineNode.getPosition(), true);
+			drawRectangle(graphics, xScale, yScale, Color.BLACK, lineNode.getPosition(), true);
 		}
 		drawRectangle(graphics, xScale, yScale, Color.CYAN, paragraphNode.getPosition(), true);
 	}
 
-	for (Map.Entry<Color, List<HasPosition>> o : pageNode.getDebugFeatures().entrySet()) {
-		for (HasPosition position : o.getValue()) {
-			drawRectangle(graphics, xScale, yScale, o.getKey(), position.getPosition(), true);
-		}
-	}
 
-	Loggers.getInterfaceLog().info(String.format("LOG00180:Rendered page %d in %d ms", pageNum,
-	                                             (System.currentTimeMillis() - t1)));
+	Loggers.getInterfaceLog().info(String.format("LOG00180:Rendered page %d in %d ms", pageNum, (
+			System.currentTimeMillis() - t1)));
 	return image;
 }
 
+@NotNull
 private static final Color TRANSPARENT_WHITE           = new Color(255, 255, 255, 0);
 private static final int   DEFAULT_USER_SPACE_UNIT_DPI = 72;
 
-private BufferedImage createImage(final PDPage page, final int imageType, final int resolution) {
+@NotNull
+private BufferedImage createImage(@NotNull final PDPage page,
+                                  final int imageType,
+                                  final int resolution)
+{
 	PDRectangle mBox = page.findMediaBox();
 	float scaling = resolution / (float) DEFAULT_USER_SPACE_UNIT_DPI;
 

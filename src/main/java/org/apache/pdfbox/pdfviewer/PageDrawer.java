@@ -30,10 +30,7 @@ import org.apache.pdfbox.util.TextPosition;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.awt.geom.AffineTransform;
-import java.awt.geom.Area;
-import java.awt.geom.GeneralPath;
-import java.awt.geom.Point2D;
+import java.awt.geom.*;
 import java.io.IOException;
 
 
@@ -105,15 +102,16 @@ public void setStroke(BasicStroke newStroke) {
 // -------------------------- PUBLIC METHODS --------------------------
 
 /**
- * Draw the AWT image. Called by Invoke. Moved into PageDrawer so that Invoke doesn't have to reach
- * in here for Graphics as that breaks extensibility.
+ * Draw the AWT graphics. Called by Invoke. Moved into PageDrawer so that Invoke doesn't have to
+ * reach in here for Graphics as that breaks extensibility.
  *
- * @param awtImage The image to draw.
+ * @param awtImage The graphics to draw.
  * @param at       The transformation to use when drawing.
  */
 public void drawImage(Image awtImage, AffineTransform at) {
 	currentClippingPath = getGraphicsState().getCurrentClippingPath();
-	imageExtractor.drawImage(awtImage, at, null);
+	final Rectangle2D bounds2D = getGraphicsState().getCurrentClippingPath().getBounds2D();
+	graphicSegmentator.drawImage(awtImage, at, bounds2D);
 }
 
 public void drawPage(Graphics g, PDPage p, Dimension pageDimension) throws IOException {
@@ -130,7 +128,7 @@ public void fillPath(int windingRule) throws IOException {
 	currentColor = getGraphicsState().getNonStrokingColor().getJavaColor();
 	getLinePath().setWindingRule(windingRule);
 	currentClippingPath = getGraphicsState().getCurrentClippingPath();
-	imageExtractor.fill(getLinePath());
+	graphicSegmentator.fill(getLinePath(), currentColor);
 	getLinePath().reset();
 }
 
@@ -197,9 +195,9 @@ public void setLinePath(GeneralPath newLinePath) {
 public void strokePath() throws IOException {
 	currentColor = getGraphicsState().getStrokingColor().getJavaColor();
 	currentClippingPath = getGraphicsState().getCurrentClippingPath();
-	GeneralPath path = getLinePath();
-	imageExtractor.draw(path);
-	path.reset();
+	graphicSegmentator.strokePath(getLinePath(), currentColor);
+
+	getLinePath().reset();
 }
 
 //This code generalizes the code Jim Lynch wrote for AppendRectangleToPath
@@ -214,10 +212,7 @@ public void strokePath() throws IOException {
 @NotNull
 public java.awt.geom.Point2D.Double transformedPoint(double x, double y) {
 	double[] position = {x, y};
-	getGraphicsState().getCurrentTransformationMatrix().createAffineTransform().transform(position,
-	                                                                                      0,
-	                                                                                      position,
-	                                                                                      0, 1);
+	getGraphicsState().getCurrentTransformationMatrix().createAffineTransform().transform(position, 0, position, 0, 1);
 	position[1] = fixY(position[1]);
 	return new Point2D.Double(position[0], position[1]);
 }
@@ -269,8 +264,8 @@ protected void processTextPosition(@NotNull TextPosition text) {
 	textPos.setValue(1, 0, (float) (-1) * textPos.getValue(1, 0));
 	AffineTransform at = textPos.createAffineTransform();
 	PDMatrix fontMatrix = font.getFontMatrix();
-	at.scale((double) (fontMatrix.getValue(0, 0) * 1000f),
-	         (double) (fontMatrix.getValue(1, 0) * 1000f));
+	at.scale((double) (fontMatrix.getValue(0, 0) * 1000f), (double) (fontMatrix.getValue(1, 0)
+			* 1000f));
 	//        graphics.setClip(getGraphicsState().getCurrentClippingPath());
 	// the fontSize is no longer needed as it is already part of the transformation
 	// we should remove it from the parameter list in the long run

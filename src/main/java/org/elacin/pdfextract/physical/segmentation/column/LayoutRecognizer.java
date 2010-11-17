@@ -117,15 +117,14 @@ public List<WhitespaceRectangle> findWhitespace(@NotNull final PhysicalPageRegio
 
 	final int numWhitespaces = Math.max(10, Math.min(40, region.getContents().size() / 10));
 	AbstractWhitespaceFinder vert = new WhitespaceFinder(region, numWhitespaces,
-	                                                     region.getAvgFontSizeX() * 0.4f,
-	                                                     region.getAvgFontSizeY());
+	                                                     region.getAvgFontSizeX()
+			                                                     * 0.4f, region.getAvgFontSizeY());
 	final List<WhitespaceRectangle> ret = vert.findWhitespace();
 
 
 	if (log.isInfoEnabled()) {
 		final long time = System.currentTimeMillis() - t0;
-		log.info(String.format("LOG00380:%d of %d whitespaces for %s in %d ms", ret.size(),
-		                       numWhitespaces, region, time));
+		log.info(String.format("LOG00380:%d of %d whitespaces for %s in %d ms", ret.size(), numWhitespaces, region, time));
 	}
 
 	return ret;
@@ -209,8 +208,8 @@ private boolean isNewBoundary(@NotNull final List<PhysicalContent> contents,
 	 *  logically belongs together. Compare the distance between the two words to their average
 	 *  character width to filter out those cases
 	 */
-	float min = 2.0f * Math.min(lastText.getAverageCharacterWidth(),
-	                            nextText.getAverageCharacterWidth());
+	float min = 2.0f
+			* Math.min(lastText.getAverageCharacterWidth(), nextText.getAverageCharacterWidth());
 	float distance = nextText.getPosition().getX() - lastText.getPosition().getEndX();
 	if (distance < min) {
 		return false;

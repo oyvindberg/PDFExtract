@@ -63,8 +63,7 @@ public void testHeader() {
 
 	check("Word spacing:");
 
-	check("© RenderX");
-	check("2000");
+	check("© RenderX 2000");
 	check("XSL Formatting Objects Test Suite");
 	check("Text Attributes - Character and Word Spacing");
 	check("Page 2");

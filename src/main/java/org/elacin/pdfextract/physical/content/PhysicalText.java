@@ -20,6 +20,8 @@ import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.TreeSet;
+
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Sep 23, 2010 Time: 2:36:44 PM To change this
  * template use File | Settings | File Templates.
@@ -32,6 +34,8 @@ public       float  charSpacing;
 public final String content;
 public final Style  style;
 public final int    rotation;
+@NotNull
+private final TreeSet<Integer> seqNums = new TreeSet<Integer>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -42,9 +46,11 @@ public PhysicalText(final String content,
                     final float width,
                     final float height,
                     final float distanceToPreceeding,
-                    final int rotation)
+                    final int rotation,
+                    final int seqNo)
 {
 	this(content, style, new Rectangle(x, y, width, height), distanceToPreceeding, rotation);
+	seqNums.add(seqNo);
 }
 
 PhysicalText(final String content,
@@ -71,6 +77,7 @@ public String toString() {
 	sb.append(", text='").append(content).append('\'');
 	sb.append(", style=").append(style);
 	sb.append(", charSpacing=").append(charSpacing);
+	sb.append(", seqNums=").append(seqNums);
 	sb.append('}');
 	return sb.toString();
 }
@@ -112,6 +119,11 @@ public int getRotation() {
 	return rotation;
 }
 
+@NotNull
+public TreeSet<Integer> getSeqNums() {
+	return seqNums;
+}
+
 public Style getStyle() {
 	return style;
 }
@@ -120,8 +132,11 @@ public Style getStyle() {
 
 @NotNull
 public PhysicalText combineWith(@NotNull final PhysicalText next) {
-	return new PhysicalText(content + next.content, style, position.union(next.position),
-	                        distanceToPreceeding, rotation);
+	final PhysicalText newText = new PhysicalText(content
+			                                              + next.content, style, position.union(next.position), distanceToPreceeding, rotation);
+	newText.seqNums.addAll(seqNums);
+	newText.seqNums.addAll(next.seqNums);
+	return newText;
 }
 
 public float getAverageCharacterWidth() {

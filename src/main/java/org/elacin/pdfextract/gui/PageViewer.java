@@ -35,6 +35,7 @@ public Dimension getMinimumSize() {
 	return new Dimension(500, 500);
 }
 
+@NotNull
 @Override
 public Dimension getPreferredSize() {
 	return new Dimension(700, 1000);

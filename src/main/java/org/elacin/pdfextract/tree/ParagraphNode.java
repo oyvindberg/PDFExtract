@@ -18,6 +18,7 @@ package org.elacin.pdfextract.tree;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.Comparator;
 
 
@@ -26,8 +27,21 @@ import java.util.Comparator;
  * use File | Settings | File Templates.
  */
 public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
-// -------------------------- PUBLIC METHODS --------------------------
+// ------------------------------ FIELDS ------------------------------
 
+boolean containedInImage = false;
+
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+public boolean isContainedInImage() {
+	return containedInImage;
+}
+
+public void setContainedInImage(final boolean containedInImage) {
+	this.containedInImage = containedInImage;
+}
+
+// -------------------------- PUBLIC METHODS --------------------------
 
 /** Returns a Comparator which compares coordinates within a page */
 @NotNull
@@ -36,4 +50,20 @@ public Comparator<LineNode> getChildComparator() {
 	return new StandardNodeComparator();
 }
 
+@Override
+protected void appendLocalInfo(@NotNull final Appendable out, final int indent) throws IOException {
+	for (int i = 0; i < indent; i++) {
+		out.append(" ");
+	}
+	out.append(getClass().getSimpleName());
+	out.append("{");
+	out.append(getPosition().toString());
+	out.append(", containedInGraphics:").append(String.valueOf(containedInImage));
+	out.append(":\n");
+
+	for (LineNode child : getChildren()) {
+		child.appendLocalInfo(out, indent + 4);
+	}
+
+}
 }

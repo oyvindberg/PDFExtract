@@ -25,6 +25,7 @@ import org.elacin.pdfextract.physical.segmentation.WordSegmentator;
 import org.elacin.pdfextract.style.DocumentStyles;
 import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.util.FloatPoint;
+import org.elacin.pdfextract.util.MathUtils;
 import org.elacin.pdfextract.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -104,9 +105,9 @@ public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) 
 	float maxX = 0.0f;
 
 	for (ETextPosition tp : text) {
-		if (tp.getDir() != pageRotation) {
-			log.warn("LOG00560: ignoring textposition " + tp.getCharacter() + " because it has "
-					         + "wrong rotation. TODO :)");
+		if (!MathUtils.isWithinPercent(tp.getDir(), pageRotation, 1)) {
+			log.warn("LOG00560: ignoring textposition " + StringUtils.getTextPositionString(tp)
+					         + "because it has " + "wrong rotation. TODO :)");
 			continue;
 		}
 		/* if this is the first text in a line */
@@ -162,8 +163,13 @@ private static boolean fontSeemsToNeedVerticalAdjustment(@NotNull final PDFont f
 private static float getAdjustedHeight(@NotNull final ETextPosition tp) {
 
 	final float maxHeight = tp.getFontSize() * tp.getYScale() * 0.9f;
-	float h = Math.min(tp.getPos().getHeight(), maxHeight);
-	//	float h = tp.getPos().getHeight();
+
+	float h;
+	if (maxHeight > 0.0f) {
+		h = Math.min(tp.getPos().getHeight(), maxHeight);
+	} else {
+		h = tp.getPos().getHeight();
+	}
 
 	if (h <= 0.0f) {
 		h = tp.getFontSizeInPt() * 0.8f;
@@ -238,13 +244,8 @@ List<PhysicalText> splitTextPositionsOnSpace(@NotNull final List<ETextPosition> 
 						//						adjustedY = y - tp.getPos().getHeight() / 2.0f;
 					}
 
-					//					if (contents.toString().contains("M")) {
-					//						System.out.println("adjustedY = " + adjustedY);
-					//					}
-
 					/** output this word */
-					ret.add(new PhysicalText(contents.toString(), style, x, adjustedY, width,
-					                         getAdjustedHeight(tp), distance, (int) tp.getDir()));
+					ret.add(new PhysicalText(contents.toString(), style, x, adjustedY, width, getAdjustedHeight(tp), distance, (int) tp.getDir(), tp.getSequenceNum()));
 
 					/** change X coordinate to include this text */
 					x += width;
@@ -310,7 +311,6 @@ private List<PhysicalText> createWordsInLine(@NotNull final List<ETextPosition> 
 	}
 	for (PhysicalText text : ret) {
 		if (log.isInfoEnabled()) { log.info("LOG00540: created PhysicalText" + text); }
-		;
 	}
 
 	return ret;

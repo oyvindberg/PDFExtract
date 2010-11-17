@@ -30,40 +30,40 @@ import static org.testng.Assert.assertEquals;
 public class TestDocument07050001 extends TestLatexComparison {
 
 public TestDocument07050001() {
-    super("0705.0001");
+	super("0705.0001");
 
 }
 
 @BeforeClass(groups = "TestDocument07050001")
 public void setUp() throws IOException {
-    readFiles();
+	readFiles();
 }
 
 
 @Test(enabled = false)
 public void TestMainTitle() {
-    //            final Collection<AbstractNode> maintitles = pdfDOM.getNodesWithRole(Role.MAINTITLE);
-    boolean found = false;
-    //            for (AbstractNode mainTitle : maintitles) {
-    //                if (mainTitle.getText().equals("XMM-Newton observations of the first unidentified TeV gamma-ray source TeV J2032+4130⋆")) {
-    //                    found = true;
-    //                    break;
-    //                }
-    //            }
-    assertEquals(found, true, "Could not find the correct title in " + PDFFILENAME + "!");
+	//            final Collection<AbstractNode> maintitles = pdfDOM.getNodesWithRole(Role.MAINTITLE);
+	boolean found = false;
+	//            for (AbstractNode mainTitle : maintitles) {
+	//                if (mainTitle.getText().equals("XMM-Newton observations of the first unidentified TeV gamma-ray source TeV J2032+4130⋆")) {
+	//                    found = true;
+	//                    break;
+	//                }
+	//            }
+	assertEquals(found, true, "Could not find the correct title in " + PDFFILENAME + "!");
 }
 
 @Test(enabled = false)
 void testTopText() {
-    //            final Collection<AbstractNode> sections = pdfDOM.getNodesWithRole(Role.SECTION);
-    boolean found = false;
-    //            for (AbstractNode mainTitle : sections) {
-    //                if (mainTitle.getText().equals("XMM-Newton observations of the first unidentified TeV gamma-ray source TeV J2032+4130⋆")) {
-    //                    found = true;
-    //                    break;
-    //                }
-    //            }
-    assertEquals(found, true, "Could not find the correct title in " + PDFFILENAME + "!");
+	//            final Collection<AbstractNode> sections = pdfDOM.getNodesWithRole(Role.SECTION);
+	boolean found = false;
+	//            for (AbstractNode mainTitle : sections) {
+	//                if (mainTitle.getText().equals("XMM-Newton observations of the first unidentified TeV gamma-ray source TeV J2032+4130⋆")) {
+	//                    found = true;
+	//                    break;
+	//                }
+	//            }
+	assertEquals(found, true, "Could not find the correct title in " + PDFFILENAME + "!");
 }
 
 }

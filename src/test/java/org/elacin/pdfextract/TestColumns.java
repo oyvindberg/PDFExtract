@@ -35,29 +35,28 @@ import static org.testng.Assert.fail;
  */
 public class TestColumns {
 
-private DocumentNode doc;
+private DocumentNode        doc;
 private ArrayList<LineNode> lines;
 
 @BeforeClass(groups = "TestColumns")
 public void setUp() throws IOException {
-    doc = PDFDocumentLoader.readPDF("renderX/columns.pdf", "columns_out.xml", 4);
+	doc = PDFDocumentLoader.readPDF("renderX/columns.pdf", "columns_out.xml", 4);
 }
 
 @Test(enabled = false)
 public void testWronglyCombinedLines() {
 
-    final List<ParagraphNode> paragraphsOnFirstPage = doc.getChildren().get(0).getChildren();
+	final List<ParagraphNode> paragraphsOnFirstPage = doc.getChildren().get(0).getChildren();
 
-    for (ParagraphNode child : paragraphsOnFirstPage) {
-        if (child.getPosition().getY() == 221.60901f) {
-            assertEquals(child.getChildren().get(0).getText(),
-                         "This is the first page of the document. Its first capital letter T has red color and is 3 picas");
-            assertEquals(child.getChildren().get(1).getText(), "high.");
-            assertEquals(child.getChildren().size(), 2);
-            return;
-        }
-    }
-    fail("Could not fine paragraph");
+	for (ParagraphNode child : paragraphsOnFirstPage) {
+		if (child.getPosition().getY() == 221.60901f) {
+			assertEquals(child.getChildren().get(0).getText(), "This is the first page of the document. Its first capital letter T has red color and is 3 picas");
+			assertEquals(child.getChildren().get(1).getText(), "high.");
+			assertEquals(child.getChildren().size(), 2);
+			return;
+		}
+	}
+	fail("Could not fine paragraph");
 
 }
 }

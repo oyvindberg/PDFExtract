@@ -37,7 +37,7 @@ private transient String  toStringCache;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public Style(final String font, final float xSize, final float ySize) {
+Style(final String font, final float xSize, final float ySize) {
 
 	this.font = font;
 	this.xSize = xSize;

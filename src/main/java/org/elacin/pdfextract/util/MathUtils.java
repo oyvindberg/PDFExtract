@@ -28,49 +28,35 @@ private MathUtils() {
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-/**
- * Returns true if num2 is within percentage percent of num1
- *
- * @param num1
- * @param num2
- * @param percentage
- * @return
- */
+/** Returns true if num2 is within percentage percent of num1 */
 public static boolean isWithinPercent(final float num1, final float num2, final float percentage) {
-    //noinspection FloatingPointEquality
-    if (num1 == num2) {
-        return true;
-    }
+	//noinspection FloatingPointEquality
+	if (num1 == num2) {
+		return true;
+	}
 
-    return (num1 + num1 / 100.0F * percentage) >= num2
-            && (num1 - num1 / 100.0F * percentage) <= num2;
+	return (num1 + num1 / 100.0F * percentage) >= num2
+			&& (num1 - num1 / 100.0F * percentage) <= num2;
 }
 
-/**
- * Returns true if num2 is within num ± i
- *
- * @param num1
- * @param num2
- * @param variance
- * @return
- */
+/** Returns true if num2 is within num ± i */
 public static boolean isWithinVariance(final float num1, final float num2, final float variance) {
-    //noinspection FloatingPointEquality
-    if (num1 == num2) {
-        return true;
-    }
+	//noinspection FloatingPointEquality
+	if (num1 == num2) {
+		return true;
+	}
 
-    return (num1 - variance) <= num2 && (num1 + variance) >= num2;
+	return (num1 - variance) <= num2 && (num1 + variance) >= num2;
 }
 
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 public static float log(float a) {
-    return (float) StrictMath.log((double) a);
+	return (float) StrictMath.log((double) a);
 }
 
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 public static float sqrt(float a) {
-    return (float) StrictMath.sqrt((double) a);
+	return (float) StrictMath.sqrt((double) a);
 }
 
 }

@@ -33,9 +33,9 @@ import java.util.Map;
 public class DocumentStyles implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger            log    = Logger.getLogger(DocumentStyles.class);
+private static final Logger              log    = Logger.getLogger(DocumentStyles.class);
 @NotNull
-final                Map<Float, Style> styles = new HashMap<Float, Style>();
+final                Map<Integer, Style> styles = new HashMap<Integer, Style>();
 
 final Collection<Style> stylesCollection = styles.values();
 
@@ -49,18 +49,19 @@ private static Style getStyle(float xSize, float ySize, String font) {
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 @NotNull
-public Map<Float, Style> getStyles() {
+public Map<Integer, Style> getStyles() {
 	return styles;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
 public Style getStyleForTextPosition(@NotNull TextPosition position) {
-	float result = position.getFontSize();
-	result = 31.0F * result + position.getXScale();
-	result = 31.0F * result + position.getYScale();
-	result = 31.0F * result + (float) position.getFont().hashCode();
-	result = 31.0F * result + position.getWidthOfSpace();
+	int result = (int) position.getFontSize();
+	result = 31 * result + (int) position.getXScale();
+	result = 31 * result + (int) position.getYScale();
+	final String baseFont = position.getFont().getBaseFont();
+	result = 31 * result + (baseFont == null ? 0 : baseFont.hashCode());
+	result = 31 * result + position.getFont().getSubType().hashCode();
 
 	Style existing = styles.get(result);
 	if (existing == null) {

@@ -66,10 +66,11 @@ public final Rectangle getPosition() {
 			}
 		}
 	}
-
 	if (posCache == null) {
-		posCache = new Rectangle(0.0F, 0.0F, 0.0F, 0.0F);
+		//TODO: i'm sure the problems really lies elsewhere here
+		posCache = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
 	}
+
 	return posCache;
 }
 
@@ -92,6 +93,7 @@ public String toString() {
 
 // ------------------------ OVERRIDING METHODS ------------------------
 
+@NotNull
 public Set<Role> getRoles() {
 	Set<Role> ret = EnumSet.noneOf(Role.class);
 	for (ChildType child : children) {
@@ -124,6 +126,7 @@ public final void addChild(@NotNull final ChildType child) {
 	child.setRoot(getRoot());
 }
 
+@NotNull
 public abstract Comparator<ChildType> getChildComparator();
 
 public Style getStyle() {

@@ -104,9 +104,8 @@ private static Options getOptions() {
 protected static PrintStream openOutputStream(final File file) {
 	Loggers.getInterfaceLog().info("LOG00110:Opening " + file + " for output");
 	try {
-		return new PrintStream(
-				new BufferedOutputStream(new FileOutputStream(file, false), 8192 * 4), false,
-				"UTF-8");
+		return new PrintStream(new BufferedOutputStream(new FileOutputStream(file, false),
+		                                                8192 * 4), false, "UTF-8");
 	} catch (Exception e) {
 		throw new RuntimeException("Could not open output file", e);
 	}
@@ -129,8 +128,7 @@ protected static PDDocument openPdfDocument(@NotNull final File pdfFile,
 					throw new RuntimeException("Error while reading encrypted PDF:", e);
 				}
 			} else {
-				Loggers.getInterfaceLog().warn(
-						"File claims to be encrypted, a password should be provided");
+				Loggers.getInterfaceLog().warn("File claims to be encrypted, a password should be provided");
 			}
 		}
 
@@ -160,9 +158,8 @@ private static CommandLine parseParameters(final String[] args) {
 }
 
 private static void usage() {
-	new HelpFormatter().printHelp(
-			TextExtractor.class.getSimpleName() + "<PDF file/dir> <XML output file/dir>",
-			getOptions());
+	new HelpFormatter().printHelp(TextExtractor.class.getSimpleName()
+			                              + "<PDF file/dir> <XML output file/dir>", getOptions());
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
@@ -183,9 +180,8 @@ public final void processFiles() {
 	for (Long timing : timings) {
 		sum += timing;
 	}
-	Loggers.getInterfaceLog().info(
-			String.format("Total time for analyzing %d documents: %dms (%sms average)",
-			              pdfFiles.size(), sum, sum / pdfFiles.size()));
+	Loggers.getInterfaceLog().info(String.format("Total time for analyzing %d documents: %dms (%sms average)", pdfFiles.size(), sum,
+	                                             sum / pdfFiles.size()));
 }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -257,7 +253,8 @@ protected void renderPDF(@NotNull final File pdfFile,
 		try {
 			image = renderer.renderPage(i);
 		} catch (RuntimeException e) {
-			Loggers.getInterfaceLog().warn("Error while rendering page " + i, e);
+			Loggers.getInterfaceLog().warn(
+					"Error while rendering page " + i + ":" + e.getMessage());
 			continue;
 		}
 
@@ -317,8 +314,7 @@ public static void main(String[] args) {
 		/* if we have more than one input file, demand that the output be a directory */
 		if (destination.exists()) {
 			if (!destination.isDirectory()) {
-				Loggers.getInterfaceLog().error(
-						"When specifying multiple input files, output needs to be a directory");
+				Loggers.getInterfaceLog().error("When specifying multiple input files, output needs to be a directory");
 				return;
 			}
 		} else {
@@ -329,8 +325,8 @@ public static void main(String[] args) {
 		}
 	}
 
-	final TextExtractor textExtractor = new TextExtractor(pdfFiles, destination, startPage, endPage,
-	                                                      password, render);
+	final TextExtractor textExtractor
+			= new TextExtractor(pdfFiles, destination, startPage, endPage, password, render);
 	textExtractor.processFiles();
 }
 }

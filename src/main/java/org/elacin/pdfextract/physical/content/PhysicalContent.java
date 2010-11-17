@@ -18,6 +18,7 @@ package org.elacin.pdfextract.physical.content;
 
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -52,6 +53,23 @@ public Rectangle getPosition() {
 // ------------------------ CANONICAL METHODS ------------------------
 
 @Override
+public boolean equals(@Nullable final Object o) {
+	if (this == o) { return true; }
+	if (o == null || getClass() != o.getClass()) { return false; }
+
+	final PhysicalContent content = (PhysicalContent) o;
+
+	if (!position.equals(content.position)) { return false; }
+
+	return true;
+}
+
+@Override
+public int hashCode() {
+	return position.hashCode();
+}
+
+@Override
 public String toString() {
 	final StringBuilder sb = new StringBuilder();
 	sb.append(getClass().getSimpleName());
@@ -78,7 +96,16 @@ public PhysicalText getText() {
 	throw new RuntimeException("not a text");
 }
 
+@NotNull
+public GraphicContent getGraphicContent() {
+	throw new RuntimeException("not a graphic");
+}
+
 public boolean isAssignablePhysicalContent() {
+	return false;
+}
+
+public boolean isGraphic() {
 	return false;
 }
 
@@ -103,6 +130,12 @@ public boolean isWhitespace() {
 protected final void setPositionFromContentList(@NotNull final Collection<? extends
 		PhysicalContent> contents)
 {
+	if (contents.isEmpty()) {
+		//TODO: handle empty regions in a better way
+		position = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
+		return;
+	}
+
 	/* calculate bounds for this region */
 	float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
 	float maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE;

@@ -32,31 +32,30 @@ public class Rectangle implements Serializable, HasPosition {
 
 private final float x, y, width, height;
 
+/* caching, we do a lot of comparing */
+private transient boolean hasCalculatedHash = false;
+private transient int     hash              = -1;
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public Rectangle(final float x, final float y, final float width, final float height) {
-	if (height < 0.0f) {
-		throw new IllegalArgumentException("height can not be negative");
-	}
-	if (width < 0.0f) {
-		throw new IllegalArgumentException("width can not be negative");
-	}
-	if (x < 0.0f) {
-		throw new IllegalArgumentException("x can not be negative");
-	}
-	if (y < 0.0f) {
-		throw new IllegalArgumentException("y can not be negative");
-	}
-
 	this.height = height;
 	this.width = width;
 	this.x = x;
 	this.y = y;
 
-	if (isEmpty()) {
-		throw new IllegalArgumentException("area can not be 0");
+	if (height <= 0.0f) {
+		throw new IllegalArgumentException("height must be positive:" + this);
 	}
-
+	if (width <= 0.0f) {
+		throw new IllegalArgumentException("width must be positive" + this);
+	}
+	//	if (x < 0.0f) {
+	//		throw new IllegalArgumentException("x can not be negative");
+	//	}
+	//	if (y < 0.0f) {
+	//		throw new IllegalArgumentException("y can not be negative");
+	//	}
 
 }
 
@@ -102,11 +101,15 @@ public boolean equals(@Nullable final Object o) {
 
 @Override
 public int hashCode() {
-	int result = (x != +0.0f ? Float.floatToIntBits(x) : 0);
-	result = 31 * result + (y != +0.0f ? Float.floatToIntBits(y) : 0);
-	result = 31 * result + (width != +0.0f ? Float.floatToIntBits(width) : 0);
-	result = 31 * result + (height != +0.0f ? Float.floatToIntBits(height) : 0);
-	return result;
+	if (!hasCalculatedHash) {
+		int result = (x != +0.0f ? Float.floatToIntBits(x) : 0);
+		result = 31 * result + (y != +0.0f ? Float.floatToIntBits(y) : 0);
+		result = 31 * result + (width != +0.0f ? Float.floatToIntBits(width) : 0);
+		result = 31 * result + (height != +0.0f ? Float.floatToIntBits(height) : 0);
+		hash = result;
+		hasCalculatedHash = true;
+	}
+	return hash;
 }
 
 @Override
@@ -259,15 +262,16 @@ public boolean intersectsWith(@NotNull HasPosition other) {
 	return that.getEndY() >= y;
 }
 
-
 /** Determines if this rectangle has an area of 0 */
-public boolean isEmpty() {
+public final boolean isEmpty() {
 	return (width <= 0.0F) || (height <= 0.0F);
 }
 
 /** I stole this code from java.awt.geom.Rectange2D, im sure the details make sense :) */
 @NotNull
-public Rectangle union(@NotNull Rectangle other) {
+public Rectangle union(@NotNull HasPosition that) {
+	Rectangle other = that.getPosition();
+
 	float x1 = Math.min(x, other.x);
 	float y1 = Math.min(y, other.y);
 	float x2 = Math.max(getEndX(), other.getEndX());

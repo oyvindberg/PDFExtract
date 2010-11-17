@@ -20,6 +20,8 @@ import org.apache.log4j.Logger;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
+import java.awt.*;
+
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Nov 3, 2010 Time: 4:43:12 PM To change this template
  * use File | Settings | File Templates.
@@ -32,13 +34,19 @@ private final boolean filled;
 private final boolean picture;
 
 private boolean canBeAssigned;
+private boolean backgroundColor;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public GraphicContent(final Rectangle position, boolean picture, boolean filled) {
+public GraphicContent(final Rectangle position,
+                      boolean picture,
+                      boolean filled,
+                      boolean backgroundColor)
+{
 	super(position);
 	this.filled = filled;
 	this.picture = picture;
+	this.backgroundColor = backgroundColor;
 
 	if (log.isDebugEnabled()) {
 		log.debug("LOG00280:GraphicContent at " + position + ", filled: " + filled + ", picture = "
@@ -46,7 +54,16 @@ public GraphicContent(final Rectangle position, boolean picture, boolean filled)
 	}
 }
 
+public GraphicContent(final Rectangle position,
+                      boolean picture,
+                      boolean filled,
+                      @NotNull Color color)
+{
+	this(position, picture, filled, color.equals(Color.white));
+}
+
 // ------------------------ CANONICAL METHODS ------------------------
+
 
 @Override
 public String toString() {
@@ -56,11 +73,18 @@ public String toString() {
 	sb.append(", filled=").append(filled);
 	sb.append(", picture=").append(picture);
 	sb.append(", pos=").append(getPosition());
+	sb.append(", backgroundColor=").append(backgroundColor);
 	sb.append('}');
 	return sb.toString();
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
+
+@NotNull
+@Override
+public GraphicContent getGraphicContent() {
+	return this;
+}
 
 @Override
 public boolean isAssignablePhysicalContent() {
@@ -69,6 +93,11 @@ public boolean isAssignablePhysicalContent() {
 
 @Override
 public boolean isFigure() {
+	return !picture;
+}
+
+@Override
+public boolean isGraphic() {
 	return true;
 }
 
@@ -78,6 +107,10 @@ public boolean isPicture() {
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
+
+public boolean isBackgroundColor() {
+	return backgroundColor;
+}
 
 public boolean isFilled() {
 	return filled;
@@ -89,18 +122,37 @@ public void setCanBeAssigned(final boolean canBeAssigned) {
 
 // -------------------------- PUBLIC METHODS --------------------------
 
+public boolean canBeCombinedWith(@NotNull final GraphicContent other) {
+	if (this == other) {
+		return false;
+	}
+
+	if (isPicture() && !other.isPicture()) {
+		return false;
+	}
+
+	return getPosition().distance(other.getPosition()) < 2.0f;
+}
+
 public boolean canBeConsideredContentInRegion(@NotNull final PhysicalPageRegion region) {
 	return getPosition().getHeight() < region.getAvgFontSizeY() * 4.0f
 			&& getPosition().getWidth() < region.getAvgFontSizeX() * 4.0f;
 }
 
 /** consider the graphic a separator if the aspect ratio is really high */
-public boolean canBeConsideredSeparatorInRegion(final PhysicalPageRegion page) {
+public boolean canBeConsideredSeparator() {
 	final Rectangle pos = getPosition();
 	if (pos.getWidth() > 10.0f && pos.getHeight() > 10.0f) {
 		return false;
 	}
 
 	return Math.max(pos.getWidth() / pos.getHeight(), pos.getHeight() / pos.getWidth()) > 15.0f;
+}
+
+@NotNull
+public GraphicContent combineWith(@NotNull final GraphicContent other) {
+	final boolean isBackground = other.backgroundColor && backgroundColor;
+	final boolean isFilled = other.filled || filled;
+	return new GraphicContent(getPosition().union(other.getPosition()), picture, isFilled, isBackground);
 }
 }

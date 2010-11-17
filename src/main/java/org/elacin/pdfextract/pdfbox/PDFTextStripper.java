@@ -30,6 +30,7 @@ import org.elacin.pdfextract.logical.operation.RecognizeRoles;
 import org.elacin.pdfextract.physical.PhysicalPage;
 import org.elacin.pdfextract.physical.content.PhysicalText;
 import org.elacin.pdfextract.physical.segmentation.WordSegmentator;
+import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentatorImpl;
 import org.elacin.pdfextract.physical.segmentation.word.WordSegmentatorImpl;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.PageNode;
@@ -46,8 +47,7 @@ import java.util.Map;
 public class PDFTextStripper extends PageDrawer {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger              log               = Logger.getLogger(
-		PDFTextStripper.class);
+private static final Logger              log               = Logger.getLogger(PDFTextStripper.class);
 @NotNull
 protected final      List<ETextPosition> charactersForPage = new ArrayList<ETextPosition>();
 
@@ -219,10 +219,19 @@ protected void processPage(@NotNull PDPage page, COSStream content) throws IOExc
 	if (currentPageNo >= startPage && currentPageNo <= endPage) {
 		charactersForPage.clear();
 		characterListMapping.clear();
-		imageExtractor.clear();
+		textPositionSequenceNumber = 0;
+
+		/* show which page we are working on in the log */
 		MDC.put("page", currentPageNo);
+
+		/* this is used to 'draw' images on during pdf parsing */
+		graphicSegmentator
+				= new GraphicSegmentatorImpl(page.getTrimBox().getWidth(), page.getTrimBox().getHeight());
+
 		processStream(page, page.findResources(), content);
 
+		/* getRotation might return null, something which doesnt play well with javas unboxing,
+		*   so take some care*/
 		final Integer rotation = page.getRotation();
 		final int rot;
 		if (rotation == null) {
@@ -230,27 +239,29 @@ protected void processPage(@NotNull PDPage page, COSStream content) throws IOExc
 		} else {
 			rot = rotation;
 		}
+
 		WordSegmentator segmentator = new WordSegmentatorImpl(root.getStyles(), rot);
 
 		if (!charactersForPage.isEmpty()) {
-			/* segment words */
-			final List<PhysicalText> texts = segmentator.segmentWords(charactersForPage);
 
-			/* and create the page subtree */
-			PhysicalPage physicalPage = null;
 			try {
-				physicalPage = new PhysicalPage(texts, imageExtractor.getGraphicContents(),
-				                                currentPageNo);
+				/* segment words */
+				final List<PhysicalText> texts = segmentator.segmentWords(charactersForPage);
+
+
+				PhysicalPage physicalPage
+						= new PhysicalPage(texts, graphicSegmentator, currentPageNo);
+
+
+				final PageNode pageNode = physicalPage.compileLogicalPage();
+
+				root.addChild(pageNode);
+
 			} catch (Exception e) {
 				log.error("LOG00350:Error while creating physical page", e);
 			}
-			final PageNode pageNode = physicalPage.compileLogicalPage();
-
-			/* combine split linenodes within same paragraph */
-			//            pageNode.combineChildren();
-
-			root.addChild(pageNode);
 		}
+
 		MDC.remove("page");
 	}
 }
