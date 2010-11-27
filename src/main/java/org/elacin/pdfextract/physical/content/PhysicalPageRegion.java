@@ -38,10 +38,15 @@ public class PhysicalPageRegion extends RectangleCollection {
 
 private static final Logger log = Logger.getLogger(PhysicalPageRegion.class);
 
+protected final LineSegmentator lineSegmentator = new LineSegmentator(5.0f);
+
+protected final ParagraphSegmentator paragraphSegmentator = new ParagraphSegmentator();
+
 /* average font sizes for this page region */
 private transient boolean fontInfoFound;
 private transient float   _avgFontSizeX;
 private transient float   _avgFontSizeY;
+private transient Style   _mostCommonStyle;
 
 /* the physical page containing this region */
 private final int pageNumber;
@@ -50,10 +55,6 @@ private final int pageNumber;
 private final List<WhitespaceRectangle> whitespace = new ArrayList<WhitespaceRectangle>();
 @NotNull
 private final List<PhysicalPageRegion>  subregions = new ArrayList<PhysicalPageRegion>();
-
-protected final LineSegmentator lineSegmentator = new LineSegmentator(5.0f);
-
-protected final ParagraphSegmentator paragraphSegmentator = new ParagraphSegmentator();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -172,6 +173,11 @@ public int getPageNumber() {
 }
 
 @NotNull
+public List<PhysicalPageRegion> getSubregions() {
+	return subregions;
+}
+
+@NotNull
 public List<WhitespaceRectangle> getWhitespace() {
 	return whitespace;
 }
@@ -207,7 +213,7 @@ public PhysicalPageRegion extractSubRegion(@NotNull final HasPosition bound,
 	/* decrease the area within which we are looking for content a big, this is related to
 	*   the neverending problems of iffy character positioning for some fonts*/
 	final Rectangle smallerBound = returnABitSmallerPosition(bound);
-	final List<PhysicalContent> subContents = findRectanglesIntersectingWith(smallerBound);
+	final List<PhysicalContent> subContents = findContentsIntersectingWith(smallerBound);
 
 	return extractSubRegionFromContentList(bound, containedIn, subContents);
 }
@@ -224,6 +230,13 @@ public float getAvgFontSizeY() {
 		findAndSetFontInformation();
 	}
 	return _avgFontSizeY;
+}
+
+public Style getMostCommonStyle() {
+	if (!fontInfoFound) {
+		findAndSetFontInformation();
+	}
+	return _mostCommonStyle;
 }
 
 @NotNull
@@ -355,7 +368,7 @@ public List<PhysicalPageRegion> splitInVerticalColumns() {
 
 				/* check also how much text exists to the right of this boundary */
 				HasPosition search = new Rectangle(x, minY, getPosition().getEndX(), maxY);
-				final List<PhysicalContent> contentRight = findRectanglesIntersectingWith(search);
+				final List<PhysicalContent> contentRight = findContentsIntersectingWith(search);
 				if (contentRight.size() < 20) {
 					continue;
 				}
@@ -425,6 +438,35 @@ protected PhysicalPageRegion extractSubRegionFromContentList(@Nullable final Has
 	return newRegion;
 }
 
+private Style findDominatingStyleFor(final List<PhysicalContent> contents) {
+	Map<Style, Integer> letterCountPerStyle = new HashMap<Style, Integer>(10);
+	boolean textFound = false;
+
+	for (PhysicalContent content : contents) {
+		if (content.isText()) {
+			final Style style = content.getText().getStyle();
+			if (!letterCountPerStyle.containsKey(style)) {
+				letterCountPerStyle.put(style, 0);
+			}
+			final int numChars = content.getText().getContent().length();
+			letterCountPerStyle.put(style, letterCountPerStyle.get(style) + numChars);
+			textFound = true;
+		}
+	}
+
+	assert textFound;
+
+	int highestNumChars = -1;
+	Style style = null;
+	for (Map.Entry<Style, Integer> entry : letterCountPerStyle.entrySet()) {
+		if (entry.getValue() > highestNumChars) {
+			style = entry.getKey();
+			highestNumChars = entry.getValue();
+		}
+	}
+	return style;
+}
+
 protected boolean checkIfBelongsWithContentOnRight(@Nullable final PhysicalContent content) {
 	if (content == null || !content.isText()) {
 		return false;
@@ -472,21 +514,20 @@ protected void findAndSetFontInformation() {
 			final Style style = content.getText().getStyle();
 
 			final int length = content.getText().getContent().length();
-			xFontSizeSum += style.xSize * length;
-			yFontSizeSum += style.ySize * length;
+			xFontSizeSum += (float) (style.xSize * length);
+			yFontSizeSum += (float) (style.ySize * length);
 			numCharsFound += length;
 		}
 	}
 	if (numCharsFound == 0) {
 		_avgFontSizeX = Float.MIN_VALUE;
 		_avgFontSizeY = Float.MIN_VALUE;
-		//		_mostCommonStyle = null;
+		_mostCommonStyle = null;
 	} else {
 		_avgFontSizeX = xFontSizeSum / (float) numCharsFound;
 		_avgFontSizeY = yFontSizeSum / (float) numCharsFound;
-		//		_mostCommonStyle = findDominatingStyleFor(getContents());
+		_mostCommonStyle = findDominatingStyleFor(getContents());
 	}
-	//	_containsNoText = numCharsFound == 0;
 	fontInfoFound = true;
 }
 
@@ -526,17 +567,12 @@ protected int findMedianOfVerticalDistancesForRegion() {
 		}
 	}
 
-	return index;
+	return index + 1;
 }
 
 protected boolean isContainedInGraphic() {
 	return getContainedIn() != null && getContainedIn().isGraphic()
 			&& !getContainedIn().getGraphicContent().isBackgroundColor();
-}
-
-@NotNull
-public List<PhysicalPageRegion> getSubregions() {
-	return subregions;
 }
 }
 

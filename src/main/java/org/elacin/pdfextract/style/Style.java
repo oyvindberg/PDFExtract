@@ -27,20 +27,37 @@ import java.io.Serializable;
 public class Style implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
+public static final Style GRAPHIC = new Style("Image", -1, -1, -1, false, false, false);
+public static final Style FORMULA = new Style("Formula", -2, -2, -2, false, false, true);
+
+
 public final int xSize, ySize;
-public final String font;
-public final int    id;
+public final  String  fontName;
+public final  int     id;
+private final boolean italic;
+private final boolean bold;
+private final boolean mathFont;
 
 private transient boolean toStringCreated;
 private transient String  toStringCache;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public Style(final String font, final int xSize, final int ySize, final int id) {
-	this.font = font;
+Style(final String fontName,
+      final int xSize,
+      final int ySize,
+      final int id,
+      final boolean italic,
+      final boolean bold,
+      final boolean font)
+{
+	this.fontName = fontName;
 	this.xSize = xSize;
 	this.ySize = ySize;
 	this.id = id;
+	this.italic = italic;
+	this.bold = bold;
+	mathFont = font;
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
@@ -52,19 +69,14 @@ public boolean equals(final Object o) {
 
 	final Style style = (Style) o;
 
-	if (xSize != style.xSize) { return false; }
-	if (ySize != style.ySize) { return false; }
-	if (font != null ? !font.equals(style.font) : style.font != null) { return false; }
+	if (id != style.id) { return false; }
 
 	return true;
 }
 
 @Override
 public int hashCode() {
-	int result = xSize;
-	result = 31 * result + ySize;
-	result = 31 * result + (font != null ? font.hashCode() : 0);
-	return result;
+	return id;
 }
 
 @Override
@@ -72,9 +84,17 @@ public String toString() {
 	if (!toStringCreated) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append("{");
-		sb.append(font);
-		sb.append(", x=").append(xSize);
-		sb.append(", y=").append(ySize);
+		sb.append(fontName);
+		sb.append(", size=").append(xSize);
+		if (italic) {
+			sb.append(" (italic)");
+		}
+		if (bold) {
+			sb.append(" (bold)");
+		}
+		if (mathFont) {
+			sb.append(" (math)");
+		}
 		sb.append('}');
 		toStringCache = sb.toString();
 		toStringCreated = true;
@@ -83,48 +103,44 @@ public String toString() {
 	return toStringCache;
 }
 
-public boolean isCompatibleWith(final Style style) {
-	if (xSize != style.xSize) {
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+public boolean isBold() {
+	return bold;
+}
+
+public boolean isItalic() {
+	return italic;
+}
+
+public boolean isMathFont() {
+	return mathFont;
+}
+
+// -------------------------- PUBLIC METHODS --------------------------
+
+public boolean isCompatibleWith(final Style other) {
+
+	if (mathFont != other.mathFont){
 		return false;
 	}
 
-	if (ySize != style.ySize) {
+	if (xSize != other.xSize) {
 		return false;
 	}
 
-	/* for this purpose, ignore font styles like bold and italic.
-	*   this means that we need to separate out that part from the name of the font
-	* Two typical font names can be:
-	* - LPPMinionUnicode-Italic
-	* - LPPMyriadCondLightUnicode (as apposed to for example LPPMyriadCondUnicode and
-	* LPPMyriadLightUnicode-Bold)
-	*
-	* I want to separate the LPPMinion part for example from the first, so i look for the
-	 *  index of the first capital letter after a small one. Then i compare the substring
-	  * preceeding that letter to the same lengt substring of the other string
-	*
-	* */
-	if (font.equals(style.font)) {
-		return true;
-	}
-
-	boolean foundLowercase = false;
-	int index = -1;
-	for (int i = 0; i < font.length(); i++) {
-		if (!foundLowercase && Character.isLowerCase(font.charAt(i))) {
-			foundLowercase = true;
-		}
-		if (foundLowercase && Character.isUpperCase(font.charAt(i))) {
-			index = i;
-			break;
-		}
-	}
-
-	if (index == -1) {
+	if (ySize != other.ySize) {
 		return false;
 	}
 
-	return font.substring(0, index).equals(style.font.substring(0, index));
+	if (bold != other.bold) {
+		return false;
+	}
 
+	if (italic != other.italic) {
+		return false;
+	}
+
+	return fontName.equals(other.fontName);
 }
 }

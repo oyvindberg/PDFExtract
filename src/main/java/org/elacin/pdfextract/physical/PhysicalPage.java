@@ -154,11 +154,13 @@ public PageNode compileLogicalPage() {
 	regions.addAll(newRegions);
 
 
-	newRegions.clear();
-	for (PhysicalPageRegion region : regions) {
-		newRegions.addAll(region.splitInHorizontalColumnsBySpacing());
-	}
-	regions.addAll(newRegions);
+
+
+//	newRegions.clear();
+//	for (PhysicalPageRegion region : regions) {
+//		newRegions.addAll(region.splitInHorizontalColumnsBySpacing());
+//	}
+//	regions.addAll(newRegions);
 
 
 	//	/**
@@ -166,18 +168,18 @@ public PageNode compileLogicalPage() {
 	//	 */
 	//
 
-	newRegions.clear();
-	for (PhysicalPageRegion region : regions) {
-		newRegions.addAll(region.splitInHorizontalColumnsBySpacing());
-	}
-	regions.addAll(newRegions);
+//	newRegions.clear();
+//	for (PhysicalPageRegion region : regions) {
+//		newRegions.addAll(region.splitInHorizontalColumnsBySpacing());
+//	}
+//	regions.addAll(newRegions);
+//
 
-
-	newRegions.clear();
-	for (PhysicalPageRegion region : regions) {
-		newRegions.addAll(region.splitInVerticalColumns());
-	}
-	regions.addAll(newRegions);
+//	newRegions.clear();
+//	for (PhysicalPageRegion region : regions) {
+//		newRegions.addAll(region.splitInVerticalColumns());
+//	}
+//	regions.addAll(newRegions);
 
 
 	//	originalWholePage.addContent(graphicalRegions);
@@ -199,7 +201,7 @@ public PageNode compileLogicalPage() {
 			for (PhysicalContent content : subRegion.getContents()) {
 				if (content.isAssignablePhysicalContent()
 						&& !content.getAssignablePhysicalContent().isAssignedBlock()) {
-					throw new RuntimeException("content not assigned line");
+					log.error("LOG00711:content " + content + "not assigned line");
 				}
 			}
 
@@ -207,12 +209,9 @@ public PageNode compileLogicalPage() {
 		for (PhysicalContent content : region.getContents()) {
 			if (content.isAssignablePhysicalContent()
 					&& !content.getAssignablePhysicalContent().isAssignedBlock()) {
-				throw new RuntimeException("content not assigned line");
+				log.error("LOG00710:content " + content + "not assigned line");
 			}
 		}
-
-	}
-	for (PhysicalContent rectangle : getContents().getContents()) {
 
 	}
 

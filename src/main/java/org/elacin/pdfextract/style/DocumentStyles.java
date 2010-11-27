@@ -23,9 +23,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+
+import static java.lang.Character.*;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Mar 18, 2010 Time: 2:32:39 PM <p/> <p/> This class
@@ -35,24 +35,53 @@ import java.util.Map;
 public class DocumentStyles implements Serializable, XmlPrinter {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger              log    = Logger.getLogger(DocumentStyles.class);
-@NotNull
-final                Map<Integer, Style> styles = new HashMap<Integer, Style>();
+private static final Logger log = Logger.getLogger(DocumentStyles.class);
 
-final Collection<Style> stylesCollection = styles.values();
+private static List<String> mathFonts = new ArrayList<String>() {{
+	add("CMSY");
+	add("CMEX");
+	add("CMMI");
+}};
 
-// -------------------------- STATIC METHODS --------------------------
-
-@NotNull
-private static Style getStyle(int xSize, int ySize, String font, int id) {
-	return new Style(font, xSize, ySize, id);
-}
-
-// --------------------- GETTER / SETTER METHODS ---------------------
 
 @NotNull
-public Map<Integer, Style> getStyles() {
-	return styles;
+final Map<Integer, Style> styles           = new HashMap<Integer, Style>();
+final Collection<Style>   stylesCollection = styles.values();
+
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface XmlPrinter ---------------------
+
+@Override
+public void writeXmlRepresentation(final Appendable out,
+                                   final int indent,
+                                   final boolean verbose) throws IOException
+{
+	for (int i = 0; i < indent; i++) {
+		out.append(" ");
+	}
+
+	out.append("<styles>\n");
+	for (Style style : stylesCollection) {
+		for (int i = 0; i < indent + 4; i++) {
+			out.append(" ");
+		}
+		out.append("<style");
+		out.append(" id=\"").append(String.valueOf(style.id)).append("\"");
+		out.append(" font=\"").append(style.fontName).append("\"");
+		out.append(" size=\"").append(String.valueOf(style.xSize)).append("\"");
+		out.append(" italic=\"").append(String.valueOf(style.isItalic())).append("\"");
+		out.append(" bold=\"").append(String.valueOf(style.isBold())).append("\"");
+		out.append(" math=\"").append(String.valueOf(style.isMathFont())).append("\"");
+		out.append("/>\n");
+	}
+
+	for (int i = 0; i < indent; i++) {
+		out.append(" ");
+	}
+
+	out.append("</styles>\n");
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
@@ -65,56 +94,75 @@ public Style getStyleForTextPosition(@NotNull TextPosition position) {
 	result = 31 * result + (baseFont == null ? 0 : baseFont.hashCode());
 	result = 31 * result + position.getFont().getSubType().hashCode();
 
-	Style existing = styles.get(result);
-	if (existing == null) {
-		int realFontSizeX = (int) (position.getFontSize() * position.getXScale());
-		int realFontSizeY = (int) (position.getFontSize() * position.getYScale());
-
-		/* build a string with fontname / type */
-		String baseFontName = position.getFont().getBaseFont()
-				== null ? "null" : position.getFont().getBaseFont();
-
-		final int plusIndex = baseFontName.indexOf("+");
-		if (plusIndex != -1) {
-			baseFontName = baseFont.substring(plusIndex + 1);
-		}
-
-		final String fontname = baseFontName + " (" + position.getFont().getSubType() + ")";
-
-		existing = getStyle(realFontSizeX, realFontSizeY, fontname, styles.size());
+	if (styles.get(result) == null) {
+		Style existing = createStyle(position);
 		styles.put(result, existing);
 	}
 
 
-	return existing;
+	return styles.get(result);
 }
 
-@Override
-public void writeXmlRepresentation(final Appendable out,
-                                   final int indent,
-                                   final boolean verbose) throws IOException
-{
+// -------------------------- OTHER METHODS --------------------------
 
-	for (int i = 0; i < indent; i++) {
-		out.append(" ");
+private Style createStyle(final TextPosition position) {
+	int realFontSizeX = (int) (position.getFontSize() * position.getXScale());
+	int realFontSizeY = (int) (position.getFontSize() * position.getYScale());
+
+
+	/* find the appropriate font name to use  - baseFont might some times be null*/
+	String font;
+	if (position.getFont().getBaseFont() == null) {
+		font = position.getFont().getSubType();
+	} else {
+		font = position.getFont().getBaseFont();
 	}
-	out.append("<styles>\n");
-	for (Style style : stylesCollection) {
-		for (int i = 0; i < indent + 4; i++) {
-			out.append(" ");
+
+	/* a lot of embedded fonts have names like XCSFS+Times, so remove everything before and
+	including '+' */
+	final int plusIndex = font.indexOf('+');
+	if (plusIndex != -1) {
+		font = font.substring(plusIndex + 1, font.length());
+	}
+
+	/**
+	 * Find the plain font name, without any other information
+	 * Three typical font names can be:
+	 * - LPPMinionUnicode-Italic
+	 * - LPPMyriadCondLightUnicode (as apposed to for example LPPMyriadCondUnicode and
+	 * LPPMyriadLightUnicode-Bold)
+	 * - Times-Bold (Type1)
+	 *
+	 * I want to separate the LPPMinion part for example from the first, so i look for the
+	 *  index of the first capital letter after a small one.
+	 *  Also stop if we reach an '-' or whitespace, as that is a normal separators
+	 * */
+
+	boolean foundLowercase = false;
+	int index = -1;
+	for (int i = 0; i < font.length(); i++) {
+		final char ch = font.charAt(i);
+
+		if (!foundLowercase && isLowerCase(ch)) {
+			foundLowercase = true;
+		} else if (foundLowercase && isUpperCase(ch)) {
+			index = i;
+			break;
+		} else if ('-' == ch || isWhitespace(ch)) {
+			index = i;
+			break;
 		}
-		out.append("<style");
-		out.append(" id=\"").append(String.valueOf(style.id)).append("\"");
-		out.append(" font=\"").append(style.font).append("\"");
-		out.append(" size=\"").append(String.valueOf(style.xSize)).append("\"");
-		out.append("/>\n");
 	}
 
-	for (int i = 0; i < indent; i++) {
-		out.append(" ");
+	if (index != -1) {
+		font = font.substring(0, index);
 	}
+	//asd
 
-	out.append("</styles>\n");
+	boolean mathFont = font.length() > 4 && mathFonts.contains(font.substring(0, 4));
+	boolean bold = font.toLowerCase().contains("bold");
+	boolean italic = font.toLowerCase().contains("italic");
 
+	return new Style(font, realFontSizeX, realFontSizeY, styles.size(), italic, bold, mathFont);
 }
 }

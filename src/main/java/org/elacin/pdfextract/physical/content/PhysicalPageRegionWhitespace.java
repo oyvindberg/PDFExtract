@@ -68,7 +68,7 @@ public List<ParagraphNode> createParagraphNodes(@NotNull final LineSegmentator s
 			if (contentInRow.isText() && !contentInRow.getText().isAssignedBlock()) {
 				/* find all connected texts and mark with this blockNum*/
 				final PhysicalText text = contentInRow.getText();
-				markEverythingConnectedFrom(contentInRow, blockNum, text.getRotation(), text.style.font);
+				markEverythingConnectedFrom(contentInRow, blockNum, text.getRotation());
 
 				blockNum++;
 			}
@@ -116,8 +116,7 @@ public void addWhitespace(final Collection<WhitespaceRectangle> whitespace) {
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent current,
                                             final int blockNum,
-                                            final int rotation,
-                                            final String fontName)
+                                            final int rotation)
 {
 	if (!current.isAssignablePhysicalContent()) {
 		return false;
@@ -135,11 +134,11 @@ private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent curre
 
 	/* try searching for texts in all directions */
 	for (int y = (int) pos.getY(); y < (int) pos.getEndY(); y++) {
-		markBothWaysFromCurrent(current, blockNum, findContentAtYIndex(y), rotation, fontName);
+		markBothWaysFromCurrent(current, blockNum, findContentAtYIndex(y), rotation);
 	}
 
 	for (int x = (int) pos.getX(); x < (int) pos.getEndX(); x++) {
-		markBothWaysFromCurrent(current, blockNum, findContentAtXIndex(x), rotation, fontName);
+		markBothWaysFromCurrent(current, blockNum, findContentAtXIndex(x), rotation);
 	}
 	return true;
 }
@@ -147,20 +146,19 @@ private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent curre
 private void markBothWaysFromCurrent(final PhysicalContent current,
                                      final int blockNum,
                                      @NotNull final List<PhysicalContent> line,
-                                     final int rotation,
-                                     final String fontName)
+                                     final int rotation)
 {
 	final int currentIndex = line.indexOf(current);
 
 	/* left/up*/
 	boolean continue_ = true;
 	for (int index = currentIndex - 1; index >= 0 && continue_; index--) {
-		continue_ &= markEverythingConnectedFrom(line.get(index), blockNum, rotation, fontName);
+		continue_ &= markEverythingConnectedFrom(line.get(index), blockNum, rotation);
 	}
 	/* right / down */
 	continue_ = true;
 	for (int index = currentIndex + 1; index < line.size() && continue_; index++) {
-		continue_ &= markEverythingConnectedFrom(line.get(index), blockNum, rotation, fontName);
+		continue_ &= markEverythingConnectedFrom(line.get(index), blockNum, rotation);
 	}
 }
 }

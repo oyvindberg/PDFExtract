@@ -156,7 +156,7 @@ private void checkForTopNote(@NotNull final WordNode word) {
 	if (word.getPosition().getY() < (word.getPage().getPosition().getHeight() * 5.0 / 100)) {
 		/* then check the font. we either want smaller than breadtext, or same size but different type */
 		if (word.getStyle().ySize < breadtext.ySize || (word.getStyle().ySize == breadtext.ySize
-				&& !word.getStyle().font.equals(breadtext.font))) {
+				&& !word.getStyle().fontName.equals(breadtext.fontName))) {
 			word.addRole(Role.HEADNOTE, "");
 		}
 	}

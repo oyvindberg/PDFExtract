@@ -67,15 +67,14 @@ public List<ParagraphNode> segmentParagraphs(final List<LineNode> lines) {
 					currentStyle = lineStyle;
 				}
 
-				if (!currentStyle.isCompatibleWith(lineStyle)
-						&& !line.containsWordWithStyle(currentStyle)) {
+				if (!currentStyle.isCompatibleWith(lineStyle) && !line.containsWordWithStyle(currentStyle)) {
 					if (!currentParagraph.getChildren().isEmpty()) {
-						log.info("LOG00660:Splitting text: " + currentStyle + ", " + lineStyle);
+						log.info("LOG00660:Split/style: " + currentStyle + ", " + lineStyle);
 						ret.add(currentParagraph);
 					}
 					currentParagraph = new ParagraphNode();
 					currentParagraph.setContainedInImage(setIsContainedInGraphic);
-					currentStyle = null;
+					currentStyle = lineStyle;
 				}
 				currentParagraph.addChild(line);
 			}

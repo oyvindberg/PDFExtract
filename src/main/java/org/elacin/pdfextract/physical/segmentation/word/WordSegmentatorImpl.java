@@ -17,7 +17,6 @@
 package org.elacin.pdfextract.physical.segmentation.word;
 
 import org.apache.log4j.Logger;
-import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.util.TextPositionComparator;
 import org.elacin.pdfextract.pdfbox.ETextPosition;
 import org.elacin.pdfextract.physical.content.PhysicalText;
@@ -51,26 +50,12 @@ public class WordSegmentatorImpl implements WordSegmentator {
 
 private static final Logger log = Logger.getLogger(WordSegmentatorImpl.class);
 
-/**
- * Some math fonts has apparently wrong height alignment. list those here so we can do manual
- * correction
- */
-@NotNull
-private static List<String> strangeMathFonts = new ArrayList<String>() {
-	{
-		add("CMEX");
-		//		add("CMMI");
-		//        add("CMSY10");
-	}
-};
-
 private final DocumentStyles styles;
 private final float          pageRotation;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public WordSegmentatorImpl(final DocumentStyles styles, final float rotation) {
-
 	this.styles = styles;
 	pageRotation = rotation;
 }
@@ -87,7 +72,6 @@ public WordSegmentatorImpl(final DocumentStyles styles, final float rotation) {
 @NotNull
 @Override
 public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) {
-
 	long t0 = System.currentTimeMillis();
 
 
@@ -101,8 +85,8 @@ public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) 
 
 	Collections.sort(text, new TextPositionComparator());
 
-	float minY = 0.0f;
-	float maxY = 0.0f;
+	float baseline = 0.0f;
+	float maxY = Float.MIN_VALUE;
 	float maxX = 0.0f;
 
 	for (ETextPosition tp : text) {
@@ -113,23 +97,22 @@ public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) 
 		}
 		/* if this is the first text in a line */
 		if (line.isEmpty()) {
-			minY = tp.getPos().getY();
-			maxY = minY + tp.getPos().getHeight();
+			baseline = tp.getBaseLine();
 			maxX = tp.getPos().getEndX();
 		}
 
-		if (isOnAnotherLine(minY, tp) || isTooFarAwayHorizontally(maxX, tp)) {
+		if (isOnAnotherLine(baseline, tp, maxY) || isTooFarAwayHorizontally(maxX, tp)) {
 			if (!line.isEmpty()) {
 				ret.addAll(createWordsInLine(line));
 				line.clear();
 			}
-			minY = Float.MAX_VALUE;
+			baseline = tp.getBaseLine();
+			maxY = tp.getPos().getEndY();
 		}
 
 		/* then add the current text to start next line */
 		line.add(tp);
-		minY = Math.min(tp.getPos().getY(), minY);
-		maxY = Math.max(minY + tp.getPos().getHeight(), maxY);
+		maxY = Math.max(maxY, tp.getPos().getEndX());
 		maxX = tp.getPos().getEndX();
 	}
 
@@ -141,45 +124,19 @@ public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) 
 	if (log.isDebugEnabled()) {
 		log.debug("LOG00010:word segmentation took " + (System.currentTimeMillis() - t0) + " ms");
 	}
-	;
 	return ret;
+}
+
+private static boolean isOnAnotherLine(final float baseline,
+                                       final ETextPosition tp,
+                                       final float maxY)
+{
+	return (baseline != tp.getBaseLine() && tp.getBaseLine() > maxY);
 }
 
 // -------------------------- STATIC METHODS --------------------------
 
-//private static List<String> mathGlyphsWithProblems = new ArrayList<String>(){
-//	{
-////		add("|");
-//		add("∫");
-//		add("∑");
-//		add("√");
-//	}
-//};
-
-private static boolean fontSeemsToNeedVerticalAdjustment(@NotNull final ETextPosition tp) {
-	final PDFont font = tp.getFont();
-	boolean badFont = false;
-	for (String strangeMathFont : strangeMathFonts) {
-		if (font.getBaseFont() != null && font.getBaseFont().contains(strangeMathFont)) {
-			badFont = true;
-			break;
-		}
-	}
-	return badFont;
-	//	if (!badFont){
-	//		return false;
-	//	}
-	//	return mathGlyphsWithProblems.contains(tp.getCharacter());
-	//	return false;
-}
-
-private static boolean isOnAnotherLine(final float y, @NotNull final ETextPosition tp) {
-
-	return !isWithinVariance(y, tp.getPos().getY(), 3.0f);
-}
-
 private static boolean isTooFarAwayHorizontally(final float endX, @NotNull final ETextPosition tp) {
-
 	return !isWithinVariance(endX, tp.getPos().getX(), tp.getFontSizeInPt());
 }
 
@@ -189,7 +146,6 @@ private static boolean isTooFarAwayHorizontally(final float endX, @NotNull final
 @NotNull
 @SuppressWarnings({"ObjectAllocationInLoop"})
 List<PhysicalText> splitTextPositionsOnSpace(@NotNull final List<ETextPosition> texts) {
-
 	final List<PhysicalText> ret = new ArrayList<PhysicalText>(texts.size() * 2);
 
 	final FloatPoint lastWordBoundary = new FloatPoint(0.0F, 0.0F);
@@ -225,23 +181,10 @@ List<PhysicalText> splitTextPositionsOnSpace(@NotNull final List<ETextPosition> 
 						distance = x - lastWordBoundary.getX();
 					}
 
-					/** this is a workaround for when pdfbox sometimes miscalculates the
-					 * coordinates of certain mathematical symbols */
-
-					float adjustedHeight = tp.getPos().getHeight();
-
-					float adjustedY = y - adjustedHeight;
-					if (fontSeemsToNeedVerticalAdjustment(tp)) {
-						adjustedY = y;
-					}
-
-					if (tp.isSmallOperator()) {
-						adjustedHeight *= 0.4f;
-						//						adjustedY += adjustedHeight;
-					}
-
 					/** output this word */
-					ret.add(new PhysicalText(contents.toString(), style, x, adjustedY, width, adjustedHeight, distance, (int) tp.getDir(), tp.getSequenceNum()));
+					ret.add(new PhysicalText(contents.toString(), style, x, tp.getPos().getY(),
+					                         width, tp.getPos().getHeight(), distance,
+					                         (int) tp.getDir(), tp.getSequenceNum()));
 
 					/** change X coordinate to include this text */
 					x += width;
@@ -275,10 +218,8 @@ List<PhysicalText> splitTextPositionsOnSpace(@NotNull final List<ETextPosition> 
  */
 @NotNull
 private List<PhysicalText> createWordsInLine(@NotNull final List<ETextPosition> line) {
-
 	final Comparator<PhysicalText> sortByLowerX = new Comparator<PhysicalText>() {
 		public int compare(@NotNull final PhysicalText o1, @NotNull final PhysicalText o2) {
-
 			return Float.compare(o1.getPosition().getX(), o2.getPosition().getX());
 		}
 	};
@@ -306,7 +247,7 @@ private List<PhysicalText> createWordsInLine(@NotNull final List<ETextPosition> 
 		ret.add(current);
 	}
 	for (PhysicalText text : ret) {
-		if (log.isInfoEnabled()) { log.info("LOG00540: created PhysicalText" + text); }
+		if (log.isDebugEnabled()) { log.debug("LOG00540: created PhysicalText" + text); }
 	}
 
 	return ret;

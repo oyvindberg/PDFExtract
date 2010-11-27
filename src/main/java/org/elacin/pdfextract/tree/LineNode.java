@@ -16,6 +16,7 @@
 
 package org.elacin.pdfextract.tree;
 
+import org.elacin.pdfextract.logical.text.Role;
 import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,24 +54,30 @@ public void writeXmlRepresentation(@NotNull final Appendable out,
 		out.append(" ");
 	}
 
-	out.append("<line");
-	out.append(" styleRef=\"").append(String.valueOf(findDominatingStyle().id)).append("\"");
-
-	if (verbose) {
-		getPosition().writeXmlRepresentation(out, indent, verbose);
-		out.append(">\n");
-
-		for (WordNode child : getChildren()) {
-			child.writeXmlRepresentation(out, indent + 4, verbose);
-		}
-		for (int i = 0; i < indent; i++) {
-			out.append(" ");
-		}
-		out.append("</line>\n");
-	} else {
-		out.append(">");
+	if (lineSeemsToBeFormula()) {
+		out.append("<formula>");
 		out.append(getText());
-		out.append("</line>\n");
+		out.append("</formula>\n");
+	} else {
+		out.append("<line");
+		out.append(" styleRef=\"").append(String.valueOf(findDominatingStyle().id)).append("\"");
+
+		if (verbose) {
+			getPosition().writeXmlRepresentation(out, indent, verbose);
+			out.append(">\n");
+
+			for (WordNode child : getChildren()) {
+				child.writeXmlRepresentation(out, indent + 4, verbose);
+			}
+			for (int i = 0; i < indent; i++) {
+				out.append(" ");
+			}
+			out.append("</line>\n");
+		} else {
+			out.append(">");
+			out.append(getText());
+			out.append("</line>\n");
+		}
 	}
 }
 
@@ -105,6 +112,10 @@ public boolean containsWordWithStyle(final Style style) {
 
 @NotNull
 public Style findDominatingStyle() {
+	if (lineSeemsToBeFormula()){
+		return Style.FORMULA;
+	}
+
 	boolean textFound = false;
 	Map<Style, Integer> letterCountPerStyle = new HashMap<Style, Integer>(10);
 	for (WordNode word : getChildren()) {
@@ -144,5 +155,61 @@ public Comparator<WordNode> getChildComparator() {
 			return 0;
 		}
 	};
+}
+
+// -------------------------- OTHER METHODS --------------------------
+
+private boolean isIndented() {
+	if (getParent() == null){
+		return false;
+	}
+
+	final float paragraphX = getParent().getPosition().getX();
+	return getPosition().getX() > paragraphX + (float) findDominatingStyle().xSize * 2.0f;
+}
+
+private boolean lineSeemsToBeFormula() {
+
+	if (getText().length() < 4){
+		return false;
+	}
+
+	int looksLikeMath = 0;
+	int wordCount = 0;
+
+	int containedGraphics = 0;
+	for (WordNode word : getChildren()) {
+
+		if (word.getStyle().equals(Style.GRAPHIC)){
+			containedGraphics++;
+			continue;
+		}
+
+		wordCount += word.getText().length();
+
+		/* first check whether the whole word seems to be formatted in a math font */
+		if (word.getStyle().isMathFont()){
+			looksLikeMath += 3* word.getText().length();
+			continue;
+		}
+
+		for (int i = 0; i < word.getText().length(); i++) {
+			final char c = word.getText().charAt(i);
+			if (Character.getType(c) == (int) Character.MATH_SYMBOL){
+				looksLikeMath += 5;
+			} else if (Character.isDigit(c)){
+				looksLikeMath += 2;
+			}
+		}
+	}
+
+	looksLikeMath += containedGraphics * (looksLikeMath *0.1);
+
+//	if (isIndented()){
+//		/* add a bit to the probability if the text seems to be indented */
+//		looksLikeMath += looksLikeMath * 0.1f;
+//	}
+
+	return looksLikeMath > wordCount;
 }
 }

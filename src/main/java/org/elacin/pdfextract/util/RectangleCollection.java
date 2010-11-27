@@ -124,7 +124,7 @@ public List<PhysicalContent> findContentAtXIndex(int x) {
 	if (!xCache.containsKey(x)) {
 		final Rectangle searchRectangle
 				= new Rectangle((float) x, getPosition().getY(), 1.0f, getPosition().getHeight());
-		final List<PhysicalContent> result = findRectanglesIntersectingWith(searchRectangle);
+		final List<PhysicalContent> result = findContentsIntersectingWith(searchRectangle);
 		sortListByYCoordinate(result);
 		xCache.put(x, result);
 	}
@@ -140,7 +140,7 @@ public List<PhysicalContent> findContentAtYIndex(int y) {
 	if (!yCache.containsKey(y)) {
 		final Rectangle searchRectangle
 				= new Rectangle(getPosition().getX(), (float) y, getPosition().getWidth(), 1.0F);
-		final List<PhysicalContent> result = findRectanglesIntersectingWith(searchRectangle);
+		final List<PhysicalContent> result = findContentsIntersectingWith(searchRectangle);
 		sortListByXCoordinate(result);
 		yCache.put(y, result);
 	}
@@ -148,7 +148,7 @@ public List<PhysicalContent> findContentAtYIndex(int y) {
 }
 
 @NotNull
-public List<PhysicalContent> findRectanglesIntersectingWith(@NotNull final HasPosition search) {
+public List<PhysicalContent> findContentsIntersectingWith(@NotNull final HasPosition search) {
 	final List<PhysicalContent> ret = new ArrayList<PhysicalContent>(50);
 	for (PhysicalContent r : contents) {
 		if (search.getPosition().intersectsWith(r.getPosition())) {
@@ -169,7 +169,7 @@ public List<PhysicalContent> findSurrounding(@NotNull final PhysicalContent text
 			bound.getY() - (float) distance,
 			bound.getWidth() + (float) distance, bound.getHeight() + (float) distance);
 
-	final List<PhysicalContent> ret = findRectanglesIntersectingWith(searchRectangle);
+	final List<PhysicalContent> ret = findContentsIntersectingWith(searchRectangle);
 
 	if (ret.contains(text)) {
 		ret.remove(text);
@@ -206,7 +206,7 @@ public List<PhysicalContent> searchInDirectionFromOrigin(@NotNull Direction dir,
 	final float y = pos.getY() + dir.yDiff * distance;
 	final Rectangle search = new Rectangle(x, y, pos.getWidth(), pos.getHeight());
 
-	final List<PhysicalContent> ret = findRectanglesIntersectingWith(search);
+	final List<PhysicalContent> ret = findContentsIntersectingWith(search);
 	if (ret.contains(origin)) {
 		ret.remove(origin);
 	}

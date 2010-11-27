@@ -37,9 +37,9 @@ public class ETextPosition extends TextPosition {
 
 private static final Logger log = Logger.getLogger(ETextPosition.class);
 @NotNull
-private final Rectangle pos;
+private       Rectangle pos;
 private final int       sequenceNum;
-private       boolean   smallOperator;
+private       float     baseLine;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -56,23 +56,15 @@ public ETextPosition(final PDPage page,
                      final float ws,
                      final int num)
 {
-	super(page, textPositionSt, textPositionEnd, maxFontH, individualWidths, spaceWidth, string, currentFont, fontSizeValue, fontSizeInPt, ws);
+	super(page, textPositionSt, textPositionEnd, maxFontH, individualWidths, spaceWidth, string,
+	      currentFont, fontSizeValue, fontSizeInPt, ws);
 
 	sequenceNum = num;
-
-	if ("∫".equals(string)) {
-		System.out.println("this = " + this);
-	}
 
 	float x = getX();
 	float y = getY();
 	float w = getWidth();
 	float h = getHeight();
-
-	//	float x = getXDirAdj();
-	//	float y = getYDirAdj();
-	//	float w = getWidthDirAdj();
-	//	float h = getHeightDir();
 
 	if (h <= 0.0f && w < 0.0f) {
 		throw new IllegalArgumentException("Passed text '" + string + "' with no size.");
@@ -98,8 +90,9 @@ public ETextPosition(final PDPage page,
 		h *= 1.5;
 
 		if (log.isDebugEnabled()) {
-			log.debug(String.format("LOG00630:Guessing height of text %s at (%s,"
-					                        + "%s). height = %f", string, x, y, h));
+			log.debug(String.format(
+					"LOG00630:Guessing height of text %s at (%s," + "%s). height = %f", string, x,
+					y, h));
 		}
 	}
 
@@ -123,9 +116,9 @@ public ETextPosition(final PDPage page,
 		if (adjustedWidth) {
 			if (log.isDebugEnabled()) {
 				log.debug(String.format("LOG00630:Guessing width of text %s at (%s,"
-						                        + "%s). adjusted from %f to %f", string, getX(), getY(), getWidth(), tempW));
+						                        + "%s). adjusted from %f to %f", string, getX(),
+				                        getY(), getWidth(), tempW));
 			}
-			;
 		} else {
 			assert MathUtils.isWithinVariance(w, tempW, 0.01f);
 		}
@@ -137,25 +130,24 @@ public ETextPosition(final PDPage page,
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
+public float getBaseLine() {
+	return baseLine;
+}
+
+public void setBaseLine(final float baseLine) {
+	this.baseLine = baseLine;
+}
+
 @NotNull
 public Rectangle getPos() {
 	return pos;
 }
 
+public void setPos(@NotNull final Rectangle pos) {
+	this.pos = pos;
+}
+
 public int getSequenceNum() {
 	return sequenceNum;
-}
-
-public boolean isSmallOperator() {
-	return smallOperator;
-}
-
-// -------------------------- PUBLIC METHODS --------------------------
-
-public void setIsSmallOperator(final boolean smallOperator) {
-	if (log.isInfoEnabled()) {
-		log.info("LOG00680:" + this + " is small operator");
-	}
-	this.smallOperator = smallOperator;
 }
 }

@@ -16,10 +16,10 @@
 
 package org.elacin.pdfextract.physical.segmentation.line;
 
-import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
 import org.elacin.pdfextract.physical.content.PhysicalText;
+import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.tree.LineNode;
 import org.elacin.pdfextract.tree.WordNode;
 import org.elacin.pdfextract.util.Rectangle;
@@ -141,7 +141,7 @@ private LineNode createLineFrom(@NotNull final PhysicalPageRegion region,
 			if (content.isText()) {
 				lineNode.addChild(createWordNode(content.getText(), region.getPageNumber()));
 			} else if (content.isGraphic()) {
-				lineNode.addChild(new WordNode(content.getPosition(), region.getPageNumber(), GraphicContent.STYLE_FOR_GRAPHIC, "[FIG]", 0.0f));
+				lineNode.addChild(new WordNode(content.getPosition(), region.getPageNumber(), Style.GRAPHIC, "[FIG]", 0.0f));
 			} else {
 				throw new RuntimeException("asd");
 			}

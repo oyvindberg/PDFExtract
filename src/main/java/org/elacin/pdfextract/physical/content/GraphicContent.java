@@ -30,7 +30,6 @@ import java.awt.*;
 public class GraphicContent extends AssignablePhysicalContent {
 // ------------------------------ FIELDS ------------------------------
 
-public static        Style  STYLE_FOR_GRAPHIC = new Style("Image", -1, -1, -1);
 private static final Logger log               = Logger.getLogger(GraphicContent.class);
 private final boolean filled;
 private final boolean picture;
@@ -143,7 +142,7 @@ public boolean canBeConsideredContentInRegion(@NotNull final PhysicalPageRegion 
 /** consider the graphic a separator if the aspect ratio is really high */
 public boolean canBeConsideredSeparator() {
 	final Rectangle pos = getPosition();
-	if (pos.getWidth() > 10.0f && pos.getHeight() > 10.0f) {
+	if (pos.getWidth() > 15.0f && pos.getHeight() > 15.0f) {
 		return false;
 	}
 

@@ -141,14 +141,6 @@ static float calculateCharspacingForDistances(@NotNull final List<Float> distanc
 	float charSpacing = (averageFontSize / 10.0F) * (largest * 0.2f) + smallest * 0.6f;
 
 
-	/* lower than 0.35 does not realisticly happen with 7pt, scale that with bigger font sizes */
-	float lowerLimit = (0.35f / 7.0f) * (averageFontSize * (1.3f));
-	/* the above doesnt seem to scale well with really big text, so bound it at 15 */
-	if (lowerLimit > 15.0f) {
-		lowerLimit = 15.0f;
-	}
-	charSpacing = Math.max(lowerLimit, charSpacing);
-
 	if (charSpacing > largest || charSpacing < smallest) {
 		float largestOfSmallest = 0.0f;
 		for (int i = 0, size = distances.size(); i < size - 1; i++) {
@@ -159,16 +151,24 @@ static float calculateCharspacingForDistances(@NotNull final List<Float> distanc
 		charSpacing = largestOfSmallest;
 	}
 
+	/* lower than 0.35 does not realisticly happen with 7pt, scale that with bigger font sizes */
+	float lowerLimit = (0.35f / 7.0f) * (averageFontSize * (1.3f));
+	/* the above doesnt seem to scale well with really big text, so limit it at 15 */
+	if (lowerLimit > 15.0f) {
+		lowerLimit = 15.0f;
+	}
+	charSpacing = Math.max(lowerLimit, charSpacing);
+
 
 	return charSpacing;
 }
 
 private static float getAverageFontSize(@NotNull final Collection<PhysicalText> texts) {
-	float fontSizeSum = 0.0f;
+	int fontSizeSum = 0;
 	for (PhysicalText text : texts) {
-		fontSizeSum += text.style.xSize;
+		fontSizeSum +=  text.style.xSize;
 	}
-	return fontSizeSum / (float) texts.size();
+	return (float) fontSizeSum / (float) texts.size();
 }
 
 @NotNull
@@ -178,7 +178,6 @@ private static List<Float> getDistancesBetweenTextObjects(@NotNull final Collect
 	for (PhysicalText text : texts) {
 		/* skip the first word fragment, and only include this distance if it is not too big */
 		if (!first && text.distanceToPreceeding < text.style.xSize * 6.0f) {
-			//			distances.add(Math.max(0.0f, text.distanceToPreceeding));
 			distances.add(text.distanceToPreceeding);
 		}
 		first = false;

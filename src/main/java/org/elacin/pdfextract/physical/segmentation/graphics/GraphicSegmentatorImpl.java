@@ -20,6 +20,8 @@ import org.apache.log4j.Logger;
 import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
+import org.elacin.pdfextract.physical.content.PhysicalText;
+import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
@@ -83,8 +85,78 @@ public GraphicSegmentatorImpl(final float w, final float h) {
 // ------------------------ INTERFACE METHODS ------------------------
 
 
+// --------------------- Interface GraphicSegmentator ---------------------
+
+@NotNull
+@Override
+public List<GraphicContent> getContentGraphics() {
+	assert didSegment;
+	return contentGraphics;
+}
+
+@Override
+@NotNull
+public List<GraphicContent> getGraphicalRegions() {
+	assert didSegment;
+	return graphicalRegions;
+}
+
+@Override
+@NotNull
+public List<GraphicContent> getGraphicsToRender() {
+	assert didSegment;
+	return graphicsToRender;
+}
+
+@Override
+public void segmentGraphicsUsingContentInRegion(@NotNull PhysicalPageRegion region) {
+	assert !didSegment;
+
+	if (figures.isEmpty()) {
+		if (log.isInfoEnabled()) { log.info("no figures to combine"); }
+	} else {
+		combineGraphicsUsingRegion(region, figures);
+	}
+	if (pictures.isEmpty()) {
+		if (log.isInfoEnabled()) { log.info("no pictures to combine"); }
+	} else {
+		combineGraphicsUsingRegion(region, pictures);
+	}
+
+	for (GraphicContent graphic : getGraphicContents()) {
+		if (isTooBigGraphic(graphic)) {
+			if (log.isInfoEnabled()) { log.info("LOG00512::considered too big " + graphic); }
+			continue;
+		}
+
+		if (graphicContainsTextFromRegion(region, graphic)) {
+			if (log.isInfoEnabled()) { log.info("LOG00500:contains content " + graphic); }
+			graphic.setCanBeAssigned(false);
+			graphicalRegions.add(graphic);
+		} else if (graphic.canBeConsideredContentInRegion(region)) {
+			if (log.isTraceEnabled()) { log.trace("LOG00520:considered content " + graphic); }
+			graphic.setCanBeAssigned(true);
+			contentGraphics.add(graphic);
+		} else if (graphic.canBeConsideredSeparator()) {
+			if (log.isInfoEnabled()) { log.info("LOG00490:considered separator " + graphic); }
+			graphic.setCanBeAssigned(true);
+			contentGraphics.add(graphic);
+		} else {
+			log.warn("LOG00511: unknown function " + graphic);
+			graphic.setCanBeAssigned(true);
+			contentGraphics.add(graphic);
+		}
+
+		graphicsToRender.add(graphic);
+	}
+
+	clearTempLists();
+	didSegment = true;
+}
+
 // --------------------- Interface GraphicsDrawer ---------------------
 
+@SuppressWarnings({"NumericCastThatLosesPrecision"})
 @Override
 public void drawImage(@NotNull final Image image,
                       @NotNull final AffineTransform at,
@@ -122,6 +194,8 @@ public void drawImage(@NotNull final Image image,
 		log.warn("LOG00590:Error while adding graphics: " + e.getMessage());
 		return;
 	}
+
+
 	pictures.add(new GraphicContent(pos, true, true, Color.BLACK));
 }
 
@@ -132,9 +206,10 @@ public void fill(@NotNull final GeneralPath originalPath, @NotNull final Color c
 
 	for (GeneralPath path : paths) {
 		try {
-			addFigure(new GraphicContent(convertRectangle(path.getBounds()), false, true, color));
+			final Rectangle pos = convertRectangle(path.getBounds());
+			addFigure(new GraphicContent(pos, false, true, color));
 		} catch (Exception e) {
-			log.warn("LOG00580:Error while filling path " + path + ": " + e.getMessage());
+			log.warn("LOG00580:Error while filling path " + path + ": ", e);
 		}
 	}
 }
@@ -154,72 +229,13 @@ public void strokePath(@NotNull final GeneralPath originalPath, @NotNull final C
 	}
 }
 
-// --------------------- Interface GraphicSegmentator ---------------------
-
-@NotNull
-@Override
-public List<GraphicContent> getContentGraphics() {
-	assert didSegment;
-	return contentGraphics;
-}
-
-@Override
-@NotNull
-public List<GraphicContent> getGraphicalRegions() {
-	assert didSegment;
-	return graphicalRegions;
-}
-
-@Override
-@NotNull
-public List<GraphicContent> getGraphicsToRender() {
-	assert didSegment;
-	return graphicsToRender;
-}
-
-@Override
-public void segmentGraphicsUsingContentInRegion(@NotNull PhysicalPageRegion region) {
-	assert !didSegment;
-
-	combineGraphicsUsingRegion(region, figures);
-	combineGraphicsUsingRegion(region, pictures);
-
-	for (GraphicContent graphic : getGraphicContents()) {
-		if (isTooBigGraphic(graphic)) {
-			if (log.isInfoEnabled()) { log.info("LOG00510::considered too big " + graphic); }
-			continue;
-		}
-
-		if (graphicContainsTextFromRegion(region, graphic)) {
-			if (log.isInfoEnabled()) { log.info("LOG00500:contains content " + graphic); }
-			graphic.setCanBeAssigned(false);
-			graphicalRegions.add(graphic);
-		} else if (graphic.canBeConsideredContentInRegion(region)) {
-			if (log.isTraceEnabled()) { log.trace("LOG00520:considered content " + graphic); }
-			graphic.setCanBeAssigned(true);
-			contentGraphics.add(graphic);
-		} else if (graphic.canBeConsideredSeparator()) {
-			if (log.isInfoEnabled()) { log.info("LOG00490:considered separator " + graphic); }
-			graphic.setCanBeAssigned(true);
-			contentGraphics.add(graphic);
-		} else {
-			log.warn("LOG00510: unknown function " + graphic);
-			graphic.setCanBeAssigned(false);
-		}
-
-		graphicsToRender.add(graphic);
-	}
-
-	clearTempLists();
-	didSegment = true;
-}
-
 // -------------------------- STATIC METHODS --------------------------
 
 private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion region,
                                                @NotNull final Set<GraphicContent> set)
 {
-	/** segment images
+	/**
+	 * Segment images
 	 *
 	 * We segment figures and pictures separately.
 	 *
@@ -231,29 +247,27 @@ private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion
 	 *
 	 *  */
 
-	if (set.isEmpty()) {
-		if (log.isDebugEnabled()) { log.debug("no graphics to combine"); }
-		return;
-	}
-
-	if (log.isDebugEnabled()) { log.debug("size() before = " + set.size()); }
+	if (log.isInfoEnabled()) { log.info("size() before = " + set.size()); }
 
 
 	List<GraphicContent> saved = new ArrayList<GraphicContent>();
 	List<GraphicContent> toBeCombined = new ArrayList<GraphicContent>(set.size());
 
-	for (GraphicContent graphic : set) {
-		final List<PhysicalContent> figureContent = region.findRectanglesIntersectingWith(graphic);
 
-		/* find character count for the contents.
+	final Style mostCommonStyle = region.getMostCommonStyle();
+	for (GraphicContent graphic : set) {
+		final List<PhysicalContent> contents = region.findContentsIntersectingWith(graphic);
+
+		/** find character count for the contents.
 		 * Also find average font Y size. some of the figures can be vast but contain a certain
 		 * amount of text, so look for a certain number of chars per 'line' */
 		int numChars = 0;
 		float averageYSize = 0.0f;
-		for (PhysicalContent physicalContent : figureContent) {
-			if (physicalContent.isText()) {
-				numChars += physicalContent.getText().getContent().length();
-				averageYSize += physicalContent.getText().getStyle().ySize;
+		for (PhysicalContent content : contents) {
+			final PhysicalText text = content.getText();
+			if (content.isText() && text.style.equals(mostCommonStyle)) {
+				numChars += text.getContent().length();
+				averageYSize += (float) (text.getStyle().ySize * text.getContent().length());
 			}
 		}
 		averageYSize /= (float) numChars;
@@ -270,15 +284,16 @@ private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion
 		}
 	}
 
-	List<GraphicContent> combinedList = new ArrayList<GraphicContent>(toBeCombined.size());
+	/* combine - first pass */
 
+	List<GraphicContent> combinedList = new ArrayList<GraphicContent>(toBeCombined.size());
 	for (GraphicContent current : toBeCombined) {
 		boolean wasCombined = false;
 
 		for (GraphicContent alreadyCombined : combinedList) {
 			if (current.canBeCombinedWith(alreadyCombined)) {
 				if (log.isTraceEnabled()) {
-					log.trace("combining graphics " + alreadyCombined + " and " + current);
+					log.info("combining graphics " + alreadyCombined + " and " + current);
 				}
 
 				combinedList.remove(alreadyCombined);
@@ -293,14 +308,14 @@ private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion
 		}
 	}
 
-
+	/* combine - second pass */
 	for (int i = 0; i < combinedList.size(); i++) {
 		final GraphicContent current = combinedList.get(i);
 		for (int j = i + 1; j < combinedList.size(); j++) {
 			final GraphicContent combineWith = combinedList.get(j);
 			if (current.canBeCombinedWith(combineWith)) {
 				if (log.isTraceEnabled()) {
-					log.trace("combining graphics " + current + " and " + combineWith);
+					log.info("combining graphics " + current + " and " + combineWith);
 				}
 				combinedList.remove(j);
 				combinedList.remove(i);
@@ -314,11 +329,17 @@ private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion
 	set.clear();
 	set.addAll(saved);
 	set.addAll(combinedList);
-	if (log.isDebugEnabled()) { log.debug("size() after = " + set.size()); }
+
+	if (log.isInfoEnabled()) { log.info("size() after = " + set.size()); }
+}
+
+@NotNull
+private static Rectangle convertRectangle(@NotNull final java.awt.Rectangle bounds) {
+	return new Rectangle((float) bounds.x, (float) bounds.y, (float) bounds.width, (float) bounds.height);
 }
 
 private static boolean enoughCharsToBeSaved(final int numChars, final float numLines) {
-	return numChars > Math.min(ARBITRARY_NUMBER_OF_CHARS_REQUIRED_PER_LINE * numLines, 70);
+	return numChars > (int) Math.min(ARBITRARY_NUMBER_OF_CHARS_REQUIRED_PER_LINE * numLines, 70);
 }
 
 private static boolean graphicContainsTextFromRegion(@NotNull final PhysicalPageRegion region,
@@ -335,51 +356,11 @@ private static boolean graphicContainsTextFromRegion(@NotNull final PhysicalPage
 // -------------------------- OTHER METHODS --------------------------
 
 @NotNull
-@SuppressWarnings({"ObjectAllocationInLoop"})
 private List<GraphicContent> getGraphicContents() {
 	List<GraphicContent> ret = new ArrayList<GraphicContent>();
 	ret.addAll(figures);
 	ret.addAll(pictures);
 	return ret;
-}
-
-@NotNull
-private Rectangle convertRectangle(@NotNull final java.awt.Rectangle bounds) {
-	return new Rectangle((float) bounds.x, (float) bounds.y, (float) bounds.width, (float) bounds.height);
-}
-
-private void addFigure(@NotNull final GraphicContent newFigure) {
-	/* some times bounding boxes around text might be drawn twice, in white and in another colour.
-		take advantage of the fact that figures with equal positions are deemed equal for the set,
-		find an existing one with same position, and combine them. Prefer to keep that which stands
-		out from the background, as that is more useful :)
-	 */
-
-	if (figures.contains(newFigure)) {
-		GraphicContent existing = null;
-		for (GraphicContent existing_ : figures) {
-			if (existing_.equals(newFigure)) {
-				existing = existing_;
-				break;
-			}
-		}
-		if (existing == null) {
-			throw new RuntimeException("Could not find even though it was claimed to exist");
-		}
-		figures.remove(existing);
-		figures.add(existing.combineWith(newFigure));
-	}
-
-	figures.add(newFigure);
-}
-
-private void clearTempLists() {
-	figures.clear();
-	pictures.clear();
-}
-
-private boolean isTooBigGraphic(@NotNull final PhysicalContent graphic) {
-	return graphic.getPosition().area() >= (w * h);
 }
 
 @NotNull
@@ -422,5 +403,41 @@ private List<GeneralPath> splitPathIfNecessary(@NotNull final GeneralPath path) 
 	}
 
 	return subPaths;
+}
+
+private void addFigure(@NotNull final GraphicContent newFigure) {
+
+	/* some times bounding boxes around text might be drawn twice, in white and in another colour.
+		take advantage of the fact that figures with equal positions are deemed equal for the set,
+		find an existing one with same position, and combine them. Prefer to keep that which stands
+		out from the background, as that is more useful :)
+	 */
+
+	if (figures.contains(newFigure)) {
+		GraphicContent existing = null;
+		for (GraphicContent existing_ : figures) {
+			if (existing_.equals(newFigure)) {
+				existing = existing_;
+				break;
+			}
+		}
+		if (existing == null) {
+			throw new RuntimeException("Could not find even though it was claimed to exist");
+		}
+		figures.remove(existing);
+		figures.add(existing.combineWith(newFigure));
+		return;
+	}
+
+	figures.add(newFigure);
+}
+
+private void clearTempLists() {
+	figures.clear();
+	pictures.clear();
+}
+
+private boolean isTooBigGraphic(@NotNull final PhysicalContent graphic) {
+	return graphic.getPosition().area() >= (w * h);
 }
 }

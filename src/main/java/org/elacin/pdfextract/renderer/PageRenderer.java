@@ -42,7 +42,7 @@ public class PageRenderer {
 // ------------------------------ FIELDS ------------------------------
 
 private static final Logger log = Logger.getLogger(PageRenderer.class);
-private static final boolean RENDER_REAL_PAGE = true;
+private static final boolean RENDER_REAL_PAGE = false;
 
 @NotNull
 private static final Color TRANSPARENT_WHITE           = new Color(255, 255, 255, 0);
