@@ -109,7 +109,7 @@ public boolean hasRole(Role r) {
 }
 
 public boolean overlapsWith(@NotNull final HasPosition two) {
-	return getPosition().intersectsWith(two.getPosition());
+	return getPos().intersectsWith(two.getPos());
 }
 
 public void printTree(String filename, boolean verbose) {

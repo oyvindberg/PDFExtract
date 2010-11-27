@@ -64,7 +64,7 @@ public WordNode(final Rectangle position,
 
 // --------------------- Interface HasPosition ---------------------
 
-public Rectangle getPosition() {
+public Rectangle getPos() {
 	return position;
 }
 

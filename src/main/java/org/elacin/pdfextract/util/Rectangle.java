@@ -67,7 +67,7 @@ public Rectangle(final float x, final float y, final float width, final float he
 
 @NotNull
 @Override
-public Rectangle getPosition() {
+public Rectangle getPos() {
 	return this;
 }
 
@@ -245,7 +245,7 @@ public float getEndY() {
 }
 
 public boolean intersectsWith(@NotNull HasPosition other) {
-	final Rectangle that = other.getPosition();
+	final Rectangle that = other.getPos();
 
 	if (isEmpty()) {
 		return false;
@@ -271,7 +271,7 @@ public final boolean isEmpty() {
 /** I stole this code from java.awt.geom.Rectange2D, im sure the details make sense :) */
 @NotNull
 public Rectangle union(@NotNull HasPosition that) {
-	Rectangle other = that.getPosition();
+	Rectangle other = that.getPos();
 
 	float x1 = Math.min(x, other.x);
 	float y1 = Math.min(y, other.y);

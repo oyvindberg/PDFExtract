@@ -46,7 +46,7 @@ public PhysicalContent(@NotNull final Collection<? extends PhysicalContent> cont
 
 // --------------------- Interface HasPosition ---------------------
 
-public Rectangle getPosition() {
+public Rectangle getPos() {
 	return position;
 }
 

@@ -61,7 +61,7 @@ public void writeXmlRepresentation(@NotNull final Appendable out,
 	out.append("<paragraph");
 	out.append(" inPicture=\"").append(String.valueOf(containedInImage)).append("\"");
 
-	getPosition().writeXmlRepresentation(out, indent, verbose);
+	getPos().writeXmlRepresentation(out, indent, verbose);
 
 	out.append(">\n");
 	for (LineNode child : getChildren()) {

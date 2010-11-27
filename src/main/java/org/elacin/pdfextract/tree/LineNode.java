@@ -16,7 +16,6 @@
 
 package org.elacin.pdfextract.tree;
 
-import org.elacin.pdfextract.logical.text.Role;
 import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
 
@@ -63,7 +62,7 @@ public void writeXmlRepresentation(@NotNull final Appendable out,
 		out.append(" styleRef=\"").append(String.valueOf(findDominatingStyle().id)).append("\"");
 
 		if (verbose) {
-			getPosition().writeXmlRepresentation(out, indent, verbose);
+			getPos().writeXmlRepresentation(out, indent, verbose);
 			out.append(">\n");
 
 			for (WordNode child : getChildren()) {
@@ -146,9 +145,9 @@ public Style findDominatingStyle() {
 public Comparator<WordNode> getChildComparator() {
 	return new Comparator<WordNode>() {
 		public int compare(@NotNull final WordNode o1, @NotNull final WordNode o2) {
-			if (o1.getPosition().getX() < o2.getPosition().getX()) {
+			if (o1.getPos().getX() < o2.getPos().getX()) {
 				return -1;
-			} else if (o1.getPosition().getX() > o2.getPosition().getX()) {
+			} else if (o1.getPos().getX() > o2.getPos().getX()) {
 				return 1;
 			}
 
@@ -164,8 +163,8 @@ private boolean isIndented() {
 		return false;
 	}
 
-	final float paragraphX = getParent().getPosition().getX();
-	return getPosition().getX() > paragraphX + (float) findDominatingStyle().xSize * 2.0f;
+	final float paragraphX = getParent().getPos().getX();
+	return getPos().getX() > paragraphX + (float) findDominatingStyle().xSize * 2.0f;
 }
 
 private boolean lineSeemsToBeFormula() {

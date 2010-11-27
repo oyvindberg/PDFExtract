@@ -272,7 +272,7 @@ private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion
 		}
 		averageYSize /= (float) numChars;
 
-		float appxNumLines = Math.max(1.0f, graphic.getPosition().getHeight() / (averageYSize * 4));
+		float appxNumLines = Math.max(1.0f, graphic.getPos().getHeight() / (averageYSize * 4));
 
 		if (enoughCharsToBeSaved(numChars, appxNumLines)) {
 			if (log.isDebugEnabled()) {
@@ -346,7 +346,7 @@ private static boolean graphicContainsTextFromRegion(@NotNull final PhysicalPage
                                                      @NotNull final GraphicContent graphic)
 {
 	for (PhysicalContent content : region.getContents()) {
-		if (graphic.getPosition().contains(content.getPosition())) {
+		if (graphic.getPos().contains(content.getPos())) {
 			return true;
 		}
 	}
@@ -438,6 +438,6 @@ private void clearTempLists() {
 }
 
 private boolean isTooBigGraphic(@NotNull final PhysicalContent graphic) {
-	return graphic.getPosition().area() >= (w * h);
+	return graphic.getPos().area() >= (w * h);
 }
 }

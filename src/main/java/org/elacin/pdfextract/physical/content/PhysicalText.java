@@ -140,7 +140,7 @@ public PhysicalText combineWith(@NotNull final PhysicalText next) {
 }
 
 public float getAverageCharacterWidth() {
-	return getPosition().getWidth() / (float) getContent().length();
+	return getPos().getWidth() / (float) getContent().length();
 }
 
 public boolean isSameStyleAs(@NotNull final PhysicalText next) {

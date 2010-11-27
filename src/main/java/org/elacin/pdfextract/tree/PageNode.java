@@ -54,7 +54,7 @@ public void writeXmlRepresentation(@NotNull final Appendable out,
 	out.append("<page");
 	out.append(" num=\"").append(Integer.toString(pageNumber)).append("\"");
 	if (verbose) {
-		getPosition().writeXmlRepresentation(out, indent, verbose);
+		getPos().writeXmlRepresentation(out, indent, verbose);
 	}
 	out.append(">\n");
 

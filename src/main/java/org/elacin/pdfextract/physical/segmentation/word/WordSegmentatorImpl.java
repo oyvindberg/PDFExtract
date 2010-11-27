@@ -24,7 +24,6 @@ import org.elacin.pdfextract.physical.segmentation.WordSegmentator;
 import org.elacin.pdfextract.style.DocumentStyles;
 import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.util.FloatPoint;
-import org.elacin.pdfextract.util.MathUtils;
 import org.elacin.pdfextract.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,13 +50,11 @@ public class WordSegmentatorImpl implements WordSegmentator {
 private static final Logger log = Logger.getLogger(WordSegmentatorImpl.class);
 
 private final DocumentStyles styles;
-private final float          pageRotation;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public WordSegmentatorImpl(final DocumentStyles styles, final float rotation) {
+public WordSegmentatorImpl(final DocumentStyles styles) {
 	this.styles = styles;
-	pageRotation = rotation;
 }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -74,7 +71,6 @@ public WordSegmentatorImpl(final DocumentStyles styles, final float rotation) {
 public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) {
 	long t0 = System.currentTimeMillis();
 
-
 	List<PhysicalText> ret = new ArrayList<PhysicalText>(text.size());
 
 	/** iterate through all incoming TextPositions, and process them
@@ -90,11 +86,7 @@ public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) 
 	float maxX = 0.0f;
 
 	for (ETextPosition tp : text) {
-		if (!MathUtils.isWithinPercent(tp.getDir(), pageRotation, 1)) {
-			log.warn("LOG00560: ignoring textposition " + StringUtils.getTextPositionString(tp)
-					         + "because it has " + "wrong rotation. TODO :)");
-			continue;
-		}
+
 		/* if this is the first text in a line */
 		if (line.isEmpty()) {
 			baseline = tp.getBaseLine();
@@ -220,7 +212,7 @@ List<PhysicalText> splitTextPositionsOnSpace(@NotNull final List<ETextPosition> 
 private List<PhysicalText> createWordsInLine(@NotNull final List<ETextPosition> line) {
 	final Comparator<PhysicalText> sortByLowerX = new Comparator<PhysicalText>() {
 		public int compare(@NotNull final PhysicalText o1, @NotNull final PhysicalText o2) {
-			return Float.compare(o1.getPosition().getX(), o2.getPosition().getX());
+			return Float.compare(o1.getPos().getX(), o2.getPos().getX());
 		}
 	};
 	PriorityQueue<PhysicalText> queue = new PriorityQueue<PhysicalText>(line.size(), sortByLowerX);

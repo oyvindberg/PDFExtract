@@ -11,5 +11,5 @@ import java.io.Serializable;
 public interface HasPosition extends Serializable {
 // -------------------------- PUBLIC METHODS --------------------------
 
-Rectangle getPosition();
+Rectangle getPos();
 }

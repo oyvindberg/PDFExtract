@@ -81,7 +81,7 @@ private static PriorityQueue<GraphicContent> createSmallestFirstQueue(@NotNull f
 	final Comparator<GraphicContent> smallestComparator = new Comparator<GraphicContent>() {
 		@Override
 		public int compare(@NotNull final GraphicContent o1, @NotNull final GraphicContent o2) {
-			return Float.compare(o1.getPosition().area(), o2.getPosition().area());
+			return Float.compare(o1.getPos().area(), o2.getPos().area());
 		}
 	};
 
@@ -132,7 +132,7 @@ public PageNode compileLogicalPage() {
 			}
 		} catch (Exception e) {
 			log.info("LOG00320:Could not divide page::" + e.getMessage());
-			if (graphic.getPosition().area() < getContents().getPosition().area() * 0.4f) {
+			if (graphic.getPos().area() < getContents().getPos().area() * 0.4f) {
 
 				if (log.isInfoEnabled()) { log.info("LOG00690:Adding " + graphic + " as content");}
 				graphic.setCanBeAssigned(true);

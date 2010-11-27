@@ -157,7 +157,6 @@ private Style createStyle(final TextPosition position) {
 	if (index != -1) {
 		font = font.substring(0, index);
 	}
-	//asd
 
 	boolean mathFont = font.length() > 4 && mathFonts.contains(font.substring(0, 4));
 	boolean bold = font.toLowerCase().contains("bold");

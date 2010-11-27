@@ -109,7 +109,7 @@ void checkForIdentifier(@NotNull final WordNode word) {
 //            - ALL the remaining fragments on the page have a style which is smaller than the breadtext
 //         */
 //
-//        if (leafText.getPosition().getY() < (leafText.getPage().getPageFormat().getHeight() / 2)) {
+//        if (leafText.getPos().getY() < (leafText.getPage().getPageFormat().getHeight() / 2)) {
 //            return;
 //        }
 //
@@ -153,7 +153,7 @@ private void checkForPageNumber(@NotNull final WordNode word) {
 }
 
 private void checkForTopNote(@NotNull final WordNode word) {
-	if (word.getPosition().getY() < (word.getPage().getPosition().getHeight() * 5.0 / 100)) {
+	if (word.getPos().getY() < (word.getPage().getPos().getHeight() * 5.0 / 100)) {
 		/* then check the font. we either want smaller than breadtext, or same size but different type */
 		if (word.getStyle().ySize < breadtext.ySize || (word.getStyle().ySize == breadtext.ySize
 				&& !word.getStyle().fontName.equals(breadtext.fontName))) {

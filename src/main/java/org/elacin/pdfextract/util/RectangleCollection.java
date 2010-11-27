@@ -56,7 +56,7 @@ public RectangleCollection(@NotNull final Collection<? extends PhysicalContent> 
 	for (Iterator<? extends PhysicalContent> iterator
 			     = newContents.iterator(); iterator.hasNext();) {
 		final PhysicalContent content = iterator.next();
-		if (content.isGraphic() && content.getPosition().area() > getPosition().area() * 0.6f) {
+		if (content.isGraphic() && content.getPos().area() > getPos().area() * 0.6f) {
 			finalContainedIn = content;
 			//			iterator.remove();
 			break;
@@ -74,7 +74,7 @@ private static void sortListByXCoordinate(final List<PhysicalContent> list) {
 	final Comparator<PhysicalContent> sortByX = new Comparator<PhysicalContent>() {
 		@Override
 		public int compare(@NotNull final PhysicalContent o1, @NotNull final PhysicalContent o2) {
-			return Float.compare(o1.getPosition().getX(), o2.getPosition().getX());
+			return Float.compare(o1.getPos().getX(), o2.getPos().getX());
 		}
 	};
 	Collections.sort(list, sortByX);
@@ -84,7 +84,7 @@ private static void sortListByYCoordinate(final List<PhysicalContent> list) {
 	final Comparator<PhysicalContent> sortByY = new Comparator<PhysicalContent>() {
 		@Override
 		public int compare(@NotNull final PhysicalContent o1, @NotNull final PhysicalContent o2) {
-			return Float.compare(o1.getPosition().getY(), o2.getPosition().getY());
+			return Float.compare(o1.getPos().getY(), o2.getPos().getY());
 		}
 	};
 	Collections.sort(list, sortByY);
@@ -123,7 +123,7 @@ public List<PhysicalContent> findContentAtXIndex(float x) {
 public List<PhysicalContent> findContentAtXIndex(int x) {
 	if (!xCache.containsKey(x)) {
 		final Rectangle searchRectangle
-				= new Rectangle((float) x, getPosition().getY(), 1.0f, getPosition().getHeight());
+				= new Rectangle((float) x, getPos().getY(), 1.0f, getPos().getHeight());
 		final List<PhysicalContent> result = findContentsIntersectingWith(searchRectangle);
 		sortListByYCoordinate(result);
 		xCache.put(x, result);
@@ -139,7 +139,7 @@ public List<PhysicalContent> findContentAtYIndex(float y) {
 public List<PhysicalContent> findContentAtYIndex(int y) {
 	if (!yCache.containsKey(y)) {
 		final Rectangle searchRectangle
-				= new Rectangle(getPosition().getX(), (float) y, getPosition().getWidth(), 1.0F);
+				= new Rectangle(getPos().getX(), (float) y, getPos().getWidth(), 1.0F);
 		final List<PhysicalContent> result = findContentsIntersectingWith(searchRectangle);
 		sortListByXCoordinate(result);
 		yCache.put(y, result);
@@ -151,7 +151,7 @@ public List<PhysicalContent> findContentAtYIndex(int y) {
 public List<PhysicalContent> findContentsIntersectingWith(@NotNull final HasPosition search) {
 	final List<PhysicalContent> ret = new ArrayList<PhysicalContent>(50);
 	for (PhysicalContent r : contents) {
-		if (search.getPosition().intersectsWith(r.getPosition())) {
+		if (search.getPos().intersectsWith(r.getPos())) {
 			ret.add(r);
 		}
 	}
@@ -162,7 +162,7 @@ public List<PhysicalContent> findContentsIntersectingWith(@NotNull final HasPosi
 public List<PhysicalContent> findSurrounding(@NotNull final PhysicalContent text,
                                              final int distance)
 {
-	final Rectangle bound = text.getPosition();
+	final Rectangle bound = text.getPos();
 
 	Rectangle searchRectangle = new Rectangle(
 			bound.getX() - (float) distance,
@@ -179,11 +179,11 @@ public List<PhysicalContent> findSurrounding(@NotNull final PhysicalContent text
 }
 
 public float getHeight() {
-	return getPosition().getHeight();
+	return getPos().getHeight();
 }
 
 public float getWidth() {
-	return getPosition().getWidth();
+	return getPos().getWidth();
 }
 
 public void removeContent(@NotNull Collection<PhysicalContent> listToRemove) {
@@ -201,7 +201,7 @@ public List<PhysicalContent> searchInDirectionFromOrigin(@NotNull Direction dir,
                                                          @NotNull PhysicalContent origin,
                                                          float distance)
 {
-	final Rectangle pos = origin.getPosition();
+	final Rectangle pos = origin.getPos();
 	final float x = pos.getX() + dir.xDiff * distance;
 	final float y = pos.getY() + dir.yDiff * distance;
 	final Rectangle search = new Rectangle(x, y, pos.getWidth(), pos.getHeight());

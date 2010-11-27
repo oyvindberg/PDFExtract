@@ -60,7 +60,7 @@ public List<ParagraphNode> createParagraphNodes(@NotNull final LineSegmentator s
 
 	/* then follow the trails left between the whitespace and construct blocks of text from that */
 	int blockNum = 0;
-	for (float y = getPosition().getY(); y < getPosition().getEndY(); y++) {
+	for (float y = getPos().getY(); y < getPos().getEndY(); y++) {
 		final List<PhysicalContent> row = findContentAtYIndex(y);
 
 		/* iterate through the line to find possible start of blocks */
@@ -130,7 +130,7 @@ private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent curre
 
 	current.getAssignablePhysicalContent().setBlockNum(blockNum);
 
-	final Rectangle pos = current.getPosition();
+	final Rectangle pos = current.getPos();
 
 	/* try searching for texts in all directions */
 	for (int y = (int) pos.getY(); y < (int) pos.getEndY(); y++) {

@@ -34,6 +34,7 @@ import org.elacin.pdfextract.physical.segmentation.word.WordSegmentatorImpl;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.util.MathUtils;
+import org.elacin.pdfextract.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -92,39 +93,49 @@ public PDFTextStripper(final PDDocument doc,
  * @param text The text to process.
  */
 protected void processTextPosition(@NotNull TextPosition text) {
-	super.processTextPosition(text);
-	final boolean showCharacter = suppressDuplicateOverlappingText(text);
 
-	if (showCharacter) {
-		/* In the wild, some PDF encoded documents put diacritics (accents on
-				* top of characters) into a separate Tj element.  When displaying them
-				* graphically, the two chunks get overlayed.  With text output though,
-				* we need to do the overlay. This code recombines the diacritic with
-				* its associated character if the two are consecutive.
-				*/
-		if (charactersForPage.isEmpty()) {
+	if (!includeText(text)) {
+		if (log.isInfoEnabled()) {
+			log.info("LOG00770: ignoring textposition " + StringUtils.getTextPositionString(text)
+					         + "because it seems to be rendered two times");
+		}
+		return;
+	}
+
+	if (!MathUtils.isWithinPercent(text.getDir(), (float) page.findRotation(), 1)) {
+		log.warn("LOG00560: ignoring textposition " + StringUtils.getTextPositionString(text)
+				         + "because it has " + "wrong rotation. TODO :)");
+		return;
+	}
+
+	/* In the wild, some PDF encoded documents put diacritics (accents on
+			 * top of characters) into a separate Tj element.  When displaying them
+			 * graphically, the two chunks get overlayed.  With text output though,
+			 * we need to do the overlay. This code recombines the diacritic with
+			 * its associated character if the two are consecutive.
+			 */
+	if (charactersForPage.isEmpty()) {
+		charactersForPage.add((ETextPosition) text);
+	} else {
+		/* test if we overlap the previous entry. Note that we are making an
+									assumption that we need to only look back one TextPosition to
+									find what we are overlapping.
+									This may not always be true. */
+
+		TextPosition previousTextPosition = charactersForPage.get(charactersForPage.size() - 1);
+
+		if (text.isDiacritic() && previousTextPosition.contains(text)) {
+			previousTextPosition.mergeDiacritic(text, normalize);
+		}
+
+		/* If the previous TextPosition was the diacritic, merge it into
+									this one and remove it from the list. */
+		else if (previousTextPosition.isDiacritic() && text.contains(previousTextPosition)) {
+			text.mergeDiacritic(previousTextPosition, normalize);
+			charactersForPage.remove(charactersForPage.size() - 1);
 			charactersForPage.add((ETextPosition) text);
 		} else {
-			/* test if we overlap the previous entry. Note that we are making an
-							assumption that we need to only look back one TextPosition to
-							find what we are overlapping.
-							This may not always be true. */
-
-			TextPosition previousTextPosition = charactersForPage.get(charactersForPage.size() - 1);
-
-			if (text.isDiacritic() && previousTextPosition.contains(text)) {
-				previousTextPosition.mergeDiacritic(text, normalize);
-			}
-
-			/* If the previous TextPosition was the diacritic, merge it into
-							this one and remove it from the list. */
-			else if (previousTextPosition.isDiacritic() && text.contains(previousTextPosition)) {
-				text.mergeDiacritic(previousTextPosition, normalize);
-				charactersForPage.remove(charactersForPage.size() - 1);
-				charactersForPage.add((ETextPosition) text);
-			} else {
-				charactersForPage.add((ETextPosition) text);
-			}
+			charactersForPage.add((ETextPosition) text);
 		}
 	}
 }
@@ -162,16 +173,13 @@ public void processDocument() throws IOException {
 
 // -------------------------- OTHER METHODS --------------------------
 
-private boolean suppressDuplicateOverlappingText(@NotNull final TextPosition text) {
-	String textCharacter = text.getCharacter();
-	if (" ".equals(text.getCharacter())) {
-		return false;
-	}
+private boolean includeText(@NotNull final TextPosition text) {
+	String c = text.getCharacter();
 
-	List<TextPosition> sameTextCharacters = characterListMapping.get(textCharacter);
+	List<TextPosition> sameTextCharacters = characterListMapping.get(c);
 	if (sameTextCharacters == null) {
 		sameTextCharacters = new ArrayList<TextPosition>();
-		characterListMapping.put(textCharacter, sameTextCharacters);
+		characterListMapping.put(c, sameTextCharacters);
 		return true;
 	}
 
@@ -188,13 +196,14 @@ private boolean suppressDuplicateOverlappingText(@NotNull final TextPosition tex
 
 	boolean suppressCharacter = false;
 
-	float tolerance = (text.getWidth() / (float) textCharacter.length()) / 3.0f;
-	for (TextPosition character : sameTextCharacters) {
-		String charCharacter = character.getCharacter();
-		float charX = character.getX();
-		float charY = character.getY();
+	final float tolerance = (text.getWidth() / (float) c.length()) / 3.0f;
 
-		if (charCharacter != null && MathUtils.isWithinVariance(charX, text.getX(), tolerance)
+	for (TextPosition other : sameTextCharacters) {
+		String otherChar = other.getCharacter();
+		float charX = other.getX();
+		float charY = other.getY();
+
+		if (otherChar != null && MathUtils.isWithinVariance(charX, text.getX(), tolerance)
 				&& MathUtils.isWithinVariance(charY, text.getY(), tolerance)) {
 			suppressCharacter = true;
 		}
@@ -234,22 +243,20 @@ protected void processPage(@NotNull PDPage page, COSStream content) throws IOExc
 
 		/* getRotation might return null, something which doesnt play well with javas unboxing,
 		*   so take some care*/
-		final Integer rotation = page.getRotation();
 		final int rot;
-		if (rotation == null) {
+		if (page.getRotation() == null) {
 			rot = 0;
 		} else {
-			rot = rotation;
+			rot = page.getRotation();
 		}
 
-		WordSegmentator segmentator = new WordSegmentatorImpl(root.getStyles(), rot);
+		WordSegmentator segmentator = new WordSegmentatorImpl(root.getStyles());
 
 		if (!charactersForPage.isEmpty()) {
 
 			try {
 				/* segment words */
 				final List<PhysicalText> texts = segmentator.segmentWords(charactersForPage);
-
 
 				PhysicalPage physicalPage = new PhysicalPage(texts,
 				                                             graphicSegmentator,

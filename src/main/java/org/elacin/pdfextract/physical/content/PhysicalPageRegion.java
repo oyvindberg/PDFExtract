@@ -90,7 +90,7 @@ protected static boolean columnContainsBlockingGraphics(@NotNull final List<Phys
 	HasPosition search = new Rectangle(x, minY, 1.0f, maxY - minY);
 	for (PhysicalContent obstacle : column) {
 		if (obstacle.isGraphic()) {
-			if (obstacle.getPosition().intersectsWith(search)) {
+			if (obstacle.getPos().intersectsWith(search)) {
 				return true;
 			}
 		}
@@ -121,7 +121,7 @@ private static boolean listContainsTextOrSeparator(@NotNull final Collection<Phy
 
 @NotNull
 protected static Rectangle returnABitSmallerPosition(@NotNull final HasPosition bound) {
-	final Rectangle p = bound.getPosition();
+	final Rectangle p = bound.getPos();
 	return new Rectangle(
 			p.getX() + 1.0f, p.getY() + 1.0f, p.getWidth() - 1.0f, p.getHeight() - 1.0f);
 }
@@ -129,8 +129,8 @@ protected static Rectangle returnABitSmallerPosition(@NotNull final HasPosition 
 protected static boolean tooMuchContentCrossesBoundary(@NotNull RectangleCollection contents,
                                                        @NotNull final HasPosition boundary)
 {
-	List<PhysicalContent> list = contents.findContentAtXIndex(boundary.getPosition().getX());
-	list.addAll(contents.findContentAtXIndex(boundary.getPosition().getEndX()));
+	List<PhysicalContent> list = contents.findContentAtXIndex(boundary.getPos().getX());
+	list.addAll(contents.findContentAtXIndex(boundary.getPos().getEndX()));
 
 	int intersecting = 0;
 	int intersectingLimit = 2;
@@ -139,16 +139,16 @@ protected static boolean tooMuchContentCrossesBoundary(@NotNull RectangleCollect
 		if (content.isText()) {
 			boolean makesFiltered = false;
 			/* starts left of picture, and ends within it */
-			if (content.getPosition().getX() < boundary.getPosition().getX() - 1.0f
-					&& content.getPosition().getEndX() > boundary.getPosition().getX() + 1.0f) {
+			if (content.getPos().getX() < boundary.getPos().getX() - 1.0f
+					&& content.getPos().getEndX() > boundary.getPos().getX() + 1.0f) {
 				makesFiltered = true;
 				if (log.isInfoEnabled()) {
 					log.info("LOG00300: graphics = " + boundary + ", content = " + content);
 				}
 			}
 			/* starts inside picture, and ends right of it */
-			if ((content.getPosition().getEndX() > boundary.getPosition().getEndX() + 1.0f
-					&& content.getPosition().getX() < boundary.getPosition().getEndX())) {
+			if ((content.getPos().getEndX() > boundary.getPos().getEndX() + 1.0f
+					&& content.getPos().getX() < boundary.getPos().getEndX())) {
 				makesFiltered = true;
 				if (log.isInfoEnabled()) {
 					log.info("LOG00310:graphics = " + boundary + ", content = " + content);
@@ -244,7 +244,7 @@ public List<PhysicalPageRegion> splitInHorizontalColumnsBySpacing() {
 	List<PhysicalPageRegion> ret = new ArrayList<PhysicalPageRegion>();
 
 	/* If the size of this region is this small, dont bother splitting it further */
-	if (getPosition().getHeight() < getAvgFontSizeY() * 2) {
+	if (getPos().getHeight() < getAvgFontSizeY() * 2) {
 		return ret;
 	}
 	if (position.getWidth() < getAvgFontSizeX() * 2) {
@@ -264,7 +264,7 @@ public List<PhysicalPageRegion> splitInHorizontalColumnsBySpacing() {
 
 
 	Set<PhysicalContent> workingSet = new HashSet<PhysicalContent>();
-	final Rectangle pos = getPosition();
+	final Rectangle pos = getPos();
 
 	float lastBoundary = -1000.0f;
 	float minX = Float.MAX_VALUE, maxX = Float.MIN_VALUE;
@@ -273,8 +273,8 @@ public List<PhysicalPageRegion> splitInHorizontalColumnsBySpacing() {
 
 		workingSet.addAll(row);
 		for (PhysicalContent content : row) {
-			minX = Math.min(content.getPosition().getX(), minX);
-			maxX = Math.max(content.getPosition().getEndX(), maxX);
+			minX = Math.min(content.getPos().getX(), minX);
+			maxX = Math.max(content.getPos().getEndX(), maxX);
 		}
 
 
@@ -317,7 +317,7 @@ public List<PhysicalPageRegion> splitInVerticalColumns() {
 	/**
 	 * Dont bother splitting columns narrower than this
 	 */
-	if (getPosition().getWidth() < getAvgFontSizeX() * 3) {
+	if (getPos().getWidth() < getAvgFontSizeX() * 3) {
 		return ret;
 	}
 
@@ -331,7 +331,7 @@ public List<PhysicalPageRegion> splitInVerticalColumns() {
 	/**
 	 * check for every x index if is a column boundary
 	 */
-	for (float x = getPosition().getX(); x <= getPosition().getEndX(); x++) {
+	for (float x = getPos().getX(); x <= getPos().getEndX(); x++) {
 		/* start by finding the content of this column, that is everything which
 			intersects, and make a decision based on that
 		 */
@@ -340,8 +340,8 @@ public List<PhysicalPageRegion> splitInVerticalColumns() {
 
 		/* keep track of current vertical bounds */
 		for (PhysicalContent newContent : column) {
-			minY = Math.min(newContent.getPosition().getY(), minY);
-			maxY = Math.max(newContent.getPosition().getEndY(), maxY);
+			minY = Math.min(newContent.getPos().getY(), minY);
+			maxY = Math.max(newContent.getPos().getEndY(), maxY);
 		}
 
 		/**
@@ -367,7 +367,7 @@ public List<PhysicalPageRegion> splitInVerticalColumns() {
 				}
 
 				/* check also how much text exists to the right of this boundary */
-				HasPosition search = new Rectangle(x, minY, getPosition().getEndX(), maxY);
+				HasPosition search = new Rectangle(x, minY, getPos().getEndX(), maxY);
 				final List<PhysicalContent> contentRight = findContentsIntersectingWith(search);
 				if (contentRight.size() < 20) {
 					continue;
@@ -472,7 +472,7 @@ protected boolean checkIfBelongsWithContentOnRight(@Nullable final PhysicalConte
 		return false;
 	}
 
-	final float y = content.getPosition().getY() + content.getPosition().getHeight() * 0.5f;
+	final float y = content.getPos().getY() + content.getPos().getHeight() * 0.5f;
 	final List<PhysicalContent> row = findContentAtYIndex(y);
 	final int index = row.indexOf(content);
 	if (index == -1) {
@@ -489,7 +489,7 @@ protected boolean checkIfBelongsWithContentOnRight(@Nullable final PhysicalConte
 	}
 
 	/** i'll consider this too far away for now - splitting this distance should be fine*/
-	if (next.getPosition().distance(getPosition()) > (float) (content.getText().style.xSize * 3)) {
+	if (next.getPos().distance(getPos()) > (float) (content.getText().style.xSize * 3)) {
 		return false;
 	}
 
@@ -543,7 +543,7 @@ protected int findMedianOfVerticalDistancesForRegion() {
 	final int LIMIT = (int) getAvgFontSizeY() * 3;
 
 	int[] distanceCount = new int[LIMIT];
-	final Rectangle pos = getPosition();
+	final Rectangle pos = getPos();
 	for (float x = pos.getX(); x <= pos.getEndX(); x += pos.getWidth() / 3) {
 		final List<PhysicalContent> column = findContentAtXIndex(x);
 		for (int i = 1; i < column.size(); i++) {
@@ -551,7 +551,7 @@ protected int findMedianOfVerticalDistancesForRegion() {
 			final PhysicalContent below = column.get(i);
 
 			/* increase count for this distance (rounded down to an int) */
-			final int d = (int) (below.getPosition().getY() - current.getPosition().getEndY());
+			final int d = (int) (below.getPos().getY() - current.getPos().getEndY());
 			if (d > 0 && d < LIMIT) {
 				distanceCount[d]++;
 			}

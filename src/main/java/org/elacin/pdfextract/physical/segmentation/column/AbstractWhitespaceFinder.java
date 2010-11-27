@@ -99,7 +99,7 @@ private static HasPosition choosePivot(@NotNull final Rectangle bound,
 	HasPosition closestToCentre = null;
 
 	for (HasPosition obstacle : obstacles) {
-		final float distance = obstacle.getPosition().distance(centrePoint);
+		final float distance = obstacle.getPos().distance(centrePoint);
 		if (distance < minDistance) {
 			minDistance = distance;
 			closestToCentre = obstacle;
@@ -117,7 +117,7 @@ private static boolean isNotContainedByAnyObstacle(@NotNull final Rectangle subr
 {
 
 	for (HasPosition obstacle : obstacles) {
-		if (obstacle.getPosition().contains(subrectangle)) {
+		if (obstacle.getPos().contains(subrectangle)) {
 			return false;
 		}
 	}
@@ -136,7 +136,7 @@ private static boolean isNotContainedByAnyObstacle(@NotNull final Rectangle subr
 public List<WhitespaceRectangle> findWhitespace() {
 	if (foundWhitespace.isEmpty()) {
 		/* first add the whole page with all the obstacles to the priority queue */
-		queue.add(new QueueEntry(region.getPosition(), region.getContents()));
+		queue.add(new QueueEntry(region.getPos(), region.getContents()));
 
 		/* continue looking for whitespace until we have the wanted number or we run out*/
 		while (getNumberOfWhitespacesFound() < wantedWhitespaces) {
@@ -240,16 +240,16 @@ private int getNumberOfWhitespacesFound() {
 private boolean isNextToWhitespaceOrEdge(@NotNull final WhitespaceRectangle newWhitespace) {
 	/* accept this rectangle if it is adjacent to the edge of the page */
 	//noinspection FloatingPointEquality
-	if (newWhitespace.getPosition().getX() == region.getPosition().getX()
-			|| newWhitespace.getPosition().getY() == region.getPosition().getY()
-			|| newWhitespace.getPosition().getEndX() == region.getPosition().getEndX()
-			|| newWhitespace.getPosition().getEndY() == region.getPosition().getEndY()) {
+	if (newWhitespace.getPos().getX() == region.getPos().getX()
+			|| newWhitespace.getPos().getY() == region.getPos().getY()
+			|| newWhitespace.getPos().getEndX() == region.getPos().getEndX()
+			|| newWhitespace.getPos().getEndY() == region.getPos().getEndY()) {
 		return true;
 	}
 
 	/* also accept if it borders one of the already identified whitespaces */
 	for (WhitespaceRectangle existing : foundWhitespace) {
-		if (newWhitespace.getPosition().distance(existing.getPosition()) < 1.0f) {
+		if (newWhitespace.getPos().distance(existing.getPos()) < 1.0f) {
 			return true;
 		}
 	}
@@ -268,7 +268,7 @@ private QueueEntry[] splitSearchAreaAround(@NotNull final QueueEntry current,
 {
 
 	final Rectangle p = current.bound;
-	final Rectangle split = pivot.getPosition();
+	final Rectangle split = pivot.getPos();
 
 	Rectangle left = null;
 	if (split.getX() > p.getX()) {
@@ -305,16 +305,16 @@ private QueueEntry[] splitSearchAreaAround(@NotNull final QueueEntry current,
 		if (obstacle.equals(pivot)) {
 			continue;
 		}
-		if (obstacle.getPosition().getX() < split.getX()) {
+		if (obstacle.getPos().getX() < split.getX()) {
 			leftObstacles.add(obstacle);
 		}
-		if (obstacle.getPosition().getY() < split.getY()) {
+		if (obstacle.getPos().getY() < split.getY()) {
 			aboveObstacles.add(obstacle);
 		}
-		if (obstacle.getPosition().getEndX() > split.getEndX()) {
+		if (obstacle.getPos().getEndX() > split.getEndX()) {
 			rightObstacles.add(obstacle);
 		}
-		if (obstacle.getPosition().getEndY() > split.getEndY()) {
+		if (obstacle.getPos().getEndY() > split.getEndY()) {
 			belowObstacles.add(obstacle);
 		}
 	}

@@ -67,7 +67,7 @@ public Map<Integer, List<Integer>> findColumnsForPage(@NotNull final RectangleCo
 
 	final long t0 = System.currentTimeMillis();
 
-	int height = (int) region.getPosition().getHeight();
+	int height = (int) region.getPos().getHeight();
 
 	/**
 	 * Establish column boundaries for every y-index
@@ -156,7 +156,7 @@ private List<Integer> findColumnBoundaries(@NotNull final RectangleCollection re
 
 			if (content.isWhitespace()) {
 				if (isNewBoundary(line, lastText, i)) {
-					int boundary = (int) content.getPosition().getEndX();
+					int boundary = (int) content.getPos().getEndX();
 					boundary = Math.min(boundary, (int) region.getWidth() - 1);
 					boundaries.add(boundary);
 					startOfColumnMarked = false;
@@ -166,12 +166,12 @@ private List<Integer> findColumnBoundaries(@NotNull final RectangleCollection re
 				lastText = (PhysicalText) content;
 				if (!startOfColumnMarked) {
 					startOfColumnMarked = true;
-					int boundary = (int) content.getPosition().getX();
+					int boundary = (int) content.getPos().getX();
 
 					if (i != 0) {
 						final PhysicalContent preceeding = line.get(i - 1);
 						if (preceeding.isWhitespace()) {
-							boundary = (int) preceeding.getPosition().getEndX();
+							boundary = (int) preceeding.getPos().getEndX();
 						}
 					}
 					boundary = Math.min(boundary, (int) region.getWidth() - 1);
@@ -210,7 +210,7 @@ private boolean isNewBoundary(@NotNull final List<PhysicalContent> contents,
 	 */
 	float min = 2.0f
 			* Math.min(lastText.getAverageCharacterWidth(), nextText.getAverageCharacterWidth());
-	float distance = nextText.getPosition().getX() - lastText.getPosition().getEndX();
+	float distance = nextText.getPos().getX() - lastText.getPos().getEndX();
 	if (distance < min) {
 		return false;
 	}

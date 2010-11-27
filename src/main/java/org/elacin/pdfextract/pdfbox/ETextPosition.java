@@ -22,6 +22,7 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.TextPosition;
+import org.elacin.pdfextract.physical.content.HasPosition;
 import org.elacin.pdfextract.util.MathUtils;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
@@ -32,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
  * @author <a href="mailto:ben@benlitchfield.com">Ben Litchfield</a>
  * @version $Revision: 1.12 $
  */
-public class ETextPosition extends TextPosition {
+public class ETextPosition extends TextPosition  {
 // ------------------------------ FIELDS ------------------------------
 
 private static final Logger log = Logger.getLogger(ETextPosition.class);

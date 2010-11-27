@@ -17,7 +17,6 @@
 package org.elacin.pdfextract.physical.content;
 
 import org.apache.log4j.Logger;
-import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
@@ -72,7 +71,7 @@ public String toString() {
 	sb.append("{canBeAssigned=").append(canBeAssigned);
 	sb.append(", filled=").append(filled);
 	sb.append(", picture=").append(picture);
-	sb.append(", pos=").append(getPosition());
+	sb.append(", pos=").append(getPos());
 	sb.append(", backgroundColor=").append(backgroundColor);
 	sb.append('}');
 	return sb.toString();
@@ -131,17 +130,17 @@ public boolean canBeCombinedWith(@NotNull final GraphicContent other) {
 		return false;
 	}
 
-	return getPosition().distance(other.getPosition()) < 2.0f;
+	return getPos().distance(other.getPos()) < 2.0f;
 }
 
 public boolean canBeConsideredContentInRegion(@NotNull final PhysicalPageRegion region) {
-	return getPosition().getHeight() < region.getAvgFontSizeY() * 4.0f
-			&& getPosition().getWidth() < region.getAvgFontSizeX() * 4.0f;
+	return getPos().getHeight() < region.getAvgFontSizeY() * 4.0f
+			&& getPos().getWidth() < region.getAvgFontSizeX() * 4.0f;
 }
 
 /** consider the graphic a separator if the aspect ratio is really high */
 public boolean canBeConsideredSeparator() {
-	final Rectangle pos = getPosition();
+	final Rectangle pos = getPos();
 	if (pos.getWidth() > 15.0f && pos.getHeight() > 15.0f) {
 		return false;
 	}
@@ -153,6 +152,6 @@ public boolean canBeConsideredSeparator() {
 public GraphicContent combineWith(@NotNull final GraphicContent other) {
 	final boolean isBackground = other.backgroundColor && backgroundColor;
 	final boolean isFilled = other.filled || filled;
-	return new GraphicContent(getPosition().union(other.getPosition()), picture, isFilled, isBackground);
+	return new GraphicContent(getPos().union(other.getPos()), picture, isFilled, isBackground);
 }
 }

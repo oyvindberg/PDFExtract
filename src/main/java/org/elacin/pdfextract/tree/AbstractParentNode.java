@@ -56,13 +56,13 @@ public AbstractParentNode() {
 // --------------------- Interface HasPosition ---------------------
 
 @NotNull
-public final Rectangle getPosition() {
+public final Rectangle getPos() {
 	if (posCache == null) {
 		for (ChildType child : children) {
 			if (posCache == null) {
-				posCache = child.getPosition();
+				posCache = child.getPos();
 			} else {
-				posCache = posCache.union(child.getPosition());
+				posCache = posCache.union(child.getPos());
 			}
 		}
 	}
@@ -176,19 +176,18 @@ protected void invalidateThisAndParents() {
  * number here
  */
 protected class StandardNodeComparator implements Comparator<ChildType>, Serializable {
-
 	private static final long serialVersionUID = 3903290320365277004L;
 
 	public int compare(@NotNull final ChildType o1, @NotNull final ChildType o2) {
-		if (o1.getPosition().getY() < o2.getPosition().getY()) {
+		if (o1.getPos().getY() < o2.getPos().getY()) {
 			return -1;
-		} else if (o1.getPosition().getY() > o2.getPosition().getY()) {
+		} else if (o1.getPos().getY() > o2.getPos().getY()) {
 			return 1;
 		}
 
-		if (o1.getPosition().getX() < o2.getPosition().getX()) {
+		if (o1.getPos().getX() < o2.getPos().getX()) {
 			return -1;
-		} else if (o1.getPosition().getX() > o2.getPosition().getX()) {
+		} else if (o1.getPos().getX() > o2.getPos().getX()) {
 			return 1;
 		}
 

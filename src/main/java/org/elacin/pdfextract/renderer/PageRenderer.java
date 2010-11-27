@@ -17,7 +17,6 @@
 package org.elacin.pdfextract.renderer;
 
 import org.apache.log4j.Logger;
-import org.apache.pdfbox.pdfviewer.PageDrawer;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -126,7 +125,7 @@ public BufferedImage renderPage(final int pageNum) {
 		for (HasPosition position : o.getValue()) {
 			final GraphicContent graphicContent = (GraphicContent) position;
 			if (!graphicContent.isBackgroundColor()) {
-				drawRectangle(graphics, xScale, yScale, o.getKey(), position.getPosition(), true);
+				drawRectangle(graphics, xScale, yScale, o.getKey(), position.getPos(), true);
 			}
 		}
 	}
@@ -135,11 +134,11 @@ public BufferedImage renderPage(final int pageNum) {
 	for (ParagraphNode paragraphNode : pageNode.getChildren()) {
 		for (LineNode lineNode : paragraphNode.getChildren()) {
 			for (WordNode wordNode : lineNode.getChildren()) {
-				drawRectangle(graphics, xScale, yScale, Color.BLUE, wordNode.getPosition(), true);
+				drawRectangle(graphics, xScale, yScale, Color.BLUE, wordNode.getPos(), true);
 			}
-			drawRectangle(graphics, xScale, yScale, Color.BLACK, lineNode.getPosition(), true);
+			drawRectangle(graphics, xScale, yScale, Color.BLACK, lineNode.getPos(), true);
 		}
-		drawRectangle(graphics, xScale, yScale, Color.CYAN, paragraphNode.getPosition(), true);
+		drawRectangle(graphics, xScale, yScale, Color.CYAN, paragraphNode.getPos(), true);
 	}
 
 

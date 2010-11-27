@@ -49,7 +49,7 @@ public void testWronglyCombinedLines() {
 	final List<ParagraphNode> paragraphsOnFirstPage = doc.getChildren().get(0).getChildren();
 
 	for (ParagraphNode child : paragraphsOnFirstPage) {
-		if (child.getPosition().getY() == 221.60901f) {
+		if (child.getPos().getY() == 221.60901f) {
 			assertEquals(child.getChildren().get(0).getText(), "This is the first page of the document. Its first capital letter T has red color and is 3 picas");
 			assertEquals(child.getChildren().get(1).getText(), "high.");
 			assertEquals(child.getChildren().size(), 2);

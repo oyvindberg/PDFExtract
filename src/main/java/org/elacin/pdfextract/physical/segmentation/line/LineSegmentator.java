@@ -43,14 +43,14 @@ public LineSegmentator(final float tolerance) {
 
 @NotNull
 private static WordNode createWordNode(@NotNull final PhysicalText text, int pageNumber) {
-	return new WordNode(text.getPosition(), pageNumber, text.style, text.content, text.charSpacing);
+	return new WordNode(text.getPos(), pageNumber, text.style, text.content, text.charSpacing);
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
 @NotNull
 public List<LineNode> segmentLines(@NotNull PhysicalPageRegion region) {
-	final Rectangle pos = region.getPosition();
+	final Rectangle pos = region.getPos();
 	final List<LineNode> ret = new ArrayList<LineNode>();
 
 	final Set<PhysicalContent> workingSet = new HashSet<PhysicalContent>();
@@ -100,12 +100,12 @@ private boolean isProbableLineBoundary(@NotNull PhysicalPageRegion region,
 
 		@Override
 		public int compare(@NotNull final PhysicalContent o1, @NotNull final PhysicalContent o2) {
-			return Float.compare(o1.getPosition().getX(), o2.getPosition().getX());
+			return Float.compare(o1.getPos().getX(), o2.getPos().getX());
 		}
 	});
 
 	final float startLooking = yBoundary;
-	final float endLooking = Math.min(region.getPosition().getEndY(), yBoundary + tolerance);
+	final float endLooking = Math.min(region.getPos().getEndY(), yBoundary + tolerance);
 	for (float y = startLooking; y <= endLooking; y += 1.0f) {
 		contents.addAll(region.findContentAtYIndex(y));
 	}
@@ -114,7 +114,7 @@ private boolean isProbableLineBoundary(@NotNull PhysicalPageRegion region,
 		if (!content.isText()) {
 			continue;
 		}
-		final Rectangle pos = content.getPosition();
+		final Rectangle pos = content.getPos();
 		if (pos.getY() < startLooking && pos.getEndY() > endLooking) {
 			return false;
 		}
@@ -141,7 +141,7 @@ private LineNode createLineFrom(@NotNull final PhysicalPageRegion region,
 			if (content.isText()) {
 				lineNode.addChild(createWordNode(content.getText(), region.getPageNumber()));
 			} else if (content.isGraphic()) {
-				lineNode.addChild(new WordNode(content.getPosition(), region.getPageNumber(), Style.GRAPHIC, "[FIG]", 0.0f));
+				lineNode.addChild(new WordNode(content.getPos(), region.getPageNumber(), Style.GRAPHIC, "[FIG]", 0.0f));
 			} else {
 				throw new RuntimeException("asd");
 			}
