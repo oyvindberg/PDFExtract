@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.renderer;
 
 import org.apache.log4j.Logger;
+import org.apache.pdfbox.pdfviewer.PageDrawer;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -40,6 +42,11 @@ public class PageRenderer {
 // ------------------------------ FIELDS ------------------------------
 
 private static final Logger log = Logger.getLogger(PageRenderer.class);
+private static final boolean RENDER_REAL_PAGE = true;
+
+@NotNull
+private static final Color TRANSPARENT_WHITE           = new Color(255, 255, 255, 0);
+private static final int   DEFAULT_USER_SPACE_UNIT_DPI = 72;
 private final int          resolution;
 private final PDDocument   document;
 private final DocumentNode documentNode;
@@ -79,7 +86,6 @@ private static void drawRectangle(@NotNull final Graphics2D graphics,
 	if (fill) {
 		graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 60));
 		graphics.fillRect(x, y, width, height);
-		//        graphics.fillRect(x, y, width, height);
 	}
 }
 
@@ -96,8 +102,18 @@ public BufferedImage renderPage(final int pageNum) {
 	/* first have PDFBox draw the pdf to a BufferedImage */
 	long t1 = System.currentTimeMillis();
 	PDPage page = (PDPage) document.getDocumentCatalog().getAllPages().get(pageNum - 1);
-
-	final BufferedImage image = createImage(page, BufferedImage.TYPE_INT_ARGB, resolution);
+	
+	
+	final BufferedImage image;
+	if (RENDER_REAL_PAGE){
+		try {
+			image = page.convertToImage();
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}		
+	} else {
+		image = createImage(page, BufferedImage.TYPE_INT_ARGB, resolution);
+	}
 
 	/* then draw our information on top */
 	final Graphics2D graphics = image.createGraphics();
@@ -112,7 +128,6 @@ public BufferedImage renderPage(final int pageNum) {
 			if (!graphicContent.isBackgroundColor()) {
 				drawRectangle(graphics, xScale, yScale, o.getKey(), position.getPosition(), true);
 			}
-
 		}
 	}
 
@@ -133,9 +148,7 @@ public BufferedImage renderPage(final int pageNum) {
 	return image;
 }
 
-@NotNull
-private static final Color TRANSPARENT_WHITE           = new Color(255, 255, 255, 0);
-private static final int   DEFAULT_USER_SPACE_UNIT_DPI = 72;
+// -------------------------- OTHER METHODS --------------------------
 
 @NotNull
 private BufferedImage createImage(@NotNull final PDPage page,
