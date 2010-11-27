@@ -20,7 +20,6 @@ package org.elacin.pdfextract.pdfbox;
 import org.apache.log4j.Logger;
 import org.apache.log4j.MDC;
 import org.apache.pdfbox.cos.COSStream;
-import org.apache.pdfbox.pdfviewer.PageDrawer;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDStream;
@@ -44,12 +43,13 @@ import java.util.List;
 import java.util.Map;
 
 
-public class PDFTextStripper extends PageDrawer {
+public class PDFTextStripper extends PDFBoxSource {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger              log               = Logger.getLogger(PDFTextStripper.class);
+private static final Logger log = Logger.getLogger(PDFTextStripper.class);
+
 @NotNull
-protected final      List<ETextPosition> charactersForPage = new ArrayList<ETextPosition>();
+protected final List<ETextPosition> charactersForPage = new ArrayList<ETextPosition>();
 
 @NotNull
 private final DocumentNode root;
@@ -91,7 +91,7 @@ public PDFTextStripper(final PDDocument doc,
  *
  * @param text The text to process.
  */
-protected void processTextPosition(@NotNull ETextPosition text) {
+protected void processTextPosition(@NotNull TextPosition text) {
 	super.processTextPosition(text);
 	final boolean showCharacter = suppressDuplicateOverlappingText(text);
 
@@ -103,7 +103,7 @@ protected void processTextPosition(@NotNull ETextPosition text) {
 				* its associated character if the two are consecutive.
 				*/
 		if (charactersForPage.isEmpty()) {
-			charactersForPage.add(text);
+			charactersForPage.add((ETextPosition) text);
 		} else {
 			/* test if we overlap the previous entry. Note that we are making an
 							assumption that we need to only look back one TextPosition to
@@ -121,9 +121,9 @@ protected void processTextPosition(@NotNull ETextPosition text) {
 			else if (previousTextPosition.isDiacritic() && text.contains(previousTextPosition)) {
 				text.mergeDiacritic(previousTextPosition, normalize);
 				charactersForPage.remove(charactersForPage.size() - 1);
-				charactersForPage.add(text);
+				charactersForPage.add((ETextPosition) text);
 			} else {
-				charactersForPage.add(text);
+				charactersForPage.add((ETextPosition) text);
 			}
 		}
 	}
@@ -162,7 +162,7 @@ public void processDocument() throws IOException {
 
 // -------------------------- OTHER METHODS --------------------------
 
-private boolean suppressDuplicateOverlappingText(@NotNull final ETextPosition text) {
+private boolean suppressDuplicateOverlappingText(@NotNull final TextPosition text) {
 	String textCharacter = text.getCharacter();
 	if (" ".equals(text.getCharacter())) {
 		return false;
@@ -224,9 +224,11 @@ protected void processPage(@NotNull PDPage page, COSStream content) throws IOExc
 		/* show which page we are working on in the log */
 		MDC.put("page", currentPageNo);
 
+		pageSize = page.findCropBox().createDimension();
+
 		/* this is used to 'draw' images on during pdf parsing */
-		graphicSegmentator
-				= new GraphicSegmentatorImpl(page.getTrimBox().getWidth(), page.getTrimBox().getHeight());
+		graphicSegmentator = new GraphicSegmentatorImpl((float) pageSize.getWidth(),
+		                                                (float) pageSize.getHeight());
 
 		processStream(page, page.findResources(), content);
 
@@ -249,8 +251,9 @@ protected void processPage(@NotNull PDPage page, COSStream content) throws IOExc
 				final List<PhysicalText> texts = segmentator.segmentWords(charactersForPage);
 
 
-				PhysicalPage physicalPage
-						= new PhysicalPage(texts, graphicSegmentator, currentPageNo);
+				PhysicalPage physicalPage = new PhysicalPage(texts,
+				                                             graphicSegmentator,
+				                                             currentPageNo);
 
 
 				final PageNode pageNode = physicalPage.compileLogicalPage();
