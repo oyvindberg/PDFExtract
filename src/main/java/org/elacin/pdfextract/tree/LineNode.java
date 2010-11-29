@@ -16,6 +16,7 @@
 
 package org.elacin.pdfextract.tree;
 
+import org.elacin.pdfextract.logical.Formulas;
 import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,7 +54,7 @@ public void writeXmlRepresentation(@NotNull final Appendable out,
 		out.append(" ");
 	}
 
-	if (lineSeemsToBeFormula()) {
+	if (Formulas.textSeemsToBeFormula(getChildren())) {
 		out.append("<formula>");
 		out.append(getText());
 		out.append("</formula>\n");
@@ -100,18 +101,9 @@ public String getText() {
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-public boolean containsWordWithStyle(final Style style) {
-	for (WordNode node : getChildren()) {
-		if (node.getStyle().isCompatibleWith(style)) {
-			return true;
-		}
-	}
-	return false;
-}
-
 @NotNull
 public Style findDominatingStyle() {
-	if (lineSeemsToBeFormula()){
+	if (Formulas.textSeemsToBeFormula(getChildren())) {
 		return Style.FORMULA;
 	}
 
@@ -134,6 +126,7 @@ public Style findDominatingStyle() {
 	for (Map.Entry<Style, Integer> entry : letterCountPerStyle.entrySet()) {
 		if (entry.getValue() > highestNumChars) {
 			style = entry.getKey();
+			highestNumChars = entry.getValue();
 		}
 	}
 	return style;
@@ -159,56 +152,11 @@ public Comparator<WordNode> getChildComparator() {
 // -------------------------- OTHER METHODS --------------------------
 
 private boolean isIndented() {
-	if (getParent() == null){
+	if (getParent() == null) {
 		return false;
 	}
 
 	final float paragraphX = getParent().getPos().getX();
 	return getPos().getX() > paragraphX + (float) findDominatingStyle().xSize * 2.0f;
-}
-
-private boolean lineSeemsToBeFormula() {
-
-	if (getText().length() < 4){
-		return false;
-	}
-
-	int looksLikeMath = 0;
-	int wordCount = 0;
-
-	int containedGraphics = 0;
-	for (WordNode word : getChildren()) {
-
-		if (word.getStyle().equals(Style.GRAPHIC)){
-			containedGraphics++;
-			continue;
-		}
-
-		wordCount += word.getText().length();
-
-		/* first check whether the whole word seems to be formatted in a math font */
-		if (word.getStyle().isMathFont()){
-			looksLikeMath += 3* word.getText().length();
-			continue;
-		}
-
-		for (int i = 0; i < word.getText().length(); i++) {
-			final char c = word.getText().charAt(i);
-			if (Character.getType(c) == (int) Character.MATH_SYMBOL){
-				looksLikeMath += 5;
-			} else if (Character.isDigit(c)){
-				looksLikeMath += 2;
-			}
-		}
-	}
-
-	looksLikeMath += containedGraphics * (looksLikeMath *0.1);
-
-//	if (isIndented()){
-//		/* add a bit to the probability if the text seems to be indented */
-//		looksLikeMath += looksLikeMath * 0.1f;
-//	}
-
-	return looksLikeMath > wordCount;
 }
 }

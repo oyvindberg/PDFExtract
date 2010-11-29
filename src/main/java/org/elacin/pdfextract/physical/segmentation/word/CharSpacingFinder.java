@@ -22,6 +22,7 @@ import org.elacin.pdfextract.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -77,79 +78,74 @@ static float calculateCharspacingForDistances(@NotNull final List<Float> distanc
 		return 0.0f;
 	}
 
+
 	/* find smallest and largest distances, and calculate the average distance - it will
 			be used below */
-	float sum = 0.0f;
 	float smallest = Float.MAX_VALUE;
 	float largest = Float.MIN_VALUE;
 	for (final float distance : distances) {
-		sum += distance;
-		if (distance < smallest) {
-			smallest = distance;
-		}
-		if (distance > largest) {
-			largest = distance;
-		}
+		smallest = Math.min(smallest, distance);
+		largest = Math.max(largest, distance);
 	}
-	final float averageDistance = sum / (float) distances.size();
-	final float diff = largest - smallest;
+	final float diff = largest - Math.max(0.0f, smallest);
 
 
 	if (MathUtils.isWithinPercent(smallest, largest, 10.0f)) {
 		return largest;
 	}
 
-	//    float minSize = 0.0f;
-	//    for (int i = 0, distancesSize = distances.size() - 1; i < distancesSize; i++) {
-	//        final Float d1 = distances.get(i);
-	//        final Float d2 = distances.get(i + 1);
-	//
-	//        final float v = Math.min(d1, d2);
-	//        if (v > minSize) {
-	//            minSize = v;
-	//        }
-	//    }
+	float median = findMedianOfDistances(distances, -10.0f);
 
-	//    log.warn("minSize = " + minSize);
-
-	//    float charSpacing = ((float) (StrictMath.log(averageFontSize) * 0.60f) * (averageDistance
-	//            * 0.3f) + smallest * 0.8f);
-	//
-	//    if (charSpacing > minSize) {
-	//        charSpacing = minSize;
-	//    }
-
-	/**
-	 * The reasoning behind this algorithm is the following:
-	 *
-	 *  - The 'size' of a font is normally way bigger than spacing between
-	 *      words, so it is useful to consider a fraction of it. 10% is
-	 *      easy to reason about and thus use as a unit.
-	 *
-	 *  - It is necessary to use the font size, because obviously the 'normal'
-	 *      word spacing will vary with it (bigger fonts have bigger spacing)
-	 *
-	 *  - To consider how 'many' ten percent font size units we want,
-	 *      we consider the average distance between characters
-	 *
-	 *  - Finally, we offset the calculates charspacing with the minimum
-	 *      distance found. This is to facilitate correct spacing of lines
-	 *      with abnormally long intra-word spacing.
-	 *
-	 */
-
-	float charSpacing = (averageFontSize / 10.0F) * (largest * 0.2f) + smallest * 0.6f;
+	final float NUM_STEPS = 20.0f;
+	float step = diff / NUM_STEPS;
+	final Float[] dists = distances.toArray(new Float[distances.size()]);
+	Arrays.sort(dists);
 
 
-	if (charSpacing > largest || charSpacing < smallest) {
-		float largestOfSmallest = 0.0f;
-		for (int i = 0, size = distances.size(); i < size - 1; i++) {
-			float smallerDistance = Math.min(distances.get(i), distances.get(i + 1));
-			largestOfSmallest = Math.max(largestOfSmallest, smallerDistance);
+	final float lowerLimit = getLowerCharspaceLimitForFontSize(averageFontSize);
 
+	int lastNumStepts = 0;
+
+	final float[] ret = new float[3];
+
+	for (float dist : dists) {
+
+		int currentNumSteps = (int) (dist / step);
+		if (currentNumSteps - lastNumStepts >= 3 && dist > lowerLimit) {
+			if (dist > median && dist <= diff) {
+				ret[0] = dist;
+				break;
+			} else if (dist > median) {
+				ret[1] = dist;
+				break;
+			} else {
+				ret[2] = dist;
+			}
 		}
-		charSpacing = largestOfSmallest;
+		lastNumStepts = currentNumSteps;
 	}
+
+	final float charSpacing;
+	if (ret[0] > 0.0f) {
+		charSpacing = ret[0];
+	} else if (ret[1] > 0.0f) {
+		charSpacing = ret[1];
+	} else if (ret[2] > 0.0f) {
+		charSpacing = ret[2];
+	} else {
+		charSpacing = lowerLimit;
+	}
+	if (log.isInfoEnabled()) {
+		log.info("LOG00790:median:" + median + ", diff:" + diff + ", smallest:" + smallest + ", "
+				         + "" + ", " + "" + "largest: " + largest + ", " + ", lowerLimit:"
+				         + lowerLimit + ", ret: " + Arrays.toString(ret));
+	}
+
+
+	return charSpacing * 0.95f;
+}
+
+private static float getLowerCharspaceLimitForFontSize(final float averageFontSize) {
 
 	/* lower than 0.35 does not realisticly happen with 7pt, scale that with bigger font sizes */
 	float lowerLimit = (0.35f / 7.0f) * (averageFontSize * (1.3f));
@@ -157,16 +153,82 @@ static float calculateCharspacingForDistances(@NotNull final List<Float> distanc
 	if (lowerLimit > 15.0f) {
 		lowerLimit = 15.0f;
 	}
-	charSpacing = Math.max(lowerLimit, charSpacing);
+	return lowerLimit;
+}
 
+@SuppressWarnings({"NumericCastThatLosesPrecision"})
+private static float findMedianOfDistances(final List<Float> distances, final float lowerLimit) {
+	final Float[] floats = distances.toArray(new Float[distances.size()]);
+	Arrays.sort(floats);
 
-	return charSpacing;
+	final float RESOLUTION = 20.0f;
+
+	final int lowerLimitI = (int) (lowerLimit * RESOLUTION);
+	int currentDistance = Integer.MIN_VALUE;
+	int currentOccurences = 0;
+
+	int maxOccurrences = 0;
+	int ret = Integer.MIN_VALUE;
+	for (float d : floats) {
+		int dInt = (int) (d * RESOLUTION);
+
+		if (dInt < lowerLimitI) {
+			continue;
+		}
+		if (currentDistance == Integer.MIN_VALUE) {
+			currentDistance = dInt;
+		}
+
+		if (dInt != currentDistance) {
+			if (currentOccurences >= maxOccurrences) {
+				ret = currentDistance;
+				maxOccurrences = currentOccurences;
+			}
+			currentDistance = dInt;
+			currentOccurences = 1;
+
+		} else {
+			currentOccurences++;
+		}
+	}
+
+	return (float) ret / RESOLUTION;
+}
+
+private static float findDistanceClosestTo(final List<Float> distances, final float limit) {
+	float closestToLimit = Float.MAX_VALUE;
+	float ret = 0.0f;
+
+	for (Float distance : distances) {
+		final float absDiff = Math.abs(limit - distance);
+		if (absDiff < closestToLimit) {
+			closestToLimit = absDiff;
+			ret = distance;
+		}
+	}
+	return ret * 0.95f;
+
+}
+
+private static float findFirstDistanceSmallerThan(final List<Float> distances, final float value) {
+	float closestToLimit = Float.MAX_VALUE;
+	float ret = 0.0f;
+
+	for (float distance : distances) {
+		final float diff = value - distance;
+		if (diff > 0 && diff < closestToLimit) {
+			closestToLimit = diff;
+			ret = distance;
+		}
+	}
+	return ret;
+
 }
 
 private static float getAverageFontSize(@NotNull final Collection<PhysicalText> texts) {
 	int fontSizeSum = 0;
 	for (PhysicalText text : texts) {
-		fontSizeSum +=  text.style.xSize;
+		fontSizeSum += text.getStyle().xSize;
 	}
 	return (float) fontSizeSum / (float) texts.size();
 }
@@ -177,7 +239,7 @@ private static List<Float> getDistancesBetweenTextObjects(@NotNull final Collect
 	boolean first = true;
 	for (PhysicalText text : texts) {
 		/* skip the first word fragment, and only include this distance if it is not too big */
-		if (!first && text.distanceToPreceeding < text.style.xSize * 6.0f) {
+		if (!first && text.distanceToPreceeding < (Math.max(text.getStyle().xSize, 5.0f) * 6.0f)) {
 			distances.add(text.distanceToPreceeding);
 		}
 		first = false;
@@ -197,7 +259,7 @@ private static void printDebugPost(@NotNull final Collection<PhysicalText> texts
 		if (!first && text.distanceToPreceeding > charSpacing) {
 			out.append(" ");
 		}
-		out.append(text.content);
+		out.append(text.text);
 		first = false;
 	}
 	log.debug("spacing: output: " + out);
@@ -215,8 +277,8 @@ private static void printDebugPre(@NotNull final Collection<PhysicalText> texts,
 		if (!first) {
 			textWithDistances.append("> ").append(text.distanceToPreceeding).append(">");
 		}
-		textWithDistances.append(text.content);
-		textOnly.append(text.content);
+		textWithDistances.append(text.text);
+		textOnly.append(text.text);
 		first = false;
 	}
 

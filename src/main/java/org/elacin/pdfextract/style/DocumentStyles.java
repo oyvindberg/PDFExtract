@@ -19,6 +19,7 @@ package org.elacin.pdfextract.style;
 import org.apache.log4j.Logger;
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.tree.XmlPrinter;
+import org.elacin.pdfextract.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -44,9 +45,7 @@ private static List<String> mathFonts = new ArrayList<String>() {{
 }};
 
 
-@NotNull
-final Map<Integer, Style> styles           = new HashMap<Integer, Style>();
-final Collection<Style>   stylesCollection = styles.values();
+final Map<String, Style> styles = new HashMap<String, Style>();
 
 // ------------------------ INTERFACE METHODS ------------------------
 
@@ -63,7 +62,18 @@ public void writeXmlRepresentation(final Appendable out,
 	}
 
 	out.append("<styles>\n");
-	for (Style style : stylesCollection) {
+
+	/* output the styles sorted by id */
+	final Comparator<Style> sortById = new Comparator<Style>() {
+		@Override
+		public int compare(final Style o1, final Style o2) {
+			return o1.id.compareTo(o2.id);
+		}
+	};
+
+	List<Style> sortedStyles = new ArrayList<Style>(styles.values());
+	Collections.sort(sortedStyles, sortById);
+	for (Style style : sortedStyles) {
 		for (int i = 0; i < indent + 4; i++) {
 			out.append(" ");
 		}
@@ -71,9 +81,15 @@ public void writeXmlRepresentation(final Appendable out,
 		out.append(" id=\"").append(String.valueOf(style.id)).append("\"");
 		out.append(" font=\"").append(style.fontName).append("\"");
 		out.append(" size=\"").append(String.valueOf(style.xSize)).append("\"");
-		out.append(" italic=\"").append(String.valueOf(style.isItalic())).append("\"");
-		out.append(" bold=\"").append(String.valueOf(style.isBold())).append("\"");
-		out.append(" math=\"").append(String.valueOf(style.isMathFont())).append("\"");
+		if (style.isItalic()) {
+			out.append(" italic=\"true\"");
+		}
+		if (style.isMathFont()) {
+			out.append(" math=\"true\"");
+		}
+		if (style.isBold()) {
+			out.append(" bold=\"true\"");
+		}
 		out.append("/>\n");
 	}
 
@@ -87,30 +103,13 @@ public void writeXmlRepresentation(final Appendable out,
 // -------------------------- PUBLIC METHODS --------------------------
 
 public Style getStyleForTextPosition(@NotNull TextPosition position) {
-	int result = (int) position.getFontSize();
-	result = 31 * result + (int) position.getXScale();
-	result = 31 * result + (int) position.getYScale();
-	final String baseFont = position.getFont().getBaseFont();
-	result = 31 * result + (baseFont == null ? 0 : baseFont.hashCode());
-	result = 31 * result + position.getFont().getSubType().hashCode();
-
-	if (styles.get(result) == null) {
-		Style existing = createStyle(position);
-		styles.put(result, existing);
-	}
 
 
-	return styles.get(result);
-}
-
-// -------------------------- OTHER METHODS --------------------------
-
-private Style createStyle(final TextPosition position) {
-	int realFontSizeX = (int) (position.getFontSize() * position.getXScale());
-	int realFontSizeY = (int) (position.getFontSize() * position.getYScale());
+	int xSize = (int) (position.getFontSize() * position.getXScale());
+	int ySize = (int) (position.getFontSize() * position.getYScale());
 
 
-	/* find the appropriate font name to use  - baseFont might some times be null*/
+	/* find the appropriate font name to use  - baseFont might sometimes be null*/
 	String font;
 	if (position.getFont().getBaseFont() == null) {
 		font = position.getFont().getSubType();
@@ -124,6 +123,11 @@ private Style createStyle(final TextPosition position) {
 	if (plusIndex != -1) {
 		font = font.substring(plusIndex + 1, font.length());
 	}
+
+	boolean mathFont = font.length() > 4 && mathFonts.contains(font.substring(0, 4));
+	boolean bold = font.toLowerCase().contains("bold");
+	boolean italic = font.toLowerCase().contains("italic");
+
 
 	/**
 	 * Find the plain font name, without any other information
@@ -158,10 +162,30 @@ private Style createStyle(final TextPosition position) {
 		font = font.substring(0, index);
 	}
 
-	boolean mathFont = font.length() > 4 && mathFonts.contains(font.substring(0, 4));
-	boolean bold = font.toLowerCase().contains("bold");
-	boolean italic = font.toLowerCase().contains("italic");
 
-	return new Style(font, realFontSizeX, realFontSizeY, styles.size(), italic, bold, mathFont);
+	/* this is latex specific */
+	if (font.contains("CMBX")) {
+		font = font.replace("CMBX", "CMR");
+		bold = true;
+		italic = false;
+	} else if (font.contains("CMTI")) {
+		font = font.replace("CMTI", "CMR");
+		bold = false;
+		italic = true;
+	}
+
+	String id = String.format("%s-%d%s%s%s", font, xSize, (italic ? "I" : ""), (bold ? "B" : ""),
+	                          (mathFont ? "M" : ""));
+
+	if (!styles.containsKey(id)) {
+		final Style style = new Style(font, xSize, ySize, id, italic, bold, mathFont);
+		styles.put(id, style);
+		if (log.isInfoEnabled()) {
+			log.info("LOG00800:New style:" + style + " from " + StringUtils
+					.getTextPositionString(position));
+		}
+	}
+
+	return styles.get(id);
 }
 }

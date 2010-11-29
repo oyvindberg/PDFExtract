@@ -27,16 +27,28 @@ import java.io.Serializable;
 public class Style implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
-public static final Style GRAPHIC = new Style("Image", -1, -1, -1, false, false, false);
-public static final Style FORMULA = new Style("Formula", -2, -2, -2, false, false, true);
+public static final Style GRAPHIC_IMAGE     = new Style("Graphical container", -1, -1, "[IMG]",
+                                                        false, false, false);
+public static final Style GRAPHIC_VSEP      = new Style("Graphical vertical separator", -1, -1,
+                                                        "[VSEP]", false, false, false);
+public static final Style GRAPHIC_HSEP      = new Style("Graphical horizontal separator", -1, -1,
+                                                        "[VSEP]", false, false, false);
+public static final Style GRAPHIC_MATH_BAR  = new Style("Graphical math bar", -1, -1, "[BAR]",
+                                                        false, false, false);
+public static final Style GRAPHIC_CHARACTER = new Style("Graphical character", -1, -1, "[?]", false,
+                                                        false, false);
+public static final Style GRAPHIC_CONTAINER = new Style("Graphical container", -1, -1, "[CONTAINER",
+                                                        false, false, false);
+
+public static final Style FORMULA = new Style("Formula", -2, -2, "FORMULA", false, false, true);
 
 
 public final int xSize, ySize;
-public final  String  fontName;
-public final  int     id;
-private final boolean italic;
-private final boolean bold;
-private final boolean mathFont;
+public final String  fontName;
+public final String  id;
+final        boolean italic;
+final        boolean bold;
+final        boolean mathFont;
 
 private transient boolean toStringCreated;
 private transient String  toStringCache;
@@ -46,7 +58,7 @@ private transient String  toStringCache;
 Style(final String fontName,
       final int xSize,
       final int ySize,
-      final int id,
+      final String id,
       final boolean italic,
       final boolean bold,
       final boolean font)
@@ -69,14 +81,12 @@ public boolean equals(final Object o) {
 
 	final Style style = (Style) o;
 
-	if (id != style.id) { return false; }
-
-	return true;
+	return id.equals(style.id);
 }
 
 @Override
 public int hashCode() {
-	return id;
+	return id.hashCode();
 }
 
 @Override
@@ -115,32 +125,5 @@ public boolean isItalic() {
 
 public boolean isMathFont() {
 	return mathFont;
-}
-
-// -------------------------- PUBLIC METHODS --------------------------
-
-public boolean isCompatibleWith(final Style other) {
-
-	if (mathFont != other.mathFont){
-		return false;
-	}
-
-	if (xSize != other.xSize) {
-		return false;
-	}
-
-	if (ySize != other.ySize) {
-		return false;
-	}
-
-	if (bold != other.bold) {
-		return false;
-	}
-
-	if (italic != other.italic) {
-		return false;
-	}
-
-	return fontName.equals(other.fontName);
 }
 }

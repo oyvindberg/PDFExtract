@@ -40,7 +40,7 @@ import java.util.Map;
 public class PageRenderer {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger log = Logger.getLogger(PageRenderer.class);
+private static final Logger  log              = Logger.getLogger(PageRenderer.class);
 private static final boolean RENDER_REAL_PAGE = false;
 
 @NotNull
@@ -101,15 +101,15 @@ public BufferedImage renderPage(final int pageNum) {
 	/* first have PDFBox draw the pdf to a BufferedImage */
 	long t1 = System.currentTimeMillis();
 	PDPage page = (PDPage) document.getDocumentCatalog().getAllPages().get(pageNum - 1);
-	
-	
+
+
 	final BufferedImage image;
-	if (RENDER_REAL_PAGE){
+	if (RENDER_REAL_PAGE) {
 		try {
 			image = page.convertToImage();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
-		}		
+		}
 	} else {
 		image = createImage(page, BufferedImage.TYPE_INT_ARGB, resolution);
 	}
@@ -131,19 +131,22 @@ public BufferedImage renderPage(final int pageNum) {
 	}
 
 	/* draw document tree */
-	for (ParagraphNode paragraphNode : pageNode.getChildren()) {
-		for (LineNode lineNode : paragraphNode.getChildren()) {
-			for (WordNode wordNode : lineNode.getChildren()) {
-				drawRectangle(graphics, xScale, yScale, Color.BLUE, wordNode.getPos(), true);
+	for (LayoutRegionNode layoutRegionNode : pageNode.getChildren()) {
+		drawRectangle(graphics, xScale, yScale, Color.YELLOW, layoutRegionNode.getPos(), true);
+		for (ParagraphNode paragraphNode : layoutRegionNode.getChildren()) {
+			drawRectangle(graphics, xScale, yScale, Color.RED, paragraphNode.getPos(), true);
+			for (LineNode lineNode : paragraphNode.getChildren()) {
+				drawRectangle(graphics, xScale, yScale, Color.BLUE, lineNode.getPos(), true);
+				for (WordNode styledText : lineNode.getChildren()) {
+					drawRectangle(graphics, xScale, yScale, Color.BLACK, styledText.getPos(), true);
+				}
 			}
-			drawRectangle(graphics, xScale, yScale, Color.BLACK, lineNode.getPos(), true);
 		}
-		drawRectangle(graphics, xScale, yScale, Color.CYAN, paragraphNode.getPos(), true);
 	}
 
 
-	Loggers.getInterfaceLog().info(String.format("LOG00180:Rendered page %d in %d ms", pageNum, (
-			System.currentTimeMillis() - t1)));
+	Loggers.getInterfaceLog().info(String.format("LOG00180:Rendered page %d in %d ms", pageNum,
+	                                             (System.currentTimeMillis() - t1)));
 	return image;
 }
 

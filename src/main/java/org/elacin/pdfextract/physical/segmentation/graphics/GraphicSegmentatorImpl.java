@@ -17,6 +17,8 @@
 package org.elacin.pdfextract.physical.segmentation.graphics;
 
 import org.apache.log4j.Logger;
+import org.elacin.pdfextract.StyledText;
+import org.elacin.pdfextract.logical.Formulas;
 import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
@@ -125,25 +127,44 @@ public void segmentGraphicsUsingContentInRegion(@NotNull PhysicalPageRegion regi
 
 	for (GraphicContent graphic : getGraphicContents()) {
 		if (isTooBigGraphic(graphic)) {
-			if (log.isInfoEnabled()) { log.info("LOG00512::considered too big " + graphic); }
+			if (log.isInfoEnabled()) { log.info("LOG00501:considered too big " + graphic); }
 			continue;
 		}
 
 		if (graphicContainsTextFromRegion(region, graphic)) {
-			if (log.isInfoEnabled()) { log.info("LOG00500:contains content " + graphic); }
+			if (log.isInfoEnabled()) { log.info("LOG00502:considered container " + graphic); }
 			graphic.setCanBeAssigned(false);
+			graphic.setStyle(Style.GRAPHIC_CONTAINER);
 			graphicalRegions.add(graphic);
-		} else if (graphic.canBeConsideredContentInRegion(region)) {
-			if (log.isTraceEnabled()) { log.trace("LOG00520:considered content " + graphic); }
+
+		} else if (canBeConsideredCharacterInRegion(graphic, region)) {
+			if (log.isInfoEnabled()) { log.info("LOG00503:considered character " + graphic); }
+			graphic.setStyle(Style.GRAPHIC_CHARACTER);
 			graphic.setCanBeAssigned(true);
 			contentGraphics.add(graphic);
-		} else if (graphic.canBeConsideredSeparator()) {
-			if (log.isInfoEnabled()) { log.info("LOG00490:considered separator " + graphic); }
+
+		} else if (canBeConsideredMathBarInRegion(graphic, region)) {
+			if (log.isInfoEnabled()) { log.info("LOG00504:considered math bar " + graphic); }
 			graphic.setCanBeAssigned(true);
+			graphic.setStyle(Style.GRAPHIC_MATH_BAR);
 			contentGraphics.add(graphic);
+
+		} else if (canBeConsideredHorizontalSeparator(graphic)) {
+			if (log.isInfoEnabled()) { log.info("LOG00505:considered hsep " + graphic); }
+			graphic.setCanBeAssigned(false);
+			graphic.setStyle(Style.GRAPHIC_MATH_BAR);
+			contentGraphics.add(graphic);
+
+		} else if (canBeConsideredVerticalSeparator(graphic)) {
+			if (log.isInfoEnabled()) { log.info("LOG00506:considered vsep " + graphic); }
+			graphic.setCanBeAssigned(false);
+			graphic.setStyle(Style.GRAPHIC_VSEP);
+			contentGraphics.add(graphic);
+
 		} else {
-			log.warn("LOG00511: unknown function " + graphic);
+			if (log.isInfoEnabled()) { log.info("LOG00507:considered image " + graphic); }
 			graphic.setCanBeAssigned(true);
+			graphic.setStyle(Style.GRAPHIC_IMAGE);
 			contentGraphics.add(graphic);
 		}
 
@@ -255,6 +276,7 @@ private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion
 
 
 	final Style mostCommonStyle = region.getMostCommonStyle();
+
 	for (GraphicContent graphic : set) {
 		final List<PhysicalContent> contents = region.findContentsIntersectingWith(graphic);
 
@@ -264,10 +286,10 @@ private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion
 		int numChars = 0;
 		float averageYSize = 0.0f;
 		for (PhysicalContent content : contents) {
-			final PhysicalText text = content.getText();
-			if (content.isText() && text.style.equals(mostCommonStyle)) {
-				numChars += text.getContent().length();
-				averageYSize += (float) (text.getStyle().ySize * text.getContent().length());
+			final PhysicalText text = content.getPhysicalText();
+			if (content.isText() && text.getStyle().equals(mostCommonStyle)) {
+				numChars += text.getText().length();
+				averageYSize += (float) (text.getStyle().ySize * text.getText().length());
 			}
 		}
 		averageYSize /= (float) numChars;
@@ -335,7 +357,8 @@ private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion
 
 @NotNull
 private static Rectangle convertRectangle(@NotNull final java.awt.Rectangle bounds) {
-	return new Rectangle((float) bounds.x, (float) bounds.y, (float) bounds.width, (float) bounds.height);
+	return new Rectangle((float) bounds.x, (float) bounds.y, (float) bounds.width,
+	                     (float) bounds.height);
 }
 
 private static boolean enoughCharsToBeSaved(final int numChars, final float numLines) {
@@ -440,4 +463,55 @@ private void clearTempLists() {
 private boolean isTooBigGraphic(@NotNull final PhysicalContent graphic) {
 	return graphic.getPos().area() >= (w * h);
 }
+
+
+public static boolean canBeConsideredCharacterInRegion(GraphicContent g,
+                                                       final PhysicalPageRegion region)
+{
+
+	float doubleCharArea = region.getAvgFontSizeY() * region.getAvgFontSizeX() * 2.0f;
+	return g.getPos().area() < doubleCharArea;
+}
+
+/** consider the graphic a separator if the aspect ratio is high */
+public static boolean canBeConsideredVerticalSeparator(GraphicContent g) {
+
+	if (g.getPos().getWidth() > 15.0f) {
+		return false;
+	}
+
+	return g.getPos().getHeight() / g.getPos().getWidth() > 15.0f;
+
+}
+
+/** consider the graphic a separator if the aspect ratio is high */
+public static boolean canBeConsideredHorizontalSeparator(GraphicContent g) {
+	if (g.getPos().getHeight() > 15.0f) {
+		return false;
+	}
+
+	return g.getPos().getWidth() / g.getPos().getHeight() > 15.0f;
+
+}
+
+
+public static boolean canBeConsideredMathBarInRegion(GraphicContent g,
+                                                     final PhysicalPageRegion region)
+{
+
+	if (!canBeConsideredHorizontalSeparator(g)) {
+		return false;
+	}
+
+	final List<PhysicalContent> surrounding = region.findSurrounding(g, 5);
+	final List<StyledText> surroundingTexts = new ArrayList<StyledText>();
+	for (PhysicalContent content : surrounding) {
+		if (content.isText()) {
+			surroundingTexts.add(content.getPhysicalText());
+		}
+	}
+	return Formulas.textSeemsToBeFormula(surroundingTexts);
+}
+
+
 }

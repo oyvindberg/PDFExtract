@@ -79,20 +79,32 @@
         <level value="WARN"/>
     </logger>
 
-    <logger name="org.elacin.pdfextract.physical.segmentation.word">
-        <level value="DEBUG"/>
+    <logger name="org.elacin.pdfextract.pdfbox">
+        <level value="WARN"/>
     </logger>
 
-    <logger name="org.elacin.pdfextract.physical.segmentation.graphics" >
+    <logger name="org.elacin.pdfextract.physical.segmentation.word">
+        <level value="WARN"/>
+    </logger>
+
+    <logger name="org.elacin.pdfextract.physical.segmentation.graphics">
+        <level value="INFO"/>
+    </logger>
+
+    <logger name="org.elacin.pdfextract.physical.segmentation.paragraph">
         <level value="INFO"/>
     </logger>
 
     <logger name="org.elacin.pdfextract.physical">
-        <level value="DEBUG"/>
+        <level value="WARN"/>
+    </logger>
+
+    <logger name="org.elacin.pdfextract.style">
+        <level value="INFO"/>
     </logger>
 
     <logger name="org.apache.pdfbox" additivity="false">
-        <level value="DEBUG"/>
+        <level value="WARN"/>
         <appender-ref ref="pdfbox"/>
         <appender-ref ref="console"/>
     </logger>

@@ -43,7 +43,7 @@ public LineSegmentator(final float tolerance) {
 
 @NotNull
 private static WordNode createWordNode(@NotNull final PhysicalText text, int pageNumber) {
-	return new WordNode(text.getPos(), pageNumber, text.style, text.content, text.charSpacing);
+	return new WordNode(text.getPos(), pageNumber, text.getStyle(), text.text, text.charSpacing);
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
@@ -135,13 +135,17 @@ private LineNode createLineFrom(@NotNull final PhysicalPageRegion region,
 	LineNode lineNode = new LineNode();
 	for (PhysicalContent content : workingSet) {
 
-		if (content.isAssignablePhysicalContent()
-				&& !content.getAssignablePhysicalContent().isAssignedBlock()) {
+		if (content.isAssignablePhysicalContent() && !content.getAssignablePhysicalContent()
+		                                                     .isAssignedBlock()) {
 
 			if (content.isText()) {
-				lineNode.addChild(createWordNode(content.getText(), region.getPageNumber()));
+				lineNode.addChild(
+						createWordNode(content.getPhysicalText(), region.getPageNumber()));
 			} else if (content.isGraphic()) {
-				lineNode.addChild(new WordNode(content.getPos(), region.getPageNumber(), Style.GRAPHIC, "[FIG]", 0.0f));
+				final Style style = content.getGraphicContent().getStyle();
+				lineNode.addChild(
+						new WordNode(content.getPos(), region.getPageNumber(), style, style.id,
+						             0.0f));
 			} else {
 				throw new RuntimeException("asd");
 			}

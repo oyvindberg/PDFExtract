@@ -28,7 +28,7 @@ import java.util.List;
  * Created by IntelliJ IDEA. User: elacin Date: Mar 23, 2010 Time: 9:33:52 PM To change this
  * template use File | Settings | File Templates.
  */
-public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
+public class PageNode extends AbstractParentNode<LayoutRegionNode, DocumentNode> {
 // ------------------------------ FIELDS ------------------------------
 
 private final int pageNumber;
@@ -58,8 +58,8 @@ public void writeXmlRepresentation(@NotNull final Appendable out,
 	}
 	out.append(">\n");
 
-	for (ParagraphNode child : getChildren()) {
-		child.writeXmlRepresentation(out, indent + 4, verbose);
+	for (LayoutRegionNode child : getChildren()) {
+		child.writeXmlRepresentation(out, indent, verbose); // <-- no extra indentation
 	}
 
 	for (int i = 0; i < indent; i++) {
@@ -93,7 +93,7 @@ public void addDebugFeatures(final Color color, final List<? extends HasPosition
 /** Returns a Comparator which compares coordinates within a page */
 @NotNull
 @Override
-public Comparator<ParagraphNode> getChildComparator() {
+public Comparator<LayoutRegionNode> getChildComparator() {
 	return new StandardNodeComparator();
 }
 }

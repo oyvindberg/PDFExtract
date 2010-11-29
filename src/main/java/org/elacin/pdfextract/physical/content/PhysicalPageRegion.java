@@ -112,7 +112,7 @@ private static boolean listContainsTextOrSeparator(@NotNull final Collection<Phy
 		if (content.isText()) {
 			return true;
 		}
-		if (content.isGraphic() && content.getGraphicContent().canBeConsideredSeparator()) {
+		if (content.isGraphic() && content.getGraphicContent().isSeparator()) {
 			return true;
 		}
 	}
@@ -122,8 +122,8 @@ private static boolean listContainsTextOrSeparator(@NotNull final Collection<Phy
 @NotNull
 protected static Rectangle returnABitSmallerPosition(@NotNull final HasPosition bound) {
 	final Rectangle p = bound.getPos();
-	return new Rectangle(
-			p.getX() + 1.0f, p.getY() + 1.0f, p.getWidth() - 1.0f, p.getHeight() - 1.0f);
+	return new Rectangle(p.getX() + 1.0f, p.getY() + 1.0f, p.getWidth() - 1.0f,
+	                     p.getHeight() - 1.0f);
 }
 
 protected static boolean tooMuchContentCrossesBoundary(@NotNull RectangleCollection contents,
@@ -186,7 +186,8 @@ public List<WhitespaceRectangle> getWhitespace() {
 
 @NotNull
 public List<ParagraphNode> createParagraphNodes() {
-	paragraphSegmentator.setSetIsContainedInGraphic(isContainedInGraphic());
+	paragraphSegmentator.setContainedInGraphic(isContainedInGraphic());
+	paragraphSegmentator.setMedianVerticalSpacing(findMedianOfVerticalDistancesForRegion());
 
 	final List<LineNode> lines = lineSegmentator.segmentLines(this);
 
@@ -239,76 +240,6 @@ public Style getMostCommonStyle() {
 	return _mostCommonStyle;
 }
 
-@NotNull
-public List<PhysicalPageRegion> splitInHorizontalColumnsBySpacing() {
-	List<PhysicalPageRegion> ret = new ArrayList<PhysicalPageRegion>();
-
-	/* If the size of this region is this small, dont bother splitting it further */
-	if (getPos().getHeight() < getAvgFontSizeY() * 2) {
-		return ret;
-	}
-	if (position.getWidth() < getAvgFontSizeX() * 2) {
-		return ret;
-	}
-
-
-	/* start of by finding the median of a sample of vertical distances */
-	int boundaryLimit = findMedianOfVerticalDistancesForRegion();
-	boundaryLimit++;
-	if (log.isTraceEnabled()) { log.trace("LOG00620:boundaryLimit=" + boundaryLimit); }
-
-	/* if none we found, return an empty list */
-	if (boundaryLimit == -1) {
-		return ret;
-	}
-
-
-	Set<PhysicalContent> workingSet = new HashSet<PhysicalContent>();
-	final Rectangle pos = getPos();
-
-	float lastBoundary = -1000.0f;
-	float minX = Float.MAX_VALUE, maxX = Float.MIN_VALUE;
-	for (float y = pos.getY(); y <= pos.getEndY(); y++) {
-		final List<PhysicalContent> row = findContentAtYIndex(y);
-
-		workingSet.addAll(row);
-		for (PhysicalContent content : row) {
-			minX = Math.min(content.getPos().getX(), minX);
-			maxX = Math.max(content.getPos().getEndX(), maxX);
-		}
-
-
-		if (row.isEmpty()) {
-			if (!listContainsTextOrSeparator(workingSet)) {
-				continue;
-			}
-
-			if (containsAllRemainingContent(workingSet)) {
-				continue;
-			}
-
-			if ((y - lastBoundary < boundaryLimit)) {
-				continue;
-			}
-
-			if (log.isInfoEnabled()) {
-				log.info(String.format("LOG00530:horizontal split at y=%s for %s ", y, this));
-			}
-
-			PhysicalPageRegion sub
-					= extractSubRegionFromContentList(null, getContainedIn(), workingSet);
-			if (sub != null) {
-				ret.add(sub);
-			}
-
-			workingSet.clear();
-			lastBoundary = y;
-		} else {
-			lastBoundary = y;
-		}
-	}
-	return ret;
-}
 
 @NotNull
 public List<PhysicalPageRegion> splitInVerticalColumns() {
@@ -382,8 +313,8 @@ public List<PhysicalPageRegion> splitInVerticalColumns() {
 			if (log.isInfoEnabled()) {
 				log.info(String.format("LOG00510:vertical split at x =%s for %s ", x, this));
 			}
-			PhysicalPageRegion sub
-					= extractSubRegionFromContentList(null, getContainedIn(), workingSet);
+			PhysicalPageRegion sub = extractSubRegionFromContentList(null, getContainedIn(),
+			                                                         workingSet);
 
 			/* reset vertical values */
 			minY = Float.MAX_VALUE;
@@ -444,11 +375,11 @@ private Style findDominatingStyleFor(final List<PhysicalContent> contents) {
 
 	for (PhysicalContent content : contents) {
 		if (content.isText()) {
-			final Style style = content.getText().getStyle();
+			final Style style = content.getPhysicalText().getStyle();
 			if (!letterCountPerStyle.containsKey(style)) {
 				letterCountPerStyle.put(style, 0);
 			}
-			final int numChars = content.getText().getContent().length();
+			final int numChars = content.getPhysicalText().getText().length();
 			letterCountPerStyle.put(style, letterCountPerStyle.get(style) + numChars);
 			textFound = true;
 		}
@@ -489,11 +420,12 @@ protected boolean checkIfBelongsWithContentOnRight(@Nullable final PhysicalConte
 	}
 
 	/** i'll consider this too far away for now - splitting this distance should be fine*/
-	if (next.getPos().distance(getPos()) > (float) (content.getText().style.xSize * 3)) {
+	if (next.getPos().distance(getPos()) > (float) (content.getPhysicalText().style.xSize * 3)) {
 		return false;
 	}
 
-	return next.getText().getSeqNums().first() == content.getText().getSeqNums().last() + 1;
+	return next.getPhysicalText().getSeqNums().first()
+			== content.getPhysicalText().getSeqNums().last() + 1;
 }
 
 protected boolean columnBoundaryWouldBeTooNarrow(final float lastBoundary, final float x) {
@@ -511,9 +443,9 @@ protected void findAndSetFontInformation() {
 	int numCharsFound = 0;
 	for (PhysicalContent content : getContents()) {
 		if (content.isText()) {
-			final Style style = content.getText().getStyle();
+			final Style style = content.getPhysicalText().getStyle();
 
-			final int length = content.getText().getContent().length();
+			final int length = content.getPhysicalText().getText().length();
 			xFontSizeSum += (float) (style.xSize * length);
 			yFontSizeSum += (float) (style.ySize * length);
 			numCharsFound += length;
@@ -571,8 +503,8 @@ protected int findMedianOfVerticalDistancesForRegion() {
 }
 
 protected boolean isContainedInGraphic() {
-	return getContainedIn() != null && getContainedIn().isGraphic()
-			&& !getContainedIn().getGraphicContent().isBackgroundColor();
+	return getContainedIn() != null && getContainedIn().isGraphic() && !getContainedIn()
+			.getGraphicContent().isBackgroundColor();
 }
 }
 

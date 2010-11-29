@@ -20,8 +20,8 @@ import org.apache.log4j.Logger;
 import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
-import org.elacin.pdfextract.physical.content.WhitespaceRectangle;
 import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentator;
+import org.elacin.pdfextract.tree.LayoutRegionNode;
 import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.tree.ParagraphNode;
 import org.elacin.pdfextract.util.RectangleCollection;
@@ -86,8 +86,8 @@ private static PriorityQueue<GraphicContent> createSmallestFirstQueue(@NotNull f
 	};
 
 	final int capacity = Math.max(1, graphicalRegions.size());
-	PriorityQueue<GraphicContent> queue
-			= new PriorityQueue<GraphicContent>(capacity, smallestComparator);
+	PriorityQueue<GraphicContent> queue = new PriorityQueue<GraphicContent>(capacity,
+	                                                                        smallestComparator);
 	queue.addAll(graphicalRegions);
 	return queue;
 }
@@ -133,11 +133,9 @@ public PageNode compileLogicalPage() {
 		} catch (Exception e) {
 			log.info("LOG00320:Could not divide page::" + e.getMessage());
 			if (graphic.getPos().area() < getContents().getPos().area() * 0.4f) {
-
 				if (log.isInfoEnabled()) { log.info("LOG00690:Adding " + graphic + " as content");}
 				graphic.setCanBeAssigned(true);
 				originalWholePage.addContent(graphic);
-
 			} else {
 				graphics.getGraphicsToRender().remove(graphic);
 			}
@@ -146,74 +144,26 @@ public PageNode compileLogicalPage() {
 
 
 	List<PhysicalPageRegion> newRegions = new ArrayList<PhysicalPageRegion>();
-
-	newRegions.clear();
 	for (PhysicalPageRegion region : regions) {
 		newRegions.addAll(region.splitInVerticalColumns());
 	}
 	regions.addAll(newRegions);
 
 
+	PageNode page = new PageNode(pageNumber);
 
-
-//	newRegions.clear();
-//	for (PhysicalPageRegion region : regions) {
-//		newRegions.addAll(region.splitInHorizontalColumnsBySpacing());
-//	}
-//	regions.addAll(newRegions);
-
-
-	//	/**
-	//	 * pass 2
-	//	 */
-	//
-
-//	newRegions.clear();
-//	for (PhysicalPageRegion region : regions) {
-//		newRegions.addAll(region.splitInHorizontalColumnsBySpacing());
-//	}
-//	regions.addAll(newRegions);
-//
-
-//	newRegions.clear();
-//	for (PhysicalPageRegion region : regions) {
-//		newRegions.addAll(region.splitInVerticalColumns());
-//	}
-//	regions.addAll(newRegions);
-
-
-	//	originalWholePage.addContent(graphicalRegions);
-
-	PageNode ret = new PageNode(pageNumber);
-
-	final List<WhitespaceRectangle> allWhitespace = new ArrayList<WhitespaceRectangle>();
 	for (PhysicalPageRegion region : regions) {
+		LayoutRegionNode regionNode = new LayoutRegionNode();
+
 		List<ParagraphNode> paragraphs = region.createParagraphNodes();
 
-		allWhitespace.addAll(region.getWhitespace());
 		for (ParagraphNode paragraph : paragraphs) {
-			ret.addChild(paragraph);
+			regionNode.addChild(paragraph);
 		}
+		page.addChild(regionNode);
 	}
 
-	for (PhysicalPageRegion region : regions) {
-		for (PhysicalPageRegion subRegion : region.getSubregions()) {
-			for (PhysicalContent content : subRegion.getContents()) {
-				if (content.isAssignablePhysicalContent()
-						&& !content.getAssignablePhysicalContent().isAssignedBlock()) {
-					log.error("LOG00711:content " + content + "not assigned line");
-				}
-			}
-
-		}
-		for (PhysicalContent content : region.getContents()) {
-			if (content.isAssignablePhysicalContent()
-					&& !content.getAssignablePhysicalContent().isAssignedBlock()) {
-				log.error("LOG00710:content " + content + "not assigned line");
-			}
-		}
-
-	}
+	verifyThatAllContentHasLine();
 
 	/* for rendering only */
 	List<GraphicContent> filled = new ArrayList<GraphicContent>();
@@ -229,19 +179,39 @@ public PageNode compileLogicalPage() {
 			unFilled.add(content);
 		}
 	}
-	ret.addDebugFeatures(Color.green, pictures);
-	ret.addDebugFeatures(Color.MAGENTA, filled);
-	ret.addDebugFeatures(Color.ORANGE, unFilled);
-	//        ret.addColumns(layoutRecognizer.findColumnsForPage(wholePage, ret));
+	page.addDebugFeatures(Color.green, pictures);
+	page.addDebugFeatures(Color.MAGENTA, filled);
+	page.addDebugFeatures(Color.ORANGE, unFilled);
 
 	if (log.isInfoEnabled()) {
 		log.info("LOG00230:compileLogicalPage took " + (System.currentTimeMillis() - t0) + " ms");
 	}
-	return ret;
+	return page;
 }
 
 @NotNull
 public RectangleCollection getContents() {
 	return originalWholePage;
+}
+
+// -------------------------- OTHER METHODS --------------------------
+
+private void verifyThatAllContentHasLine() {
+	for (PhysicalPageRegion region : regions) {
+		for (PhysicalPageRegion subRegion : region.getSubregions()) {
+			for (PhysicalContent content : subRegion.getContents()) {
+				if (content.isAssignablePhysicalContent() && !content.getAssignablePhysicalContent()
+				                                                     .isAssignedBlock()) {
+					log.error("LOG00711:content " + content + "not assigned line");
+				}
+			}
+		}
+		for (PhysicalContent content : region.getContents()) {
+			if (content.isAssignablePhysicalContent() && !content.getAssignablePhysicalContent()
+			                                                     .isAssignedBlock()) {
+				log.error("LOG00710:content " + content + "not assigned line");
+			}
+		}
+	}
 }
 }

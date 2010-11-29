@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.physical.content;
 
 import org.apache.log4j.Logger;
+import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,12 +30,11 @@ import java.awt.*;
 public class GraphicContent extends AssignablePhysicalContent {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger log               = Logger.getLogger(GraphicContent.class);
+private static final Logger log = Logger.getLogger(GraphicContent.class);
 private final boolean filled;
 private final boolean picture;
-
-private boolean canBeAssigned;
-private boolean backgroundColor;
+private       boolean canBeAssigned;
+private       boolean backgroundColor;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -43,7 +43,7 @@ public GraphicContent(final Rectangle position,
                       boolean filled,
                       boolean backgroundColor)
 {
-	super(position);
+	super(position, null);
 	this.filled = filled;
 	this.picture = picture;
 	this.backgroundColor = backgroundColor;
@@ -133,25 +133,32 @@ public boolean canBeCombinedWith(@NotNull final GraphicContent other) {
 	return getPos().distance(other.getPos()) < 2.0f;
 }
 
-public boolean canBeConsideredContentInRegion(@NotNull final PhysicalPageRegion region) {
-	return getPos().getHeight() < region.getAvgFontSizeY() * 4.0f
-			&& getPos().getWidth() < region.getAvgFontSizeX() * 4.0f;
-}
-
-/** consider the graphic a separator if the aspect ratio is really high */
-public boolean canBeConsideredSeparator() {
-	final Rectangle pos = getPos();
-	if (pos.getWidth() > 15.0f && pos.getHeight() > 15.0f) {
-		return false;
-	}
-
-	return Math.max(pos.getWidth() / pos.getHeight(), pos.getHeight() / pos.getWidth()) > 15.0f;
-}
-
 @NotNull
 public GraphicContent combineWith(@NotNull final GraphicContent other) {
 	final boolean isBackground = other.backgroundColor && backgroundColor;
 	final boolean isFilled = other.filled || filled;
 	return new GraphicContent(getPos().union(other.getPos()), picture, isFilled, isBackground);
+}
+
+public boolean isCharacter(@NotNull final PhysicalPageRegion region) {
+	return getStyle() != null && getStyle().equals(Style.GRAPHIC_CHARACTER);
+}
+
+/** consider the graphic a separator if the aspect ratio is high */
+public boolean isHorizontalSeparator() {
+	return getStyle() != null && getStyle().equals(Style.GRAPHIC_HSEP);
+}
+
+public boolean isMathBar(final PhysicalPageRegion region) {
+	return getStyle() != null && getStyle().equals(Style.GRAPHIC_MATH_BAR);
+}
+
+public boolean isSeparator() {
+	return isVerticalSeparator() || isHorizontalSeparator();
+}
+
+/** consider the graphic a separator if the aspect ratio is high */
+public boolean isVerticalSeparator() {
+	return getStyle() != null && getStyle().equals(Style.GRAPHIC_VSEP);
 }
 }
