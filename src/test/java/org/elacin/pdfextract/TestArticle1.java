@@ -16,16 +16,6 @@
 
 package org.elacin.pdfextract;
 
-import org.elacin.pdfextract.tree.DocumentNode;
-import org.elacin.pdfextract.tree.LineNode;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
-import java.io.IOException;
-import java.util.ArrayList;
-
-import static org.testng.Assert.fail;
-
 /**
  * Created by IntelliJ IDEA. User: elacin Date: May 26, 2010 Time: 5:47:50 AM To change this
  * template use File | Settings | File Templates.
@@ -33,47 +23,47 @@ import static org.testng.Assert.fail;
 public class TestArticle1 {
 // ------------------------------ FIELDS ------------------------------
 
-private DocumentNode        doc;
-private ArrayList<LineNode> lines;
-
-// -------------------------- PUBLIC METHODS --------------------------
-
-@BeforeClass(groups = "TestArticle1")
-public void setUp() throws IOException {
-	doc = PDFDocumentLoader.readPDF("article1.pdf", "article1_out.xml", 6);
-	lines = DocumentNavigator.getLineNodes(doc);
-}
-
-@Test()
-public void test1() {
-	assertExistsLineWithText("[DP *(Det) gaml-e Roma]vart øydelagt av barbar-a-ne.");
-	//kapitulér her... for now! :)
-	//	assertExistsLineWithText("[DP *(Det) gaml-e Roma] vart øydelagt av barbar-a-ne.");
-}
-
-@Test()
-public void test2() {
-	assertExistsLineWithText("[DP *(Gli) elefanti di colorebianco] sono estinti.");
-}
-
-@Test()
-public void test3() {
-	assertExistsLineWithText("projections αP. Above the αP projections is the projection that hosts");
-}
-
-@Test()
-public void test4() {
-	assertExistsLineWithText("de-n ny-e forstå-ing-a hennar av seg sjølv");
-}
-
-// -------------------------- OTHER METHODS --------------------------
-
-private void assertExistsLineWithText(final String text) {
-	for (LineNode line : lines) {
-		if (line.getText().equals(text)) {
-			return;
-		}
-	}
-	fail("Line \"" + text + "\" was not found");
-}
+//private DocumentNode        doc;
+//private ArrayList<LineNode> lines;
+//
+//// -------------------------- PUBLIC METHODS --------------------------
+//
+//@BeforeClass(groups = "TestArticle1")
+//public void setUp() throws IOException {
+//	doc = PDFDocumentLoader.readPDF("article1.pdf", "article1_out.xml", 6);
+//	lines = DocumentNavigator.getLineNodes(doc);
+//}
+//
+//@Test()
+//public void test1() {
+//	assertExistsLineWithText("[DP *(Det) gaml-e Roma]vart øydelagt av barbar-a-ne.");
+//	//kapitulér her... for now! :)
+//	//	assertExistsLineWithText("[DP *(Det) gaml-e Roma] vart øydelagt av barbar-a-ne.");
+//}
+//
+//@Test()
+//public void test2() {
+//	assertExistsLineWithText("[DP *(Gli) elefanti di colorebianco] sono estinti.");
+//}
+//
+//@Test()
+//public void test3() {
+//	assertExistsLineWithText("projections αP. Above the αP projections is the projection that hosts");
+//}
+//
+//@Test()
+//public void test4() {
+//	assertExistsLineWithText("de-n ny-e forstå-ing-a hennar av seg sjølv");
+//}
+//
+//// -------------------------- OTHER METHODS --------------------------
+//
+//private void assertExistsLineWithText(final String text) {
+//	for (LineNode line : lines) {
+//		if (line.getText().equals(text)) {
+//			return;
+//		}
+//	}
+//	fail("Line \"" + text + "\" was not found");
+//}
 }
