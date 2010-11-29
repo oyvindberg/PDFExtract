@@ -1,0 +1,31 @@
+Index: ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDType1CFont.java
+===================================================================
+--- ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDType1CFont.java	(revision 992271)
++++ ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDType1CFont.java	(revision )
+@@ -375,20 +375,12 @@
+             Map.Entry<Integer,String> entry = it.next();
+             Integer code = (Integer)entry.getKey();
+             String name = (String)entry.getValue();
+-            String uniName = "uni";
+-            String character = (String)nameToCharacter.get(name);
++	        String character = (String) nameToCharacter.get(name);
+-            if( character != null )
+-            {
+-                for( int j = 0; j < character.length(); j++ )
+-                {
+-                    uniName += hexString(character.charAt(j), 4);
+-                }
+-            }
+-            else
+-            {
+-                uniName += hexString(code.intValue(), 4);
++	        if (character == null) {
+-                character = String.valueOf((char)code.intValue());
++		        character = String.valueOf((char) code.intValue());
+-            }
++	        }
++	        final String uniName = "uni" + hexString(code, 4);
++
+             pdfEncoding.register(code.intValue(), code.intValue());
+             pdfCharset.register(code.intValue(), uniName);
+             this.codeToName.put(code, uniName);
