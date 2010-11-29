@@ -139,12 +139,10 @@ private LineNode createLineFrom(@NotNull final PhysicalPageRegion region,
 		                                                     .isAssignedBlock()) {
 
 			if (content.isText()) {
-				lineNode.addChild(
-						createWordNode(content.getPhysicalText(), region.getPageNumber()));
+				lineNode.addChild(createWordNode(content.getPhysicalText(), region.getPageNumber()));
 			} else if (content.isGraphic()) {
 				final Style style = content.getGraphicContent().getStyle();
-				lineNode.addChild(
-						new WordNode(content.getPos(), region.getPageNumber(), style, style.id,
+				lineNode.addChild(new WordNode(content.getPos(), region.getPageNumber(), style, style.id,
 						             0.0f));
 			} else {
 				throw new RuntimeException("asd");

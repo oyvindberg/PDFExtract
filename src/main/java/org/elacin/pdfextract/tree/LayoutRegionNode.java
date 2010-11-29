@@ -26,7 +26,15 @@ import java.util.Comparator;
  * File | Settings | File Templates.
  */
 public class LayoutRegionNode extends AbstractParentNode<ParagraphNode, PageNode> {
+
+private final boolean pictureRegion;
+
+
 // ------------------------ INTERFACE METHODS ------------------------
+
+public LayoutRegionNode(final boolean region) {
+	pictureRegion = region;
+}
 
 
 // --------------------- Interface XmlPrinter ---------------------
@@ -36,8 +44,32 @@ public void writeXmlRepresentation(@NotNull final Appendable out,
                                    final int indent,
                                    final boolean verbose) throws IOException
 {
-	for (ParagraphNode child : getChildren()) {
-		child.writeXmlRepresentation(out, indent + 4, verbose);
+
+	if (pictureRegion) {
+		for (int i = 0; i < indent; i++) {
+			out.append(" ");
+		}
+		out.append("<graphic");
+		getPos().writeXmlRepresentation(out, indent, verbose);
+		out.append(">");
+
+		out.append(">\n");
+
+		for (ParagraphNode node : getChildren()) {
+			for (LineNode child : node.getChildren()) {
+				child.writeXmlRepresentation(out, indent + 4, verbose);
+			}
+		}
+
+		for (int i = 0; i < indent; i++) {
+			out.append(" ");
+		}
+		out.append("</graphic>\n");
+
+	} else {
+		for (ParagraphNode child : getChildren()) {
+			child.writeXmlRepresentation(out, indent, verbose); // <-- no extra indentation
+		}
 	}
 }
 
@@ -48,4 +80,5 @@ public void writeXmlRepresentation(@NotNull final Appendable out,
 public Comparator<ParagraphNode> getChildComparator() {
 	return new StandardNodeComparator();
 }
+
 }

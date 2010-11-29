@@ -29,12 +29,12 @@ import java.util.Collection;
 public abstract class PhysicalContent implements HasPosition {
 // ------------------------------ FIELDS ------------------------------
 
-protected Rectangle position;
+protected Rectangle pos;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public PhysicalContent(final Rectangle pos) {
-	this.position = pos;
+	this.pos = pos;
 }
 
 public PhysicalContent(@NotNull final Collection<? extends PhysicalContent> contents) {
@@ -47,7 +47,7 @@ public PhysicalContent(@NotNull final Collection<? extends PhysicalContent> cont
 // --------------------- Interface HasPosition ---------------------
 
 public Rectangle getPos() {
-	return position;
+	return pos;
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
@@ -59,29 +59,29 @@ public boolean equals(@Nullable final Object o) {
 
 	final PhysicalContent content = (PhysicalContent) o;
 
-	if (!position.equals(content.position)) { return false; }
+	if (!pos.equals(content.pos)) { return false; }
 
 	return true;
 }
 
 @Override
 public int hashCode() {
-	return position.hashCode();
+	return pos.hashCode();
 }
 
 @Override
 public String toString() {
 	final StringBuilder sb = new StringBuilder();
 	sb.append(getClass().getSimpleName());
-	sb.append("{position=").append(position);
+	sb.append("{position=").append(pos);
 	sb.append('}');
 	return sb.toString();
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-protected void setPosition(final Rectangle position) {
-	this.position = position;
+protected void setPos(final Rectangle pos) {
+	this.pos = pos;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
@@ -92,24 +92,24 @@ public AssignablePhysicalContent getAssignablePhysicalContent() {
 }
 
 @NotNull
-public PhysicalText getText() {
-	throw new RuntimeException("not a text");
+public GraphicContent getGraphicContent() {
+	throw new RuntimeException("not a graphic");
 }
 
 @NotNull
-public GraphicContent getGraphicContent() {
-	throw new RuntimeException("not a graphic");
+public PhysicalText getPhysicalText() {
+	throw new RuntimeException("not a text");
 }
 
 public boolean isAssignablePhysicalContent() {
 	return false;
 }
 
-public boolean isGraphic() {
+public boolean isFigure() {
 	return false;
 }
 
-public boolean isFigure() {
+public boolean isGraphic() {
 	return false;
 }
 
@@ -132,7 +132,7 @@ protected final void setPositionFromContentList(@NotNull final Collection<? exte
 {
 	if (contents.isEmpty()) {
 		//TODO: handle empty regions in a better way
-		position = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
+		pos = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
 		return;
 	}
 
@@ -141,11 +141,11 @@ protected final void setPositionFromContentList(@NotNull final Collection<? exte
 	float maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE;
 
 	for (PhysicalContent content : contents) {
-		minX = Math.min(minX, content.position.getX());
-		minY = Math.min(minY, content.position.getY());
-		maxX = Math.max(maxX, content.position.getEndX());
-		maxY = Math.max(maxY, content.position.getEndY());
+		minX = Math.min(minX, content.pos.getX());
+		minY = Math.min(minY, content.pos.getY());
+		maxX = Math.max(maxX, content.pos.getEndX());
+		maxY = Math.max(maxY, content.pos.getEndY());
 	}
-	position = new Rectangle(minX, minY, maxX - minX, maxY - minY);
+	pos = new Rectangle(minX, minY, maxX - minX, maxY - minY);
 }
 }

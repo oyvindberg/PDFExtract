@@ -16,8 +16,10 @@
 
 package org.elacin.pdfextract.physical.content;
 
+import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Nov 3, 2010 Time: 5:17:33 PM To change this template
@@ -28,11 +30,14 @@ public class AssignablePhysicalContent extends PhysicalContent {
 
 private static final int BLOCK_NOT_ASSIGNED = -1;
 public               int blockNum           = BLOCK_NOT_ASSIGNED;
+@Nullable
+protected Style style;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public AssignablePhysicalContent(final Rectangle position) {
+public AssignablePhysicalContent(final Rectangle position, Style style) {
 	super(position);
+	this.style = style;
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
@@ -56,6 +61,14 @@ public int getBlockNum() {
 
 public void setBlockNum(final int blockNum) {
 	this.blockNum = blockNum;
+}
+
+public Style getStyle() {
+	return style;
+}
+
+public void setStyle(final Style style) {
+	this.style = style;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------

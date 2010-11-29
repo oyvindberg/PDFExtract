@@ -52,7 +52,7 @@ private static PhysicalText getNextText(@NotNull final List<PhysicalContent> con
 	for (int j = i; j < contents.size(); j++) {
 		final PhysicalContent next = contents.get(j);
 		if (next.isText()) {
-			return next.getText();
+			return next.getPhysicalText();
 		}
 	}
 	return null;

@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.physical.content.HasPosition;
+import org.elacin.pdfextract.util.MathUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -59,7 +60,7 @@ public void writeXmlRepresentation(@NotNull final Appendable out,
 	out.append(">\n");
 
 	for (LayoutRegionNode child : getChildren()) {
-		child.writeXmlRepresentation(out, indent, verbose); // <-- no extra indentation
+		child.writeXmlRepresentation(out, indent + 4, verbose);
 	}
 
 	for (int i = 0; i < indent; i++) {
@@ -94,6 +95,35 @@ public void addDebugFeatures(final Color color, final List<? extends HasPosition
 @NotNull
 @Override
 public Comparator<LayoutRegionNode> getChildComparator() {
-	return new StandardNodeComparator();
+	return new Comparator<LayoutRegionNode>() {
+		@Override
+		public int compare(final LayoutRegionNode o1, final LayoutRegionNode o2) {
+			if (o1.getPos().getEndX() < o2.getPos().getX()) {
+				return -1;
+			}
+			if (o1.getPos().getX() > o2.getPos().getEndX()) {
+				return 1;
+			}
+			if (o1.getPos().getEndY() < o2.getPos().getY()) {
+				return -1;
+			}
+			if (o1.getPos().getY() > o2.getPos().getEndY()) {
+				return 1;
+			}
+
+
+
+
+			if (!MathUtils.isWithinPercent(o1.getPos().getY(), o2.getPos().getY(), 4)) {
+				return Float.compare(o1.getPos().getY(), o2.getPos().getY());
+			}
+
+			return Float.compare(o1.getPos().getX(), o2.getPos().getX());
+
+			//			if (f1 < f2)
+			//			     return -1;		 // Neither val is NaN, thisVal is smaller
+
+		}
+	};
 }
 }

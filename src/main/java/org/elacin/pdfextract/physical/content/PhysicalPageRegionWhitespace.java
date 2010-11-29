@@ -35,6 +35,9 @@ public class PhysicalPageRegionWhitespace extends PhysicalPageRegion {
 
 private static final Logger log = Logger.getLogger(PhysicalPageRegionWhitespace.class);
 
+@NotNull
+private final List<WhitespaceRectangle> whitespace = new ArrayList<WhitespaceRectangle>();
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public PhysicalPageRegionWhitespace(@NotNull final Collection<? extends PhysicalContent> contents,
@@ -50,7 +53,19 @@ public PhysicalPageRegionWhitespace(@NotNull final List<? extends PhysicalConten
 	this(contents, null, pageNumber);
 }
 
-// ------------------------ OVERRIDING METHODS ------------------------
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+@NotNull
+public List<WhitespaceRectangle> getWhitespace() {
+	return whitespace;
+}
+
+// -------------------------- PUBLIC METHODS --------------------------
+
+public void addWhitespace(final Collection<WhitespaceRectangle> whitespace) {
+	getWhitespace().addAll(whitespace);
+	addContent(whitespace);
+}
 
 @NotNull
 public List<ParagraphNode> createParagraphNodes(@NotNull final LineSegmentator segmentator) {
@@ -65,9 +80,9 @@ public List<ParagraphNode> createParagraphNodes(@NotNull final LineSegmentator s
 
 		/* iterate through the line to find possible start of blocks */
 		for (PhysicalContent contentInRow : row) {
-			if (contentInRow.isText() && !contentInRow.getText().isAssignedBlock()) {
+			if (contentInRow.isText() && !contentInRow.getPhysicalText().isAssignedBlock()) {
 				/* find all connected texts and mark with this blockNum*/
-				final PhysicalText text = contentInRow.getText();
+				final PhysicalText text = contentInRow.getPhysicalText();
 				markEverythingConnectedFrom(contentInRow, blockNum, text.getRotation());
 
 				blockNum++;
@@ -104,13 +119,6 @@ public List<ParagraphNode> createParagraphNodes(@NotNull final LineSegmentator s
 	return ret;
 }
 
-// -------------------------- PUBLIC METHODS --------------------------
-
-public void addWhitespace(final Collection<WhitespaceRectangle> whitespace) {
-	getWhitespace().addAll(whitespace);
-	addContent(whitespace);
-}
-
 // -------------------------- OTHER METHODS --------------------------
 
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
@@ -124,7 +132,7 @@ private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent curre
 	if (current.getAssignablePhysicalContent().isAssignedBlock()) {
 		return false;
 	}
-	if (current.isText() && current.getText().getRotation() != rotation) {
+	if (current.isText() && current.getPhysicalText().getRotation() != rotation) {
 		return false;
 	}
 

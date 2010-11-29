@@ -87,7 +87,9 @@ public void writeXmlRepresentation(@NotNull final Appendable out,
 @Override
 public String getText() {
 	StringBuilder sb = new StringBuilder();
-
+	if (isIndented()){
+		sb.append("    ");
+	}
 	for (int i = 0; i < getChildren().size(); i++) {
 		final WordNode word = getChildren().get(i);
 		sb.append(word.getText());
@@ -157,6 +159,6 @@ private boolean isIndented() {
 	}
 
 	final float paragraphX = getParent().getPos().getX();
-	return getPos().getX() > paragraphX + (float) findDominatingStyle().xSize * 2.0f;
+	return getPos().getX() > paragraphX + 5.0f;//(float) findDominatingStyle().xSize * 2.0f;
 }
 }

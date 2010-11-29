@@ -52,8 +52,6 @@ private transient Style   _mostCommonStyle;
 private final int pageNumber;
 
 @NotNull
-private final List<WhitespaceRectangle> whitespace = new ArrayList<WhitespaceRectangle>();
-@NotNull
 private final List<PhysicalPageRegion>  subregions = new ArrayList<PhysicalPageRegion>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -101,18 +99,6 @@ protected static boolean columnContainsBlockingGraphics(@NotNull final List<Phys
 private static boolean listContainsText(@NotNull final Collection<PhysicalContent> workingSet) {
 	for (PhysicalContent content : workingSet) {
 		if (content.isText()) {
-			return true;
-		}
-	}
-	return false;
-}
-
-private static boolean listContainsTextOrSeparator(@NotNull final Collection<PhysicalContent> workingSet) {
-	for (PhysicalContent content : workingSet) {
-		if (content.isText()) {
-			return true;
-		}
-		if (content.isGraphic() && content.getGraphicContent().isSeparator()) {
 			return true;
 		}
 	}
@@ -177,11 +163,6 @@ public List<PhysicalPageRegion> getSubregions() {
 	return subregions;
 }
 
-@NotNull
-public List<WhitespaceRectangle> getWhitespace() {
-	return whitespace;
-}
-
 // -------------------------- PUBLIC METHODS --------------------------
 
 @NotNull
@@ -240,6 +221,10 @@ public Style getMostCommonStyle() {
 	return _mostCommonStyle;
 }
 
+public  boolean isContainedInGraphic() {
+	return getContainedIn() != null && getContainedIn().isGraphic();// && !getContainedIn()
+			//.getGraphicContent().isBackgroundColor();
+}
 
 @NotNull
 public List<PhysicalPageRegion> splitInVerticalColumns() {
@@ -500,11 +485,6 @@ protected int findMedianOfVerticalDistancesForRegion() {
 	}
 
 	return index + 1;
-}
-
-protected boolean isContainedInGraphic() {
-	return getContainedIn() != null && getContainedIn().isGraphic() && !getContainedIn()
-			.getGraphicContent().isBackgroundColor();
 }
 }
 

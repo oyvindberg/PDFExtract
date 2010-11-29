@@ -33,7 +33,7 @@ import org.jetbrains.annotations.NotNull;
  * @author <a href="mailto:ben@benlitchfield.com">Ben Litchfield</a>
  * @version $Revision: 1.12 $
  */
-public class ETextPosition extends TextPosition  {
+public class ETextPosition extends TextPosition implements HasPosition {
 // ------------------------------ FIELDS ------------------------------
 
 private static final Logger log = Logger.getLogger(ETextPosition.class);
@@ -43,6 +43,54 @@ private final int       sequenceNum;
 private       float     baseLine;
 
 // --------------------------- CONSTRUCTORS ---------------------------
+
+public ETextPosition(int pageRotation,
+                     float pageWidth,
+                     float pageHeight,
+                     Matrix textPositionSt,
+                     Matrix textPositionEnd,
+                     float maxFontH,
+                     float individualWidth,
+                     float spaceWidth,
+                     String string,
+                     PDFont currentFont,
+                     float fontSizeValue,
+                     int fontSizeInPt,
+                     final int num)
+{
+	super(pageRotation, pageWidth, pageHeight, textPositionSt, textPositionEnd, maxFontH,
+	      individualWidth, spaceWidth, string, currentFont, fontSizeValue, fontSizeInPt);
+
+	sequenceNum = num;
+
+	float x = getX();
+	float y = getY();
+	float w = getWidth();
+	float h = getHeight();
+
+	if (h <= 0.0f && w < 0.0f) {
+		throw new IllegalArgumentException("Passed text '" + string + "' with no size.");
+	}
+
+	if (h <= 0.0f) {
+		h = getWidth() / (float) string.length();
+		h *= 1.5;
+
+		if (log.isDebugEnabled()) {
+			log.debug(String.format("LOG00630:Guessing height of text %s at (%s,%s). height = %f",
+			                        string, x, y, h));
+		}
+	}
+
+	if (w <= 0.0f) {
+		w = getHeight() / 2.0f;
+		if (log.isDebugEnabled()) {
+			log.debug(String.format("LOG00630:Guessing width of text %s at (%s,%s). height = %f",
+			                        string, x, y, w));
+		}
+	}
+	pos = new Rectangle(x, y, w, h);
+}
 
 public ETextPosition(final PDPage page,
                      final Matrix textPositionSt,
@@ -72,61 +120,34 @@ public ETextPosition(final PDPage page,
 	}
 
 	if (h <= 0.0f) {
-		float sumwidths = 0.0f;
-		int widthsCounted = 0;
-		for (int i = 0; i < individualWidths.length; i++) {
-			float width = individualWidths[i];
-			if (width > 0.0f) {
-				widthsCounted++;
-				sumwidths += width;
-			}
-		}
-		if (widthsCounted == 0) {
-			h = getWidth() / (float) string.length();
-		} else {
-			h = sumwidths / (float) widthsCounted;
-		}
-		/* maintaining that characters tend to be higher than they are wide, increase the height
-			somewhat (but don't double it ) */
+		h = getWidth() / (float) string.length();
 		h *= 1.5;
 
 		if (log.isDebugEnabled()) {
-			log.debug(String.format(
-					"LOG00630:Guessing height of text %s at (%s," + "%s). height = %f", string, x,
-					y, h));
+			log.debug(String.format("LOG00630:Guessing height of text %s at (%s,%s). height = %f",
+			                        string, x, y, h));
 		}
 	}
 
 	if (w <= 0.0f) {
-		/* it so happens some times that some fonts apparently does not have proper tempW data
-					*   for all glyphs. if we come accross a textposition where some of the individual widths
-					*   are 0, take a guess at how wide it might be and use that value instead. update total
-					*   tempW accordingly */
-		float tempW = 0.0f;
-		boolean adjustedWidth = false;
-		final float guessedCharWidth = h * 0.5f;
-
-		for (int i = 0; i < individualWidths.length; i++) {
-			if (individualWidths[i] <= 0.0f) {
-				individualWidths[i] = guessedCharWidth;
-				adjustedWidth = true;
-			}
-			tempW += individualWidths[i];
+		w = getHeight() / 2.0f;
+		if (log.isDebugEnabled()) {
+			log.debug(String.format("LOG00630:Guessing width of text %s at (%s,%s). height = %f",
+			                        string, x, y, w));
 		}
-
-		if (adjustedWidth) {
-			if (log.isDebugEnabled()) {
-				log.debug(String.format("LOG00630:Guessing width of text %s at (%s,"
-						                        + "%s). adjusted from %f to %f", string, getX(),
-				                        getY(), getWidth(), tempW));
-			}
-		} else {
-			assert MathUtils.isWithinVariance(w, tempW, 0.01f);
-		}
-		w = tempW;
 	}
 
 	pos = new Rectangle(x, y, w, h);
+}
+
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface HasPosition ---------------------
+
+@NotNull
+public Rectangle getPos() {
+	return pos;
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -139,16 +160,11 @@ public void setBaseLine(final float baseLine) {
 	this.baseLine = baseLine;
 }
 
-@NotNull
-public Rectangle getPos() {
-	return pos;
+public int getSequenceNum() {
+	return sequenceNum;
 }
 
 public void setPos(@NotNull final Rectangle pos) {
 	this.pos = pos;
-}
-
-public int getSequenceNum() {
-	return sequenceNum;
 }
 }

@@ -28,6 +28,20 @@ import static org.elacin.pdfextract.style.Style.GRAPHIC_MATH_BAR;
  * File | Settings | File Templates.
  */
 public class Formulas {
+// -------------------------- PUBLIC STATIC METHODS --------------------------
+
+public static boolean textContainsMath(StyledText text){
+	if (text.getStyle().isMathFont()){
+		return true;
+	}
+
+	for (int i = 0; i < text.getText().length(); i++){
+		if (Character.getType(text.getText().codePointAt(i)) == Character.MATH_SYMBOL){
+			return true;
+		}
+	}
+	return false;
+}
 
 public static boolean textSeemsToBeFormula(Collection<? extends StyledText> texts) {
 	if (texts.size() < 4) {

@@ -59,7 +59,6 @@ public void writeXmlRepresentation(@NotNull final Appendable out,
 		out.append(" ");
 	}
 	out.append("<paragraph");
-	out.append(" inPicture=\"").append(String.valueOf(containedInImage)).append("\"");
 
 	getPos().writeXmlRepresentation(out, indent, verbose);
 

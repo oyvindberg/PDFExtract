@@ -16,6 +16,7 @@
 
 package org.elacin.pdfextract.tree;
 
+import org.elacin.pdfextract.StyledText;
 import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +36,7 @@ import java.io.IOException;
  * the textual representation. <p/> Note that all whitespace characters will have been stripped from
  * the text.
  */
-public class WordNode extends AbstractNode<LineNode> {
+public class WordNode extends AbstractNode<LineNode> implements StyledText {
 // ------------------------------ FIELDS ------------------------------
 
 public final    String    text;
@@ -66,6 +67,19 @@ public WordNode(final Rectangle position,
 
 public Rectangle getPos() {
 	return position;
+}
+
+// --------------------- Interface StyledText ---------------------
+
+
+@Override
+public Style getStyle() {
+	return style;
+}
+
+@Override
+public String getText() {
+	return text;
 }
 
 // --------------------- Interface XmlPrinter ---------------------
@@ -109,15 +123,6 @@ public float getCharSpacing() {
 
 public int getPageNum() {
 	return pageNum;
-}
-
-public Style getStyle() {
-	return style;
-}
-
-@Override
-public String getText() {
-	return text;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------

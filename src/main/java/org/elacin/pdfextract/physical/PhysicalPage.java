@@ -21,6 +21,7 @@ import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
 import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentator;
+import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.tree.LayoutRegionNode;
 import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.tree.ParagraphNode;
@@ -119,17 +120,21 @@ public PageNode compileLogicalPage() {
 			/* if we extract by a white graphic, dont set it as belonging to that. these are
 			 *  oftenly used just to separate text in the pdf but are not visible */
 			final PhysicalPageRegion region = originalWholePage.extractSubRegion(graphic, graphic);
-			if (null != region) {
-				regions.add(region);
-				if (log.isInfoEnabled()) {
-					log.info("LOG00340:Added subregion " + region);
-				}
-			} else {
-				if (!graphic.isBackgroundColor()) {
-					graphic.setCanBeAssigned(true);
-					originalWholePage.addContent(graphic);
-				}
+			//			if (null != region) {
+			regions.add(region);
+			if (log.isInfoEnabled()) {
+				log.info("LOG00340:Added subregion " + region);
 			}
+			//			} else {
+			//				if (!graphic.isBackgroundColor()) {
+//			if (!graphic.getStyle().equals(Style.GRAPHIC_CONTAINER)){
+//				throw new RuntimeException("expected " + Style.GRAPHIC_CONTAINER + " got " +
+//						                           graphic.getStyle());
+//			}
+//			graphic.setCanBeAssigned(true);
+//			originalWholePage.addContent(graphic);
+			//				}
+			//			}
 		} catch (Exception e) {
 			log.info("LOG00320:Could not divide page::" + e.getMessage());
 			if (graphic.getPos().area() < getContents().getPos().area() * 0.4f) {
@@ -153,7 +158,7 @@ public PageNode compileLogicalPage() {
 	PageNode page = new PageNode(pageNumber);
 
 	for (PhysicalPageRegion region : regions) {
-		LayoutRegionNode regionNode = new LayoutRegionNode();
+		LayoutRegionNode regionNode = new LayoutRegionNode(region.isContainedInGraphic());
 
 		List<ParagraphNode> paragraphs = region.createParagraphNodes();
 

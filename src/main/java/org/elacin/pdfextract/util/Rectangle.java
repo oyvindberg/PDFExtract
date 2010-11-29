@@ -46,10 +46,10 @@ public Rectangle(final float x, final float y, final float width, final float he
 	this.y = y;
 
 	if (height <= 0.0f) {
-		throw new IllegalArgumentException("height must be positive:" + this);
+		throw new IllegalArgumentException("height must be positive: " + this);
 	}
 	if (width <= 0.0f) {
-		throw new IllegalArgumentException("width must be positive" + this);
+		throw new IllegalArgumentException("width must be positive " + this);
 	}
 	//	if (x < 0.0f) {
 	//		throw new IllegalArgumentException("x can not be negative");

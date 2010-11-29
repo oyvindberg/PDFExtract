@@ -136,31 +136,26 @@ public void segmentGraphicsUsingContentInRegion(@NotNull PhysicalPageRegion regi
 			graphic.setCanBeAssigned(false);
 			graphic.setStyle(Style.GRAPHIC_CONTAINER);
 			graphicalRegions.add(graphic);
-
-		} else if (canBeConsideredCharacterInRegion(graphic, region)) {
-			if (log.isInfoEnabled()) { log.info("LOG00503:considered character " + graphic); }
-			graphic.setStyle(Style.GRAPHIC_CHARACTER);
-			graphic.setCanBeAssigned(true);
-			contentGraphics.add(graphic);
-
 		} else if (canBeConsideredMathBarInRegion(graphic, region)) {
 			if (log.isInfoEnabled()) { log.info("LOG00504:considered math bar " + graphic); }
 			graphic.setCanBeAssigned(true);
 			graphic.setStyle(Style.GRAPHIC_MATH_BAR);
 			contentGraphics.add(graphic);
-
 		} else if (canBeConsideredHorizontalSeparator(graphic)) {
 			if (log.isInfoEnabled()) { log.info("LOG00505:considered hsep " + graphic); }
 			graphic.setCanBeAssigned(false);
 			graphic.setStyle(Style.GRAPHIC_MATH_BAR);
 			contentGraphics.add(graphic);
-
 		} else if (canBeConsideredVerticalSeparator(graphic)) {
 			if (log.isInfoEnabled()) { log.info("LOG00506:considered vsep " + graphic); }
 			graphic.setCanBeAssigned(false);
 			graphic.setStyle(Style.GRAPHIC_VSEP);
 			contentGraphics.add(graphic);
-
+		} else if (canBeConsideredCharacterInRegion(graphic, region)) {
+			if (log.isInfoEnabled()) { log.info("LOG00503:considered character " + graphic); }
+			graphic.setStyle(Style.GRAPHIC_CHARACTER);
+			graphic.setCanBeAssigned(true);
+			contentGraphics.add(graphic);
 		} else {
 			if (log.isInfoEnabled()) { log.info("LOG00507:considered image " + graphic); }
 			graphic.setCanBeAssigned(true);
@@ -248,6 +243,62 @@ public void strokePath(@NotNull final GeneralPath originalPath, @NotNull final C
 			log.warn("LOG00600:Error while drawing " + path + ": " + e.getMessage());
 		}
 	}
+}
+
+// -------------------------- PUBLIC STATIC METHODS --------------------------
+
+public static boolean canBeConsideredCharacterInRegion(GraphicContent g,
+                                                       final PhysicalPageRegion region)
+{
+	float doubleCharArea = region.getAvgFontSizeY() * region.getAvgFontSizeX() * 2.0f;
+	return g.getPos().area() < doubleCharArea;
+}
+
+/** consider the graphic a separator if the aspect ratio is high */
+public static boolean canBeConsideredHorizontalSeparator(GraphicContent g) {
+	if (g.getPos().getHeight() > 15.0f) {
+		return false;
+	}
+
+	return g.getPos().getWidth() / g.getPos().getHeight() > 15.0f;
+}
+
+public static boolean canBeConsideredMathBarInRegion(GraphicContent g,
+                                                     final PhysicalPageRegion region)
+{
+	if (!canBeConsideredHorizontalSeparator(g)) {
+		return false;
+	}
+
+	final List<PhysicalContent> surrounding = region.findSurrounding(g, 6);
+	boolean foundOver = false, foundUnder = false, foundMath = false;
+
+	for (PhysicalContent content : surrounding) {
+		if (content.getPos().getY() < g.getPos().getEndY()){
+			foundUnder = true;
+		}
+		if (content.getPos().getEndY() > g.getPos().getY()){
+			foundOver = true;
+		}
+		if (content.isText()) {
+			if (Formulas.textContainsMath(content.getPhysicalText())){
+				foundMath = true;
+			}
+		}
+		if (foundOver && foundUnder && foundMath){
+			return true;
+		}
+	}
+	return false;
+}
+
+/** consider the graphic a separator if the aspect ratio is high */
+public static boolean canBeConsideredVerticalSeparator(GraphicContent g) {
+	if (g.getPos().getWidth() > 15.0f) {
+		return false;
+	}
+
+	return g.getPos().getHeight() / g.getPos().getWidth() > 15.0f;
 }
 
 // -------------------------- STATIC METHODS --------------------------
@@ -429,7 +480,6 @@ private List<GeneralPath> splitPathIfNecessary(@NotNull final GeneralPath path) 
 }
 
 private void addFigure(@NotNull final GraphicContent newFigure) {
-
 	/* some times bounding boxes around text might be drawn twice, in white and in another colour.
 		take advantage of the fact that figures with equal positions are deemed equal for the set,
 		find an existing one with same position, and combine them. Prefer to keep that which stands
@@ -463,55 +513,4 @@ private void clearTempLists() {
 private boolean isTooBigGraphic(@NotNull final PhysicalContent graphic) {
 	return graphic.getPos().area() >= (w * h);
 }
-
-
-public static boolean canBeConsideredCharacterInRegion(GraphicContent g,
-                                                       final PhysicalPageRegion region)
-{
-
-	float doubleCharArea = region.getAvgFontSizeY() * region.getAvgFontSizeX() * 2.0f;
-	return g.getPos().area() < doubleCharArea;
-}
-
-/** consider the graphic a separator if the aspect ratio is high */
-public static boolean canBeConsideredVerticalSeparator(GraphicContent g) {
-
-	if (g.getPos().getWidth() > 15.0f) {
-		return false;
-	}
-
-	return g.getPos().getHeight() / g.getPos().getWidth() > 15.0f;
-
-}
-
-/** consider the graphic a separator if the aspect ratio is high */
-public static boolean canBeConsideredHorizontalSeparator(GraphicContent g) {
-	if (g.getPos().getHeight() > 15.0f) {
-		return false;
-	}
-
-	return g.getPos().getWidth() / g.getPos().getHeight() > 15.0f;
-
-}
-
-
-public static boolean canBeConsideredMathBarInRegion(GraphicContent g,
-                                                     final PhysicalPageRegion region)
-{
-
-	if (!canBeConsideredHorizontalSeparator(g)) {
-		return false;
-	}
-
-	final List<PhysicalContent> surrounding = region.findSurrounding(g, 5);
-	final List<StyledText> surroundingTexts = new ArrayList<StyledText>();
-	for (PhysicalContent content : surrounding) {
-		if (content.isText()) {
-			surroundingTexts.add(content.getPhysicalText());
-		}
-	}
-	return Formulas.textSeemsToBeFormula(surroundingTexts);
-}
-
-
 }

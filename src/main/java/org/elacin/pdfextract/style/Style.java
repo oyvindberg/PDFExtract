@@ -37,8 +37,8 @@ public static final Style GRAPHIC_MATH_BAR  = new Style("Graphical math bar", -1
                                                         false, false, false);
 public static final Style GRAPHIC_CHARACTER = new Style("Graphical character", -1, -1, "[?]", false,
                                                         false, false);
-public static final Style GRAPHIC_CONTAINER = new Style("Graphical container", -1, -1, "[CONTAINER",
-                                                        false, false, false);
+public static final Style GRAPHIC_CONTAINER = new Style("Graphical container", -1, -1,
+                                                        "[CONTAINER]", false, false, false);
 
 public static final Style FORMULA = new Style("Formula", -2, -2, "FORMULA", false, false, true);
 

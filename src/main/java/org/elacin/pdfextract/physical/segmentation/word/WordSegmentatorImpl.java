@@ -17,14 +17,11 @@
 package org.elacin.pdfextract.physical.segmentation.word;
 
 import org.apache.log4j.Logger;
-import org.apache.pdfbox.util.TextPositionComparator;
 import org.elacin.pdfextract.pdfbox.ETextPosition;
+import org.elacin.pdfextract.physical.content.HasPosition;
 import org.elacin.pdfextract.physical.content.PhysicalText;
 import org.elacin.pdfextract.physical.segmentation.WordSegmentator;
 import org.elacin.pdfextract.style.DocumentStyles;
-import org.elacin.pdfextract.style.Style;
-import org.elacin.pdfextract.util.FloatPoint;
-import org.elacin.pdfextract.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -48,6 +45,12 @@ public class WordSegmentatorImpl implements WordSegmentator {
 // ------------------------------ FIELDS ------------------------------
 
 private static final Logger log = Logger.getLogger(WordSegmentatorImpl.class);
+
+private static final Comparator<HasPosition> sortByLowerX = new Comparator<HasPosition>() {
+	public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
+		return Float.compare(o1.getPos().getX(), o2.getPos().getX());
+	}
+};
 
 private final DocumentStyles styles;
 
@@ -79,14 +82,19 @@ public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) 
 	 */
 	List<ETextPosition> line = new ArrayList<ETextPosition>();
 
-	Collections.sort(text, new TextPositionComparator());
+	Collections.sort(text, new Comparator<ETextPosition>() {
+		@Override
+		public int compare(final ETextPosition o1, final ETextPosition o2) {
+			return Float.compare(o1.getBaseLine(), o2.getBaseLine());
+		}
+	});
 
 	float baseline = 0.0f;
 	float maxY = Float.MIN_VALUE;
 	float maxX = 0.0f;
 
-	for (ETextPosition tp : text) {
-
+	for (int i = 0; i < text.size(); i++) {
+		final ETextPosition tp = text.get(i);
 		/* if this is the first text in a line */
 		if (line.isEmpty()) {
 			baseline = tp.getBaseLine();
@@ -119,6 +127,8 @@ public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) 
 	return ret;
 }
 
+// -------------------------- STATIC METHODS --------------------------
+
 private static boolean isOnAnotherLine(final float baseline,
                                        final ETextPosition tp,
                                        final float maxY)
@@ -126,79 +136,35 @@ private static boolean isOnAnotherLine(final float baseline,
 	return (baseline != tp.getBaseLine() && tp.getBaseLine() > maxY);
 }
 
-// -------------------------- STATIC METHODS --------------------------
-
 private static boolean isTooFarAwayHorizontally(final float endX, @NotNull final ETextPosition tp) {
 	return !isWithinVariance(endX, tp.getPos().getX(), tp.getFontSizeInPt());
 }
 
 // -------------------------- OTHER METHODS --------------------------
 
-/** This creates */
 @NotNull
 @SuppressWarnings({"ObjectAllocationInLoop"})
-List<PhysicalText> splitTextPositionsOnSpace(@NotNull final List<ETextPosition> texts) {
+List<PhysicalText> convertText(@NotNull final List<ETextPosition> texts) {
 	final List<PhysicalText> ret = new ArrayList<PhysicalText>(texts.size() * 2);
 
-	final FloatPoint lastWordBoundary = new FloatPoint(0.0F, 0.0F);
-	final StringBuilder contents = new StringBuilder();
+	Collections.sort(texts, sortByLowerX);
 
-	Collections.sort(texts, new TextPositionComparator());
+	for (int i = 0, size = texts.size(); i < size; i++) {
+		final ETextPosition text = texts.get(i);
 
-	float width = 0.0f;
-	boolean firstInLine = true;
-	for (ETextPosition tp : texts) {
-		if (log.isDebugEnabled()) {
-			log.debug("LOG00000:in:" + StringUtils.getTextPositionString(tp));
+		final float distance;
+		if (i == 0) {
+			distance = Float.MIN_VALUE;
+		} else {
+			final ETextPosition former = texts.get(i - 1);
+			distance = text.getPos().getX() - former.getPos().getEndX();
 		}
-		float x = tp.getPos().getX();
-		float y = tp.getPos().getY();
-		final String s = tp.getCharacter();
-		final Style style = styles.getStyleForTextPosition(tp);
 
-		/** iterate through all the characters in textposition. Notice that the loop is a bit evil
-		 * in that it iterates one extra time as apposed to what you would expect, in order make sure
-		 * that the last piece of the textposition is created into a text.
-		 */
-		for (int i = 0; i <= s.length(); i++) {
-			/* if this is either the last character or a space then just output a new text */
-			if (i == s.length() || Character.isSpaceChar(s.charAt(i))) {
-				if (contents.length() > 0) {
-					/* calculate distance to the former word in the line if there was one */
-					final float distance;
-					if (firstInLine) {
-						distance = Float.MIN_VALUE;
-						firstInLine = false;
-					} else {
-						distance = x - lastWordBoundary.getX();
-					}
+		ret.add(new PhysicalText(text.getCharacter(), styles.getStyleForTextPosition(text),
+		                         text.getPos().getX(), text.getPos().getY(),
+		                         text.getPos().getWidth(), text.getPos().getHeight(), distance,
+		                         (int) text.getDir(), text.getSequenceNum()));
 
-					/** output this word */
-					ret.add(new PhysicalText(contents.toString(), style, x, tp.getPos().getY(),
-					                         width, tp.getPos().getHeight(), distance,
-					                         (int) tp.getDir(), tp.getSequenceNum()));
-
-					/** change X coordinate to include this text */
-					x += width;
-
-					/** mark where this word ended so we can calculate distance between it and
-					 the subsequent one */
-					lastWordBoundary.setPosition(x, y);
-
-					/** rest the rest of the state for the next word */
-					width = 0.0F;
-					contents.setLength(0);
-				}
-
-				if (i != s.length()) {
-					x += tp.getIndividualWidths()[i];
-				}
-			} else {
-				/** include this character in the word we are building */
-				width += tp.getIndividualWidths()[i];
-				contents.append(s.charAt(i));
-			}
-		}
 	}
 
 	return ret;
@@ -210,15 +176,10 @@ List<PhysicalText> splitTextPositionsOnSpace(@NotNull final List<ETextPosition> 
  */
 @NotNull
 private List<PhysicalText> createWordsInLine(@NotNull final List<ETextPosition> line) {
-	final Comparator<PhysicalText> sortByLowerX = new Comparator<PhysicalText>() {
-		public int compare(@NotNull final PhysicalText o1, @NotNull final PhysicalText o2) {
-			return Float.compare(o1.getPos().getX(), o2.getPos().getX());
-		}
-	};
 	PriorityQueue<PhysicalText> queue = new PriorityQueue<PhysicalText>(line.size(), sortByLowerX);
 
 	/* first convert into text elements */
-	queue.addAll(splitTextPositionsOnSpace(line));
+	queue.addAll(convertText(line));
 
 	/* then calculate spacing */
 	CharSpacingFinder.setCharSpacingForTexts(queue);
@@ -229,8 +190,15 @@ private List<PhysicalText> createWordsInLine(@NotNull final List<ETextPosition> 
 		final PhysicalText current = queue.remove();
 		final PhysicalText next = queue.peek();
 
-		if (next != null && PhysicalText.isCloseEnoughToBelongToSameWord(next)
-				&& current.isSameStyleAs(next)) {
+		if (next == null) {
+			ret.add(current);
+			continue;
+		}
+		if (!current.canBeCombinedWith(next)) {
+			ret.add(current);
+			continue;
+		}
+		if (current.isSameStyleAs(next) || current.getPos().intersectsWith(next.getPos())) {
 			PhysicalText combinedWord = current.combineWith(next);
 			queue.remove(next);
 			queue.add(combinedWord);
@@ -239,7 +207,7 @@ private List<PhysicalText> createWordsInLine(@NotNull final List<ETextPosition> 
 		ret.add(current);
 	}
 	for (PhysicalText text : ret) {
-		if (log.isDebugEnabled()) { log.debug("LOG00540: created PhysicalText" + text); }
+		if (log.isDebugEnabled()) { log.debug("LOG00540: created " + text); }
 	}
 
 	return ret;
