@@ -24,6 +24,7 @@ import org.elacin.pdfextract.tree.LineNode;
 import org.elacin.pdfextract.tree.ParagraphNode;
 import org.elacin.pdfextract.util.Rectangle;
 import org.elacin.pdfextract.util.RectangleCollection;
+import org.elacin.pdfextract.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -91,15 +92,6 @@ protected static boolean columnContainsBlockingGraphics(@NotNull final List<Phys
 			if (obstacle.getPos().intersectsWith(search)) {
 				return true;
 			}
-		}
-	}
-	return false;
-}
-
-private static boolean listContainsText(@NotNull final Collection<PhysicalContent> workingSet) {
-	for (PhysicalContent content : workingSet) {
-		if (content.isText()) {
-			return true;
 		}
 	}
 	return false;
@@ -192,7 +184,7 @@ public List<ParagraphNode> createParagraphNodes() {
 public PhysicalPageRegion extractSubRegion(@NotNull final HasPosition bound,
                                            @Nullable final PhysicalContent containedIn)
 {
-	/* decrease the area within which we are looking for content a big, this is related to
+	/* decrease the area within which we are looking for content a bit, this is related to
 	*   the neverending problems of iffy character positioning for some fonts*/
 	final Rectangle smallerBound = returnABitSmallerPosition(bound);
 	final List<PhysicalContent> subContents = findContentsIntersectingWith(smallerBound);
@@ -263,8 +255,8 @@ public List<PhysicalPageRegion> splitInVerticalColumns() {
 		/**
 		 * Check if this column could be a boundary... there are a whole group of checks here :)
 		 */
-		if (!listContainsText(column)) {
-			if (!listContainsText(workingSet)) {
+		if (!TextUtils.listContainsStyle(column)) {
+			if (!TextUtils.listContainsStyle(workingSet)) {
 				continue;
 			}
 
@@ -354,35 +346,6 @@ protected PhysicalPageRegion extractSubRegionFromContentList(@Nullable final Has
 	return newRegion;
 }
 
-private Style findDominatingStyleFor(final List<PhysicalContent> contents) {
-	Map<Style, Integer> letterCountPerStyle = new HashMap<Style, Integer>(10);
-	boolean textFound = false;
-
-	for (PhysicalContent content : contents) {
-		if (content.isText()) {
-			final Style style = content.getPhysicalText().getStyle();
-			if (!letterCountPerStyle.containsKey(style)) {
-				letterCountPerStyle.put(style, 0);
-			}
-			final int numChars = content.getPhysicalText().getText().length();
-			letterCountPerStyle.put(style, letterCountPerStyle.get(style) + numChars);
-			textFound = true;
-		}
-	}
-
-	assert textFound;
-
-	int highestNumChars = -1;
-	Style style = null;
-	for (Map.Entry<Style, Integer> entry : letterCountPerStyle.entrySet()) {
-		if (entry.getValue() > highestNumChars) {
-			style = entry.getKey();
-			highestNumChars = entry.getValue();
-		}
-	}
-	return style;
-}
-
 protected boolean checkIfBelongsWithContentOnRight(@Nullable final PhysicalContent content) {
 	if (content == null || !content.isText()) {
 		return false;
@@ -443,7 +406,7 @@ protected void findAndSetFontInformation() {
 	} else {
 		_avgFontSizeX = xFontSizeSum / (float) numCharsFound;
 		_avgFontSizeY = yFontSizeSum / (float) numCharsFound;
-		_mostCommonStyle = findDominatingStyleFor(getContents());
+		_mostCommonStyle = TextUtils.findDominatingStyle(getContents());
 	}
 	fontInfoFound = true;
 }
@@ -484,7 +447,7 @@ protected int findMedianOfVerticalDistancesForRegion() {
 		}
 	}
 
-	return index + 1;
+	return Math.max(index, (int) (getAvgFontSizeY()*0.5f)) + 1;
 }
 }
 

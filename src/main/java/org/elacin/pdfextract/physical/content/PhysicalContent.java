@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.physical.content;
 
 import org.elacin.pdfextract.util.Rectangle;
+import org.elacin.pdfextract.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -130,22 +131,6 @@ public boolean isWhitespace() {
 protected final void setPositionFromContentList(@NotNull final Collection<? extends
 		PhysicalContent> contents)
 {
-	if (contents.isEmpty()) {
-		//TODO: handle empty regions in a better way
-		pos = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
-		return;
-	}
-
-	/* calculate bounds for this region */
-	float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
-	float maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE;
-
-	for (PhysicalContent content : contents) {
-		minX = Math.min(minX, content.pos.getX());
-		minY = Math.min(minY, content.pos.getY());
-		maxX = Math.max(maxX, content.pos.getEndX());
-		maxY = Math.max(maxY, content.pos.getEndY());
-	}
-	pos = new Rectangle(minX, minY, maxX - minX, maxY - minY);
+	pos = TextUtils.findBounds(contents);
 }
 }

@@ -20,7 +20,7 @@
     <name>elacins PDFExtract</name>
     <groupId>org.elacin</groupId>
     <artifactId>TextExtractor</artifactId>
-    <version>M3</version>
+    <version>M3-SNAPSHOT</version>
     <repositories>
         <!--<repository>-->
         <!--<id>jinahya.googlecode.com_svn_maven_2_repo</id>-->

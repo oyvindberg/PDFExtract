@@ -32,7 +32,7 @@ public static final Style GRAPHIC_IMAGE     = new Style("Graphical container", -
 public static final Style GRAPHIC_VSEP      = new Style("Graphical vertical separator", -1, -1,
                                                         "[VSEP]", false, false, false);
 public static final Style GRAPHIC_HSEP      = new Style("Graphical horizontal separator", -1, -1,
-                                                        "[VSEP]", false, false, false);
+                                                        "[HSEP]", false, false, false);
 public static final Style GRAPHIC_MATH_BAR  = new Style("Graphical math bar", -1, -1, "[BAR]",
                                                         false, false, false);
 public static final Style GRAPHIC_CHARACTER = new Style("Graphical character", -1, -1, "[?]", false,
@@ -40,7 +40,9 @@ public static final Style GRAPHIC_CHARACTER = new Style("Graphical character", -
 public static final Style GRAPHIC_CONTAINER = new Style("Graphical container", -1, -1,
                                                         "[CONTAINER]", false, false, false);
 
-public static final Style FORMULA = new Style("Formula", -2, -2, "FORMULA", false, false, true);
+public static final Style FORMULA  = new Style("Formula", -2, -2, "FORMULA", false, false, true);
+public static       Style NO_STYLE = new Style("No style", -3, -3, "[NOSTYLE]", false, false,
+                                               false);
 
 
 public final int xSize, ySize;
@@ -61,7 +63,7 @@ Style(final String fontName,
       final String id,
       final boolean italic,
       final boolean bold,
-      final boolean font)
+      final boolean mathFont)
 {
 	this.fontName = fontName;
 	this.xSize = xSize;
@@ -69,7 +71,7 @@ Style(final String fontName,
 	this.id = id;
 	this.italic = italic;
 	this.bold = bold;
-	mathFont = font;
+	this.mathFont = mathFont;
 }
 
 // ------------------------ CANONICAL METHODS ------------------------

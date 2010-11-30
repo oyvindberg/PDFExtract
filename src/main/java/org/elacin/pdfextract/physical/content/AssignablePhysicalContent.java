@@ -25,7 +25,7 @@ import org.jetbrains.annotations.Nullable;
  * Created by IntelliJ IDEA. User: elacin Date: Nov 3, 2010 Time: 5:17:33 PM To change this template
  * use File | Settings | File Templates.
  */
-public class AssignablePhysicalContent extends PhysicalContent {
+public abstract class AssignablePhysicalContent extends PhysicalContent {
 // ------------------------------ FIELDS ------------------------------
 
 private static final int BLOCK_NOT_ASSIGNED = -1;

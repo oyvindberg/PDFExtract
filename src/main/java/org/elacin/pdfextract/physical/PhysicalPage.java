@@ -21,7 +21,6 @@ import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
 import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentator;
-import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.tree.LayoutRegionNode;
 import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.tree.ParagraphNode;
@@ -80,7 +79,6 @@ public PhysicalPage(@NotNull List<? extends PhysicalContent> contents,
 @NotNull
 private static PriorityQueue<GraphicContent> createSmallestFirstQueue(@NotNull final List<GraphicContent> graphicalRegions) {
 	final Comparator<GraphicContent> smallestComparator = new Comparator<GraphicContent>() {
-		@Override
 		public int compare(@NotNull final GraphicContent o1, @NotNull final GraphicContent o2) {
 			return Float.compare(o1.getPos().area(), o2.getPos().area());
 		}
@@ -120,19 +118,20 @@ public PageNode compileLogicalPage() {
 			/* if we extract by a white graphic, dont set it as belonging to that. these are
 			 *  oftenly used just to separate text in the pdf but are not visible */
 			final PhysicalPageRegion region = originalWholePage.extractSubRegion(graphic, graphic);
-			//			if (null != region) {
-			regions.add(region);
-			if (log.isInfoEnabled()) {
-				log.info("LOG00340:Added subregion " + region);
+			if (null != region) {
+				regions.add(region);
+				if (log.isInfoEnabled()) {
+					log.info("LOG00340:Added subregion " + region);
+				}
 			}
 			//			} else {
 			//				if (!graphic.isBackgroundColor()) {
-//			if (!graphic.getStyle().equals(Style.GRAPHIC_CONTAINER)){
-//				throw new RuntimeException("expected " + Style.GRAPHIC_CONTAINER + " got " +
-//						                           graphic.getStyle());
-//			}
-//			graphic.setCanBeAssigned(true);
-//			originalWholePage.addContent(graphic);
+			//			if (!graphic.getStyle().equals(Style.GRAPHIC_CONTAINER)){
+			//				throw new RuntimeException("expected " + Style.GRAPHIC_CONTAINER + " got " +
+			//						                           graphic.getStyle());
+			//			}
+			//			graphic.setCanBeAssigned(true);
+			//			originalWholePage.addContent(graphic);
 			//				}
 			//			}
 		} catch (Exception e) {
@@ -184,9 +183,9 @@ public PageNode compileLogicalPage() {
 			unFilled.add(content);
 		}
 	}
-	page.addDebugFeatures(Color.green, pictures);
-	page.addDebugFeatures(Color.MAGENTA, filled);
-	page.addDebugFeatures(Color.ORANGE, unFilled);
+	page.addDebugFeatures(Color.CYAN, pictures);
+	page.addDebugFeatures(Color.CYAN, filled);
+	page.addDebugFeatures(Color.CYAN, unFilled);
 
 	if (log.isInfoEnabled()) {
 		log.info("LOG00230:compileLogicalPage took " + (System.currentTimeMillis() - t0) + " ms");

@@ -68,27 +68,10 @@ public ETextPosition(int pageRotation,
 	float w = getWidth();
 	float h = getHeight();
 
-	if (h <= 0.0f && w < 0.0f) {
+	if (h <= 0.0f || w < 0.0f) {
 		throw new IllegalArgumentException("Passed text '" + string + "' with no size.");
 	}
 
-	if (h <= 0.0f) {
-		h = getWidth() / (float) string.length();
-		h *= 1.5;
-
-		if (log.isDebugEnabled()) {
-			log.debug(String.format("LOG00630:Guessing height of text %s at (%s,%s). height = %f",
-			                        string, x, y, h));
-		}
-	}
-
-	if (w <= 0.0f) {
-		w = getHeight() / 2.0f;
-		if (log.isDebugEnabled()) {
-			log.debug(String.format("LOG00630:Guessing width of text %s at (%s,%s). height = %f",
-			                        string, x, y, w));
-		}
-	}
 	pos = new Rectangle(x, y, w, h);
 }
 

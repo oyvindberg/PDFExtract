@@ -136,7 +136,7 @@ public BufferedImage renderPage(final int pageNum) {
 		for (ParagraphNode paragraphNode : layoutRegionNode.getChildren()) {
 			drawRectangle(graphics, xScale, yScale, Color.RED, paragraphNode.getPos(), true);
 			for (LineNode lineNode : paragraphNode.getChildren()) {
-				drawRectangle(graphics, xScale, yScale, Color.BLUE, lineNode.getPos(), true);
+				drawRectangle(graphics, xScale, yScale, Color.MAGENTA, lineNode.getPos(), true);
 				for (WordNode styledText : lineNode.getChildren()) {
 					drawRectangle(graphics, xScale, yScale, Color.BLACK, styledText.getPos(), true);
 				}

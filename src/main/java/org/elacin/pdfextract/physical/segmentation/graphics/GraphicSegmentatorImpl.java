@@ -17,7 +17,6 @@
 package org.elacin.pdfextract.physical.segmentation.graphics;
 
 import org.apache.log4j.Logger;
-import org.elacin.pdfextract.StyledText;
 import org.elacin.pdfextract.logical.Formulas;
 import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.PhysicalContent;
@@ -30,9 +29,8 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 import java.awt.geom.*;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: 13.11.10 Time: 03.29 To change this template use
@@ -50,9 +48,9 @@ private static final int ARBITRARY_NUMBER_OF_CHARS_REQUIRED_PER_LINE = 14;
  * physical properties only
  */
 @NotNull
-final Set<GraphicContent> figures  = new HashSet<GraphicContent>();
+final List<GraphicContent> figures  = new ArrayList<GraphicContent>();
 @NotNull
-final Set<GraphicContent> pictures = new HashSet<GraphicContent>();
+final List<GraphicContent> pictures = new ArrayList<GraphicContent>();
 
 
 /** Will these three will hold the contents after segmentation */
@@ -90,27 +88,23 @@ public GraphicSegmentatorImpl(final float w, final float h) {
 // --------------------- Interface GraphicSegmentator ---------------------
 
 @NotNull
-@Override
 public List<GraphicContent> getContentGraphics() {
 	assert didSegment;
 	return contentGraphics;
 }
 
-@Override
 @NotNull
 public List<GraphicContent> getGraphicalRegions() {
 	assert didSegment;
 	return graphicalRegions;
 }
 
-@Override
 @NotNull
 public List<GraphicContent> getGraphicsToRender() {
 	assert didSegment;
 	return graphicsToRender;
 }
 
-@Override
 public void segmentGraphicsUsingContentInRegion(@NotNull PhysicalPageRegion region) {
 	assert !didSegment;
 
@@ -143,12 +137,12 @@ public void segmentGraphicsUsingContentInRegion(@NotNull PhysicalPageRegion regi
 			contentGraphics.add(graphic);
 		} else if (canBeConsideredHorizontalSeparator(graphic)) {
 			if (log.isInfoEnabled()) { log.info("LOG00505:considered hsep " + graphic); }
-			graphic.setCanBeAssigned(false);
-			graphic.setStyle(Style.GRAPHIC_MATH_BAR);
+			graphic.setCanBeAssigned(true);
+			graphic.setStyle(Style.GRAPHIC_HSEP);
 			contentGraphics.add(graphic);
 		} else if (canBeConsideredVerticalSeparator(graphic)) {
 			if (log.isInfoEnabled()) { log.info("LOG00506:considered vsep " + graphic); }
-			graphic.setCanBeAssigned(false);
+			graphic.setCanBeAssigned(true);
 			graphic.setStyle(Style.GRAPHIC_VSEP);
 			contentGraphics.add(graphic);
 		} else if (canBeConsideredCharacterInRegion(graphic, region)) {
@@ -173,7 +167,6 @@ public void segmentGraphicsUsingContentInRegion(@NotNull PhysicalPageRegion regi
 // --------------------- Interface GraphicsDrawer ---------------------
 
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
-@Override
 public void drawImage(@NotNull final Image image,
                       @NotNull final AffineTransform at,
                       @NotNull final Rectangle2D bounds)
@@ -215,10 +208,9 @@ public void drawImage(@NotNull final Image image,
 	pictures.add(new GraphicContent(pos, true, true, Color.BLACK));
 }
 
-@Override
 public void fill(@NotNull final GeneralPath originalPath, @NotNull final Color color) {
 	assert !didSegment;
-	List<GeneralPath> paths = splitPathIfNecessary(originalPath);
+	List<GeneralPath> paths = PathSplitter.splitPath(originalPath);
 
 	for (GeneralPath path : paths) {
 		try {
@@ -230,11 +222,10 @@ public void fill(@NotNull final GeneralPath originalPath, @NotNull final Color c
 	}
 }
 
-@Override
 public void strokePath(@NotNull final GeneralPath originalPath, @NotNull final Color color) {
 	assert !didSegment;
 
-	List<GeneralPath> paths = splitPathIfNecessary(originalPath);
+	List<GeneralPath> paths = PathSplitter.splitPath(originalPath);
 
 	for (GeneralPath path : paths) {
 		try {
@@ -274,18 +265,18 @@ public static boolean canBeConsideredMathBarInRegion(GraphicContent g,
 	boolean foundOver = false, foundUnder = false, foundMath = false;
 
 	for (PhysicalContent content : surrounding) {
-		if (content.getPos().getY() < g.getPos().getEndY()){
+		if (content.getPos().getY() < g.getPos().getEndY()) {
 			foundUnder = true;
 		}
-		if (content.getPos().getEndY() > g.getPos().getY()){
+		if (content.getPos().getEndY() > g.getPos().getY()) {
 			foundOver = true;
 		}
 		if (content.isText()) {
-			if (Formulas.textContainsMath(content.getPhysicalText())){
+			if (Formulas.textContainsMath(content.getPhysicalText())) {
 				foundMath = true;
 			}
 		}
-		if (foundOver && foundUnder && foundMath){
+		if (foundOver && foundUnder && foundMath) {
 			return true;
 		}
 	}
@@ -304,7 +295,7 @@ public static boolean canBeConsideredVerticalSeparator(GraphicContent g) {
 // -------------------------- STATIC METHODS --------------------------
 
 private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion region,
-                                               @NotNull final Set<GraphicContent> set)
+                                               @NotNull final List<GraphicContent> list)
 {
 	/**
 	 * Segment images
@@ -319,16 +310,19 @@ private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion
 	 *
 	 *  */
 
-	if (log.isInfoEnabled()) { log.info("size() before = " + set.size()); }
+	if (log.isInfoEnabled()) { log.info("size() before = " + list.size()); }
 
 
 	List<GraphicContent> saved = new ArrayList<GraphicContent>();
-	List<GraphicContent> toBeCombined = new ArrayList<GraphicContent>(set.size());
-
 
 	final Style mostCommonStyle = region.getMostCommonStyle();
 
-	for (GraphicContent graphic : set) {
+	for (Iterator<GraphicContent> iterator = list.iterator(); iterator.hasNext();) {
+		final GraphicContent graphic = iterator.next();
+		if (!graphic.isBackgroundColor()){
+			continue;
+		}
+
 		final List<PhysicalContent> contents = region.findContentsIntersectingWith(graphic);
 
 		/** find character count for the contents.
@@ -348,62 +342,39 @@ private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion
 		float appxNumLines = Math.max(1.0f, graphic.getPos().getHeight() / (averageYSize * 4));
 
 		if (enoughCharsToBeSaved(numChars, appxNumLines)) {
-			if (log.isDebugEnabled()) {
-				log.debug("saving = " + graphic + ", numChars = " + numChars);
-			}
-			saved.add(graphic);
-		} else {
-			toBeCombined.add(graphic);
-		}
-	}
-
-	/* combine - first pass */
-
-	List<GraphicContent> combinedList = new ArrayList<GraphicContent>(toBeCombined.size());
-	for (GraphicContent current : toBeCombined) {
-		boolean wasCombined = false;
-
-		for (GraphicContent alreadyCombined : combinedList) {
-			if (current.canBeCombinedWith(alreadyCombined)) {
-				if (log.isTraceEnabled()) {
-					log.info("combining graphics " + alreadyCombined + " and " + current);
+			if (graphic.isBackgroundColor()) {
+				log.warn("removing graphic " + graphic);
+				iterator.remove();
+			} else {
+				if (log.isDebugEnabled()) {
+					log.debug("saving = " + graphic + ", numChars = " + numChars);
 				}
-
-				combinedList.remove(alreadyCombined);
-
-				combinedList.add(current.combineWith(alreadyCombined));
-				wasCombined = true;
-				break;
+				iterator.remove();
+				saved.add(graphic);
 			}
-		}
-		if (!wasCombined) {
-			combinedList.add(current);
 		}
 	}
 
-	/* combine - second pass */
-	for (int i = 0; i < combinedList.size(); i++) {
-		final GraphicContent current = combinedList.get(i);
-		for (int j = i + 1; j < combinedList.size(); j++) {
-			final GraphicContent combineWith = combinedList.get(j);
+	for (int i = 0; i < list.size(); i++) {
+		final GraphicContent current = list.get(i);
+		for (int j = i + 1; j < list.size(); j++) {
+			final GraphicContent combineWith = list.get(j);
 			if (current.canBeCombinedWith(combineWith)) {
 				if (log.isTraceEnabled()) {
 					log.info("combining graphics " + current + " and " + combineWith);
 				}
-				combinedList.remove(j);
-				combinedList.remove(i);
-				combinedList.add(current.combineWith(combineWith));
+				list.remove(j);
+				list.remove(i);
+				list.add(current.combineWith(combineWith));
 				i = 0; //start over
 				break;
 			}
 		}
 	}
 
-	set.clear();
-	set.addAll(saved);
-	set.addAll(combinedList);
+	list.addAll(saved);
 
-	if (log.isInfoEnabled()) { log.info("size() after = " + set.size()); }
+	if (log.isInfoEnabled()) { log.info("size() after = " + list.size()); }
 }
 
 @NotNull
@@ -437,72 +408,21 @@ private List<GraphicContent> getGraphicContents() {
 	return ret;
 }
 
-@NotNull
-private List<GeneralPath> splitPathIfNecessary(@NotNull final GeneralPath path) {
-	List<GeneralPath> subPaths = new ArrayList<GeneralPath>();
-
-	GeneralPath subPath = new GeneralPath();
-	final PathIterator iterator = path.getPathIterator(null);
-
-	float[] coords = new float[6];
-	while (!iterator.isDone()) {
-		int type = iterator.currentSegment(coords);
-		switch (type) {
-			case PathIterator.SEG_MOVETO:
-				subPath.moveTo(coords[0], coords[1]);
-				break;
-			case PathIterator.SEG_LINETO:
-				subPath.lineTo(coords[0], coords[1]);
-				break;
-			case PathIterator.SEG_CLOSE:
-				subPath.closePath();
-				subPaths.add(subPath);
-				subPath = new GeneralPath();
-				break;
-			case PathIterator.SEG_CUBICTO:
-				subPath.curveTo(coords[0], coords[1], coords[2], coords[3], coords[4], coords[5]);
-				break;
-			case PathIterator.SEG_QUADTO:
-				subPath.quadTo(coords[0], coords[1], coords[2], coords[3]);
-				break;
-			default:
-				/* investigate this more. for now, scream and run */
-				assert false;
-		}
-		iterator.next();
-	}
-	/* some times legitimate paths are not closed, so add them anyway. */
-	if (0.0f < subPath.getBounds().getWidth() * subPath.getBounds().getHeight()) {
-		subPaths.add(subPath);
-	}
-
-	return subPaths;
-}
-
 private void addFigure(@NotNull final GraphicContent newFigure) {
 	/* some times bounding boxes around text might be drawn twice, in white and in another colour.
 		take advantage of the fact that figures with equal positions are deemed equal for the set,
 		find an existing one with same position, and combine them. Prefer to keep that which stands
 		out from the background, as that is more useful :)
 	 */
-
-	if (figures.contains(newFigure)) {
-		GraphicContent existing = null;
-		for (GraphicContent existing_ : figures) {
-			if (existing_.equals(newFigure)) {
-				existing = existing_;
-				break;
-			}
-		}
-		if (existing == null) {
-			throw new RuntimeException("Could not find even though it was claimed to exist");
-		}
-		figures.remove(existing);
+	final int index = figures.indexOf(newFigure);
+	if (index != -1){
+		final GraphicContent existing = figures.get(index);
+		figures.remove(index);
 		figures.add(existing.combineWith(newFigure));
 		return;
+	} else {
+		figures.add(newFigure);
 	}
-
-	figures.add(newFigure);
 }
 
 private void clearTempLists() {

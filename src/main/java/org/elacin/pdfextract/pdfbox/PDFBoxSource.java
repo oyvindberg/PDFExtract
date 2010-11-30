@@ -180,6 +180,11 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
 		}
 		c = inspectFontEncoding(c);
 
+//		if (font.getSubType().contains("Type3") && c.equals("!")) {
+//			System.out.println("font = " + font);
+//		}
+//
+
 		//todo, handle horizontal displacement
 		// get the width and height of this character in text units
 		float fontWidth = font.getFontWidth(string, i, codeLength);
@@ -192,6 +197,10 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
 		                                       font.getFontHeight(string, i, codeLength)
 				                                       / glyphSpaceToTextSpaceFactor);
 
+		if (maxVerticalDisplacementText <= 0.0f){
+			maxVerticalDisplacementText = font.getFontBoundingBox().getHeight() /
+					glyphSpaceToTextSpaceFactor;
+		}
 		/**
 		 PDF Spec - 5.5.2 Word Spacing
 
@@ -259,6 +268,10 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
 		boolean add = true;
 		if (characterBuffer.toString().trim().isEmpty()) {
 			if (log.isTraceEnabled()) { log.trace("Dropping empty string"); }
+			add = false;
+		}
+		if (fontSizeText == 0) {
+			log.trace("ignoring text " + c + " because fontSize is 0");
 			add = false;
 		}
 
@@ -585,10 +598,13 @@ private void correctPosition(final byte[] string,
 		float w = text.getWidth();
 		//		}
 
-		//		float h = adjust * characterHeight;
-		//		if (h < text.getHeight() / 4) {
-		float h = text.getHeight();
-		//		}
+		float h = adjust * characterHeight;
+		if (h == 0.0f){
+			h = adjust * fBB.getHeight();
+		}
+		if (h < text.getHeight() / 4) {
+			h = text.getHeight();
+		}
 
 		final Rectangle newPos = new Rectangle(x, startY, w, h);
 		log.debug("LOG00730:Text " + c + ", " + "pos from " + pos + " to " + newPos);

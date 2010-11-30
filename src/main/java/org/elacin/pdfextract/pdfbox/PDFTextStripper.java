@@ -34,7 +34,7 @@ import org.elacin.pdfextract.physical.segmentation.word.WordSegmentatorImpl;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.util.MathUtils;
-import org.elacin.pdfextract.util.StringUtils;
+import org.elacin.pdfextract.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -96,14 +96,14 @@ protected void processTextPosition(@NotNull TextPosition text) {
 
 	if (!includeText(text)) {
 		if (log.isInfoEnabled()) {
-			log.info("LOG00770: ignoring textposition " + StringUtils.getTextPositionString(text)
+			log.info("LOG00770: ignoring textposition " + TextUtils.getTextPositionString(text)
 					         + "because it seems to be rendered two times");
 		}
 		return;
 	}
 
 	if (!MathUtils.isWithinPercent(text.getDir(), (float) page.findRotation(), 1)) {
-		log.warn("LOG00560: ignoring textposition " + StringUtils.getTextPositionString(text)
+		log.warn("LOG00560: ignoring textposition " + TextUtils.getTextPositionString(text)
 				         + "because it has " + "wrong rotation. TODO :)");
 		return;
 	}

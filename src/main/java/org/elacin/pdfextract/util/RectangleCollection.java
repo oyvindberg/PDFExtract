@@ -72,7 +72,6 @@ public RectangleCollection(@NotNull final Collection<? extends PhysicalContent> 
 
 private static void sortListByXCoordinate(final List<PhysicalContent> list) {
 	final Comparator<PhysicalContent> sortByX = new Comparator<PhysicalContent>() {
-		@Override
 		public int compare(@NotNull final PhysicalContent o1, @NotNull final PhysicalContent o2) {
 			return Float.compare(o1.getPos().getX(), o2.getPos().getX());
 		}
@@ -82,7 +81,6 @@ private static void sortListByXCoordinate(final List<PhysicalContent> list) {
 
 private static void sortListByYCoordinate(final List<PhysicalContent> list) {
 	final Comparator<PhysicalContent> sortByY = new Comparator<PhysicalContent>() {
-		@Override
 		public int compare(@NotNull final PhysicalContent o1, @NotNull final PhysicalContent o2) {
 			return Float.compare(o1.getPos().getY(), o2.getPos().getY());
 		}

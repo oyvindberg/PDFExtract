@@ -70,7 +70,6 @@ public WordSegmentatorImpl(final DocumentStyles styles) {
  * whitespaces, character and word distances are approximated, and words are created based on those
  */
 @NotNull
-@Override
 public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) {
 	long t0 = System.currentTimeMillis();
 
@@ -83,7 +82,6 @@ public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) 
 	List<ETextPosition> line = new ArrayList<ETextPosition>();
 
 	Collections.sort(text, new Comparator<ETextPosition>() {
-		@Override
 		public int compare(final ETextPosition o1, final ETextPosition o2) {
 			return Float.compare(o1.getBaseLine(), o2.getBaseLine());
 		}
@@ -162,8 +160,8 @@ List<PhysicalText> convertText(@NotNull final List<ETextPosition> texts) {
 
 		ret.add(new PhysicalText(text.getCharacter(), styles.getStyleForTextPosition(text),
 		                         text.getPos().getX(), text.getPos().getY(),
-		                         text.getPos().getWidth(), text.getPos().getHeight(), distance,
-		                         (int) text.getDir(), text.getSequenceNum()));
+		                         text.getPos().getWidth(), text.getPos().getHeight(),
+		                         distance, (int) text.getDir(), text.getSequenceNum()));
 
 	}
 

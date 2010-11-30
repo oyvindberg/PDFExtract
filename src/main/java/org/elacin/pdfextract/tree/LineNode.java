@@ -18,12 +18,11 @@ package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.logical.Formulas;
 import org.elacin.pdfextract.style.Style;
+import org.elacin.pdfextract.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Apr 8, 2010 Time: 8:29:43 AM To change this template
@@ -87,7 +86,7 @@ public void writeXmlRepresentation(@NotNull final Appendable out,
 @Override
 public String getText() {
 	StringBuilder sb = new StringBuilder();
-	if (isIndented()){
+	if (isIndented()) {
 		sb.append("    ");
 	}
 	for (int i = 0; i < getChildren().size(); i++) {
@@ -103,35 +102,8 @@ public String getText() {
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-@NotNull
 public Style findDominatingStyle() {
-	if (Formulas.textSeemsToBeFormula(getChildren())) {
-		return Style.FORMULA;
-	}
-
-	boolean textFound = false;
-	Map<Style, Integer> letterCountPerStyle = new HashMap<Style, Integer>(10);
-	for (WordNode word : getChildren()) {
-		final Style style = word.getStyle();
-		if (!letterCountPerStyle.containsKey(style)) {
-			letterCountPerStyle.put(style, 0);
-		}
-		final int numChars = word.getText().length();
-		letterCountPerStyle.put(style, letterCountPerStyle.get(style) + numChars);
-		textFound = true;
-	}
-
-	assert textFound;
-
-	int highestNumChars = -1;
-	Style style = null;
-	for (Map.Entry<Style, Integer> entry : letterCountPerStyle.entrySet()) {
-		if (entry.getValue() > highestNumChars) {
-			style = entry.getKey();
-			highestNumChars = entry.getValue();
-		}
-	}
-	return style;
+	return TextUtils.findDominatingStyle(getChildren());
 }
 
 /** Returns a Comparator which compares only X coordinates */
