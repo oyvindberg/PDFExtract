@@ -60,19 +60,7 @@ public AbstractParentNode() {
 public final Rectangle getPos() {
 	if (posCache == null) {
 		posCache = TextUtils.findBounds(children);
-//		for (ChildType child : children) {
-//			if (posCache == null) {
-//				posCache = child.getPos();
-//			} else {
-//				posCache = posCache.union(child.getPos());
-//			}
-//		}
 	}
-//	if (posCache == null) {
-//		//TODO: i'm sure the problems really lies elsewhere here
-//		posCache = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
-//	}
-
 	return posCache;
 }
 

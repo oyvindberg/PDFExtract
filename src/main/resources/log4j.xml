@@ -42,6 +42,14 @@
         </layout>
     </appender>
 
+    <appender name="spacingdata_" class="org.apache.log4j.FileAppender">
+        <param name="Append" value="false"/>
+        <param name="File" value="spacingdata"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%m%n"/>
+        </layout>
+    </appender>
+
     <appender name="console" class="org.apache.log4j.ConsoleAppender">
         <param name="Threshold" value="INFO"/>
         <layout class="org.apache.log4j.PatternLayout">
@@ -80,11 +88,11 @@
     </logger>
 
     <logger name="org.elacin.pdfextract.pdfbox">
-        <level value="WARN"/>
+        <level value="DEBUG"/>
     </logger>
 
     <logger name="org.elacin.pdfextract.physical.segmentation.word">
-        <level value="WARN"/>
+        <level value="DEBUG"/>
     </logger>
 
     <logger name="org.elacin.pdfextract.physical.segmentation.graphics">
@@ -104,11 +112,15 @@
     </logger>
 
     <logger name="org.apache.pdfbox" additivity="false">
-        <level value="WARN"/>
+        <level value="DEBUG"/>
         <appender-ref ref="pdfbox"/>
         <appender-ref ref="console"/>
     </logger>
 
+    <logger name="spacingdata" additivity="false">
+        <level value="INFO"/>
+        <appender-ref ref="spacingdata_"/>
+    </logger>
     <root>
         <level value="OFF"/>
     </root>

@@ -17,8 +17,10 @@
 package org.elacin.pdfextract.physical.segmentation.word;
 
 import org.apache.log4j.Logger;
+import org.elacin.pdfextract.logical.Formulas;
 import org.elacin.pdfextract.physical.content.PhysicalText;
 import org.elacin.pdfextract.util.MathUtils;
+import org.elacin.pdfextract.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -33,7 +35,8 @@ import java.util.List;
 class CharSpacingFinder {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger log = Logger.getLogger(CharSpacingFinder.class);
+private static final Logger  log                    = Logger.getLogger(CharSpacingFinder.class);
+private static final boolean WRITE_SPACINGS_TO_FILE = true;
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
@@ -56,13 +59,14 @@ public static void setCharSpacingForTexts(@NotNull final Collection<PhysicalText
 	}
 	float charSpacing = calculateCharspacingForDistances(distances, fontSizeAverage);
 
+
 	/* and set the values in all texts */
 	for (PhysicalText text : texts) {
 		text.charSpacing = charSpacing;
 	}
 
 	if (log.isDebugEnabled()) {
-		printDebugPost(texts, charSpacing);
+		printDebugPost(texts, distances, fontSizeAverage, charSpacing);
 	}
 }
 
@@ -89,12 +93,35 @@ static float calculateCharspacingForDistances(@NotNull final List<Float> distanc
 	}
 	final float diff = largest - Math.max(0.0f, smallest);
 
+	final float median = findMedianOfDistances(distances, -10.0f);
 
-	if (MathUtils.isWithinPercent(smallest, largest, 10.0f)) {
+	if (log.isInfoEnabled()) {
+		log.info("LOG00790:median:" + median + ", diff:" + diff + ", smallest:" + smallest + ", "
+				         + "" + ", " + "" + "largest: " + largest);
+	}
+
+
+	if (diff < smallest * 1.10f || Math.abs(diff - smallest) < 0.20f) {
+		if (log.isDebugEnabled()) {
+			log.debug("if (diff < smallest*1.10f || Math.abs(diff - smallest) < 0.20f) {");
+		}
 		return largest;
 	}
 
-	float median = findMedianOfDistances(distances, -10.0f);
+
+	if (MathUtils.isWithinPercent(smallest, largest, 10.0f)) {
+		if (log.isDebugEnabled()) {
+			log.debug("MathUtils.isWithinPercent(smallest, largest, 10.0f)");
+		}
+		return largest;
+	}
+
+
+	if (!MathUtils.isWithinPercent(diff, largest, 15) && MathUtils
+			.isWithinPercent(median, largest, 15)) {
+		if (log.isDebugEnabled()) { log.debug("MathUtils.isWithinPercent(median, largest, 15)"); }
+		return largest;
+	}
 
 	final float NUM_STEPS = 20.0f;
 	float step = diff / NUM_STEPS;
@@ -104,23 +131,33 @@ static float calculateCharspacingForDistances(@NotNull final List<Float> distanc
 
 	final float lowerLimit = getLowerCharspaceLimitForFontSize(averageFontSize);
 
-	int lastNumStepts = 0;
+	int lastNumStepts = -1;
 
 	final float[] ret = new float[3];
 
 	for (float dist : dists) {
+		if (dist < smallest) {
+			continue;
+		}
 
 		int currentNumSteps = (int) (dist / step);
-		if (currentNumSteps - lastNumStepts >= 3 && dist > lowerLimit) {
-			if (dist > median && dist <= diff) {
+
+		if (lastNumStepts == -1) {
+			lastNumStepts = currentNumSteps;
+			continue;
+		}
+
+		if (currentNumSteps - lastNumStepts > 3 && dist > lowerLimit && dist > smallest * 1.10f) {
+			if (dist > median * 1.2f && dist <= diff) {
 				ret[0] = dist;
 				break;
 			} else if (dist > median) {
 				ret[1] = dist;
 				break;
-			} else {
-				ret[2] = dist;
 			}
+			// else {
+			//				ret[2] = dist;
+			//			}
 		}
 		lastNumStepts = currentNumSteps;
 	}
@@ -133,27 +170,43 @@ static float calculateCharspacingForDistances(@NotNull final List<Float> distanc
 	} else if (ret[2] > 0.0f) {
 		charSpacing = ret[2];
 	} else {
-		charSpacing = lowerLimit;
+		return largest;
+		//		charSpacing = largest;
 	}
 	if (log.isInfoEnabled()) {
-		log.info("LOG00790:median:" + median + ", diff:" + diff + ", smallest:" + smallest + ", "
-				         + "" + ", " + "" + "largest: " + largest + ", " + ", lowerLimit:"
-				         + lowerLimit + ", ret: " + Arrays.toString(ret));
+		log.info("lowerLimit:" + lowerLimit + ", ret: " + Arrays.toString(ret));
 	}
 
 
 	return charSpacing * 0.95f;
 }
 
-private static float getLowerCharspaceLimitForFontSize(final float averageFontSize) {
+private static float findDistanceClosestTo(final List<Float> distances, final float limit) {
+	float closestToLimit = Float.MAX_VALUE;
+	float ret = 0.0f;
 
-	/* lower than 0.35 does not realisticly happen with 7pt, scale that with bigger font sizes */
-	float lowerLimit = (0.35f / 7.0f) * (averageFontSize * (1.3f));
-	/* the above doesnt seem to scale well with really big text, so limit it at 15 */
-	if (lowerLimit > 15.0f) {
-		lowerLimit = 15.0f;
+	for (Float distance : distances) {
+		final float absDiff = Math.abs(limit - distance);
+		if (absDiff < closestToLimit) {
+			closestToLimit = absDiff;
+			ret = distance;
+		}
 	}
-	return lowerLimit;
+	return ret * 0.95f;
+}
+
+private static float findFirstDistanceSmallerThan(final List<Float> distances, final float value) {
+	float closestToLimit = Float.MAX_VALUE;
+	float ret = 0.0f;
+
+	for (float distance : distances) {
+		final float diff = value - distance;
+		if (diff > 0 && diff < closestToLimit) {
+			closestToLimit = diff;
+			ret = distance;
+		}
+	}
+	return ret;
 }
 
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
@@ -186,43 +239,12 @@ private static float findMedianOfDistances(final List<Float> distances, final fl
 			}
 			currentDistance = dInt;
 			currentOccurences = 1;
-
 		} else {
 			currentOccurences++;
 		}
 	}
 
 	return (float) ret / RESOLUTION;
-}
-
-private static float findDistanceClosestTo(final List<Float> distances, final float limit) {
-	float closestToLimit = Float.MAX_VALUE;
-	float ret = 0.0f;
-
-	for (Float distance : distances) {
-		final float absDiff = Math.abs(limit - distance);
-		if (absDiff < closestToLimit) {
-			closestToLimit = absDiff;
-			ret = distance;
-		}
-	}
-	return ret * 0.95f;
-
-}
-
-private static float findFirstDistanceSmallerThan(final List<Float> distances, final float value) {
-	float closestToLimit = Float.MAX_VALUE;
-	float ret = 0.0f;
-
-	for (float distance : distances) {
-		final float diff = value - distance;
-		if (diff > 0 && diff < closestToLimit) {
-			closestToLimit = diff;
-			ret = distance;
-		}
-	}
-	return ret;
-
 }
 
 private static float getAverageFontSize(@NotNull final Collection<PhysicalText> texts) {
@@ -239,7 +261,8 @@ private static List<Float> getDistancesBetweenTextObjects(@NotNull final Collect
 	boolean first = true;
 	for (PhysicalText text : texts) {
 		/* skip the first word fragment, and only include this distance if it is not too big */
-		if (!first && text.distanceToPreceeding < (Math.max(text.getStyle().xSize, 5.0f) * 6.0f)) {
+		if (!first ){//&& text.distanceToPreceeding < (Math.max(text.getStyle().xSize,
+		                                           //          5.0f) * 6.0f)) {
 			distances.add(text.distanceToPreceeding);
 		}
 		first = false;
@@ -247,7 +270,19 @@ private static List<Float> getDistancesBetweenTextObjects(@NotNull final Collect
 	return distances;
 }
 
+private static float getLowerCharspaceLimitForFontSize(final float averageFontSize) {
+	/* lower than 0.35 does not realisticly happen with 7pt, scale that with bigger font sizes */
+	float lowerLimit = (0.35f / 7.0f) * (averageFontSize * (1.3f));
+	/* the above doesnt seem to scale well with really big text, so limit it at 15 */
+	if (lowerLimit > 15.0f) {
+		lowerLimit = 15.0f;
+	}
+	return lowerLimit;
+}
+
 private static void printDebugPost(@NotNull final Collection<PhysicalText> texts,
+                                   final List<Float> distances,
+                                   final float fontSizeAverage,
                                    final float charSpacing)
 {
 	log.debug("spacing: charSpacing=" + charSpacing);
@@ -262,6 +297,18 @@ private static void printDebugPost(@NotNull final Collection<PhysicalText> texts
 		out.append(text.text);
 		first = false;
 	}
+
+	if (WRITE_SPACINGS_TO_FILE) {
+		if (out.length() > 5 && !Formulas.textSeemsToBeFormula(texts) && !TextUtils
+				.stringContainsAnyCharacterOf(out.toString(), "()[]")) {
+			final Logger logger = Logger.getLogger("spacingdata");
+			//	final String sep = "#&#";
+			logger.info("\n" + out);
+			logger.info("\t" + fontSizeAverage);
+			logger.info("\t" + distances);
+		}
+	}
+
 	log.debug("spacing: output: " + out);
 }
 

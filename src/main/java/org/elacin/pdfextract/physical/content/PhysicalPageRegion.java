@@ -58,7 +58,7 @@ private final List<PhysicalPageRegion>  subregions = new ArrayList<PhysicalPageR
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public PhysicalPageRegion(@NotNull final Collection<? extends PhysicalContent> contents,
-                          final @Nullable PhysicalContent containedIn,
+                          @Nullable final PhysicalContent containedIn,
                           final int pageNumber)
 {
 	super(contents, containedIn);
@@ -214,8 +214,7 @@ public Style getMostCommonStyle() {
 }
 
 public  boolean isContainedInGraphic() {
-	return getContainedIn() != null && getContainedIn().isGraphic();// && !getContainedIn()
-			//.getGraphicContent().isBackgroundColor();
+	return getContainedIn() != null && getContainedIn().isGraphic();
 }
 
 @NotNull
@@ -423,8 +422,7 @@ protected int findMedianOfVerticalDistancesForRegion() {
 	final int LIMIT = (int) getAvgFontSizeY() * 3;
 
 	int[] distanceCount = new int[LIMIT];
-	final Rectangle pos = getPos();
-	for (float x = pos.getX(); x <= pos.getEndX(); x += pos.getWidth() / 3) {
+	for (float x = getPos().getX(); x <= getPos().getEndX(); x += getPos().getWidth() / 3) {
 		final List<PhysicalContent> column = findContentAtXIndex(x);
 		for (int i = 1; i < column.size(); i++) {
 			final PhysicalContent current = column.get(i - 1);

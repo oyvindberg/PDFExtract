@@ -14,8 +14,10 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract;
+package org.elacin.pdfextract.spacing;
 
+import org.elacin.pdfextract.DocumentNavigator;
+import org.elacin.pdfextract.PDFDocumentLoader;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.LineNode;
 import org.jetbrains.annotations.NotNull;

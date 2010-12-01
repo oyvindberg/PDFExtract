@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.physical.segmentation.word;
 
 import org.apache.log4j.Logger;
+import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.elacin.pdfextract.pdfbox.ETextPosition;
 import org.elacin.pdfextract.physical.content.HasPosition;
 import org.elacin.pdfextract.physical.content.PhysicalText;
@@ -90,22 +91,24 @@ public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) 
 	float baseline = 0.0f;
 	float maxY = Float.MIN_VALUE;
 	float maxX = 0.0f;
-
+	PDFont currentFont = null;
 	for (int i = 0; i < text.size(); i++) {
 		final ETextPosition tp = text.get(i);
 		/* if this is the first text in a line */
 		if (line.isEmpty()) {
 			baseline = tp.getBaseLine();
 			maxX = tp.getPos().getEndX();
+			currentFont = tp.getFont();
 		}
 
-		if (isOnAnotherLine(baseline, tp, maxY) || isTooFarAwayHorizontally(maxX, tp)) {
+		if (isOnAnotherLine(baseline, tp, maxY) || isTooFarAwayHorizontally(maxX, tp) || fontDiffers(currentFont, tp)) {
 			if (!line.isEmpty()) {
 				ret.addAll(createWordsInLine(line));
 				line.clear();
 			}
 			baseline = tp.getBaseLine();
 			maxY = tp.getPos().getEndY();
+			currentFont = tp.getFont();
 		}
 
 		/* then add the current text to start next line */
@@ -123,6 +126,10 @@ public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) 
 		log.debug("LOG00010:word segmentation took " + (System.currentTimeMillis() - t0) + " ms");
 	}
 	return ret;
+}
+
+private static boolean fontDiffers(final PDFont font, final ETextPosition tp) {
+	return !font.equals(tp.getFont());
 }
 
 // -------------------------- STATIC METHODS --------------------------

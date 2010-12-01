@@ -20,11 +20,13 @@ import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.StyledText;
 import org.elacin.pdfextract.logical.Formulas;
 import org.elacin.pdfextract.physical.content.HasPosition;
-import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: May 19, 2010 Time: 3:46:09 AM To change this
@@ -125,4 +127,15 @@ public static boolean listContainsStyle(@NotNull final Collection<? extends HasP
 	}
 	return false;
 }
+
+public static boolean stringContainsAnyCharacterOf(String string, String chars){
+
+	for (int i = 0; i < string.length(); i++){
+		if (chars.indexOf(string.charAt(i)) != -1)
+			return true;
+	}
+	return false;
+
+}
+
 }

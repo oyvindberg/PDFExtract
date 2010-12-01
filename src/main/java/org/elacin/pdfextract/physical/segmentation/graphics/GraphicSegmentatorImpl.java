@@ -27,7 +27,10 @@ import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.awt.geom.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.GeneralPath;
+import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -312,48 +315,55 @@ private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion
 
 	if (log.isInfoEnabled()) { log.info("size() before = " + list.size()); }
 
-
-	List<GraphicContent> saved = new ArrayList<GraphicContent>();
-
-	final Style mostCommonStyle = region.getMostCommonStyle();
-
 	for (Iterator<GraphicContent> iterator = list.iterator(); iterator.hasNext();) {
-		final GraphicContent graphic = iterator.next();
-		if (!graphic.isBackgroundColor()){
-			continue;
-		}
-
-		final List<PhysicalContent> contents = region.findContentsIntersectingWith(graphic);
-
-		/** find character count for the contents.
-		 * Also find average font Y size. some of the figures can be vast but contain a certain
-		 * amount of text, so look for a certain number of chars per 'line' */
-		int numChars = 0;
-		float averageYSize = 0.0f;
-		for (PhysicalContent content : contents) {
-			final PhysicalText text = content.getPhysicalText();
-			if (content.isText() && text.getStyle().equals(mostCommonStyle)) {
-				numChars += text.getText().length();
-				averageYSize += (float) (text.getStyle().ySize * text.getText().length());
-			}
-		}
-		averageYSize /= (float) numChars;
-
-		float appxNumLines = Math.max(1.0f, graphic.getPos().getHeight() / (averageYSize * 4));
-
-		if (enoughCharsToBeSaved(numChars, appxNumLines)) {
-			if (graphic.isBackgroundColor()) {
-				log.warn("removing graphic " + graphic);
-				iterator.remove();
-			} else {
-				if (log.isDebugEnabled()) {
-					log.debug("saving = " + graphic + ", numChars = " + numChars);
-				}
-				iterator.remove();
-				saved.add(graphic);
-			}
+		final GraphicContent content = iterator.next();
+		if (content.isFigure() && content.isBackgroundColor()) {
+			iterator.remove();
 		}
 	}
+
+//	List<GraphicContent> saved = new ArrayList<GraphicContent>();
+//
+//	final Style mostCommonStyle = region.getMostCommonStyle();
+//
+//	for (Iterator<GraphicContent> iterator = list.iterator(); iterator.hasNext();) {
+//		final GraphicContent graphic = iterator.next();
+//		if (!graphic.isBackgroundColor()){
+//			continue;
+//		}
+//
+//		final List<PhysicalContent> contents = region.findContentsIntersectingWith(graphic);
+//
+//		/** find character count for the contents.
+//		 * Also find average font Y size. some of the figures can be vast but contain a certain
+//		 * amount of text, so look for a certain number of chars per 'line' */
+//		int numChars = 0;
+//		float averageYSize = 0.0f;
+//		for (PhysicalContent content : contents) {
+//			final PhysicalText text = content.getPhysicalText();
+//			if (content.isText() && text.getStyle().equals(mostCommonStyle)) {
+//				numChars += text.getText().length();
+//				averageYSize += (float) (text.getStyle().ySize * text.getText().length());
+//			}
+//		}
+//		averageYSize /= (float) numChars;
+//
+//		float appxNumLines = Math.max(1.0f, graphic.getPos().getHeight() / (averageYSize * 4));
+//
+//		if (enoughCharsToBeSaved(numChars, appxNumLines)) {
+//			if (graphic.isBackgroundColor()) {
+//				log.warn("removing graphic " + graphic);
+//				iterator.remove();
+//			}
+////			else {
+////				if (log.isDebugEnabled()) {
+////					log.debug("saving = " + graphic + ", numChars = " + numChars);
+////				}
+////				iterator.remove();
+////				saved.add(graphic);
+////			}
+//		}
+//	}
 
 	for (int i = 0; i < list.size(); i++) {
 		final GraphicContent current = list.get(i);
@@ -372,7 +382,7 @@ private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion
 		}
 	}
 
-	list.addAll(saved);
+//	list.addAll(saved);
 
 	if (log.isInfoEnabled()) { log.info("size() after = " + list.size()); }
 }

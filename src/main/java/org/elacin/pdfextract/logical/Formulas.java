@@ -18,7 +18,6 @@ package org.elacin.pdfextract.logical;
 
 import org.elacin.pdfextract.StyledText;
 import org.elacin.pdfextract.physical.content.HasPosition;
-import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.util.TextUtils;
 
 import java.util.Collection;
@@ -33,24 +32,28 @@ import static org.elacin.pdfextract.style.Style.GRAPHIC_MATH_BAR;
 public class Formulas {
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-public static boolean textContainsMath(StyledText text){
-	if (text.getStyle().isMathFont()){
-		return true;
-	}
-
-	for (int i = 0; i < text.getText().length(); i++){
-		if (Character.getType(text.getText().codePointAt(i)) == Character.MATH_SYMBOL){
+public static boolean stringContainsMath(final String text1) {
+	for (int i = 0; i < text1.length(); i++) {
+		if (Character.getType(text1.codePointAt(i)) == Character.MATH_SYMBOL) {
 			return true;
 		}
 	}
 	return false;
 }
 
+public static boolean textContainsMath(StyledText text) {
+	if (text.getStyle().isMathFont()) {
+		return true;
+	}
+
+	return stringContainsMath(text.getText());
+}
+
 public static boolean textSeemsToBeFormula(Collection<? extends HasPosition> contents) {
 	if (contents.size() < 4) {
 		return false;
 	}
-	if (!TextUtils.listContainsStyle(contents)){
+	if (!TextUtils.listContainsStyle(contents)) {
 		return false;
 	}
 
@@ -60,8 +63,7 @@ public static boolean textSeemsToBeFormula(Collection<? extends HasPosition> con
 
 	int containedGraphics = 0;
 	for (HasPosition content : contents) {
-
-		if (!(content instanceof StyledText)){
+		if (!(content instanceof StyledText)) {
 			continue;
 		}
 		StyledText word = (StyledText) content;

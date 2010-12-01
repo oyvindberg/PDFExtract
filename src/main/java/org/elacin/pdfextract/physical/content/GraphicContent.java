@@ -130,7 +130,7 @@ public boolean canBeCombinedWith(@NotNull final GraphicContent other) {
 		return false;
 	}
 
-	return getPos().distance(other.getPos()) < 10.0f;
+	return getPos().distance(other.getPos()) < 5.0f;
 }
 
 @NotNull

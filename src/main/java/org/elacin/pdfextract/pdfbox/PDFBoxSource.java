@@ -170,6 +170,13 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
 
 	int codeLength = 1;
 	for (int i = 0; i < string.length; i += codeLength) {
+
+
+		if (string[i] == 31){
+			System.out.println("totalVerticalDisplacementDisp = ");
+		}
+
+
 		// Decode the value to a Unicode character
 		codeLength = 1;
 		String c = font.encode(string, i, codeLength);
@@ -263,6 +270,7 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
 
 		float totalVerticalDisplacementDisp = maxVerticalDisplacementText * fontSizeText
 				* yScaleDisp;
+
 
 
 		boolean add = true;
@@ -574,9 +582,10 @@ private void correctPosition(final byte[] string,
 	}
 
 	final Rectangle pos = text.getPos();
-	float adjust = fontSizeText / glyphSpaceToTextSpaceFactor;
+//	float adjust = fontSizeText / glyphSpaceToTextSpaceFactor;
+	float adjust = text.getFontSizeInPt() / glyphSpaceToTextSpaceFactor;
 	if (cBB != null && fBB != null && cBB.getHeight() > 0.0f && fBB.getHeight() > 0.0f) {
-		final float fontHeight = fBB.getUpperRightY() - fBB.getLowerLeftY();
+		final float fontHeight = fBB.getHeight();
 
 		/* remove the upper and lower bounds filtered away by cBB */
 		final float spaceOverChar = (cBB.getLowerLeftY() - fBB.getLowerLeftY());
@@ -586,7 +595,8 @@ private void correctPosition(final byte[] string,
 
 		final float beforeRoomForGlyph = pos.getY() - (adjust * fontHeight);
 
-		float startY = beforeRoomForGlyph + (adjust * spaceOverChar) + (adjust * spaceUnderChar);
+		float startY = beforeRoomForGlyph + (adjust * spaceOverChar)  + (adjust *
+				spaceUnderChar);
 
 		if (font.getBaseFont().contains("CMEX")) {
 			startY += (adjust * characterHeight);
@@ -595,16 +605,23 @@ private void correctPosition(final byte[] string,
 		float x = text.getX() + (adjust * Math.max(cBB.getLowerLeftX(), fBB.getLowerLeftX()));
 		//		float w = adjust * (cBB.getUpperRightX() - cBB.getLowerLeftX());
 		//		if (w == 0.0f) {
-		float w = text.getWidth();
+//		float w = text.getWidth();
 		//		}
+		float w = adjust * cBB.getWidth();
 
 		float h = adjust * characterHeight;
 		if (h == 0.0f){
 			h = adjust * fBB.getHeight();
 		}
-		if (h < text.getHeight() / 4) {
-			h = text.getHeight();
-		}
+//		if (h < text.getHeight() / 4) {
+//			h = text.getHeight();
+//		}
+
+		final float tenPercentOfCharHeight = h * 0.10f;
+
+		startY += tenPercentOfCharHeight;
+		h -= (tenPercentOfCharHeight*2);
+
 
 		final Rectangle newPos = new Rectangle(x, startY, w, h);
 		log.debug("LOG00730:Text " + c + ", " + "pos from " + pos + " to " + newPos);
@@ -617,8 +634,16 @@ private void correctPosition(final byte[] string,
 			height
 		 */
 		text.setBaseLine(pos.getY());
-		text.setPos(new Rectangle(pos.getX(), pos.getY() - pos.getHeight(), pos.getWidth(),
-		                          pos.getHeight()));
+
+		float h = pos.getHeight();
+		float startY = pos.getY() - h;
+//		final float tenPercentOfCharHeight = h * 0.10f;
+//		startY += tenPercentOfCharHeight;
+//		h -= (tenPercentOfCharHeight*2);
+
+
+//		text.setPos(new Rectangle(pos.getX(), pos.getY(), pos.getWidth(),
+		text.setPos(new Rectangle(pos.getX(), startY, pos.getWidth(), h));
 	}
 }
 

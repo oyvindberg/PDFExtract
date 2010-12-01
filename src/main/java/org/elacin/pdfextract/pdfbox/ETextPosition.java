@@ -23,7 +23,6 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.physical.content.HasPosition;
-import org.elacin.pdfextract.util.MathUtils;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
 

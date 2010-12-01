@@ -66,7 +66,6 @@ public Rectangle(final float x, final float y, final float width, final float he
 // --------------------- Interface HasPosition ---------------------
 
 @NotNull
-@Override
 public Rectangle getPos() {
 	return this;
 }
@@ -290,7 +289,6 @@ public Rectangle union(@NotNull HasPosition that) {
 	return new Rectangle(x1, y1, x2 - x1, y2 - y1);
 }
 
-@Override
 public void writeXmlRepresentation(final Appendable sb,
                                    final int indent,
                                    final boolean verbose) throws IOException

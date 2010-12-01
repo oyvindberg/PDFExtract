@@ -21,17 +21,17 @@ import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
 import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentator;
+import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.tree.LayoutRegionNode;
 import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.tree.ParagraphNode;
-import org.elacin.pdfextract.util.RectangleCollection;
+import org.elacin.pdfextract.util.*;
+import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.*;
 import java.util.List;
-import java.util.PriorityQueue;
 
 
 public class PhysicalPage {
@@ -60,6 +60,7 @@ private final PhysicalPageRegion originalWholePage;
 /** Contains all the graphics on the page */
 @NotNull
 private final GraphicSegmentator graphics;
+private final Rectangle pageDimensions;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -70,8 +71,8 @@ public PhysicalPage(@NotNull List<? extends PhysicalContent> contents,
 	this.pageNumber = pageNumber;
 	originalWholePage = new PhysicalPageRegion(contents, pageNumber);
 	regions.add(originalWholePage);
-
 	this.graphics = graphics;
+	pageDimensions = originalWholePage.getPos();
 }
 
 // -------------------------- STATIC METHODS --------------------------
@@ -115,8 +116,6 @@ public PageNode compileLogicalPage() {
 		final GraphicContent graphic = queue.remove();
 
 		try {
-			/* if we extract by a white graphic, dont set it as belonging to that. these are
-			 *  oftenly used just to separate text in the pdf but are not visible */
 			final PhysicalPageRegion region = originalWholePage.extractSubRegion(graphic, graphic);
 			if (null != region) {
 				regions.add(region);
@@ -124,21 +123,12 @@ public PageNode compileLogicalPage() {
 					log.info("LOG00340:Added subregion " + region);
 				}
 			}
-			//			} else {
-			//				if (!graphic.isBackgroundColor()) {
-			//			if (!graphic.getStyle().equals(Style.GRAPHIC_CONTAINER)){
-			//				throw new RuntimeException("expected " + Style.GRAPHIC_CONTAINER + " got " +
-			//						                           graphic.getStyle());
-			//			}
-			//			graphic.setCanBeAssigned(true);
-			//			originalWholePage.addContent(graphic);
-			//				}
-			//			}
 		} catch (Exception e) {
 			log.info("LOG00320:Could not divide page::" + e.getMessage());
-			if (graphic.getPos().area() < getContents().getPos().area() * 0.4f) {
+			if (graphic.getPos().area() < originalWholePage.getPos().area() * 0.4f) {
 				if (log.isInfoEnabled()) { log.info("LOG00690:Adding " + graphic + " as content");}
 				graphic.setCanBeAssigned(true);
+				graphic.setStyle(Style.GRAPHIC_IMAGE);
 				originalWholePage.addContent(graphic);
 			} else {
 				graphics.getGraphicsToRender().remove(graphic);
@@ -147,12 +137,10 @@ public PageNode compileLogicalPage() {
 	}
 
 
-	List<PhysicalPageRegion> newRegions = new ArrayList<PhysicalPageRegion>();
-	for (PhysicalPageRegion region : regions) {
-		newRegions.addAll(region.splitInVerticalColumns());
+	for (int i = 0, size = regions.size(); i < size; i++) {
+		final PhysicalPageRegion region = regions.get(i);
+		regions.addAll(region.splitInVerticalColumns());
 	}
-	regions.addAll(newRegions);
-
 
 	PageNode page = new PageNode(pageNumber);
 
@@ -191,11 +179,6 @@ public PageNode compileLogicalPage() {
 		log.info("LOG00230:compileLogicalPage took " + (System.currentTimeMillis() - t0) + " ms");
 	}
 	return page;
-}
-
-@NotNull
-public RectangleCollection getContents() {
-	return originalWholePage;
 }
 
 // -------------------------- OTHER METHODS --------------------------
