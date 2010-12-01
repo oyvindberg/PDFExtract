@@ -123,7 +123,7 @@ static float calculateCharspacingForDistances(@NotNull final List<Float> distanc
 		return largest;
 	}
 
-	final float NUM_STEPS = 20.0f;
+	final float NUM_STEPS = 30.0f;
 	float step = diff / NUM_STEPS;
 	final Float[] dists = distances.toArray(new Float[distances.size()]);
 	Arrays.sort(dists);
@@ -133,21 +133,21 @@ static float calculateCharspacingForDistances(@NotNull final List<Float> distanc
 
 	int lastNumStepts = -1;
 
-	final float[] ret = new float[3];
+	final float[] ret = new float[2];
 
 	for (float dist : dists) {
 		if (dist < smallest) {
 			continue;
 		}
 
-		int currentNumSteps = (int) (dist / step);
+		int currentNumSteps = Math.max(0, (int) (dist / step));
 
 		if (lastNumStepts == -1) {
 			lastNumStepts = currentNumSteps;
 			continue;
 		}
 
-		if (currentNumSteps - lastNumStepts > 3 && dist > lowerLimit && dist > smallest * 1.10f) {
+		if (currentNumSteps - lastNumStepts > 6 && dist > lowerLimit && dist > smallest * 1.10f) {
 			if (dist > median * 1.2f && dist <= diff) {
 				ret[0] = dist;
 				break;
@@ -155,9 +155,6 @@ static float calculateCharspacingForDistances(@NotNull final List<Float> distanc
 				ret[1] = dist;
 				break;
 			}
-			// else {
-			//				ret[2] = dist;
-			//			}
 		}
 		lastNumStepts = currentNumSteps;
 	}
@@ -167,8 +164,6 @@ static float calculateCharspacingForDistances(@NotNull final List<Float> distanc
 		charSpacing = ret[0];
 	} else if (ret[1] > 0.0f) {
 		charSpacing = ret[1];
-	} else if (ret[2] > 0.0f) {
-		charSpacing = ret[2];
 	} else {
 		return largest;
 		//		charSpacing = largest;
@@ -261,8 +256,8 @@ private static List<Float> getDistancesBetweenTextObjects(@NotNull final Collect
 	boolean first = true;
 	for (PhysicalText text : texts) {
 		/* skip the first word fragment, and only include this distance if it is not too big */
-		if (!first ){//&& text.distanceToPreceeding < (Math.max(text.getStyle().xSize,
-		                                           //          5.0f) * 6.0f)) {
+		if (!first) {//&& text.distanceToPreceeding < (Math.max(text.getStyle().xSize,
+			//          5.0f) * 6.0f)) {
 			distances.add(text.distanceToPreceeding);
 		}
 		first = false;

@@ -24,7 +24,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -43,6 +42,9 @@ public void testSpacings() throws IOException {
 
 
 	for (File file : files) {
+		if (!file.getName().contains("article4")) {
+			continue;
+		}
 
 		System.out.println("++++++++++++++++++++++++++");
 		System.out.println("File " + file);
@@ -89,15 +91,14 @@ private boolean processInput(final String[] input) {
 	float[] distancesArray = parseDistancesString(input[3], distances);
 
 	boolean ligatureHack = false;
-	if (distancesArray.length != base.length() - 1){
-//		if ((base.length() - 1) - distancesArray.length == 1 && base.contains("fi")){
-//			ligatureHack = true;
-//		} else {
-//			System.out.println("bad input = " + Arrays.toString(input));
-			return true;
-//		}
+	if (distancesArray.length != base.length() - 1) {
+		//		if ((base.length() - 1) - distancesArray.length == 1 && base.contains("fi")){
+		//			ligatureHack = true;
+		//		} else {
+		//			System.out.println("bad input = " + Arrays.toString(input));
+		return true;
+		//		}
 	}
-
 
 
 	final String result = findResult(base, fontSize, distances, distancesArray, ligatureHack);
