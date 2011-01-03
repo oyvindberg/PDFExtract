@@ -16,7 +16,9 @@
 
 package org.elacin.pdfextract;
 
-import org.elacin.pdfextract.tree.*;
+import org.elacin.pdfextract.tree.DocumentNode;
+import org.elacin.pdfextract.tree.LineNode;
+import org.elacin.pdfextract.tree.PageNode;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -29,15 +31,15 @@ public class DocumentNavigator {
 
 @NotNull
 public static ArrayList<LineNode> getLineNodes(@NotNull DocumentNode doc) {
-	ArrayList<LineNode> ret = new ArrayList<LineNode>();
-	for (PageNode pageNode : doc.getChildren()) {
-		for (LayoutRegionNode layoutRegionNode : pageNode.getChildren()) {
-			for (ParagraphNode paragraphNode : layoutRegionNode.getChildren()) {
-				ret.addAll(paragraphNode.getChildren());
-			}
-
-		}
-	}
-	return ret;
+    ArrayList<LineNode> ret = new ArrayList<LineNode>();
+    for (PageNode pageNode : doc.getChildren()) {
+//		for (LayoutRegionNode layoutRegionNode : pageNode.getChildren()) {
+//			for (ParagraphNode paragraphNode : layoutRegionNode.getChildren()) {
+//				ret.addAll(paragraphNode.getChildren());
+//			}
+//
+//		}
+    }
+    return ret;
 }
 }

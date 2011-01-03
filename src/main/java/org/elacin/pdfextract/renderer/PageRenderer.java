@@ -22,6 +22,7 @@ import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.HasPosition;
+import org.elacin.pdfextract.physical.content.WhitespaceRectangle;
 import org.elacin.pdfextract.tree.*;
 import org.elacin.pdfextract.util.Loggers;
 import org.elacin.pdfextract.util.Rectangle;
@@ -40,135 +41,170 @@ import java.util.Map;
 public class PageRenderer {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger  log              = Logger.getLogger(PageRenderer.class);
-private static final boolean RENDER_REAL_PAGE = false;
+private static final Logger log = Logger.getLogger(PageRenderer.class);
+private static final boolean RENDER_REAL_PAGE = true;
 
 @NotNull
-private static final Color TRANSPARENT_WHITE           = new Color(255, 255, 255, 0);
-private static final int   DEFAULT_USER_SPACE_UNIT_DPI = 72;
-private final int          resolution;
-private final PDDocument   document;
+private static final Color TRANSPARENT_WHITE = new Color(255, 255, 255, 0);
+private static final int DEFAULT_USER_SPACE_UNIT_DPI = 1200;
+private final int resolution;
+private final PDDocument document;
 private final DocumentNode documentNode;
+
+
+private Graphics2D graphics;
+private float xScale;
+private float yScale;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public PageRenderer(final PDDocument document,
                     final DocumentNode documentNode,
-                    final int resolution)
-{
-	this.document = document;
-	this.documentNode = documentNode;
-	this.resolution = resolution;
+                    final int resolution) {
+    this.document = document;
+    this.documentNode = documentNode;
+    this.resolution = resolution;
 }
 
 public PageRenderer(final PDDocument document, final DocumentNode documentNode) {
-	this(document, documentNode, 100);
+    this(document, documentNode, 1200);
 }
 
 // -------------------------- STATIC METHODS --------------------------
 
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
-private static void drawRectangle(@NotNull final Graphics2D graphics,
-                                  final float xScale,
-                                  final float yScale,
-                                  @NotNull final Color color,
-                                  @NotNull final Rectangle pos,
-                                  final boolean fill)
-{
-	graphics.setColor(color);
-	final int x = (int) ((float) pos.getX() * xScale);
-	final int width = (int) ((float) pos.getWidth() * xScale);
-	int y = (int) ((float) pos.getY() * yScale);
-	final int height = (int) ((float) pos.getHeight() * yScale);
+private void drawRectangle(@NotNull final HasPosition object) {
+    final int ALPHA = 60;
 
-	graphics.drawRect(x, y, width, height);
-	if (fill) {
-		graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 60));
-		graphics.fillRect(x, y, width, height);
-	}
+    final Rectangle pos = object.getPos();
+
+    final Color color = getColorForObject(object);
+
+    graphics.setColor(color);
+    final int x = (int) ((float) pos.getX() * xScale);
+    final int width = (int) ((float) pos.getWidth() * xScale);
+    int y = (int) ((float) pos.getY() * yScale);
+    final int height = (int) ((float) pos.getHeight() * yScale);
+
+    graphics.drawRect(x, y, width, height);
+    if (true) {
+        graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), ALPHA));
+        graphics.fillRect(x, y, width, height);
+    }
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
 @NotNull
 public BufferedImage renderPage(final int pageNum) {
-	final PageNode pageNode = documentNode.getPageNumber(pageNum);
+    final PageNode pageNode = documentNode.getPageNumber(pageNum);
 
-	if (pageNode == null) {
-		throw new RuntimeException("Renderer: No contents found for page " + pageNum + ".");
-	}
+    if (pageNode == null) {
+        throw new RuntimeException("Renderer: No contents found for page " + pageNum + ".");
+    }
 
-	/* first have PDFBox draw the pdf to a BufferedImage */
-	long t1 = System.currentTimeMillis();
-	PDPage page = (PDPage) document.getDocumentCatalog().getAllPages().get(pageNum - 1);
-
-
-	final BufferedImage image;
-	if (RENDER_REAL_PAGE) {
-		try {
-			image = page.convertToImage();
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	} else {
-		image = createImage(page, BufferedImage.TYPE_INT_ARGB, resolution);
-	}
-
-	/* then draw our information on top */
-	final Graphics2D graphics = image.createGraphics();
-	graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-
-	final float xScale = (float) image.getWidth() / page.getArtBox().getWidth();
-	final float yScale = (float) image.getHeight() / page.getArtBox().getHeight();
-
-	for (Map.Entry<Color, List<HasPosition>> o : pageNode.getDebugFeatures().entrySet()) {
-		for (HasPosition position : o.getValue()) {
-			final GraphicContent graphicContent = (GraphicContent) position;
-			if (!graphicContent.isBackgroundColor()) {
-				drawRectangle(graphics, xScale, yScale, o.getKey(), position.getPos(), true);
-			}
-		}
-	}
-
-	/* draw document tree */
-	for (LayoutRegionNode layoutRegionNode : pageNode.getChildren()) {
-		drawRectangle(graphics, xScale, yScale, Color.YELLOW, layoutRegionNode.getPos(), true);
-		for (ParagraphNode paragraphNode : layoutRegionNode.getChildren()) {
-			drawRectangle(graphics, xScale, yScale, Color.RED, paragraphNode.getPos(), true);
-			for (LineNode lineNode : paragraphNode.getChildren()) {
-				drawRectangle(graphics, xScale, yScale, Color.MAGENTA, lineNode.getPos(), true);
-				for (WordNode styledText : lineNode.getChildren()) {
-					drawRectangle(graphics, xScale, yScale, Color.BLACK, styledText.getPos(), true);
-				}
-			}
-		}
-	}
+    /* first have PDFBox draw the pdf to a BufferedImage */
+    long t1 = System.currentTimeMillis();
+    PDPage page = (PDPage) document.getDocumentCatalog().getAllPages().get(pageNum - 1);
 
 
-	Loggers.getInterfaceLog().info(String.format("LOG00180:Rendered page %d in %d ms", pageNum,
-	                                             (System.currentTimeMillis() - t1)));
-	return image;
+    final BufferedImage image;
+    if (RENDER_REAL_PAGE) {
+        try {
+            image = page.convertToImage();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    } else {
+        image = createImage(page, BufferedImage.TYPE_INT_ARGB, resolution);
+    }
+
+    /* then draw our information on top */
+    graphics = image.createGraphics();
+    graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
+    ;
+
+    xScale = (float) image.getWidth() / page.getArtBox().getWidth();
+    yScale = (float) image.getHeight() / page.getArtBox().getHeight();
+
+    for (Map.Entry<Color, List<HasPosition>> o : pageNode.getDebugFeatures().entrySet()) {
+        for (HasPosition position : o.getValue()) {
+            if (position instanceof GraphicContent) {
+                final GraphicContent graphicContent = (GraphicContent) position;
+                if (!graphicContent.isBackgroundColor()) {
+                    drawRectangle(position);
+                }
+            }
+        }
+    }
+
+
+    drawTree(pageNode);
+
+    for (Map.Entry<Color, List<HasPosition>> o : pageNode.getDebugFeatures().entrySet()) {
+        for (HasPosition position : o.getValue()) {
+            if (!(position instanceof GraphicContent)) {
+                drawRectangle(position);
+            }
+        }
+    }
+
+    Loggers.getInterfaceLog().info(String.format("LOG00180:Rendered page %d in %d ms", pageNum,
+            (System.currentTimeMillis() - t1)));
+    return image;
+}
+
+private void drawTree(AbstractParentNode parent) {
+    if (!(parent instanceof AbstractParentNode)) {
+        drawRectangle(parent);
+    }
+
+    for (Object o : parent.getChildren()) {
+        if (o instanceof AbstractParentNode) {
+            drawTree((AbstractParentNode) o);
+        } else {
+            drawRectangle((HasPosition) o);
+        }
+
+    }
+
 }
 
 // -------------------------- OTHER METHODS --------------------------
 
 @NotNull
-private BufferedImage createImage(@NotNull final PDPage page,
-                                  final int imageType,
-                                  final int resolution)
-{
-	PDRectangle mBox = page.findMediaBox();
-	float scaling = resolution / (float) DEFAULT_USER_SPACE_UNIT_DPI;
+private BufferedImage createImage(@NotNull final PDPage page, final int imageType,
+                                  final int resolution) {
+    PDRectangle mBox = page.findMediaBox();
+    float scaling = resolution / (float) DEFAULT_USER_SPACE_UNIT_DPI;
 
-	int widthPx = Math.round(mBox.getWidth() * scaling);
-	int heightPx = Math.round(mBox.getHeight() * scaling);
+    int widthPx = Math.round(mBox.getWidth() * scaling);
+    int heightPx = Math.round(mBox.getHeight() * scaling);
 
-	BufferedImage retval = new BufferedImage(widthPx, heightPx, imageType);
-	Graphics2D graphics = (Graphics2D) retval.getGraphics();
-	graphics.setBackground(TRANSPARENT_WHITE);
-	graphics.clearRect(0, 0, retval.getWidth(), retval.getHeight());
-	graphics.scale(scaling, scaling);
+    BufferedImage retval = new BufferedImage(widthPx, heightPx, imageType);
+    Graphics2D graphics = (Graphics2D) retval.getGraphics();
+    graphics.setBackground(TRANSPARENT_WHITE);
+    graphics.clearRect(0, 0, retval.getWidth(), retval.getHeight());
+    graphics.scale(scaling, scaling);
 
-	return retval;
+    return retval;
+}
+
+Color getColorForObject(Object o) {
+    if (o.getClass().equals(WhitespaceRectangle.class)) {
+        return Color.GREEN;
+    } else if (o.getClass().equals(GraphicContent.class)) {
+        return Color.BLUE;
+    } else if (o.getClass().equals(LayoutRegionNode.class)) {
+        return Color.MAGENTA;
+    } else if (o.getClass().equals(ParagraphNode.class)) {
+        return Color.RED;
+    } else if (o.getClass().equals(LineNode.class)) {
+        return Color.CYAN;
+    } else if (o.getClass().equals(WordNode.class)) {
+        return Color.BLACK;
+    } else {
+        return Color.CYAN;
+    }
 }
 }

@@ -33,66 +33,67 @@ public class Formulas {
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
 public static boolean stringContainsMath(final String text1) {
-	for (int i = 0; i < text1.length(); i++) {
-		if (Character.getType(text1.codePointAt(i)) == Character.MATH_SYMBOL) {
-			return true;
-		}
-	}
-	return false;
+    for (int i = 0; i < text1.length(); i++) {
+        if (Character.getType(text1.codePointAt(i)) == Character.MATH_SYMBOL) {
+            return true;
+        }
+    }
+    return false;
 }
 
 public static boolean textContainsMath(StyledText text) {
-	if (text.getStyle().isMathFont()) {
-		return true;
-	}
+    if (text.getStyle().isMathFont()) {
+        return true;
+    }
 
-	return stringContainsMath(text.getText());
+    return stringContainsMath(text.getText());
 }
 
 public static boolean textSeemsToBeFormula(Collection<? extends HasPosition> contents) {
-	if (contents.size() < 4) {
-		return false;
-	}
-	if (!TextUtils.listContainsStyle(contents)) {
-		return false;
-	}
+    if (contents.size() < 4) {
+        return false;
+    }
+    if (!TextUtils.listContainsStyledText(contents)) {
+        return false;
+    }
 
 
-	int looksLikeMath = 0;
-	int wordCount = 0;
+    int looksLikeMath = 0;
+    int wordCount = 0;
 
-	int containedGraphics = 0;
-	for (HasPosition content : contents) {
-		if (!(content instanceof StyledText)) {
-			continue;
-		}
-		StyledText word = (StyledText) content;
+    int containedGraphics = 0;
+    for (HasPosition content : contents) {
+        if (!(content instanceof StyledText)) {
+            continue;
+        }
+        StyledText word = (StyledText) content;
 
-		if (word.getStyle().equals(GRAPHIC_MATH_BAR) || word.getStyle().equals(GRAPHIC_CHARACTER)) {
-			containedGraphics++;
-			continue;
-		}
+        if (word.getStyle().equals(GRAPHIC_MATH_BAR) || word.getStyle().equals(GRAPHIC_CHARACTER)
+        ) {
+            containedGraphics++;
+            continue;
+        }
 
-		wordCount += word.getText().length();
+        wordCount += word.getText().length();
 
-		/* first check whether the whole word seems to be formatted in a math font */
-		if (word.getStyle().isMathFont()) {
-			looksLikeMath += 3 * word.getText().length();
-			continue;
-		}
+        /* first check whether the whole word seems to be formatted in a math font */
+        if (word.getStyle().isMathFont()) {
+            looksLikeMath += 3 * word.getText().length();
+            continue;
+        }
 
-		for (int i = 0; i < word.getText().length(); i++) {
-			final char c = word.getText().charAt(i);
-			if (Character.getType(c) == (int) Character.MATH_SYMBOL) {
-				looksLikeMath += 5;
-			} else if (Character.isDigit(c)) {
-				looksLikeMath += 2;
-			}
-		}
-	}
+        for (int i = 0; i < word.getText().length(); i++) {
+            final char c = word.getText().charAt(i);
+            if (Character.getType(c) == (int) Character.MATH_SYMBOL) {
+                looksLikeMath += 5;
+            } else if (Character.isDigit(c)) {
+                looksLikeMath += 1;
+            }
+        }
+    }
 
-	looksLikeMath += containedGraphics * looksLikeMath * 0.1f;
+    looksLikeMath += containedGraphics * looksLikeMath * 0.1f;
 
-	return looksLikeMath > wordCount;
+    return looksLikeMath > wordCount;
 }
 }

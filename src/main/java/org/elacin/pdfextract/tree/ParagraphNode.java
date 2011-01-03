@@ -19,57 +19,47 @@ package org.elacin.pdfextract.tree;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.Comparator;
 
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Apr 8, 2010 Time: 8:56:45 AM To change this template
+ * Created by IntelliJ IDEA. User: elacin Date: Apr 8, 2010 Time: 8:56:45 AM To change this
+ template
  * use File | Settings | File Templates.
  */
 public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
-// ------------------------------ FIELDS ------------------------------
+// ------------------------ INTERFACE METHODS ------------------------
 
-boolean containedInImage = false;
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-public boolean isContainedInImage() {
-	return containedInImage;
-}
-
-public void setContainedInImage(final boolean containedInImage) {
-	this.containedInImage = containedInImage;
-}
-
-// -------------------------- PUBLIC METHODS --------------------------
-
-/** Returns a Comparator which compares coordinates within a page */
-@NotNull
-@Override
-public Comparator<LineNode> getChildComparator() {
-	return new StandardNodeComparator();
-}
+// --------------------- Interface XmlPrinter ---------------------
 
 @Override
 public void writeXmlRepresentation(@NotNull final Appendable out,
                                    final int indent,
-                                   final boolean verbose) throws IOException
-{
-	for (int i = 0; i < indent; i++) {
-		out.append(" ");
-	}
-	out.append("<paragraph");
+                                   final boolean verbose) throws IOException {
+    for (int i = 0; i < indent; i++) {
+        out.append(" ");
+    }
+    out.append("<paragraph");
 
-	getPos().writeXmlRepresentation(out, indent, verbose);
+    getPos().writeXmlRepresentation(out, indent, verbose);
 
-	out.append(">\n");
-	for (LineNode child : getChildren()) {
-		child.writeXmlRepresentation(out, indent + 4, verbose);
-	}
+    out.append(">\n");
+    for (LineNode child : getChildren()) {
+        child.writeXmlRepresentation(out, indent + 4, verbose);
+    }
 
-	for (int i = 0; i < indent; i++) {
-		out.append(" ");
-	}
-	out.append("</paragraph>\n");
+    for (int i = 0; i < indent; i++) {
+        out.append(" ");
+    }
+    out.append("</paragraph>\n");
 }
+
+// -------------------------- PUBLIC METHODS --------------------------
+
+///** Returns a Comparator which compares coordinates within a page */
+//@NotNull
+//@Override
+//public Comparator<LineNode> getChildComparator() {
+//	return new StandardNodeComparator();
+//}
 }

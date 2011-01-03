@@ -35,29 +35,28 @@ private final float x, y, width, height;
 
 /* caching, we do a lot of comparing */
 private transient boolean hasCalculatedHash = false;
-private transient int     hash              = -1;
+private transient int hash = -1;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public Rectangle(final float x, final float y, final float width, final float height) {
-	this.height = height;
-	this.width = width;
-	this.x = x;
-	this.y = y;
+    this.height = height;
+    this.width = width;
+    this.x = x;
+    this.y = y;
 
-	if (height <= 0.0f) {
-		throw new IllegalArgumentException("height must be positive: " + this);
-	}
-	if (width <= 0.0f) {
-		throw new IllegalArgumentException("width must be positive " + this);
-	}
-	//	if (x < 0.0f) {
-	//		throw new IllegalArgumentException("x can not be negative");
-	//	}
-	//	if (y < 0.0f) {
-	//		throw new IllegalArgumentException("y can not be negative");
-	//	}
-
+    if (height <= 0.0f) {
+        throw new IllegalArgumentException("height must be positive: " + this);
+    }
+    if (width <= 0.0f) {
+        throw new IllegalArgumentException("width must be positive " + this);
+    }
+    //	if (x < 0.0f) {
+    //		throw new IllegalArgumentException("x can not be negative");
+    //	}
+    //	if (y < 0.0f) {
+    //		throw new IllegalArgumentException("y can not be negative");
+    //	}
 }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -67,81 +66,93 @@ public Rectangle(final float x, final float y, final float width, final float he
 
 @NotNull
 public Rectangle getPos() {
-	return this;
+    return this;
+}
+
+// --------------------- Interface XmlPrinter ---------------------
+
+
+public void writeXmlRepresentation(final Appendable sb,
+                                   final int indent,
+                                   final boolean verbose) throws IOException {
+    sb.append(" x=\"").append(String.valueOf(x)).append("\"");
+    sb.append(" y=\"").append(String.valueOf(y)).append("\"");
+    sb.append(" w=\"").append(String.valueOf(width)).append("\"");
+    sb.append(" h=\"").append(String.valueOf(height)).append("\"");
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
 
 @Override
 public boolean equals(@Nullable final Object o) {
-	if (this == o) {
-		return true;
-	}
-	if (o == null || getClass() != o.getClass()) {
-		return false;
-	}
+    if (this == o) {
+        return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+        return false;
+    }
 
-	final Rectangle rectangle = (Rectangle) o;
+    final Rectangle rectangle = (Rectangle) o;
 
-	if (Float.compare(rectangle.height, height) != 0) {
-		return false;
-	}
-	if (Float.compare(rectangle.width, width) != 0) {
-		return false;
-	}
-	if (Float.compare(rectangle.x, x) != 0) {
-		return false;
-	}
-	if (Float.compare(rectangle.y, y) != 0) {
-		return false;
-	}
+    if (Float.compare(rectangle.height, height) != 0) {
+        return false;
+    }
+    if (Float.compare(rectangle.width, width) != 0) {
+        return false;
+    }
+    if (Float.compare(rectangle.x, x) != 0) {
+        return false;
+    }
+    if (Float.compare(rectangle.y, y) != 0) {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 @Override
 public int hashCode() {
-	if (!hasCalculatedHash) {
-		int result = (x != +0.0f ? Float.floatToIntBits(x) : 0);
-		result = 31 * result + (y != +0.0f ? Float.floatToIntBits(y) : 0);
-		result = 31 * result + (width != +0.0f ? Float.floatToIntBits(width) : 0);
-		result = 31 * result + (height != +0.0f ? Float.floatToIntBits(height) : 0);
-		hash = result;
-		hasCalculatedHash = true;
-	}
-	return hash;
+    if (!hasCalculatedHash) {
+        int result = (x != +0.0f ? Float.floatToIntBits(x) : 0);
+        result = 31 * result + (y != +0.0f ? Float.floatToIntBits(y) : 0);
+        result = 31 * result + (width != +0.0f ? Float.floatToIntBits(width) : 0);
+        result = 31 * result + (height != +0.0f ? Float.floatToIntBits(height) : 0);
+        hash = result;
+        hasCalculatedHash = true;
+    }
+    return hash;
 }
 
 @Override
 public String toString() {
-	final StringBuilder sb = new StringBuilder();
-	sb.append("pos{");
-	sb.append(" x=").append(x);
-	sb.append(", y=").append(y);
-	sb.append(", w=").append(width);
-	sb.append(", h=").append(height);
-	sb.append(", endX=").append(x + width);
-	sb.append(", endY=").append(y + height);
-	sb.append('}');
-	return sb.toString();
+    final StringBuilder sb = new StringBuilder();
+    sb.append("pos{");
+    sb.append(" x=").append(x);
+    sb.append(", y=").append(y);
+    sb.append(", w=").append(width);
+    sb.append(", h=").append(height);
+    sb.append(", endX=").append(x + width);
+    sb.append(", endY=").append(y + height);
+    sb.append('}');
+    return sb.toString();
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 public float getHeight() {
-	return height;
+    return height;
 }
 
 public float getWidth() {
-	return width;
+    return width;
 }
 
 public float getX() {
-	return x;
+    return x;
 }
 
 public float getY() {
-	return y;
+    return y;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
@@ -152,13 +163,15 @@ public float getY() {
  * @return The area of this rectangle
  */
 public float area() {
-	return width * height;
+    return width * height;
 }
 
-/** Determines the centre point of the rectangle */
+/**
+ * Determines the centre point of the rectangle
+ */
 @NotNull
 public FloatPoint centre() {
-	return new FloatPoint((x + (width / 2.0F)), (y + (height / 2.0F)));
+    return new FloatPoint((x + (width / 2.0F)), (y + (height / 2.0F)));
 }
 
 /**
@@ -168,7 +181,7 @@ public FloatPoint centre() {
  * @return true if the passed rectangle contains this rectangle, false if it does not
  */
 public boolean containedBy(@NotNull Rectangle r) {
-	return r.getEndX() >= getEndX() && r.x <= x && r.getEndY() >= getEndY() && r.y <= y;
+    return r.getEndX() >= getEndX() && r.x <= x && r.getEndY() >= getEndY() && r.y <= y;
 }
 
 /**
@@ -178,7 +191,7 @@ public boolean containedBy(@NotNull Rectangle r) {
  * @return true if this rectangle contains the passed rectangle, false if it does not
  */
 public boolean contains(@NotNull Rectangle r) {
-	return getEndX() >= r.getEndX() && x <= r.x && getEndY() >= r.getEndY() && y <= r.y;
+    return getEndX() >= r.getEndX() && x <= r.x && getEndY() >= r.getEndY() && y <= r.y;
 }
 
 /**
@@ -189,24 +202,24 @@ public boolean contains(@NotNull Rectangle r) {
  * @return distance beween this rectangle and the passed point.
  */
 public float distance(@NotNull final FloatPoint p) {
-	float temp = x - p.x;
-	if (temp < 0.0F) {
-		temp = p.x - getEndX();
-	}
+    float temp = x - p.x;
+    if (temp < 0.0F) {
+        temp = p.x - getEndX();
+    }
 
 
-	float distanceSquared = Math.max(0.0F, temp * temp);
+    float distanceSquared = Math.max(0.0F, temp * temp);
 
-	float temp2 = (y - p.y);
-	if (temp2 < 0.0F) {
-		temp2 = p.y - getEndY();
-	}
+    float temp2 = (y - p.y);
+    if (temp2 < 0.0F) {
+        temp2 = p.y - getEndY();
+    }
 
-	if (temp2 > 0.0F) {
-		distanceSquared += (temp2 * temp2);
-	}
+    if (temp2 > 0.0F) {
+        distanceSquared += (temp2 * temp2);
+    }
 
-	return MathUtils.sqrt(distanceSquared);
+    return MathUtils.sqrt(distanceSquared);
 }
 
 /**
@@ -216,86 +229,80 @@ public float distance(@NotNull final FloatPoint p) {
  * @return the distance
  */
 public float distance(@NotNull Rectangle that) {
-	if (intersectsWith(that)) {
-		return 0.0f;
-	}
-	float distance = 0.0f;
+    if (intersectsWith(that)) {
+        return 0.0f;
+    }
+    float distance = 0.0f;
 
-	if (x > that.getEndX()) {
-		distance += (x - that.getEndX()) * (x - that.getEndX());
-	} else if (that.x > getEndX()) {
-		distance += (that.x - getEndX()) * (that.x - getEndX());
-	}
-	if (y > that.getEndY()) {
-		distance += (y - that.getEndY()) * (y - that.getEndY());
-	} else if (that.y > getEndY()) {
-		distance += (that.y - getEndY()) * (that.y - getEndY());
-	}
+    if (x > that.getEndX()) {
+        distance += (x - that.getEndX()) * (x - that.getEndX());
+    } else if (that.x > getEndX()) {
+        distance += (that.x - getEndX()) * (that.x - getEndX());
+    }
+    if (y > that.getEndY()) {
+        distance += (y - that.getEndY()) * (y - that.getEndY());
+    } else if (that.y > getEndY()) {
+        distance += (that.y - getEndY()) * (that.y - getEndY());
+    }
 
-	return MathUtils.sqrt(distance);
+    return MathUtils.sqrt(distance);
 }
 
 public float getEndX() {
-	return x + width;
+    return x + width;
 }
 
 public float getEndY() {
-	return y + height;
+    return y + height;
 }
 
 public boolean intersectsWith(@NotNull HasPosition other) {
-	final Rectangle that = other.getPos();
+    final Rectangle that = other.getPos();
 
-	if (isEmpty()) {
-		return false;
-	}
+    if (isEmpty()) {
+        return false;
+    }
 
-	if (that.getEndX() < x) {
-		return false;
-	}
-	if (that.x > getEndX()) {
-		return false;
-	}
-	if (that.y > getEndY()) {
-		return false;
-	}
-	return that.getEndY() >= y;
+    if (that.getEndX() < x) {
+        return false;
+    }
+    if (that.x > getEndX()) {
+        return false;
+    }
+    if (that.y > getEndY()) {
+        return false;
+    }
+    return that.getEndY() >= y;
 }
 
-/** Determines if this rectangle has an area of 0 */
+/**
+ * Determines if this rectangle has an area of 0
+ */
 public final boolean isEmpty() {
-	return (width <= 0.0F) || (height <= 0.0F);
+    return (width <= 0.0F) || (height <= 0.0F);
 }
 
-/** I stole this code from java.awt.geom.Rectange2D, im sure the details make sense :) */
+/**
+ * I stole this code from java.awt.geom.Rectange2D, im sure the details make sense :)
+ */
 @NotNull
 public Rectangle union(@NotNull HasPosition that) {
-	Rectangle other = that.getPos();
+    Rectangle other = that.getPos();
 
-	float x1 = Math.min(x, other.x);
-	float y1 = Math.min(y, other.y);
-	float x2 = Math.max(getEndX(), other.getEndX());
-	float y2 = Math.max(getEndY(), other.getEndY());
-	if (x2 < x1) {
-		float t = x1;
-		x1 = x2;
-		x2 = t;
-	}
-	if (y2 < y1) {
-		float t = y1;
-		y1 = y2;
-		y2 = t;
-	}
-	return new Rectangle(x1, y1, x2 - x1, y2 - y1);
-}
-
-public void writeXmlRepresentation(final Appendable sb,
-                                   final int indent,
-                                   final boolean verbose) throws IOException
-{
-	sb.append(" x=\"").append(String.valueOf(x)).append("\"");
-	sb.append(" y=\"").append(String.valueOf(y)).append("\"");
-	sb.append(" w=\"").append(String.valueOf(width)).append("\"");
-	sb.append(" h=\"").append(String.valueOf(height)).append("\"");
+    float x1 = Math.min(x, other.x);
+    float y1 = Math.min(y, other.y);
+    float x2 = Math.max(getEndX(), other.getEndX());
+    float y2 = Math.max(getEndY(), other.getEndY());
+    if (x2 < x1) {
+        float t = x1;
+        x1 = x2;
+        x2 = t;
+    }
+    if (y2 < y1) {
+        float t = y1;
+        y1 = y2;
+        y2 = t;
+    }
+    return new Rectangle(x1, y1, x2 - x1, y2 - y1);
 }
 }

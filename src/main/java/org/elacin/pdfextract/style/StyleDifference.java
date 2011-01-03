@@ -21,7 +21,8 @@ package org.elacin.pdfextract.style;
  * File | Settings | File Templates.
  */
 public enum StyleDifference {
-	SAME_STYLE,
-	SUBTLE_DIFFERENCE,
-	BIG_DIFFERENCE
+    SAME_STYLE_AND_BIG_TEXT,
+    SAME_STYLE,
+    SUBTLE_DIFFERENCE,
+    BIG_DIFFERENCE
 }

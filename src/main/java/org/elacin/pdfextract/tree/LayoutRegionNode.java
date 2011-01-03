@@ -19,13 +19,12 @@ package org.elacin.pdfextract.tree;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.Comparator;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: 29.11.10 Time: 04.27 To change this template use
  * File | Settings | File Templates.
  */
-public class LayoutRegionNode extends AbstractParentNode<ParagraphNode, PageNode> {
+public class LayoutRegionNode extends AbstractParentNode<AbstractParentNode, PageNode> {
 
 private final boolean pictureRegion;
 
@@ -33,7 +32,7 @@ private final boolean pictureRegion;
 // ------------------------ INTERFACE METHODS ------------------------
 
 public LayoutRegionNode(final boolean region) {
-	pictureRegion = region;
+    pictureRegion = region;
 }
 
 
@@ -42,43 +41,47 @@ public LayoutRegionNode(final boolean region) {
 @Override
 public void writeXmlRepresentation(@NotNull final Appendable out,
                                    final int indent,
-                                   final boolean verbose) throws IOException
-{
+                                   final boolean verbose) throws IOException {
 
-	if (pictureRegion) {
-		for (int i = 0; i < indent; i++) {
-			out.append(" ");
-		}
-		out.append("<graphic");
-		getPos().writeXmlRepresentation(out, indent, verbose);
-		out.append(">");
 
-		out.append(">\n");
+    if (pictureRegion) {
+        for (int i = 0; i < indent; i++) {
+            out.append(" ");
+        }
 
-		for (ParagraphNode node : getChildren()) {
-			for (LineNode child : node.getChildren()) {
-				child.writeXmlRepresentation(out, indent + 4, verbose);
-			}
-		}
+        out.append("<graphic");
 
-		for (int i = 0; i < indent; i++) {
-			out.append(" ");
-		}
-		out.append("</graphic>\n");
 
-	} else {
-		for (ParagraphNode child : getChildren()) {
-			child.writeXmlRepresentation(out, indent, verbose); // <-- no extra indentation
-		}
-	}
+        getPos().writeXmlRepresentation(out, indent, verbose);
+        out.append(">");
+
+        out.append(">\n");
+
+        for (AbstractParentNode node : getChildren()) {
+
+            node.writeXmlRepresentation(out, indent + 4, verbose);
+        }
+
+        for (int i = 0; i < indent; i++) {
+            out.append(" ");
+        }
+
+        if (pictureRegion) {
+            out.append("</graphic>\n");
+        }
+    } else {
+        for (AbstractParentNode node : getChildren()) {
+            node.writeXmlRepresentation(out, indent, !pictureRegion && verbose);
+        }
+    }
 }
+
+//@NotNull
+//@Override
+//public Comparator<AbstractParentNode> getChildComparator() {
+//    return Sorting.regionComparator;
+//}
 
 // -------------------------- PUBLIC METHODS --------------------------
-
-@NotNull
-@Override
-public Comparator<ParagraphNode> getChildComparator() {
-	return new StandardNodeComparator();
-}
 
 }

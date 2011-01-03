@@ -37,104 +37,107 @@ public class TextUtils {
 
 @NotNull
 public static Rectangle findBounds(@NotNull final Collection<? extends HasPosition> contents) {
-	final Rectangle newPos;
+    final Rectangle newPos;
 
-	if (contents.isEmpty()) {
-		//TODO: handle empty regions in a better way
-		newPos = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
-	} else {
-		/* calculate bounds for this region */
-		float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
-		float maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE;
+    if (contents.isEmpty()) {
+        //TODO: handle empty regions in a better way
+//		newPos = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
+        throw new RuntimeException("no content!");
+    } else {
+        /* calculate bounds for this region */
+        float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
+        float maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE;
 
-		for (HasPosition content : contents) {
-			minX = Math.min(minX, content.getPos().getX());
-			minY = Math.min(minY, content.getPos().getY());
-			maxX = Math.max(maxX, content.getPos().getEndX());
-			maxY = Math.max(maxY, content.getPos().getEndY());
-		}
-		newPos = new Rectangle(minX, minY, maxX - minX, maxY - minY);
-	}
-	return newPos;
+        for (HasPosition content : contents) {
+            minX = Math.min(minX, content.getPos().getX());
+            minY = Math.min(minY, content.getPos().getY());
+            maxX = Math.max(maxX, content.getPos().getEndX());
+            maxY = Math.max(maxY, content.getPos().getEndY());
+        }
+        newPos = new Rectangle(minX, minY, maxX - minX, maxY - minY);
+    }
+    return newPos;
 }
 
 @NotNull
-public static Style findDominatingStyle(@NotNull final Collection<? extends HasPosition> contents) {
-	if (Formulas.textSeemsToBeFormula(contents)) {
-		return Style.FORMULA;
-	}
+public static Style findDominatingStyle(@NotNull final Collection<? extends HasPosition>
+contents) {
+    if (Formulas.textSeemsToBeFormula(contents)) {
+        return Style.FORMULA;
+    }
 
-	if (!listContainsStyle(contents)){
-		return Style.NO_STYLE;
-	}
+    if (!listContainsStyledText(contents)) {
+        return Style.NO_STYLE;
+    }
 
-	boolean textFound = false;
-	Map<Style, Integer> letterCountPerStyle = new HashMap<Style, Integer>(10);
-	for (HasPosition content : contents) {
-		if (!(content instanceof StyledText)){
-			continue;
-		}
-		StyledText text = (StyledText) content;
+    boolean textFound = false;
+    Map<Style, Integer> letterCountPerStyle = new HashMap<Style, Integer>(10);
+    for (HasPosition content : contents) {
+        if (!(content instanceof StyledText)) {
+            continue;
+        }
+        StyledText text = (StyledText) content;
 
-		final Style style = text.getStyle();
-		if (!letterCountPerStyle.containsKey(style)) {
-			letterCountPerStyle.put(style, 0);
-		}
-		final int numChars = text.getText().length();
-		letterCountPerStyle.put(style, letterCountPerStyle.get(style) + numChars);
-		textFound = true;
-	}
+        final Style style = text.getStyle();
+        if (!letterCountPerStyle.containsKey(style)) {
+            letterCountPerStyle.put(style, 0);
+        }
+        final int numChars = text.getText().length();
+        letterCountPerStyle.put(style, letterCountPerStyle.get(style) + numChars);
+        textFound = true;
+    }
 
-	assert textFound;
+    assert textFound;
 
-	int highestNumChars = -1;
-	Style style = null;
-	for (Map.Entry<Style, Integer> entry : letterCountPerStyle.entrySet()) {
-		if (entry.getValue() > highestNumChars) {
-			style = entry.getKey();
-			highestNumChars = entry.getValue();
-		}
-	}
-	return style;
+    int highestNumChars = -1;
+    Style style = null;
+    for (Map.Entry<Style, Integer> entry : letterCountPerStyle.entrySet()) {
+        if (entry.getValue() > highestNumChars) {
+            style = entry.getKey();
+            highestNumChars = entry.getValue();
+        }
+    }
+    return style;
 }
 
 @NotNull
 public static String getTextPositionString(@NotNull final TextPosition position) {
-	StringBuilder sb = new StringBuilder("pos{");
-	sb.append("c=\"").append(position.getCharacter()).append("\"");
-	sb.append(", XDirAdj=").append(position.getXDirAdj());
-	sb.append(", YDirAdj=").append(position.getYDirAdj());
-	sb.append(", endY=").append(position.getYDirAdj() + position.getHeightDir());
-	sb.append(", endX=").append(position.getXDirAdj() + position.getWidthDirAdj());
+    StringBuilder sb = new StringBuilder("pos{");
+    sb.append("c=\"").append(position.getCharacter()).append("\"");
+    sb.append(", XDirAdj=").append(position.getXDirAdj());
+    sb.append(", YDirAdj=").append(position.getYDirAdj());
+    sb.append(", endY=").append(position.getYDirAdj() + position.getHeightDir());
+    sb.append(", endX=").append(position.getXDirAdj() + position.getWidthDirAdj());
 
-	sb.append(", HeightDir=").append(position.getHeightDir());
-	sb.append(", WidthDirAdj=").append(position.getWidthDirAdj());
+    sb.append(", HeightDir=").append(position.getHeightDir());
+    sb.append(", WidthDirAdj=").append(position.getWidthDirAdj());
 
-	sb.append(", WidthOfSpace=").append(position.getWidthOfSpace());
-	sb.append(", FontSize=").append(position.getFontSize());
-	sb.append(", getIndividualWidths=").append(Arrays.toString(position.getIndividualWidths()));
-	sb.append(", font=").append(position.getFont().getBaseFont());
+    sb.append(", WidthOfSpace=").append(position.getWidthOfSpace());
+    sb.append(", FontSize=").append(position.getFontSize());
+    sb.append(", getIndividualWidths=").append(Arrays.toString(position.getIndividualWidths()));
+    sb.append(", font=").append(position.getFont().getBaseFont());
 
-	sb.append("}");
-	return sb.toString();
+    sb.append("}");
+    return sb.toString();
 }
 
-public static boolean listContainsStyle(@NotNull final Collection<? extends HasPosition> list) {
-	for (HasPosition content : list) {
-		if (content instanceof StyledText){
-			return true;
-		}
-	}
-	return false;
+public static boolean listContainsStyledText(@NotNull final Collection<? extends HasPosition>
+list) {
+    for (HasPosition content : list) {
+        if (content instanceof StyledText) {
+            return true;
+        }
+    }
+    return false;
 }
 
-public static boolean stringContainsAnyCharacterOf(String string, String chars){
+public static boolean stringContainsAnyCharacterOf(String string, String chars) {
 
-	for (int i = 0; i < string.length(); i++){
-		if (chars.indexOf(string.charAt(i)) != -1)
-			return true;
-	}
-	return false;
+    for (int i = 0; i < string.length(); i++) {
+        if (chars.indexOf(string.charAt(i)) != -1)
+            return true;
+    }
+    return false;
 
 }
 

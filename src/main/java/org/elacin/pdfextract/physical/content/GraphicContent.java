@@ -24,7 +24,8 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Nov 3, 2010 Time: 4:43:12 PM To change this template
+ * Created by IntelliJ IDEA. User: elacin Date: Nov 3, 2010 Time: 4:43:12 PM To change this
+ template
  * use File | Settings | File Templates.
  */
 public class GraphicContent extends AssignablePhysicalContent {
@@ -33,48 +34,37 @@ public class GraphicContent extends AssignablePhysicalContent {
 private static final Logger log = Logger.getLogger(GraphicContent.class);
 private final boolean filled;
 private final boolean picture;
-private       boolean canBeAssigned;
-private       boolean backgroundColor;
+private boolean canBeAssigned;
+private final Color color;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public GraphicContent(final Rectangle position,
-                      boolean picture,
-                      boolean filled,
-                      boolean backgroundColor)
-{
-	super(position, null);
-	this.filled = filled;
-	this.picture = picture;
-	this.backgroundColor = backgroundColor;
+public GraphicContent(final Rectangle position, boolean picture, boolean filled, Color color) {
+    super(position, null);
+    this.filled = filled;
+    this.picture = picture;
+    this.color = color;
 
-	if (log.isDebugEnabled()) {
-		log.debug("LOG00280:GraphicContent at " + position + ", filled: " + filled + ", picture = "
-				          + picture);
-	}
-}
-
-public GraphicContent(final Rectangle position,
-                      boolean picture,
-                      boolean filled,
-                      @NotNull Color color)
-{
-	this(position, picture, filled, color.equals(Color.white));
+    if (log.isDebugEnabled()) {
+        log.debug("LOG00280:GraphicContent at " + position + ", filled: " + filled + ",
+        picture = "
+                + picture);
+    }
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
 
 @Override
 public String toString() {
-	final StringBuilder sb = new StringBuilder();
-	sb.append("GraphicContent");
-	sb.append("{canBeAssigned=").append(canBeAssigned);
-	sb.append(", filled=").append(filled);
-	sb.append(", picture=").append(picture);
-	sb.append(", pos=").append(getPos());
-	sb.append(", backgroundColor=").append(backgroundColor);
-	sb.append('}');
-	return sb.toString();
+    final StringBuilder sb = new StringBuilder();
+    sb.append("GraphicContent");
+    sb.append("{canBeAssigned=").append(canBeAssigned);
+    sb.append(", filled=").append(filled);
+    sb.append(", picture=").append(picture);
+    sb.append(", pos=").append(getPos());
+    sb.append(", color=").append(color);
+    sb.append('}');
+    return sb.toString();
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
@@ -82,83 +72,101 @@ public String toString() {
 @NotNull
 @Override
 public GraphicContent getGraphicContent() {
-	return this;
+    return this;
 }
 
 @Override
 public boolean isAssignablePhysicalContent() {
-	return canBeAssigned;
+    return canBeAssigned;
 }
 
 @Override
 public boolean isFigure() {
-	return !picture;
+    return !picture;
 }
 
 @Override
 public boolean isGraphic() {
-	return true;
+    return true;
 }
 
 @Override
 public boolean isPicture() {
-	return picture;
+    return picture;
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-public boolean isBackgroundColor() {
-	return backgroundColor;
+public Color getColor() {
+    return color;
 }
 
 public boolean isFilled() {
-	return filled;
+    return filled;
 }
 
 public void setCanBeAssigned(final boolean canBeAssigned) {
-	this.canBeAssigned = canBeAssigned;
+    this.canBeAssigned = canBeAssigned;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
 public boolean canBeCombinedWith(@NotNull final GraphicContent other) {
-	if (this == other) {
-		return false;
-	}
+    if (this == other) {
+        return false;
+    }
 
-	if (picture && !other.picture) {
-		return false;
-	}
+    if (picture && !other.picture) {
+        return false;
+    }
 
-	return getPos().distance(other.getPos()) < 5.0f;
+    if (getPos().intersectsWith(other.getPos())) {
+        return true;
+    }
+
+    return getPos().distance(other.getPos()) < 5.0f;
 }
 
 @NotNull
 public GraphicContent combineWith(@NotNull final GraphicContent other) {
-	final boolean isBackground = other.backgroundColor && backgroundColor;
-	final boolean isFilled = other.filled || filled;
-	return new GraphicContent(getPos().union(other.getPos()), picture, isFilled, isBackground);
+    Color combinedColor;
+    if (isBackgroundColor()) {
+        combinedColor = other.color;
+    } else {
+        combinedColor = color;
+    }
+
+    final boolean isFilled = other.filled || filled;
+    return new GraphicContent(getPos().union(other.getPos()), picture, isFilled, combinedColor);
+}
+
+public boolean isBackgroundColor() {
+    return color.equals(Color.white);
 }
 
 public boolean isCharacter(@NotNull final PhysicalPageRegion region) {
-	return getStyle() != null && getStyle().equals(Style.GRAPHIC_CHARACTER);
+    return getStyle() != null && getStyle().equals(Style.GRAPHIC_CHARACTER);
 }
 
-/** consider the graphic a separator if the aspect ratio is high */
+/**
+ * consider the graphic a separator if the aspect ratio is high
+ */
 public boolean isHorizontalSeparator() {
-	return getStyle() != null && getStyle().equals(Style.GRAPHIC_HSEP);
+    return getStyle() != null && getStyle().equals(Style.GRAPHIC_HSEP);
 }
 
 public boolean isMathBar(final PhysicalPageRegion region) {
-	return getStyle() != null && getStyle().equals(Style.GRAPHIC_MATH_BAR);
+    return getStyle() != null && getStyle().equals(Style.GRAPHIC_MATH_BAR);
 }
 
 public boolean isSeparator() {
-	return isVerticalSeparator() || isHorizontalSeparator();
+    return isVerticalSeparator() || isHorizontalSeparator();
 }
 
-/** consider the graphic a separator if the aspect ratio is high */
+/**
+ * consider the graphic a separator if the aspect ratio is high
+ */
 public boolean isVerticalSeparator() {
-	return getStyle() != null && getStyle().equals(Style.GRAPHIC_VSEP);
+    return getStyle() != null && getStyle().equals(Style.GRAPHIC_VSEP);
 }
 }

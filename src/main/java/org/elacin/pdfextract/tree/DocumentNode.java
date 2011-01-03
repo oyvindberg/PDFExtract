@@ -35,14 +35,16 @@ public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
 @NotNull
 public final List<WordNode> words = new ArrayList<WordNode>();
 
-/** this contains all the different styles used in the document */
+/**
+ * this contains all the different styles used in the document
+ */
 @NotNull
 protected final DocumentStyles styles = new DocumentStyles();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public DocumentNode() {
-	setRoot(this);
+    setRoot(this);
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
@@ -50,16 +52,15 @@ public DocumentNode() {
 @Override
 public void writeXmlRepresentation(@NotNull final Appendable out,
                                    final int indent,
-                                   final boolean verbose) throws IOException
-{
-	out.append("<document>\n");
+                                   final boolean verbose) throws IOException {
+    out.append("<document>\n");
 
-	styles.writeXmlRepresentation(out, indent + 4, verbose);
+    styles.writeXmlRepresentation(out, indent + 4, verbose);
 
-	for (PageNode node : getChildren()) {
-		node.writeXmlRepresentation(out, indent + 4, verbose);
-	}
-	out.append("</document");
+    for (PageNode node : getChildren()) {
+        node.writeXmlRepresentation(out, indent + 4, verbose);
+    }
+    out.append("</document");
 
 }
 
@@ -67,35 +68,37 @@ public void writeXmlRepresentation(@NotNull final Appendable out,
 
 @NotNull
 public DocumentStyles getStyles() {
-	return styles;
+    return styles;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-/** Returns a Comparator which will compare pagenumbers of the pages */
+/**
+ * Returns a Comparator which will compare pagenumbers of the pages
+ */
 @NotNull
 @Override
-public Comparator<PageNode> getChildComparator() {
-	return new Comparator<PageNode>() {
-		public int compare(@NotNull final PageNode o1, @NotNull final PageNode o2) {
-			if (o1.getPage().getPageNumber() < o2.getPage().getPageNumber()) {
-				return -1;
-			} else if (o1.getPage().getPageNumber() > o2.getPage().getPageNumber()) {
-				return 1;
-			}
+public Comparator getChildComparator() {
+    return new Comparator<PageNode>() {
+        public int compare(@NotNull final PageNode o1, @NotNull final PageNode o2) {
+            if (o1.getPage().getPageNumber() < o2.getPage().getPageNumber()) {
+                return -1;
+            } else if (o1.getPage().getPageNumber() > o2.getPage().getPageNumber()) {
+                return 1;
+            }
 
-			return 0;
-		}
-	};
+            return 0;
+        }
+    };
 }
 
 @Nullable
 public PageNode getPageNumber(final int pageNumber) {
-	for (PageNode pageNode : getChildren()) {
-		if (pageNode.getPageNumber() == pageNumber) {
-			return pageNode;
-		}
-	}
-	return null;
+    for (PageNode pageNode : getChildren()) {
+        if (pageNode.getPageNumber() == pageNumber) {
+            return pageNode;
+        }
+    }
+    return null;
 }
 }

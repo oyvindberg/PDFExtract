@@ -17,20 +17,18 @@
 package org.elacin.pdfextract.physical;
 
 import org.apache.log4j.Logger;
-import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
+import org.elacin.pdfextract.physical.content.WhitespaceRectangle;
 import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentator;
-import org.elacin.pdfextract.style.Style;
+import org.elacin.pdfextract.physical.segmentation.region.PageSegmentator;
 import org.elacin.pdfextract.tree.LayoutRegionNode;
 import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.tree.ParagraphNode;
-import org.elacin.pdfextract.util.*;
-import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -39,166 +37,165 @@ public class PhysicalPage {
 
 private static final Logger log = Logger.getLogger(PhysicalPage.class);
 
-/** The physical page number (ie the sequence encountered in the document) */
+/**
+ * The physical page number (ie the sequence encountered in the document)
+ */
 private final int pageNumber;
 
-
 /**
- * The analysis will split the contents into regions based on how things are contained within images
- * or within detected columns.
- */
-@NotNull
-private final List<PhysicalPageRegion> regions = new ArrayList<PhysicalPageRegion>();
-
-/**
- * This initially contains everything on the page. after creating the regions, content will be moved
+ * This initially contains everything on the page. after creating the regions,
+ content will be moved
  * from here. ideally this should be quite empty after the analysis.
  */
 @NotNull
-private final PhysicalPageRegion originalWholePage;
+private final PhysicalPageRegion mainRegion;
 
-/** Contains all the graphics on the page */
+/**
+ * Contains all the graphics on the page
+ */
 @NotNull
 private final GraphicSegmentator graphics;
-private final Rectangle pageDimensions;
+
+private final int numberOfWords;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public PhysicalPage(@NotNull List<? extends PhysicalContent> contents,
                     @NotNull final GraphicSegmentator graphics,
-                    int pageNumber) throws Exception
-{
-	this.pageNumber = pageNumber;
-	originalWholePage = new PhysicalPageRegion(contents, pageNumber);
-	regions.add(originalWholePage);
-	this.graphics = graphics;
-	pageDimensions = originalWholePage.getPos();
-}
+                    int pageNumber) throws Exception {
+    this.pageNumber = pageNumber;
+    this.graphics = graphics;
 
-// -------------------------- STATIC METHODS --------------------------
+    mainRegion = new PhysicalPageRegion(contents, this);
+    numberOfWords = contents.size();
 
-@NotNull
-private static PriorityQueue<GraphicContent> createSmallestFirstQueue(@NotNull final List<GraphicContent> graphicalRegions) {
-	final Comparator<GraphicContent> smallestComparator = new Comparator<GraphicContent>() {
-		public int compare(@NotNull final GraphicContent o1, @NotNull final GraphicContent o2) {
-			return Float.compare(o1.getPos().area(), o2.getPos().area());
-		}
-	};
-
-	final int capacity = Math.max(1, graphicalRegions.size());
-	PriorityQueue<GraphicContent> queue = new PriorityQueue<GraphicContent>(capacity,
-	                                                                        smallestComparator);
-	queue.addAll(graphicalRegions);
-	return queue;
+    graphics.segmentGraphicsUsingContentInRegion(mainRegion);
+    mainRegion.addContents(graphics.getContents());
+    mainRegion.addContents(graphics.getHorizontalSeparators());
+    mainRegion.addContents(graphics.getVerticalSeparators());
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
+@NotNull
+public GraphicSegmentator getGraphics() {
+    return graphics;
+}
+
+//private void verifyThatAllContentHasLine() {
+//    for (PhysicalPageRegion region : regions) {
+//        for (PhysicalPageRegion subRegion : region.getSubregions()) {
+//            for (PhysicalContent content : subRegion.getContents()) {
+//                if (content.isAssignablePhysicalContent() && !content
+.getAssignablePhysicalContent()
+//                        .isAssignedBlock()) {
+//                    log.error("LOG00711:content " + content + "not assigned line");
+//                }
+//            }
+//        }
+//        for (PhysicalContent content : region.getContents()) {
+//            if (content.isAssignablePhysicalContent() && !content.getAssignablePhysicalContent
+()
+//                    .isAssignedBlock()) {
+//                log.error("LOG00710:content " + content + "not assigned line");
+//            }
+//        }
+//    }
+//}
+
+
+@NotNull
+public PhysicalPageRegion getMainRegion() {
+    return mainRegion;
+}
+
 public int getPageNumber() {
-	return pageNumber;
+    return pageNumber;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
 @NotNull
 public PageNode compileLogicalPage() {
-	long t0 = System.currentTimeMillis();
-
-	graphics.segmentGraphicsUsingContentInRegion(originalWholePage);
-	originalWholePage.addContent(graphics.getContentGraphics());
-
-	/** separate out the content which is contained within a graphic.
-	 * sort the graphics by smallest, because they frequently do overlap.
-	 * */
-	PriorityQueue<GraphicContent> queue = createSmallestFirstQueue(graphics.getGraphicalRegions());
-
-	while (!queue.isEmpty()) {
-		final GraphicContent graphic = queue.remove();
-
-		try {
-			final PhysicalPageRegion region = originalWholePage.extractSubRegion(graphic, graphic);
-			if (null != region) {
-				regions.add(region);
-				if (log.isInfoEnabled()) {
-					log.info("LOG00340:Added subregion " + region);
-				}
-			}
-		} catch (Exception e) {
-			log.info("LOG00320:Could not divide page::" + e.getMessage());
-			if (graphic.getPos().area() < originalWholePage.getPos().area() * 0.4f) {
-				if (log.isInfoEnabled()) { log.info("LOG00690:Adding " + graphic + " as content");}
-				graphic.setCanBeAssigned(true);
-				graphic.setStyle(Style.GRAPHIC_IMAGE);
-				originalWholePage.addContent(graphic);
-			} else {
-				graphics.getGraphicsToRender().remove(graphic);
-			}
-		}
-	}
+    long t0 = System.currentTimeMillis();
 
 
-	for (int i = 0, size = regions.size(); i < size; i++) {
-		final PhysicalPageRegion region = regions.get(i);
-		regions.addAll(region.splitInVerticalColumns());
-	}
+    PageSegmentator.segmentPageRegionWithSubRegions(this);
 
-	PageNode page = new PageNode(pageNumber);
+    PageNode page = new PageNode(pageNumber);
 
-	for (PhysicalPageRegion region : regions) {
-		LayoutRegionNode regionNode = new LayoutRegionNode(region.isContainedInGraphic());
+    List<LayoutRegionNode> regions = createRegionNodes();
+    for (LayoutRegionNode regionNode : regions) {
+        page.addChild(regionNode);
+    }
+    if (log.isInfoEnabled()) {
+        log.info("LOG00940:Page had " + regions.size() + " regions");
+    }
 
-		List<ParagraphNode> paragraphs = region.createParagraphNodes();
+//    verifyThatAllContentHasLine();
 
-		for (ParagraphNode paragraph : paragraphs) {
-			regionNode.addChild(paragraph);
-		}
-		page.addChild(regionNode);
-	}
+    addRenderingInformation(page);
 
-	verifyThatAllContentHasLine();
-
-	/* for rendering only */
-	List<GraphicContent> filled = new ArrayList<GraphicContent>();
-	List<GraphicContent> unFilled = new ArrayList<GraphicContent>();
-	List<GraphicContent> pictures = new ArrayList<GraphicContent>();
-
-	for (GraphicContent content : graphics.getGraphicsToRender()) {
-		if (content.isPicture()) {
-			pictures.add(content);
-		} else if (content.isFilled()) {
-			filled.add(content);
-		} else {
-			unFilled.add(content);
-		}
-	}
-	page.addDebugFeatures(Color.CYAN, pictures);
-	page.addDebugFeatures(Color.CYAN, filled);
-	page.addDebugFeatures(Color.CYAN, unFilled);
-
-	if (log.isInfoEnabled()) {
-		log.info("LOG00230:compileLogicalPage took " + (System.currentTimeMillis() - t0) + " ms");
-	}
-	return page;
+    if (log.isInfoEnabled()) {
+        log.info("LOG00230:compileLogicalPage took " + (System.currentTimeMillis() - t0) + " ms")
+        ;
+    }
+    return page;
 }
 
 // -------------------------- OTHER METHODS --------------------------
 
-private void verifyThatAllContentHasLine() {
-	for (PhysicalPageRegion region : regions) {
-		for (PhysicalPageRegion subRegion : region.getSubregions()) {
-			for (PhysicalContent content : subRegion.getContents()) {
-				if (content.isAssignablePhysicalContent() && !content.getAssignablePhysicalContent()
-				                                                     .isAssignedBlock()) {
-					log.error("LOG00711:content " + content + "not assigned line");
-				}
-			}
-		}
-		for (PhysicalContent content : region.getContents()) {
-			if (content.isAssignablePhysicalContent() && !content.getAssignablePhysicalContent()
-			                                                     .isAssignedBlock()) {
-				log.error("LOG00710:content " + content + "not assigned line");
-			}
-		}
-	}
+private void addRenderingInformation(PageNode page) {
+    page.addDebugFeatures(Color.CYAN, graphics.getGraphicsToRender());
+
+    final List<WhitespaceRectangle> whitespaces = new ArrayList<WhitespaceRectangle>();
+    addWhiteSpaceFromRegion(whitespaces, mainRegion);
+    page.addDebugFeatures(Color.GREEN, whitespaces);
+}
+
+private static void addWhiteSpaceFromRegion(List<WhitespaceRectangle> whitespaces,
+PhysicalPageRegion region) {
+    whitespaces.addAll(region.getWhitespace());
+    for (PhysicalPageRegion subRegion : region.getSubregions()) {
+        addWhiteSpaceFromRegion(whitespaces, subRegion);
+    }
+}
+
+private List<LayoutRegionNode> createRegionNodes() {
+    List<LayoutRegionNode> ret = new ArrayList<LayoutRegionNode>();
+
+
+    LayoutRegionNode regionNode = new LayoutRegionNode(false);
+
+    List<ParagraphNode> paragraphs = mainRegion.createParagraphNodes();
+    for (ParagraphNode paragraph : paragraphs) {
+        regionNode.addChild(paragraph);
+    }
+    if (!regionNode.getChildren().isEmpty()) {
+        ret.add(regionNode);
+    }
+
+
+    for (PhysicalPageRegion subRegion : mainRegion.getSubregions()) {
+        ret.add(createRegionNode(subRegion));
+    }
+
+
+    return ret;
+}
+
+private static LayoutRegionNode createRegionNode(PhysicalPageRegion region) {
+    LayoutRegionNode regionNode = new LayoutRegionNode(region.getContainingGraphic() != null);
+
+    List<ParagraphNode> paragraphs = region.createParagraphNodes();
+    for (ParagraphNode paragraph : paragraphs) {
+        regionNode.addChild(paragraph);
+    }
+
+    for (PhysicalPageRegion subRegion : region.getSubregions()) {
+        regionNode.addChild(createRegionNode(subRegion));
+    }
+
+    return regionNode;
 }
 }

@@ -28,37 +28,42 @@ private static final int SUBTLE_SIZE_DIFFERENCE = 2;
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
 public static StyleDifference styleCompare(final Style one, final Style two) {
-	if (one.mathFont != two.mathFont) {
-		return BIG_DIFFERENCE;
-	}
+    if (one.mathFont != two.mathFont) {
+        return BIG_DIFFERENCE;
+    }
 
-	if (one.mathFont && two.mathFont) {
-		return SAME_STYLE;
-	}
+    if (one.mathFont && two.mathFont) {
+        return SAME_STYLE;
+    }
 
-	if (one.bold != two.bold) {
-		return BIG_DIFFERENCE;
-	}
+    if (one.bold != two.bold) {
+        return BIG_DIFFERENCE;
+    }
 
-	if (!one.fontName.equals(two.fontName)) {
-		return BIG_DIFFERENCE;
-	}
+    if (!one.fontName.equals(two.fontName)) {
+        return BIG_DIFFERENCE;
+    }
 
-	final int xDiff = Math.abs(one.ySize - two.ySize);
-	final int yDiff = Math.abs(one.ySize - two.ySize);
+    final int xDiff = Math.abs(one.ySize - two.ySize);
+    final int yDiff = Math.abs(one.ySize - two.ySize);
 
-	if (xDiff == SUBTLE_SIZE_DIFFERENCE || yDiff == SUBTLE_SIZE_DIFFERENCE) {
-		return SUBTLE_DIFFERENCE;
-	}
+    if (xDiff == SUBTLE_SIZE_DIFFERENCE || yDiff == SUBTLE_SIZE_DIFFERENCE) {
+        return SUBTLE_DIFFERENCE;
+    }
 
-	if (xDiff > SUBTLE_SIZE_DIFFERENCE || yDiff > SUBTLE_SIZE_DIFFERENCE) {
-		return BIG_DIFFERENCE;
-	}
+    if (xDiff > SUBTLE_SIZE_DIFFERENCE || yDiff > SUBTLE_SIZE_DIFFERENCE) {
+        return BIG_DIFFERENCE;
+    }
 
-	if (one.italic != two.italic) {
-		return SUBTLE_DIFFERENCE;
-	}
+    if (one.italic != two.italic) {
+        return SUBTLE_DIFFERENCE;
+    }
 
-	return SAME_STYLE;
+    if (one.ySize > 18.0f) {
+        return SAME_STYLE_AND_BIG_TEXT;
+    }
+
+
+    return SAME_STYLE;
 }
 }

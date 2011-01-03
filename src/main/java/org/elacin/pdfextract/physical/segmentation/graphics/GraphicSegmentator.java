@@ -13,13 +13,17 @@ import java.util.List;
 public interface GraphicSegmentator {
 
 @NotNull
-List<GraphicContent> getContentGraphics();
+List<GraphicContent> getContents();
 
 @NotNull
-List<GraphicContent> getGraphicalRegions();
+List<GraphicContent> getContainers();
 
 @NotNull
 List<GraphicContent> getGraphicsToRender();
 
 void segmentGraphicsUsingContentInRegion(PhysicalPageRegion region);
+
+List<GraphicContent> getVerticalSeparators();
+
+List<GraphicContent> getHorizontalSeparators();
 }

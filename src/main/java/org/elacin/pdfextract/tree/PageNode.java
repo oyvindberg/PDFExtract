@@ -17,7 +17,7 @@
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.physical.content.HasPosition;
-import org.elacin.pdfextract.util.MathUtils;
+import org.elacin.pdfextract.util.Sorting;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
@@ -34,96 +34,70 @@ public class PageNode extends AbstractParentNode<LayoutRegionNode, DocumentNode>
 
 private final int pageNumber;
 @NotNull
-private final Map<Color, List<HasPosition>> debugFeatures = new HashMap<Color, List<HasPosition>>();
+private final Map<Color, List<HasPosition>> debugFeatures = new HashMap<Color,
+List<HasPosition>>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public PageNode(int pageNumber) {
-	this.pageNumber = pageNumber;
+    this.pageNumber = pageNumber;
 }
 
-// ------------------------ OVERRIDING METHODS ------------------------
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface XmlPrinter ---------------------
 
 @Override
 public void writeXmlRepresentation(@NotNull final Appendable out,
                                    final int indent,
-                                   final boolean verbose) throws IOException
-{
-	for (int i = 0; i < indent; i++) {
-		out.append(" ");
-	}
-	out.append("<page");
-	out.append(" num=\"").append(Integer.toString(pageNumber)).append("\"");
-	if (verbose) {
-		getPos().writeXmlRepresentation(out, indent, verbose);
-	}
-	out.append(">\n");
+                                   final boolean verbose) throws IOException {
+    for (int i = 0; i < indent; i++) {
+        out.append(" ");
+    }
+    out.append("<page");
+    out.append(" num=\"").append(Integer.toString(pageNumber)).append("\"");
+    if (verbose) {
+        getPos().writeXmlRepresentation(out, indent, verbose);
+    }
+    out.append(">\n");
 
-	for (LayoutRegionNode child : getChildren()) {
-		child.writeXmlRepresentation(out, indent + 4, verbose);
-	}
+    for (LayoutRegionNode child : getChildren()) {
+        child.writeXmlRepresentation(out, indent + 4, verbose);
+    }
 
-	for (int i = 0; i < indent; i++) {
-		out.append(" ");
-	}
-	out.append("</page>\n");
-
-
+    for (int i = 0; i < indent; i++) {
+        out.append(" ");
+    }
+    out.append("</page>\n");
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 @NotNull
 public Map<Color, List<HasPosition>> getDebugFeatures() {
-	return debugFeatures;
+    return debugFeatures;
 }
 
 public int getPageNumber() {
-	return pageNumber;
+    return pageNumber;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
 public void addDebugFeatures(final Color color, final List<? extends HasPosition> list) {
-	if (!debugFeatures.containsKey(color)) {
-		debugFeatures.put(color, new ArrayList<HasPosition>());
-	}
-	debugFeatures.get(color).addAll(list);
+    if (!debugFeatures.containsKey(color)) {
+        debugFeatures.put(color, new ArrayList<HasPosition>());
+    }
+    debugFeatures.get(color).addAll(list);
 }
 
-/** Returns a Comparator which compares coordinates within a page */
+/**
+ * Returns a Comparator which compares coordinates within a page
+ */
 @NotNull
 @Override
-public Comparator<LayoutRegionNode> getChildComparator() {
-	return new Comparator<LayoutRegionNode>() {
-		@Override
-		public int compare(final LayoutRegionNode o1, final LayoutRegionNode o2) {
-			if (o1.getPos().getEndX() < o2.getPos().getX()) {
-				return -1;
-			}
-			if (o1.getPos().getX() > o2.getPos().getEndX()) {
-				return 1;
-			}
-			if (o1.getPos().getEndY() < o2.getPos().getY()) {
-				return -1;
-			}
-			if (o1.getPos().getY() > o2.getPos().getEndY()) {
-				return 1;
-			}
-
-
-
-
-			if (!MathUtils.isWithinPercent(o1.getPos().getY(), o2.getPos().getY(), 4)) {
-				return Float.compare(o1.getPos().getY(), o2.getPos().getY());
-			}
-
-			return Float.compare(o1.getPos().getX(), o2.getPos().getX());
-
-			//			if (f1 < f2)
-			//			     return -1;		 // Neither val is NaN, thisVal is smaller
-
-		}
-	};
+public Comparator<HasPosition> getChildComparator() {
+    return Sorting.regionComparator;
 }
 }

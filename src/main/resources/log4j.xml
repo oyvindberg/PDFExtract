@@ -104,7 +104,7 @@
     </logger>
 
     <logger name="org.elacin.pdfextract.physical">
-        <level value="WARN"/>
+        <level value="INFO"/>
     </logger>
 
     <logger name="org.elacin.pdfextract.style">

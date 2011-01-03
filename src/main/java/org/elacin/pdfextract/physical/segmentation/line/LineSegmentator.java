@@ -27,130 +27,132 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static org.elacin.pdfextract.util.Sorting.sortByLowerX;
+
 /**
  * Created by IntelliJ IDEA. User: elacin Date: 12.11.10 Time: 20.30 To change this template use
  * File | Settings | File Templates.
  */
 public class LineSegmentator {
+// ------------------------------ FIELDS ------------------------------
 
 final float tolerance;
 
+// --------------------------- CONSTRUCTORS ---------------------------
+
 public LineSegmentator(final float tolerance) {
-	this.tolerance = tolerance;
+    this.tolerance = tolerance;
 }
 
 // -------------------------- STATIC METHODS --------------------------
 
 @NotNull
 private static WordNode createWordNode(@NotNull final PhysicalText text, int pageNumber) {
-	return new WordNode(text.getPos(), pageNumber, text.getStyle(), text.text, text.charSpacing);
+    return new WordNode(text.getPos(), pageNumber, text.getStyle(), text.text, text.charSpacing);
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
 @NotNull
 public List<LineNode> segmentLines(@NotNull PhysicalPageRegion region) {
-	final Rectangle pos = region.getPos();
-	final List<LineNode> ret = new ArrayList<LineNode>();
+    final Rectangle pos = region.getPos();
+    final List<LineNode> ret = new ArrayList<LineNode>();
 
-	final Set<PhysicalContent> workingSet = new HashSet<PhysicalContent>();
+    final Set<PhysicalContent> workingSet = new HashSet<PhysicalContent>();
 
-	for (float y = pos.getY(); y < pos.getEndY(); y++) {
-		final List<PhysicalContent> row = region.findContentAtYIndex(y);
-
-
-		/* remove the text from row which has already been assigned a line*/
-		Iterator<PhysicalContent> iterator = row.iterator();
-		while (iterator.hasNext()) {
-			final PhysicalContent content = iterator.next();
-			if (content.isAssignablePhysicalContent()) {
-				if (content.getAssignablePhysicalContent().isAssignedBlock()) {
-					iterator.remove();
-				}
-			}
-		}
+    for (float y = pos.getY(); y < pos.getEndY() + 1.0f; y++) {
+        final List<PhysicalContent> row = region.findContentAtYIndex(y);
 
 
-		workingSet.addAll(row);
+        /* remove the text from row which has already been assigned a line*/
+        Iterator<PhysicalContent> iterator = row.iterator();
+        while (iterator.hasNext()) {
+            final PhysicalContent content = iterator.next();
+            if (content.isAssignablePhysicalContent()) {
+                if (content.getAssignablePhysicalContent().isAssignedBlock()) {
+                    iterator.remove();
+                }
+            } else {
+                iterator.remove();
+            }
+        }
 
-		if ((isProbableLineBoundary(region, workingSet, y) || y + 1.0f > pos.getEndY())
-				&& !workingSet.isEmpty()) {
-			LineNode lineNode = createLineFrom(region, workingSet);
-			if (!lineNode.getChildren().isEmpty()) {
-				ret.add(lineNode);
-			}
-			workingSet.clear();
 
-		}
+        workingSet.addAll(row);
 
-	}
+        if ((isProbableLineBoundary(region, workingSet, y) || y + 1.0f > pos.getEndY() + 1)
+                && !workingSet.isEmpty()) {
+            LineNode lineNode = createLineFrom(region, workingSet);
+            if (!lineNode.getChildren().isEmpty()) {
+                ret.add(lineNode);
+            }
+            workingSet.clear();
+        }
+    }
 
-	return ret;
+    if (!workingSet.isEmpty()) {
+        LineNode lineNode = createLineFrom(region, workingSet);
+        ret.add(lineNode);
+    }
+
+    return ret;
 }
 
-private boolean isProbableLineBoundary(@NotNull PhysicalPageRegion region,
-                                       @NotNull final Set<PhysicalContent> set,
-                                       final float yBoundary)
-{
-
-	/**
-	 * Finds all content on lines above and below the proposed boundary, and sorts it on ascending x
-	 */
-	Set<PhysicalContent> contents = new TreeSet<PhysicalContent>(new Comparator<PhysicalContent>() {
-
-		@Override
-		public int compare(@NotNull final PhysicalContent o1, @NotNull final PhysicalContent o2) {
-			return Float.compare(o1.getPos().getX(), o2.getPos().getX());
-		}
-	});
-
-	final float startLooking = yBoundary;
-	final float endLooking = Math.min(region.getPos().getEndY(), yBoundary + tolerance);
-	for (float y = startLooking; y <= endLooking; y += 1.0f) {
-		contents.addAll(region.findContentAtYIndex(y));
-	}
-
-	for (PhysicalContent content : contents) {
-		if (!content.isText()) {
-			continue;
-		}
-		final Rectangle pos = content.getPos();
-		if (pos.getY() < startLooking && pos.getEndY() > endLooking) {
-			return false;
-		}
-		if (set.contains(content)) {
-			return false;
-		}
-	}
-
-
-	return true;
-}
-
+// -------------------------- OTHER METHODS --------------------------
 
 @NotNull
 private LineNode createLineFrom(@NotNull final PhysicalPageRegion region,
-                                @NotNull final Set<PhysicalContent> workingSet)
-{
-	LineNode lineNode = new LineNode();
-	for (PhysicalContent content : workingSet) {
+                                @NotNull final Set<PhysicalContent> workingSet) {
+    LineNode lineNode = new LineNode();
+    for (PhysicalContent content : workingSet) {
+        if (content.isAssignablePhysicalContent() && !content.getAssignablePhysicalContent()
+                .isAssignedBlock()) {
+            if (content.isText()) {
+                lineNode.addChild(createWordNode(content.getPhysicalText(),
+                region.getPageNumber()));
+            } else if (content.isGraphic()) {
+                final Style style = content.getGraphicContent().getStyle();
+                lineNode.addChild(new WordNode(content.getPos(), region.getPageNumber(), style,
+                style.id,
+                        0.0f));
+            } else {
+                throw new RuntimeException("asd");
+            }
 
-		if (content.isAssignablePhysicalContent() && !content.getAssignablePhysicalContent()
-		                                                     .isAssignedBlock()) {
+            content.getAssignablePhysicalContent().setBlockNum(1);
+        }
+    }
+    return lineNode;
+}
 
-			if (content.isText()) {
-				lineNode.addChild(createWordNode(content.getPhysicalText(), region.getPageNumber()));
-			} else if (content.isGraphic()) {
-				final Style style = content.getGraphicContent().getStyle();
-				lineNode.addChild(new WordNode(content.getPos(), region.getPageNumber(), style, style.id,
-						             0.0f));
-			} else {
-				throw new RuntimeException("asd");
-			}
+private boolean isProbableLineBoundary(@NotNull PhysicalPageRegion region,
+                                       @NotNull final Set<PhysicalContent> lineContents,
+                                       final float yBoundary) {
 
-			content.getAssignablePhysicalContent().setBlockNum(1);
-		}
-	}
-	return lineNode;
+    /** Finds all content on lines above and below the proposed boundary,
+    and sorts it on ascending x */
+    Set<PhysicalContent> contentsAroundBoundary = new TreeSet<PhysicalContent>(sortByLowerX);
+
+    final float startLooking = yBoundary;
+    final float endLooking = Math.min(region.getPos().getEndY(), yBoundary + tolerance);
+    for (float y = startLooking; y <= endLooking; y += 1.0f) {
+        contentsAroundBoundary.addAll(region.findContentAtYIndex(y));
+    }
+
+    for (PhysicalContent content : contentsAroundBoundary) {
+        if (!content.isText()) {
+            continue;
+        }
+        final Rectangle pos = content.getPos();
+        if (pos.getY() < startLooking && pos.getEndY() > endLooking) {
+            return false;
+        }
+        if (lineContents.contains(content)) {
+            return false;
+        }
+    }
+
+
+    return true;
 }
 }

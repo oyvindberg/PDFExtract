@@ -57,12 +57,12 @@ private final DocumentNode root;
 
 private int currentPageNo;
 private int startPage = 1;
-private int endPage   = Integer.MAX_VALUE;
+private int endPage = Integer.MAX_VALUE;
 
 /* used to filter out text which is written several times to create a bold effect */
 @NotNull
 private final Map<String, List<TextPosition>> characterListMapping
-		= new HashMap<String, List<TextPosition>>();
+        = new HashMap<String, List<TextPosition>>();
 
 /* The normalizer is used to remove text ligatures/presentation forms and to correct
 the direction of right to left text, such as Arabic and Hebrew. */
@@ -74,147 +74,149 @@ private final PDDocument doc;
 
 public PDFTextStripper(final PDDocument doc,
                        final int startPage,
-                       final int endPage) throws IOException
-{
-	super();
+                       final int endPage) throws IOException {
+    super();
 
-	root = new DocumentNode();
-	this.doc = doc;
-	this.startPage = startPage;
-	this.endPage = endPage;
+    root = new DocumentNode();
+    this.doc = doc;
+    this.startPage = startPage;
+    this.endPage = endPage;
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
 
 /**
- * This will process a TextPosition object and add the text to the list of characters on a page.  It
+ * This will process a TextPosition object and add the text to the list of characters on a page.
+  It
  * takes care of overlapping text.
  *
  * @param text The text to process.
  */
 protected void processTextPosition(@NotNull TextPosition text) {
+    super.processTextPosition(text);
 
-	if (!includeText(text)) {
-		if (log.isInfoEnabled()) {
-			log.info("LOG00770: ignoring textposition " + TextUtils.getTextPositionString(text)
-					         + "because it seems to be rendered two times");
-		}
-		return;
-	}
+    if (!includeText(text)) {
+        if (log.isInfoEnabled()) {
+            log.info("LOG00770: ignoring textposition " + TextUtils.getTextPositionString(text)
+                    + " because it seems to be rendered two times");
+        }
+        return;
+    }
 
-	if (!MathUtils.isWithinPercent(text.getDir(), (float) page.findRotation(), 1)) {
-		log.warn("LOG00560: ignoring textposition " + TextUtils.getTextPositionString(text)
-				         + "because it has " + "wrong rotation. TODO :)");
-		return;
-	}
+    if (!MathUtils.isWithinPercent(text.getDir(), (float) page.findRotation(), 1)) {
+        log.warn("LOG00560: ignoring textposition " + TextUtils.getTextPositionString(text)
+                + "because it has " + "wrong rotation. TODO :)");
+        return;
+    }
 
-	/* In the wild, some PDF encoded documents put diacritics (accents on
-			 * top of characters) into a separate Tj element.  When displaying them
-			 * graphically, the two chunks get overlayed.  With text output though,
-			 * we need to do the overlay. This code recombines the diacritic with
-			 * its associated character if the two are consecutive.
-			 */
-	if (charactersForPage.isEmpty()) {
-		charactersForPage.add((ETextPosition) text);
-	} else {
-		/* test if we overlap the previous entry. Note that we are making an
-									assumption that we need to only look back one TextPosition to
-									find what we are overlapping.
-									This may not always be true. */
+    /* In the wild, some PDF encoded documents put diacritics (accents on
+              * top of characters) into a separate Tj element.  When displaying them
+              * graphically, the two chunks get overlayed.  With text output though,
+              * we need to do the overlay. This code recombines the diacritic with
+              * its associated character if the two are consecutive.
+              */
+    if (charactersForPage.isEmpty()) {
+        charactersForPage.add((ETextPosition) text);
+    } else {
+        /* test if we overlap the previous entry. Note that we are making an
+                                      assumption that we need to only look back one TextPosition
+                                      to
+                                      find what we are overlapping.
+                                      This may not always be true. */
 
-		TextPosition previousTextPosition = charactersForPage.get(charactersForPage.size() - 1);
+        TextPosition previousTextPosition = charactersForPage.get(charactersForPage.size() - 1);
 
-		if (text.isDiacritic() && previousTextPosition.contains(text)) {
-			previousTextPosition.mergeDiacritic(text, normalize);
-		}
+        if (text.isDiacritic() && previousTextPosition.contains(text)) {
+            previousTextPosition.mergeDiacritic(text, normalize);
+        }
 
-		/* If the previous TextPosition was the diacritic, merge it into
-									this one and remove it from the list. */
-		else if (previousTextPosition.isDiacritic() && text.contains(previousTextPosition)) {
-			text.mergeDiacritic(previousTextPosition, normalize);
-			charactersForPage.remove(charactersForPage.size() - 1);
-			charactersForPage.add((ETextPosition) text);
-		} else {
-			charactersForPage.add((ETextPosition) text);
-		}
-	}
+        /* If the previous TextPosition was the diacritic, merge it into
+                                      this one and remove it from the list. */
+        else if (previousTextPosition.isDiacritic() && text.contains(previousTextPosition)) {
+            text.mergeDiacritic(previousTextPosition, normalize);
+            charactersForPage.remove(charactersForPage.size() - 1);
+            charactersForPage.add((ETextPosition) text);
+        } else {
+            charactersForPage.add((ETextPosition) text);
+        }
+    }
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
 @NotNull
 public DocumentNode getDocumentNode() {
-	return root;
+    return root;
 }
 
 public void processDocument() throws IOException {
-	resetEngine();
-	try {
-		if (doc.isEncrypted()) {
-			doc.decrypt("");
-		}
-	} catch (Exception e) {
-		throw new RuntimeException("Could not decrypt document", e);
-	}
-	currentPageNo = 0;
+    resetEngine();
+    try {
+        if (doc.isEncrypted()) {
+            doc.decrypt("");
+        }
+    } catch (Exception e) {
+        throw new RuntimeException("Could not decrypt document", e);
+    }
+    currentPageNo = 0;
 
-	for (final PDPage nextPage : (List<PDPage>) doc.getDocumentCatalog().getAllPages()) {
-		PDStream contentStream = nextPage.getContents();
-		currentPageNo++;
-		if (contentStream != null) {
-			COSStream contents = contentStream.getStream();
-			processPage(nextPage, contents);
-		}
-	}
+    for (final PDPage nextPage : (List<PDPage>) doc.getDocumentCatalog().getAllPages()) {
+        PDStream contentStream = nextPage.getContents();
+        currentPageNo++;
+        if (contentStream != null) {
+            COSStream contents = contentStream.getStream();
+            processPage(nextPage, contents);
+        }
+    }
 
-	/* postprocessing */
-	new RecognizeRoles().doOperation(root);
+    /* postprocessing */
+    new RecognizeRoles().doOperation(root);
 }
 
 // -------------------------- OTHER METHODS --------------------------
 
 private boolean includeText(@NotNull final TextPosition text) {
-	String c = text.getCharacter();
+    String c = text.getCharacter();
 
-	List<TextPosition> sameTextCharacters = characterListMapping.get(c);
-	if (sameTextCharacters == null) {
-		sameTextCharacters = new ArrayList<TextPosition>();
-		characterListMapping.put(c, sameTextCharacters);
-		return true;
-	}
+    List<TextPosition> sameTextCharacters = characterListMapping.get(c);
+    if (sameTextCharacters == null) {
+        sameTextCharacters = new ArrayList<TextPosition>();
+        characterListMapping.put(c, sameTextCharacters);
+        return true;
+    }
 
-	/** RDD - Here we compute the value that represents the end of the rendered
-	 text.  This value is used to determine whether subsequent text rendered
-	 on the same line overwrites the current text.
+    /** RDD - Here we compute the value that represents the end of the rendered
+     text.  This value is used to determine whether subsequent text rendered
+     on the same line overwrites the current text.
 
-	 We subtract any positive padding to handle cases where extreme amounts
-	 of padding are applied, then backed off (not sure why this is done, but there
-	 are cases where the padding is on the order of 10x the character width, and
-	 the TJ just backs up to compensate after each character).  Also, we subtract
-	 an amount to allow for kerning (a percentage of the width of the last
-	 character). */
+     We subtract any positive padding to handle cases where extreme amounts
+     of padding are applied, then backed off (not sure why this is done, but there
+     are cases where the padding is on the order of 10x the character width, and
+     the TJ just backs up to compensate after each character).  Also, we subtract
+     an amount to allow for kerning (a percentage of the width of the last
+     character). */
 
-	boolean suppressCharacter = false;
+    boolean suppressCharacter = false;
 
-	final float tolerance = (text.getWidth() / (float) c.length()) / 3.0f;
+    final float tolerance = (text.getWidth() / (float) c.length()) / 3.0f;
 
-	for (TextPosition other : sameTextCharacters) {
-		String otherChar = other.getCharacter();
-		float charX = other.getX();
-		float charY = other.getY();
+    for (TextPosition other : sameTextCharacters) {
+        String otherChar = other.getCharacter();
+        float charX = other.getX();
+        float charY = other.getY();
 
-		if (otherChar != null && MathUtils.isWithinVariance(charX, text.getX(), tolerance)
-				&& MathUtils.isWithinVariance(charY, text.getY(), tolerance)) {
-			suppressCharacter = true;
-		}
-	}
-	boolean showCharacter = false;
+        if (otherChar != null && MathUtils.isWithinVariance(charX, text.getX(), tolerance)
+                && MathUtils.isWithinVariance(charY, text.getY(), tolerance)) {
+            suppressCharacter = true;
+        }
+    }
+    boolean showCharacter = false;
 
-	if (!suppressCharacter) {
-		sameTextCharacters.add(text);
-		showCharacter = true;
-	}
-	return showCharacter;
+    if (!suppressCharacter) {
+        sameTextCharacters.add(text);
+        showCharacter = true;
+    }
+    return showCharacter;
 }
 
 /**
@@ -225,54 +227,54 @@ private boolean includeText(@NotNull final TextPosition text) {
  * @throws IOException If there is an error processing the page.
  */
 protected void processPage(@NotNull PDPage page, COSStream content) throws IOException {
-	if (currentPageNo >= startPage && currentPageNo <= endPage) {
-		charactersForPage.clear();
-		characterListMapping.clear();
-		textPositionSequenceNumber = 0;
+    if (currentPageNo >= startPage && currentPageNo <= endPage) {
+        charactersForPage.clear();
+        characterListMapping.clear();
+        textPositionSequenceNumber = 0;
 
-		/* show which page we are working on in the log */
-		MDC.put("page", currentPageNo);
+        /* show which page we are working on in the log */
+        MDC.put("page", currentPageNo);
 
-		pageSize = page.findCropBox().createDimension();
+        pageSize = page.findCropBox().createDimension();
 
-		/* this is used to 'draw' images on during pdf parsing */
-		graphicSegmentator = new GraphicSegmentatorImpl((float) pageSize.getWidth(),
-		                                                (float) pageSize.getHeight());
+        /* this is used to 'draw' images on during pdf parsing */
+        graphicSegmentator = new GraphicSegmentatorImpl((float) pageSize.getWidth(),
+                (float) pageSize.getHeight());
 
-		processStream(page, page.findResources(), content);
+        processStream(page, page.findResources(), content);
 
-		/* getRotation might return null, something which doesnt play well with javas unboxing,
-		*   so take some care*/
-		final int rot;
-		if (page.getRotation() == null) {
-			rot = 0;
-		} else {
-			rot = page.getRotation();
-		}
+        /* getRotation might return null, something which doesnt play well with javas unboxing,
+          *   so take some care*/
+        final int rot;
+        if (page.getRotation() == null) {
+            rot = 0;
+        } else {
+            rot = page.getRotation();
+        }
 
-		WordSegmentator segmentator = new WordSegmentatorImpl(root.getStyles());
+        WordSegmentator segmentator = new WordSegmentatorImpl(root.getStyles());
 
-		if (!charactersForPage.isEmpty()) {
+        if (!charactersForPage.isEmpty()) {
 
-			try {
-				/* segment words */
-				final List<PhysicalText> texts = segmentator.segmentWords(charactersForPage);
+            try {
+                /* segment words */
+                final List<PhysicalText> texts = segmentator.segmentWords(charactersForPage);
 
-				PhysicalPage physicalPage = new PhysicalPage(texts,
-				                                             graphicSegmentator,
-				                                             currentPageNo);
+                PhysicalPage physicalPage = new PhysicalPage(texts,
+                        graphicSegmentator,
+                        currentPageNo);
 
 
-				final PageNode pageNode = physicalPage.compileLogicalPage();
+                final PageNode pageNode = physicalPage.compileLogicalPage();
 
-				root.addChild(pageNode);
+                root.addChild(pageNode);
 
-			} catch (Exception e) {
-				log.error("LOG00350:Error while creating physical page", e);
-			}
-		}
+            } catch (Exception e) {
+                log.error("LOG00350:Error while creating physical page", e);
+            }
+        }
 
-		MDC.remove("page");
-	}
+        MDC.remove("page");
+    }
 }
 }

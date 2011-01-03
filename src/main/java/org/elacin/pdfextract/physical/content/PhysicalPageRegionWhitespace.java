@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.physical.content;
 
 import org.apache.log4j.Logger;
+import org.elacin.pdfextract.physical.PhysicalPage;
 import org.elacin.pdfextract.physical.segmentation.column.LayoutRecognizer;
 import org.elacin.pdfextract.physical.segmentation.line.LineSegmentator;
 import org.elacin.pdfextract.tree.LineNode;
@@ -29,94 +30,76 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-/** This code is not used now, but its kept around because it might be useful */
+/**
+ * This code is not used now, but its kept around because it might be useful
+ */
 public class PhysicalPageRegionWhitespace extends PhysicalPageRegion {
 // ------------------------------ FIELDS ------------------------------
 
 private static final Logger log = Logger.getLogger(PhysicalPageRegionWhitespace.class);
 
-@NotNull
-private final List<WhitespaceRectangle> whitespace = new ArrayList<WhitespaceRectangle>();
-
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public PhysicalPageRegionWhitespace(@NotNull final Collection<? extends PhysicalContent> contents,
-                                    final @Nullable PhysicalContent containedIn,
-                                    final int pageNumber)
-{
-	super(contents, containedIn, pageNumber);
-}
-
-public PhysicalPageRegionWhitespace(@NotNull final List<? extends PhysicalContent> contents,
-                                    final int pageNumber)
-{
-	this(contents, null, pageNumber);
-}
-
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-@NotNull
-public List<WhitespaceRectangle> getWhitespace() {
-	return whitespace;
+public PhysicalPageRegionWhitespace(@NotNull final Collection<? extends PhysicalContent>
+contents,
+                                    @Nullable final PhysicalContent containedIn,
+                                    @NotNull final PhysicalPage page) {
+    super(contents, containedIn, page);
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-public void addWhitespace(final Collection<WhitespaceRectangle> whitespace) {
-	getWhitespace().addAll(whitespace);
-	addContent(whitespace);
-}
-
 @NotNull
 public List<ParagraphNode> createParagraphNodes(@NotNull final LineSegmentator segmentator) {
-	/* start off by finding whitespace */
-	final List<WhitespaceRectangle> whitespace = new LayoutRecognizer().findWhitespace(this);
-	addWhitespace(whitespace);
+    /* start off by finding whitespace */
+    final List<WhitespaceRectangle> whitespace = new LayoutRecognizer().findWhitespace(this);
+    addWhitespace(whitespace);
 
-	/* then follow the trails left between the whitespace and construct blocks of text from that */
-	int blockNum = 0;
-	for (float y = getPos().getY(); y < getPos().getEndY(); y++) {
-		final List<PhysicalContent> row = findContentAtYIndex(y);
+    /* then follow the trails left between the whitespace and construct blocks of text from that
+    */
+    int blockNum = 0;
+    for (float y = getPos().getY(); y < getPos().getEndY(); y++) {
+        final List<PhysicalContent> row = findContentAtYIndex(y);
 
-		/* iterate through the line to find possible start of blocks */
-		for (PhysicalContent contentInRow : row) {
-			if (contentInRow.isText() && !contentInRow.getPhysicalText().isAssignedBlock()) {
-				/* find all connected texts and mark with this blockNum*/
-				final PhysicalText text = contentInRow.getPhysicalText();
-				markEverythingConnectedFrom(contentInRow, blockNum, text.getRotation());
+        /* iterate through the line to find possible start of blocks */
+        for (PhysicalContent contentInRow : row) {
+            if (contentInRow.isText() && !contentInRow.getPhysicalText().isAssignedBlock()) {
+                /* find all connected texts and mark with this blockNum*/
+                final PhysicalText text = contentInRow.getPhysicalText();
+                markEverythingConnectedFrom(contentInRow, blockNum, text.getRotation());
 
-				blockNum++;
-			}
-		}
-	}
+                blockNum++;
+            }
+        }
+    }
 
-	/* compile paragraphs of text based on the assigned block numbers */
-	List<ParagraphNode> ret = new ArrayList<ParagraphNode>();
+    /* compile paragraphs of text based on the assigned block numbers */
+    List<ParagraphNode> ret = new ArrayList<ParagraphNode>();
 
-	for (int i = 0; i < blockNum; i++) {
-		//		ParagraphNode paragraphNode = new ParagraphNode();
-		/* collect all the words logically belonging to this paragraph */
-		List<PhysicalContent> paragraphContent = new ArrayList<PhysicalContent>();
-		for (PhysicalContent word : getContents()) {
-			if (word.isAssignablePhysicalContent()) {
-				if (word.getAssignablePhysicalContent().getBlockNum() == i) {
-					if (word.isText()) {
-						paragraphContent.add(word);
-						//						paragraphNode.addWord(createWordNode(word.getText()));
-					}
-				}
-			}
-		}
-		/* then group words in lines */
-		final List<LineNode> lines = lineSegmentator.segmentLines(this);
-		final ParagraphNode paragraph = new ParagraphNode();
-		for (LineNode line : lines) {
-			paragraph.addChild(line);
-		}
-		ret.add(paragraph);
-	}
+    for (int i = 0; i < blockNum; i++) {
+        //		ParagraphNode paragraphNode = new ParagraphNode();
+        /* collect all the words logically belonging to this paragraph */
+        List<PhysicalContent> paragraphContent = new ArrayList<PhysicalContent>();
+        for (PhysicalContent word : getContents()) {
+            if (word.isAssignablePhysicalContent()) {
+                if (word.getAssignablePhysicalContent().getBlockNum() == i) {
+                    if (word.isText()) {
+                        paragraphContent.add(word);
+                        //						paragraphNode.addWord(createWordNode(word.getText()));
+                    }
+                }
+            }
+        }
+        /* then group words in lines */
+        final List<LineNode> lines = lineSegmentator.segmentLines(this);
+        final ParagraphNode paragraph = new ParagraphNode();
+        for (LineNode line : lines) {
+            paragraph.addChild(line);
+        }
+        ret.add(paragraph);
+    }
 
-	return ret;
+    return ret;
 }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -124,50 +107,48 @@ public List<ParagraphNode> createParagraphNodes(@NotNull final LineSegmentator s
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent current,
                                             final int blockNum,
-                                            final int rotation)
-{
-	if (!current.isAssignablePhysicalContent()) {
-		return false;
-	}
-	if (current.getAssignablePhysicalContent().isAssignedBlock()) {
-		return false;
-	}
-	if (current.isText() && current.getPhysicalText().getRotation() != rotation) {
-		return false;
-	}
+                                            final int rotation) {
+    if (!current.isAssignablePhysicalContent()) {
+        return false;
+    }
+    if (current.getAssignablePhysicalContent().isAssignedBlock()) {
+        return false;
+    }
+    if (current.isText() && current.getPhysicalText().getRotation() != rotation) {
+        return false;
+    }
 
-	current.getAssignablePhysicalContent().setBlockNum(blockNum);
+    current.getAssignablePhysicalContent().setBlockNum(blockNum);
 
-	final Rectangle pos = current.getPos();
+    final Rectangle pos = current.getPos();
 
-	/* try searching for texts in all directions */
-	for (int y = (int) pos.getY(); y < (int) pos.getEndY(); y++) {
-		markBothWaysFromCurrent(current, blockNum, findContentAtYIndex(y), rotation);
-	}
+    /* try searching for texts in all directions */
+    for (int y = (int) pos.getY(); y < (int) pos.getEndY(); y++) {
+        markBothWaysFromCurrent(current, blockNum, findContentAtYIndex(y), rotation);
+    }
 
-	for (int x = (int) pos.getX(); x < (int) pos.getEndX(); x++) {
-		markBothWaysFromCurrent(current, blockNum, findContentAtXIndex(x), rotation);
-	}
-	return true;
+    for (int x = (int) pos.getX(); x < (int) pos.getEndX(); x++) {
+        markBothWaysFromCurrent(current, blockNum, findContentAtXIndex(x), rotation);
+    }
+    return true;
 }
 
 private void markBothWaysFromCurrent(final PhysicalContent current,
                                      final int blockNum,
                                      @NotNull final List<PhysicalContent> line,
-                                     final int rotation)
-{
-	final int currentIndex = line.indexOf(current);
+                                     final int rotation) {
+    final int currentIndex = line.indexOf(current);
 
-	/* left/up*/
-	boolean continue_ = true;
-	for (int index = currentIndex - 1; index >= 0 && continue_; index--) {
-		continue_ &= markEverythingConnectedFrom(line.get(index), blockNum, rotation);
-	}
-	/* right / down */
-	continue_ = true;
-	for (int index = currentIndex + 1; index < line.size() && continue_; index++) {
-		continue_ &= markEverythingConnectedFrom(line.get(index), blockNum, rotation);
-	}
+    /* left/up*/
+    boolean continue_ = true;
+    for (int index = currentIndex - 1; index >= 0 && continue_; index--) {
+        continue_ &= markEverythingConnectedFrom(line.get(index), blockNum, rotation);
+    }
+    /* right / down */
+    continue_ = true;
+    for (int index = currentIndex + 1; index < line.size() && continue_; index++) {
+        continue_ &= markEverythingConnectedFrom(line.get(index), blockNum, rotation);
+    }
 }
 }
 
