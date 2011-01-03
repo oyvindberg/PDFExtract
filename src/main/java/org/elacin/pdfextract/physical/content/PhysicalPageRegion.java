@@ -37,7 +37,7 @@ import java.util.List;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Nov 8, 2010 Time: 7:44:41 PM To change this
- template
+ * template
  * use File | Settings | File Templates.
  */
 public class PhysicalPageRegion extends RectangleCollection {
@@ -155,9 +155,9 @@ public void extractSubRegionFromContent(@NotNull final Collection<PhysicalConten
 
 /**
  * Returns a subregion with all the contents which is contained by bound. If more than two pieces
-  of
+ * of
  * content crosses the boundary of bound, it is deemed inappropriate for dividing the page,
- and an
+ * and an
  * exception is thrown
  *
  * @return the new region
@@ -206,20 +206,20 @@ public int getPageNumber() {
 // -------------------------- OTHER METHODS --------------------------
 
 private void doExtractSubRegion(@NotNull final Collection<PhysicalContent> subContents,
-@Nullable final HasPosition bound,
+                                @Nullable final HasPosition bound,
                                 @Nullable final GraphicContent graphic) {
     if (subContents.isEmpty()) {
         if (log.isInfoEnabled()) {
-            log.info("LOG00960:bound " + bound + " contains no content in " + this + ". wont
-            extract");
+            log.info("LOG00960:bound " + bound + " contains no content in " + this + ". wont " +
+                    "extract");
         }
         return;
     }
 
     if (subContents.size() == getContents().size()) {
         if (log.isInfoEnabled()) {
-            log.info("LOG00950:bound " + bound + " contains all content in " + this + ". wont
-            extract");
+            log.info("LOG00950:bound " + bound + " contains all content in " + this + ". wont " +
+                    "extract");
         }
         return;
     }

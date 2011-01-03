@@ -95,9 +95,8 @@ static float calculateCharspacingForDistances(@NotNull final List<Float> distanc
     final float median = findMedianOfDistances(distances, -10.0f);
 
     if (log.isDebugEnabled()) {
-        log.debug("LOG00790:median:" + median + ", diff:" + diff + ", smallest:" + smallest + ",
-        "
-                + "" + ", " + "" + "largest: " + largest);
+        log.debug("LOG00790:median:" + median + ", diff:" + diff + ", smallest:" + smallest +
+                ", largest: " + largest);
     }
 
 
@@ -231,7 +230,7 @@ private static float findDistanceClosestTo(final List<Float> distances, final fl
 }
 
 private static float findFirstDistanceSmallerThan(final List<Float> distances,
-final float value) {
+                                                  final float value) {
     float closestToLimit = Float.MAX_VALUE;
     float ret = 0.0f;
 
@@ -307,7 +306,7 @@ private static float getAverageFontSize(@NotNull final Collection<PhysicalText> 
 
 @NotNull
 private static List<Float> getDistancesBetweenTextObjects(@NotNull final Collection<PhysicalText>
- texts) {
+                                                                  texts) {
     List<Float> distances = new ArrayList<Float>(texts.size());
     boolean first = true;
     for (PhysicalText text : texts) {

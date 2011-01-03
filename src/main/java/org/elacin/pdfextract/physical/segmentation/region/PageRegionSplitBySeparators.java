@@ -56,7 +56,7 @@ static void splitRegionBySeparators(PhysicalPageRegion r) {
 
             /* search to see if this separator does not intersect with anything*/
             Rectangle search = new Rectangle(0, hsep.getPos().getY(), r.getWidth(),
-            hsep.getPos().getHeight());
+                    hsep.getPos().getHeight());
 
             final List<PhysicalContent> list = r.findContentsIntersectingWith(search);
             if (list.contains(hsep)) {
@@ -64,7 +64,7 @@ static void splitRegionBySeparators(PhysicalPageRegion r) {
             }
             if (list.isEmpty()) {
                 Rectangle everythingAboveSep = new Rectangle(r.getPos().getX(), 0.0f,
-                r.getWidth() + 1, hsep.getPos().getY());
+                        r.getWidth() + 1, hsep.getPos().getY());
 
                 if (log.isInfoEnabled()) {
                     log.info("LOG00880:split/hsep: " + hsep + ",

@@ -44,7 +44,7 @@ private final int pageNumber;
 
 /**
  * This initially contains everything on the page. after creating the regions,
- content will be moved
+ * content will be moved
  * from here. ideally this should be quite empty after the analysis.
  */
 @NotNull
@@ -87,7 +87,7 @@ public GraphicSegmentator getGraphics() {
 //        for (PhysicalPageRegion subRegion : region.getSubregions()) {
 //            for (PhysicalContent content : subRegion.getContents()) {
 //                if (content.isAssignablePhysicalContent() && !content
-.getAssignablePhysicalContent()
+//.getAssignablePhysicalContent()
 //                        .isAssignedBlock()) {
 //                    log.error("LOG00711:content " + content + "not assigned line");
 //                }
@@ -154,7 +154,7 @@ private void addRenderingInformation(PageNode page) {
 }
 
 private static void addWhiteSpaceFromRegion(List<WhitespaceRectangle> whitespaces,
-PhysicalPageRegion region) {
+                                            PhysicalPageRegion region) {
     whitespaces.addAll(region.getWhitespace());
     for (PhysicalPageRegion subRegion : region.getSubregions()) {
         addWhiteSpaceFromRegion(whitespaces, subRegion);

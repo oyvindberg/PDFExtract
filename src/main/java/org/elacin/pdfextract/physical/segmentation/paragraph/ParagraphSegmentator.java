@@ -96,10 +96,12 @@ public List<ParagraphNode> segmentParagraphs(@NotNull final List<LineNode> lines
                 if (split) {
                     if (!currentParagraph.getChildren().isEmpty()) {
                         if (log.isInfoEnabled()) {
-                            log.info(String.format("LOG00660:Split/style: y:%s,
-                            medianVerticalSpacing: %d, distance: %s, style: %s, %s, line: %s",
-                            line.getPos().getY(), medianVerticalSpacing, distance, currentStyle,
-                            lineStyle, line));
+                            log.info(String.format("LOG00660:Split/style: y:%s, " +
+                                    "medianVerticalSpacing: %d, distance: %s, style: %s, %s, " +
+                                    "line: %s",
+                                    line.getPos().getY(), medianVerticalSpacing, distance,
+                                    currentStyle,
+                                    lineStyle, line));
                         }
                         ret.add(currentParagraph);
                     }

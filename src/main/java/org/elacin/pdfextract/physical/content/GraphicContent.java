@@ -25,7 +25,7 @@ import java.awt.*;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Nov 3, 2010 Time: 4:43:12 PM To change this
- template
+ * template
  * use File | Settings | File Templates.
  */
 public class GraphicContent extends AssignablePhysicalContent {
@@ -46,9 +46,8 @@ public GraphicContent(final Rectangle position, boolean picture, boolean filled,
     this.color = color;
 
     if (log.isDebugEnabled()) {
-        log.debug("LOG00280:GraphicContent at " + position + ", filled: " + filled + ",
-        picture = "
-                + picture);
+        log.debug("LOG00280:GraphicContent at " + position + ", filled: " + filled + ", " +
+                "picture =" + picture);
     }
 }
 
