@@ -21,8 +21,6 @@ import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.TreeSet;
-
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Sep 23, 2010 Time: 2:36:44 PM To change this
  * template use File | Settings | File Templates.
@@ -30,12 +28,9 @@ import java.util.TreeSet;
 public class PhysicalText extends AssignablePhysicalContent implements StyledText {
 // ------------------------------ FIELDS ------------------------------
 
-public final float  distanceToPreceeding;
 public       float  charSpacing;
 public final String text;
 public final int    rotation;
-@NotNull
-private final TreeSet<Integer> seqNums = new TreeSet<Integer>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -45,24 +40,17 @@ public PhysicalText(final String text,
                     final float y,
                     final float width,
                     final float height,
-                    final float distanceToPreceeding,
-                    final int rotation,
-                    final int seqNo)
-{
-	this(text, style, new Rectangle(x, y, width, height), distanceToPreceeding, rotation);
-	seqNums.add(seqNo);
+                    final int rotation) {
+    this(text, style, new Rectangle(x, y, width, height), rotation);
 }
 
 PhysicalText(final String text,
              final Style style,
              final Rectangle position,
-             final float distanceToPreceeding,
-             final int rotation)
-{
-	super(position, style);
-	this.distanceToPreceeding = distanceToPreceeding;
-	this.text = text;
-	this.rotation = rotation;
+             final int rotation) {
+    super(position, style);
+    this.text = text;
+    this.rotation = rotation;
 }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -71,23 +59,21 @@ PhysicalText(final String text,
 // --------------------- Interface StyledText ---------------------
 
 public String getText() {
-	return text;
+    return text;
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
 
 @Override
 public String toString() {
-	final StringBuilder sb = new StringBuilder();
-	sb.append("Text");
-	sb.append("{'").append(text).append('\'');
-	sb.append(", style=").append(style);
-	sb.append(", d=").append(distanceToPreceeding);
-	sb.append(", pos=").append(pos);
-	sb.append(", charSpacing=").append(charSpacing);
-	sb.append(", seqNums=").append(seqNums);
-	sb.append('}');
-	return sb.toString();
+    final StringBuilder sb = new StringBuilder();
+    sb.append("Text");
+    sb.append("{'").append(text).append('\'');
+    sb.append(", style=").append(style);
+    sb.append(", pos=").append(pos);
+    sb.append(", charSpacing=").append(charSpacing);
+    sb.append('}');
+    return sb.toString();
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
@@ -95,57 +81,33 @@ public String toString() {
 @NotNull
 @Override
 public PhysicalText getPhysicalText() {
-	return this;
+    return this;
 }
 
 @Override
 public boolean isText() {
-	return true;
+    return true;
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-public float getCharSpacing() {
-	return charSpacing;
-}
-
-public float getDistanceToPreceeding() {
-	return distanceToPreceeding;
-}
 
 public int getRotation() {
-	return rotation;
-}
-
-@NotNull
-public TreeSet<Integer> getSeqNums() {
-	return seqNums;
+    return rotation;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-public boolean canBeCombinedWith(@NotNull final PhysicalText otherText) {
-	if (seqNums.last() != otherText.seqNums.first() - 1) {
-		return false;
-	}
-
-	{ return otherText.distanceToPreceeding <= otherText.charSpacing; }
-}
-
 @NotNull
 public PhysicalText combineWith(@NotNull final PhysicalText next) {
-	final PhysicalText newText = new PhysicalText(text + next.text, style, pos.union(next.pos),
-	                                              distanceToPreceeding, rotation);
-	newText.seqNums.addAll(seqNums);
-	newText.seqNums.addAll(next.seqNums);
-	return newText;
+    return new PhysicalText(text + next.text, style, pos.union(next.pos), rotation);
 }
 
 public float getAverageCharacterWidth() {
-	return getPos().getWidth() / (float) text.length();
+    return getPos().getWidth() / (float) text.length();
 }
 
 public boolean isSameStyleAs(@NotNull final PhysicalText next) {
-	return getStyle().equals(next.getStyle());
+    return getStyle().equals(next.getStyle());
 }
 }

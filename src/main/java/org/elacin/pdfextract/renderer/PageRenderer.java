@@ -41,20 +41,20 @@ import java.util.Map;
 public class PageRenderer {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger log = Logger.getLogger(PageRenderer.class);
+private static final Logger  log              = Logger.getLogger(PageRenderer.class);
 private static final boolean RENDER_REAL_PAGE = true;
 
 @NotNull
-private static final Color TRANSPARENT_WHITE = new Color(255, 255, 255, 0);
-private static final int DEFAULT_USER_SPACE_UNIT_DPI = 1200;
-private final int resolution;
-private final PDDocument document;
+private static final Color TRANSPARENT_WHITE           = new Color(255, 255, 255, 0);
+private static final int   DEFAULT_USER_SPACE_UNIT_DPI = 1200;
+private final int          resolution;
+private final PDDocument   document;
 private final DocumentNode documentNode;
 
 
 private Graphics2D graphics;
-private float xScale;
-private float yScale;
+private float      xScale;
+private float      yScale;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -155,9 +155,9 @@ public BufferedImage renderPage(final int pageNum) {
 }
 
 private void drawTree(AbstractParentNode parent) {
-    if (!(parent instanceof AbstractParentNode)) {
-        drawRectangle(parent);
-    }
+//    if (!(parent instanceof AbstractParentNode)) {
+    drawRectangle(parent);
+//    }
 
     for (Object o : parent.getChildren()) {
         if (o instanceof AbstractParentNode) {

@@ -27,6 +27,7 @@ import org.apache.pdfbox.pdmodel.font.PDType3Font;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentatorImpl;
+import org.elacin.pdfextract.physical.segmentation.word.WordSegmentatorImpl;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,13 +44,11 @@ import java.io.IOException;
 public class PDFBoxSource extends PageDrawer {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger log = Logger.getLogger(PDFBoxSource.class);
+private static final Logger log         = Logger.getLogger(PDFBoxSource.class);
 @NotNull
 private static final byte[] SPACE_BYTES = {(byte) 32};
 
 protected GraphicSegmentatorImpl graphicSegmentator;
-
-protected int textPositionSequenceNumber = 0;
 
 protected Color currentColor;
 
@@ -273,14 +272,12 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
 
 
         boolean add = true;
-        if (characterBuffer.toString().trim().isEmpty()) {
-            if (log.isTraceEnabled()) {
-                log.trace("Dropping empty string");
-            }
-            add = false;
-        }
+
         if (fontSizeText == 0) {
             log.trace("ignoring text " + c + " because fontSize is 0");
+            add = false;
+        }
+        if (!WordSegmentatorImpl.USE_EXISTING_WHITESPACE && "".equals(c.trim())) {
             add = false;
         }
 
@@ -293,15 +290,13 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
                         characterBuffer.toString(), font,
                         fontSizeText,
                         (int) (fontSizeText * getTextMatrix()
-                                .getXScale()), wordSpacingDisp,
-                        textPositionSequenceNumber);
+                                .getXScale()), wordSpacingDisp);
 
                 correctPosition(font, string, i, c, fontSizeText, glyphSpaceToTextSpaceFactor,
                         horizontalScalingText, codeLength,
                         text);
 
                 processTextPosition(text);
-                textPositionSequenceNumber++;
             } catch (Exception e) {
                 log.warn("LOG00570:Error adding '" + characterBuffer + "': " + e.getMessage());
             }
@@ -359,9 +354,9 @@ private void correctPosition(final PDFont fontObj, final byte[] string,
  *
  */
     final BoundingBox character = fontObj.getCharacterBoundingBox(string, i, codeLength);
-    PDRectangle font = null;
+    PDRectangle fontBB = null;
     try {
-        font = fontObj.getFontBoundingBox();
+        fontBB = fontObj.getFontBoundingBox();
     } catch (RuntimeException e) {
         //ignore, this is frequently not implemented
     }
@@ -371,14 +366,14 @@ private void correctPosition(final PDFont fontObj, final byte[] string,
     adjust *= getTextMatrix().getXScale();
 
     final Rectangle newPos;
-    if (character != null && font != null && character.getHeight() > 0.0f
-            && font.getHeight() > 0.0f) {
+    if (character != null && fontBB != null && character.getHeight() > 0.0f
+            && fontBB.getHeight() > 0.0f) {
 
         /* remove the upper and lower bounds filtered away by character */
-        final float spaceUnderChar = Math.min(font.getLowerLeftY(), character.getLowerLeftY());
-        final float spaceOverChar = font.getUpperRightY() - character.getUpperRightY();
+        final float spaceUnderChar = Math.min(fontBB.getLowerLeftY(), character.getLowerLeftY());
+        final float spaceOverChar = fontBB.getUpperRightY() - character.getUpperRightY();
         final float characterHeight = character.getHeight();
-        final float fontHeight = font.getHeight();
+        final float fontHeight = fontBB.getHeight();
 
         final float beforeRoomForGlyph = pos.getEndY() - adjust * Math.max(fontHeight,
                 pos.getHeight());
@@ -388,8 +383,8 @@ private void correctPosition(final PDFont fontObj, final byte[] string,
         yStart -= adjust * spaceUnderChar;
         yStart -= pos.getHeight();
 
-        float leftOfText = text.getX() - (adjust * font.getLowerLeftX());
-        float x = leftOfText + adjust * (Math.max(font.getLowerLeftX(),
+        float leftOfText = text.getX() - (adjust * fontBB.getLowerLeftX());
+        float x = leftOfText - adjust * (Math.max(fontBB.getLowerLeftX(),
                 character.getLowerLeftX()));
 
         float w = pos.getWidth();
@@ -407,19 +402,21 @@ private void correctPosition(final PDFont fontObj, final byte[] string,
         if (fontObj instanceof PDType3Font) {
             /* type 3 fonts typically have almost no information
             * try to mitigate the damage by keeping them small.*/
-
             h *= 0.3f;
-            w *= 1.3f;
-            if (font != null)
-                startY = pos.getY() - adjust * font.getHeight();
+            if (fontBB != null) {
+                h = adjust * fontBB.getHeight() * 0.3f;
+                startY = pos.getY() - adjust * fontBB.getHeight();
+            }
 
+            startY += h;
         }
 
         newPos = new Rectangle(pos.getX(), startY, w, h);
     }
-
-    log.debug("LOG00730:Text " + c + ", " + "pos from " + pos + " to " + newPos);
+    if (log.isTraceEnabled()) {
+        log.trace("LOG00730:Text " + c + ", " + "pos from " + pos + " to " + newPos);
+    }
     text.setPos(newPos);
-    text.setBaseLine(getTextMatrix().getYPosition());
+    text.setBaseLine(pos.getY());
 }
 }

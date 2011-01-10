@@ -26,7 +26,7 @@ import java.util.Comparator;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Apr 8, 2010 Time: 8:29:43 AM To change this
- template
+ * template
  * use File | Settings | File Templates.
  */
 public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
@@ -92,8 +92,7 @@ public String getText() {
     for (int i = 0; i < getChildren().size(); i++) {
         final WordNode word = getChildren().get(i);
         sb.append(word.getText());
-        if (i != getChildren().size() - 1 && !word.isPartOfSameWordAs(getChildren().get(i + 1)))
-        {
+        if (i != getChildren().size() - 1) {
             sb.append(" ");
         }
     }

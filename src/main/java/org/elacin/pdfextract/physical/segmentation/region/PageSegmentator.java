@@ -72,8 +72,7 @@ private static boolean canCombine(PhysicalPageRegion mainRegion, PhysicalPageReg
         return true;
     }
 
-    if (graphic.getPos().distance(otherRegion.getPos()) <= mainRegion.getMinimumColumnSpacing())
-    {
+    if (graphic.getPos().distance(otherRegion.getPos()) <= mainRegion.getMinimumColumnSpacing()) {
         return true;
     }
 
@@ -169,9 +168,9 @@ private static void moveRegionToIntoGraphic(PhysicalPageRegion origin,
 
 static void recursivelySplitRegions(PhysicalPageRegion r) {
     /* dont split content within a graphic */
-    if (r.getContainingGraphic() != null) {
-        return;
-    }
+//    if (r.getContainingGraphic() != null) {
+//        return;
+//    }
 
     PageRegionSplitBySeparators.splitRegionBySeparators(r);
     PageRegionSplitBySpacing.splitInVerticalColumns(r);

@@ -94,8 +94,7 @@ public GraphicSegmentator getGraphics() {
 //            }
 //        }
 //        for (PhysicalContent content : region.getContents()) {
-//            if (content.isAssignablePhysicalContent() && !content.getAssignablePhysicalContent
-()
+//            if (content.isAssignablePhysicalContent() && !content.getAssignablePhysicalContent ()
 //                    .isAssignedBlock()) {
 //                log.error("LOG00710:content " + content + "not assigned line");
 //            }

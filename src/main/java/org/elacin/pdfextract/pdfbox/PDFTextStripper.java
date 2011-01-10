@@ -57,7 +57,7 @@ private final DocumentNode root;
 
 private int currentPageNo;
 private int startPage = 1;
-private int endPage = Integer.MAX_VALUE;
+private int endPage   = Integer.MAX_VALUE;
 
 /* used to filter out text which is written several times to create a bold effect */
 @NotNull
@@ -87,7 +87,7 @@ public PDFTextStripper(final PDDocument doc,
 
 /**
  * This will process a TextPosition object and add the text to the list of characters on a page.
-  It
+ * It
  * takes care of overlapping text.
  *
  * @param text The text to process.
@@ -230,7 +230,6 @@ protected void processPage(@NotNull PDPage page, COSStream content) throws IOExc
     if (currentPageNo >= startPage && currentPageNo <= endPage) {
         charactersForPage.clear();
         characterListMapping.clear();
-        textPositionSequenceNumber = 0;
 
         /* show which page we are working on in the log */
         MDC.put("page", currentPageNo);
@@ -259,7 +258,6 @@ protected void processPage(@NotNull PDPage page, COSStream content) throws IOExc
             try {
                 /* segment words */
                 final List<PhysicalText> texts = segmentator.segmentWords(charactersForPage);
-
                 PhysicalPage physicalPage = new PhysicalPage(texts,
                         graphicSegmentator,
                         currentPageNo);

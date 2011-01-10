@@ -18,17 +18,17 @@ package org.elacin.pdfextract.physical.segmentation.word;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.MDC;
+import org.elacin.pdfextract.physical.content.PhysicalText;
+import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.util.FileWalker;
+import org.elacin.pdfextract.util.Sorting;
 import org.testng.annotations.Test;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.StringTokenizer;
+import java.util.*;
 
 import static org.testng.Assert.assertTrue;
 
@@ -40,7 +40,6 @@ public class TestSpacing2 {
 // ------------------------------ FIELDS ------------------------------
 
 private static final Logger log = Logger.getLogger(TestSpacing2.class);
-
 // -------------------------- STATIC METHODS --------------------------
 
 private static float[] parseDistancesString(final String s, final List<Float> distances) {
@@ -62,7 +61,7 @@ private static float[] parseDistancesString(final String s, final List<Float> di
 @Test
 public void testSpacings() throws IOException {
     final List<File> files = FileWalker.getFileListing(new File("target/test-classes/spacings"),
-    ".spacing");
+            ".spacing");
 
     int correct = 0, total = 0;
     for (File file : files) {
@@ -103,39 +102,45 @@ public void testSpacings() throws IOException {
     log.warn("ERRORLIMIT: = " + errorLimit + " (" + ERROR_PERCENT + "%)");
     log.warn("###############################");
 
+    try {
+        Thread.sleep(200);
+    } catch (InterruptedException e) {
+        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+    }
     assertTrue(errors < errorLimit);
 }
 
 // -------------------------- OTHER METHODS --------------------------
 
-private String findResult(final String base,
-                          final float fontSize,
-                          final List<Float> distances,
-                          final float[] distancesArray) {
-    final float charspace = CharSpacingFinder.calculateCharspacingForDistances(distances,
-    fontSize);
-
-    StringBuffer sb = new StringBuffer();
-    sb.append(base.charAt(0));
-    int strIndex = 1;
-    for (int i = 0; i < distancesArray.length; i++) {
-        float distance = distancesArray[i];
-
-        if (distance > charspace) {
-            sb.append(" ");
-        }
-
-        final char c = base.charAt(strIndex++);
-        sb.append(c);
-    }
-
-    return sb.toString();
-}
+//private String findResult(final String base,
+//                          final float fontSize,
+//                          final List<Float> distances,
+//                          final float[] distancesArray) {
+//    final float charspace = CharSpacingFinder.calculateCharspacingForDistances(distances,
+//    fontSize);
+//
+//    StringBuilder sb = new StringBuilder();
+//    sb.append(base.charAt(0));
+//    int strIndex = 1;
+//    for (int i = 0; i < distancesArray.length; i++) {
+//        float distance = distancesArray[i];
+//
+//        if (distance > charspace) {
+//            sb.append(" ");
+//        }
+//
+//        final char c = base.charAt(strIndex++);
+//        sb.append(c);
+//    }
+//
+//    return sb.toString();
+//}
 
 private boolean processInput(final String[] input) {
     String answer = input[1];
     String base = answer.replaceAll(" ", "");
-    float fontSize = Float.valueOf(input[2]);
+    int fontSize = (int) Math.max(8.0f, (float) Float.valueOf(input[2]));
+
     List<Float> distances = new ArrayList<Float>();
 
     float[] distancesArray = parseDistancesString(input[3], distances);
@@ -145,14 +150,35 @@ private boolean processInput(final String[] input) {
         return true;
     }
 
+    final float width = fontSize;
+    List<PhysicalText> line = new ArrayList<PhysicalText>();
+    float currentX = 0.0f;
+    Style style = new Style("font", fontSize, fontSize, "fontid", false, false, false);
+    for (int i = 0; i < base.length(); i++) {
+        final char c = base.charAt(i);
+        float distance = i == 0 ? 0.0f : distancesArray[i - 1];
+        currentX += distance;
+        line.add(new PhysicalText(new String(new char[]{c}), style, currentX, 0.0f, width, 1.0f, 0));
+        currentX += width;
+    }
+    Collections.sort(line, Sorting.sortByLowerX);
+    final Collection<PhysicalText> ret = WordSegmentatorImpl.createWordsInLine(line);
+    final boolean equals = ret.size() - 1 == answer.length() - base.length();
 
-    final String result = findResult(base, fontSize, distances, distancesArray);
+    StringBuilder sb = new StringBuilder();
+    for (PhysicalText physicalText : ret) {
+        sb.append(physicalText.getText()).append(" ");
+    }
+    sb.setLength(sb.length() - 1);
+    String result = sb.toString();
 
-    final boolean equals = answer.equals(result);
+//    final String result = findResult(base, fontSize, distances, distancesArray);
+//
+//    final boolean equals = answer.equals(result);
 
     if (!equals) {
         log.warn("wrong result: got '" + result + "', expected: '" + answer + "'");
-        findResult(base, fontSize, distances, distancesArray);
+//        findResult(base, fontSize, distances, distancesArray);
     }
 
     return equals;

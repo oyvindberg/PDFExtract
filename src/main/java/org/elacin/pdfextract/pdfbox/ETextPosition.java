@@ -37,9 +37,8 @@ public class ETextPosition extends TextPosition implements HasPosition {
 
 private static final Logger log = Logger.getLogger(ETextPosition.class);
 @NotNull
-private       Rectangle pos;
-private final int       sequenceNum;
-private       float     baseLine;
+private Rectangle pos;
+private float     baseLine;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -54,24 +53,21 @@ public ETextPosition(int pageRotation,
                      String string,
                      PDFont currentFont,
                      float fontSizeValue,
-                     int fontSizeInPt,
-                     final int num)
-{
-	super(pageRotation, pageWidth, pageHeight, textPositionSt, textPositionEnd, maxFontH,
-	      individualWidth, spaceWidth, string, currentFont, fontSizeValue, fontSizeInPt);
+                     int fontSizeInPt) {
+    super(pageRotation, pageWidth, pageHeight, textPositionSt, textPositionEnd, maxFontH,
+            individualWidth, spaceWidth, string, currentFont, fontSizeValue, fontSizeInPt);
 
-	sequenceNum = num;
 
-	float x = getX();
-	float y = getY();
-	float w = getWidth();
-	float h = getHeight();
+    float x = getX();
+    float y = getY();
+    float w = getWidth();
+    float h = getHeight();
 
-	if (h <= 0.0f || w < 0.0f) {
-		throw new IllegalArgumentException("Passed text '" + string + "' with no size.");
-	}
+    if (h <= 0.0f || w < 0.0f) {
+        throw new IllegalArgumentException("Passed text '" + string + "' with no size.");
+    }
 
-	pos = new Rectangle(x, y, w, h);
+    pos = new Rectangle(x, y, w, h);
 }
 
 public ETextPosition(final PDPage page,
@@ -84,42 +80,38 @@ public ETextPosition(final PDPage page,
                      final PDFont currentFont,
                      final float fontSizeValue,
                      final int fontSizeInPt,
-                     final float ws,
-                     final int num)
-{
-	super(page, textPositionSt, textPositionEnd, maxFontH, individualWidths, spaceWidth, string,
-	      currentFont, fontSizeValue, fontSizeInPt, ws);
+                     final float ws) {
+    super(page, textPositionSt, textPositionEnd, maxFontH, individualWidths, spaceWidth, string,
+            currentFont, fontSizeValue, fontSizeInPt, ws);
 
-	sequenceNum = num;
+    float x = getX();
+    float y = getY();
+    float w = getWidth();
+    float h = getHeight();
 
-	float x = getX();
-	float y = getY();
-	float w = getWidth();
-	float h = getHeight();
+    if (h <= 0.0f && w < 0.0f) {
+        throw new IllegalArgumentException("Passed text '" + string + "' with no size.");
+    }
 
-	if (h <= 0.0f && w < 0.0f) {
-		throw new IllegalArgumentException("Passed text '" + string + "' with no size.");
-	}
+    if (h <= 0.0f) {
+        h = getWidth() / (float) string.length();
+        h *= 1.5;
 
-	if (h <= 0.0f) {
-		h = getWidth() / (float) string.length();
-		h *= 1.5;
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("LOG00630:Guessing height of text %s at (%s,%s). height = %f",
+                    string, x, y, h));
+        }
+    }
 
-		if (log.isDebugEnabled()) {
-			log.debug(String.format("LOG00630:Guessing height of text %s at (%s,%s). height = %f",
-			                        string, x, y, h));
-		}
-	}
+    if (w <= 0.0f) {
+        w = getHeight() / 2.0f;
+        if (log.isDebugEnabled()) {
+            log.debug(String.format("LOG00630:Guessing width of text %s at (%s,%s). height = %f",
+                    string, x, y, w));
+        }
+    }
 
-	if (w <= 0.0f) {
-		w = getHeight() / 2.0f;
-		if (log.isDebugEnabled()) {
-			log.debug(String.format("LOG00630:Guessing width of text %s at (%s,%s). height = %f",
-			                        string, x, y, w));
-		}
-	}
-
-	pos = new Rectangle(x, y, w, h);
+    pos = new Rectangle(x, y, w, h);
 }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -129,24 +121,21 @@ public ETextPosition(final PDPage page,
 
 @NotNull
 public Rectangle getPos() {
-	return pos;
+    return pos;
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 public float getBaseLine() {
-	return baseLine;
+    return baseLine;
 }
 
 public void setBaseLine(final float baseLine) {
-	this.baseLine = baseLine;
+    this.baseLine = baseLine;
 }
 
-public int getSequenceNum() {
-	return sequenceNum;
-}
 
 public void setPos(@NotNull final Rectangle pos) {
-	this.pos = pos;
+    this.pos = pos;
 }
 }

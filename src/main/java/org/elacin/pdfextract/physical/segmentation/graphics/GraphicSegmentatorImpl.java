@@ -38,7 +38,7 @@ import java.util.List;
  * Created by IntelliJ IDEA. User: elacin Date: 13.11.10 Time: 03.29 To change this template use
  * File | Settings | File Templates.
  */
-public class GraphicSegmentatorImpl implements GraphicsDrawer, GraphicSegmentator {
+public class GraphicSegmentatorImpl implements DrawingSurface, GraphicSegmentator {
 // ------------------------------ FIELDS ------------------------------
 
 private static final Logger log = Logger.getLogger(GraphicSegmentatorImpl.class);
@@ -48,7 +48,7 @@ private static final Logger log = Logger.getLogger(GraphicSegmentatorImpl.class)
  * physical properties only
  */
 @NotNull
-final List<GraphicContent> figures = new ArrayList<GraphicContent>();
+final List<GraphicContent> figures  = new ArrayList<GraphicContent>();
 @NotNull
 final List<GraphicContent> pictures = new ArrayList<GraphicContent>();
 
@@ -66,7 +66,7 @@ private final List<GraphicContent> contents = new ArrayList<GraphicContent>();
 private final List<GraphicContent> containers = new ArrayList<GraphicContent>();
 
 /* these are separators which might divide regions of a page */
-private final List<GraphicContent> verticalSeparators = new ArrayList<GraphicContent>();
+private final List<GraphicContent> verticalSeparators   = new ArrayList<GraphicContent>();
 private final List<GraphicContent> horizontalSeparators = new ArrayList<GraphicContent>();
 
 /* This contains all the segmented pictures (except those which has been dropped for being too
@@ -157,7 +157,7 @@ public List<GraphicContent> getHorizontalSeparators() {
     return horizontalSeparators;
 }
 
-// --------------------- Interface GraphicsDrawer ---------------------
+// --------------------- Interface DrawingSurface ---------------------
 
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 public void drawImage(@NotNull final Image image,
@@ -223,7 +223,7 @@ public void strokePath(@NotNull final GeneralPath originalPath, @NotNull final C
     for (GeneralPath path : paths) {
         try {
             addFigure(new GraphicContent(convertRectangle(path.getBounds()), false, false,
-            color));
+                    color));
         } catch (Exception e) {
             log.warn("LOG00600:Error while drawing " + path + ": " + e.getMessage());
         }
@@ -368,7 +368,7 @@ private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion
 
                 /* then add the new graphic */
                 list.add(new GraphicContent(new Rectangle(minX, minY, maxX - minX, maxY - minY),
-                current.isPicture(), filled, c));
+                        current.isPicture(), filled, c));
                 i = -1; // start over
                 break;
             }
@@ -378,7 +378,7 @@ private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion
     System.err.println(System.currentTimeMillis());
     if (log.isInfoEnabled()) {
         log.info("Combined " + originalSize + " graphical elements into " + list.size() + " in "
-        + (System.currentTimeMillis() - t0) + "ms");
+                + (System.currentTimeMillis() - t0) + "ms");
     }
 }
 
@@ -477,7 +477,7 @@ private void clearTempLists() {
 
 private List<GraphicContent> combineHorizontalSeparators() {
     Map<String, List<GraphicContent>> hsepsForXCoordinate = new HashMap<String,
-    List<GraphicContent>>();
+            List<GraphicContent>>();
 
     for (int i = 0; i < horizontalSeparators.size(); i++) {
         GraphicContent hsep = horizontalSeparators.get(i);

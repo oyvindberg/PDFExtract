@@ -67,8 +67,8 @@ static void splitRegionBySeparators(PhysicalPageRegion r) {
                         r.getWidth() + 1, hsep.getPos().getY());
 
                 if (log.isInfoEnabled()) {
-                    log.info("LOG00880:split/hsep: " + hsep + ",
-                    extracting area at: " + everythingAboveSep);
+                    log.info("LOG00880:split/hsep: " + hsep + ", extracting area at: "
+                            + everythingAboveSep);
                 }
 
                 r.removeContent(hsep);
