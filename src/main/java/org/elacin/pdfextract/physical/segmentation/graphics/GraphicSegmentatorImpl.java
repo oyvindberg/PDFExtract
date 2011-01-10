@@ -48,9 +48,10 @@ private static final Logger log = Logger.getLogger(GraphicSegmentatorImpl.class)
  * physical properties only
  */
 @NotNull
-final List<GraphicContent> figures  = new ArrayList<GraphicContent>();
+final List<GraphicContent> figures     = new ArrayList<GraphicContent>();
+final List<GeneralPath>    figurePaths = new ArrayList<GeneralPath>();
 @NotNull
-final List<GraphicContent> pictures = new ArrayList<GraphicContent>();
+final List<GraphicContent> pictures    = new ArrayList<GraphicContent>();
 
 
 /**
@@ -115,13 +116,16 @@ public List<GraphicContent> getGraphicsToRender() {
 public void segmentGraphicsUsingContentInRegion(@NotNull PhysicalPageRegion region) {
     assert !didSegment;
 
-    if (figures.isEmpty()) {
-        if (log.isInfoEnabled()) {
-            log.info("no figures to combine");
+    for (GeneralPath figurePath : figurePaths) {
+        try {
+            final Rectangle pos = convertRectangle(figurePath.getBounds());
+            addFigure(new GraphicContent(pos, false, Color.BLACK));
+        } catch (Exception e) {
+            log.warn("LOG00580:Error while filling path " + figurePath + ": ", e);
         }
-    } else {
-        combineGraphicsUsingRegion(region, figures);
     }
+
+
     if (pictures.isEmpty()) {
         if (log.isInfoEnabled()) {
             log.info("no pictures to combine");
@@ -197,37 +201,42 @@ public void drawImage(@NotNull final Image image,
     }
 
 
-    pictures.add(new GraphicContent(pos, true, true, Color.BLACK));
+    pictures.add(new GraphicContent(pos, true, Color.BLACK));
 }
 
 public void fill(@NotNull final GeneralPath originalPath, @NotNull final Color color) {
+    addVectorPath(originalPath, color);
+}
+
+private boolean addVectorPath(GeneralPath originalPath, Color color) {
     assert !didSegment;
+
+    if (color.equals(Color.WHITE)) {
+        return true;
+    }
 
     List<GeneralPath> paths = PathSplitter.splitPath(originalPath);
 
     for (GeneralPath path : paths) {
-        try {
-            final Rectangle pos = convertRectangle(path.getBounds());
-            addFigure(new GraphicContent(pos, false, true, color));
-        } catch (Exception e) {
-            log.warn("LOG00580:Error while filling path " + path + ": ", e);
+        boolean addedPath = false;
+        for (GeneralPath figurePath : figurePaths) {
+            if (figurePath.intersects(path.getBounds())) {
+                figurePath.append(path, true);
+                addedPath = true;
+                break;
+            }
+        }
+
+        if (!addedPath) {
+            GeneralPath newPath = new GeneralPath(path);
+            figurePaths.add(newPath);
         }
     }
+    return false;
 }
 
 public void strokePath(@NotNull final GeneralPath originalPath, @NotNull final Color color) {
-    assert !didSegment;
-
-    List<GeneralPath> paths = PathSplitter.splitPath(originalPath);
-
-    for (GeneralPath path : paths) {
-        try {
-            addFigure(new GraphicContent(convertRectangle(path.getBounds()), false, false,
-                    color));
-        } catch (Exception e) {
-            log.warn("LOG00600:Error while drawing " + path + ": " + e.getMessage());
-        }
-    }
+    addVectorPath(originalPath, color);
 }
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
@@ -326,7 +335,6 @@ private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion
             float minY = current.getPos().getY();
             float maxX = current.getPos().getEndX();
             float maxY = current.getPos().getEndY();
-            boolean filled = current.isFilled();
 
             Color c = current.getColor();
 
@@ -337,7 +345,6 @@ private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion
                 minY = Math.min(minY, list.get(j).getPos().getY());
                 maxX = Math.max(maxX, list.get(j).getPos().getEndX());
                 maxY = Math.max(maxY, list.get(j).getPos().getEndY());
-                filled |= list.get(j).isFilled();
                 if (!Color.WHITE.equals(c)) {
                     c = list.get(j).getColor();
                 }
@@ -368,7 +375,7 @@ private static void combineGraphicsUsingRegion(@NotNull final PhysicalPageRegion
 
                 /* then add the new graphic */
                 list.add(new GraphicContent(new Rectangle(minX, minY, maxX - minX, maxY - minY),
-                        current.isPicture(), filled, c));
+                        current.isPicture(), c));
                 i = -1; // start over
                 break;
             }
@@ -420,15 +427,6 @@ private void addFigure(@NotNull final GraphicContent newFigure) {
         return;
     }
     figures.add(newFigure);
-//    final int index = figures.indexOf(newFigure);
-//    if (index != -1) {
-//        final GraphicContent existing = figures.get(index);
-//        figures.remove(index);
-//        figures.add(existing.combineWith(newFigure));
-//        return;
-//    } else {
-//        figures.add(newFigure);
-//    }
 }
 
 private void categorizeGraphics(PhysicalPageRegion region, List<GraphicContent> list) {

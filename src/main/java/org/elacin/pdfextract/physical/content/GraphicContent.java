@@ -32,22 +32,19 @@ public class GraphicContent extends AssignablePhysicalContent {
 // ------------------------------ FIELDS ------------------------------
 
 private static final Logger log = Logger.getLogger(GraphicContent.class);
-private final boolean filled;
 private final boolean picture;
-private boolean canBeAssigned;
-private final Color color;
+private       boolean canBeAssigned;
+private final Color   color;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public GraphicContent(final Rectangle position, boolean picture, boolean filled, Color color) {
+public GraphicContent(final Rectangle position, boolean picture, Color color) {
     super(position, null);
-    this.filled = filled;
     this.picture = picture;
     this.color = color;
 
     if (log.isDebugEnabled()) {
-        log.debug("LOG00280:GraphicContent at " + position + ", filled: " + filled + ", " +
-                "picture =" + picture);
+        log.debug("LOG00280:GraphicContent at " + position + ", picture =" + picture);
     }
 }
 
@@ -58,7 +55,6 @@ public String toString() {
     final StringBuilder sb = new StringBuilder();
     sb.append("GraphicContent");
     sb.append("{canBeAssigned=").append(canBeAssigned);
-    sb.append(", filled=").append(filled);
     sb.append(", picture=").append(picture);
     sb.append(", pos=").append(getPos());
     sb.append(", color=").append(color);
@@ -100,9 +96,6 @@ public Color getColor() {
     return color;
 }
 
-public boolean isFilled() {
-    return filled;
-}
 
 public void setCanBeAssigned(final boolean canBeAssigned) {
     this.canBeAssigned = canBeAssigned;
@@ -135,8 +128,7 @@ public GraphicContent combineWith(@NotNull final GraphicContent other) {
         combinedColor = color;
     }
 
-    final boolean isFilled = other.filled || filled;
-    return new GraphicContent(getPos().union(other.getPos()), picture, isFilled, combinedColor);
+    return new GraphicContent(getPos().union(other.getPos()), picture, combinedColor);
 }
 
 public boolean isBackgroundColor() {
