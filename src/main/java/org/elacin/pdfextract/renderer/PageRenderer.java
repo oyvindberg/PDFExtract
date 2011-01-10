@@ -23,7 +23,10 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.HasPosition;
 import org.elacin.pdfextract.physical.content.WhitespaceRectangle;
-import org.elacin.pdfextract.tree.*;
+import org.elacin.pdfextract.tree.AbstractParentNode;
+import org.elacin.pdfextract.tree.DocumentNode;
+import org.elacin.pdfextract.tree.LayoutRegionNode;
+import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.util.Loggers;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
@@ -42,7 +45,7 @@ public class PageRenderer {
 // ------------------------------ FIELDS ------------------------------
 
 private static final Logger  log              = Logger.getLogger(PageRenderer.class);
-private static final boolean RENDER_REAL_PAGE = true;
+private static final boolean RENDER_REAL_PAGE = false;
 
 @NotNull
 private static final Color TRANSPARENT_WHITE           = new Color(255, 255, 255, 0);
@@ -192,19 +195,19 @@ private BufferedImage createImage(@NotNull final PDPage page, final int imageTyp
 
 Color getColorForObject(Object o) {
     if (o.getClass().equals(WhitespaceRectangle.class)) {
-        return Color.GREEN;
-    } else if (o.getClass().equals(GraphicContent.class)) {
-        return Color.BLUE;
-    } else if (o.getClass().equals(LayoutRegionNode.class)) {
-        return Color.MAGENTA;
-    } else if (o.getClass().equals(ParagraphNode.class)) {
-        return Color.RED;
-    } else if (o.getClass().equals(LineNode.class)) {
-        return Color.CYAN;
-    } else if (o.getClass().equals(WordNode.class)) {
         return Color.BLACK;
+    } else if (o.getClass().equals(GraphicContent.class)) {
+        return Color.MAGENTA;
+    } else if (o.getClass().equals(LayoutRegionNode.class)) {
+        return Color.GREEN;
+//    } else if (o.getClass().equals(ParagraphNode.class)) {
+//        return Color.RED;
+//    } else if (o.getClass().equals(LineNode.class)) {
+//        return Color.CYAN;
+//    } else if (o.getClass().equals(WordNode.class)) {
+//        return Color.BLACK;
     } else {
-        return Color.CYAN;
+        return Color.GRAY;
     }
 }
 }

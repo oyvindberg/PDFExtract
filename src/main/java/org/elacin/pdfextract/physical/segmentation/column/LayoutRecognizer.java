@@ -104,7 +104,7 @@ public Map<Integer, List<Integer>> findColumnsForPage(@NotNull final RectangleCo
 
     if (getInterfaceLog().isDebugEnabled()) {
         getInterfaceLog().debug("LOG00190:compileLogicalPage:" + (System.currentTimeMillis() -
-        t0));
+                t0));
     }
 
     return columns;
@@ -114,16 +114,17 @@ public Map<Integer, List<Integer>> findColumnsForPage(@NotNull final RectangleCo
 public List<WhitespaceRectangle> findWhitespace(@NotNull final PhysicalPageRegion region) {
     final long t0 = System.currentTimeMillis();
 
-    final int numWhitespaces = Math.max(10, Math.min(40, region.getContents().size() / 10));
+    final int numWhitespaces = Math.max(10, Math.min(45, region.getContents().size() / 8));
+
     AbstractWhitespaceFinder vert = new WhitespaceFinder(region, numWhitespaces,
-            region.getAvgFontSizeX()
-                    * 0.4f, region.getAvgFontSizeY());
+            region.getMinimumColumnSpacing(), region.getMinimumRowSpacing());
+
     final List<WhitespaceRectangle> ret = vert.findWhitespace();
 
 
     final long time = System.currentTimeMillis() - t0;
     log.warn(String.format("LOG00380:%d of %d whitespaces for %s in %d ms", ret.size(),
-    numWhitespaces, region, time));
+            numWhitespaces, region, time));
     return ret;
 }
 
@@ -200,7 +201,7 @@ private boolean isNewBoundary(@NotNull final List<PhysicalContent> contents,
     }
 
     /** there will at times be thin whitespace rectangles which crosses in between two words
-    which
+     which
      *  logically belongs together. Compare the distance between the two words to their average
      *  character width to filter out those cases
      */

@@ -51,12 +51,12 @@ protected final ParagraphSegmentator paragraphSegmentator = new ParagraphSegment
 
 /* average font sizes for this page region */
 private transient boolean fontInfoFound;
-private transient float _avgFontSizeX;
-private transient float _avgFontSizeY;
-private transient Style _mostCommonStyle;
+private transient float   _avgFontSizeX;
+private transient float   _avgFontSizeY;
+private transient Style   _mostCommonStyle;
 
 private transient boolean medianFound;
-private transient int _medianOfVerticalDistances;
+private transient int     _medianOfVerticalDistances;
 
 /* the physical page containing this region */
 private final PhysicalPage page;
@@ -92,22 +92,10 @@ public void clearCache() {
     medianFound = false;
 }
 
-
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 public GraphicContent getContainingGraphic() {
     return containingGraphic;
-}
-
-public void setContainingGraphic(GraphicContent containingGraphic) {
-    if (this.containingGraphic != null) {
-        removeContent(this.containingGraphic);
-    }
-
-    if (containingGraphic != null) {
-        this.containingGraphic = containingGraphic;
-        addContent(containingGraphic);
-    }
 }
 
 @NotNull
@@ -123,48 +111,16 @@ public List<WhitespaceRectangle> getWhitespace() {
 // -------------------------- PUBLIC METHODS --------------------------
 
 public void addWhitespace(final Collection<WhitespaceRectangle> whitespace) {
-    whitespace.addAll(whitespace);
-//    addContents(whitespace);
+    this.whitespace.addAll(whitespace);
+    addContents(whitespace);
 }
 
 public boolean columnBoundaryWouldBeTooNarrow(final float lastBoundary, final float x) {
     return x - lastBoundary < getMinimumColumnSpacing();
 }
 
-@NotNull
-public List<ParagraphNode> createParagraphNodes() {
-    paragraphSegmentator.setMedianVerticalSpacing(getMedianOfVerticalDistances());
-
-//    addWhitespace(new LayoutRecognizer().findWhitespace(this));
-
-    final List<LineNode> lines = lineSegmentator.segmentLines(this);
-    Collections.sort(lines, Sorting.sortByLowerY);
-    final List<ParagraphNode> ret = paragraphSegmentator.segmentParagraphs(lines);
-
-    return ret;
-}
-
-public void extractSubRegionFromBound(Rectangle bound) {
-    final List<PhysicalContent> subContents = findContentsIntersectingWith(bound.getPos());
-    doExtractSubRegion(subContents, bound, null);
-}
-
-public void extractSubRegionFromContent(@NotNull final Collection<PhysicalContent> subContents) {
-    doExtractSubRegion(subContents, null, null);
-}
-
-/**
- * Returns a subregion with all the contents which is contained by bound. If more than two pieces
- * of
- * content crosses the boundary of bound, it is deemed inappropriate for dividing the page,
- * and an
- * exception is thrown
- *
- * @return the new region
- */
-public void extractSubRegionFromGraphic(@NotNull final GraphicContent graphic) {
-    final List<PhysicalContent> subContents = findContentsIntersectingWith(graphic.getPos());
-    doExtractSubRegion(subContents, graphic, graphic);
+public float getMinimumColumnSpacing() {
+    return getAvgFontSizeX() * 0.8f;
 }
 
 public float getAvgFontSizeX() {
@@ -172,69 +128,6 @@ public float getAvgFontSizeX() {
         findAndSetFontInformation();
     }
     return _avgFontSizeX;
-}
-
-public float getAvgFontSizeY() {
-    if (!fontInfoFound) {
-        findAndSetFontInformation();
-    }
-    return _avgFontSizeY;
-}
-
-public int getMedianOfVerticalDistances() {
-    if (!medianFound) {
-        findAndSetMedianOfVerticalDistancesForRegion();
-    }
-    return _medianOfVerticalDistances;
-}
-
-public float getMinimumColumnSpacing() {
-    return getAvgFontSizeX() * 0.5f;
-}
-
-public Style getMostCommonStyle() {
-    if (!fontInfoFound) {
-        findAndSetFontInformation();
-    }
-    return _mostCommonStyle;
-}
-
-public int getPageNumber() {
-    return page.getPageNumber();
-}
-
-// -------------------------- OTHER METHODS --------------------------
-
-private void doExtractSubRegion(@NotNull final Collection<PhysicalContent> subContents,
-                                @Nullable final HasPosition bound,
-                                @Nullable final GraphicContent graphic) {
-    if (subContents.isEmpty()) {
-        if (log.isInfoEnabled()) {
-            log.info("LOG00960:bound " + bound + " contains no content in " + this + ". wont " +
-                    "extract");
-        }
-        return;
-    }
-
-    if (subContents.size() == getContents().size()) {
-        if (log.isInfoEnabled()) {
-            log.info("LOG00950:bound " + bound + " contains all content in " + this + ". wont " +
-                    "extract");
-        }
-        return;
-    }
-
-    final PhysicalPageRegion newRegion = new PhysicalPageRegion(subContents, this, page);
-    newRegion.setContainingGraphic(graphic);
-
-
-    log.warn("LOG00890:Extracted PPR:" + newRegion + " from " + this);
-
-    removeContents(subContents);
-
-    addContent(newRegion);
-
-    subregions.add(newRegion);
 }
 
 /* find average font sizes, and most used style for the region */
@@ -261,6 +154,25 @@ protected void findAndSetFontInformation() {
         _mostCommonStyle = TextUtils.findDominatingStyle(getContents());
     }
     fontInfoFound = true;
+}
+
+@NotNull
+public List<ParagraphNode> createParagraphNodes() {
+    paragraphSegmentator.setMedianVerticalSpacing(getMedianOfVerticalDistances());
+
+    final List<LineNode> lines = lineSegmentator.segmentLines(this);
+    Collections.sort(lines, Sorting.sortByLowerY);
+
+    final List<ParagraphNode> ret = paragraphSegmentator.segmentParagraphs(lines);
+
+    return ret;
+}
+
+public int getMedianOfVerticalDistances() {
+    if (!medianFound) {
+        findAndSetMedianOfVerticalDistancesForRegion();
+    }
+    return _medianOfVerticalDistances;
 }
 
 /**
@@ -303,6 +215,94 @@ protected int findAndSetMedianOfVerticalDistancesForRegion() {
     medianFound = true;
 
     return _medianOfVerticalDistances;
+}
+
+public float getAvgFontSizeY() {
+    if (!fontInfoFound) {
+        findAndSetFontInformation();
+    }
+    return _avgFontSizeY;
+}
+
+public void extractSubRegionFromBound(Rectangle bound) {
+    final List<PhysicalContent> subContents = findContentsIntersectingWith(bound.getPos());
+    doExtractSubRegion(subContents, bound, null);
+}
+
+private void doExtractSubRegion(@NotNull final Collection<PhysicalContent> subContents,
+                                @Nullable final HasPosition bound,
+                                @Nullable final GraphicContent graphic) {
+    if (subContents.isEmpty()) {
+        if (log.isInfoEnabled()) {
+            log.info("LOG00960:bound " + bound + " contains no content in " + this + ". wont " +
+                    "extract");
+        }
+        return;
+    }
+
+    if (subContents.size() == getContents().size()) {
+        if (log.isInfoEnabled()) {
+            log.info("LOG00950:bound " + bound + " contains all content in " + this + ". wont " +
+                    "extract");
+        }
+        return;
+    }
+
+    final PhysicalPageRegion newRegion = new PhysicalPageRegion(subContents, this, page);
+    newRegion.setContainingGraphic(graphic);
+
+
+    log.warn("LOG00890:Extracted PPR:" + newRegion + " from " + this);
+
+    removeContents(subContents);
+
+    addContent(newRegion);
+
+    subregions.add(newRegion);
+}
+
+public void setContainingGraphic(GraphicContent containingGraphic) {
+    if (this.containingGraphic != null) {
+        removeContent(this.containingGraphic);
+    }
+
+    if (containingGraphic != null) {
+        this.containingGraphic = containingGraphic;
+        addContent(containingGraphic);
+    }
+}
+
+public void extractSubRegionFromContent(@NotNull final Collection<PhysicalContent> subContents) {
+    doExtractSubRegion(subContents, null, null);
+}
+
+/**
+ * Returns a subregion with all the contents which is contained by bound. If more than two pieces
+ * of
+ * content crosses the boundary of bound, it is deemed inappropriate for dividing the page,
+ * and an
+ * exception is thrown
+ *
+ * @return the new region
+ */
+public void extractSubRegionFromGraphic(@NotNull final GraphicContent graphic) {
+    final List<PhysicalContent> subContents = findContentsIntersectingWith(graphic.getPos());
+    doExtractSubRegion(subContents, graphic, graphic);
+}
+
+public float getMinimumRowSpacing() {
+    return getMedianOfVerticalDistances() * 1.2f;
+}
+
+public Style getMostCommonStyle() {
+    if (!fontInfoFound) {
+        findAndSetFontInformation();
+    }
+    return _mostCommonStyle;
+}
+
+public int getPageNumber() {
+    return page.getPageNumber();
 }
 }
 

@@ -35,7 +35,7 @@ private final float x, y, width, height;
 
 /* caching, we do a lot of comparing */
 private transient boolean hasCalculatedHash = false;
-private transient int hash = -1;
+private transient int     hash              = -1;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -263,13 +263,13 @@ public boolean intersectsWith(@NotNull HasPosition other) {
         return false;
     }
 
-    if (that.getEndX() < x) {
+    if (that.getEndX() <= x) {
         return false;
     }
-    if (that.x > getEndX()) {
+    if (that.x >= getEndX()) {
         return false;
     }
-    if (that.y > getEndY()) {
+    if (that.y >= getEndY()) {
         return false;
     }
     return that.getEndY() >= y;
@@ -304,5 +304,18 @@ public Rectangle union(@NotNull HasPosition that) {
         y2 = t;
     }
     return new Rectangle(x1, y1, x2 - x1, y2 - y1);
+}
+
+public Rectangle intersection(@NotNull HasPosition that) {
+    final Rectangle pos = that.getPos();
+
+    float maxX = Math.max(getEndX(), pos.getEndX());
+    float maxY = Math.max(getEndY(), pos.getEndY());
+    float minX = Math.min(x, pos.x);
+    float minY = Math.min(y, pos.y);
+
+    return new Rectangle(minX, minY, maxX - minX, maxY - minY);
+
+
 }
 }

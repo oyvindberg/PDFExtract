@@ -151,8 +151,6 @@ private static boolean isTooFarAwayHorizontally(final float endX, @NotNull final
 
 // -------------------------- OTHER METHODS --------------------------
 
-// latex keep at 154
-
 /**
  * The above methods are generally responsible for grouping text according to line and style;
  * this is the one which will actually do the segmentation.
@@ -270,7 +268,6 @@ static Collection<PhysicalText> createWordsInLine(@NotNull final List<PhysicalTe
     return segmentedWords;
 }
 
-//latex, keep at 275
 
 private static void printLine(List<PhysicalText> physicalTexts) {
     StringBuffer sb = new StringBuffer();
@@ -309,8 +306,6 @@ private static boolean containsWhiteSpace(List<PhysicalText> line) {
     }
     return false;
 }
-
-//latex, keep this line at 315
 
 /**
  * Tries to find an estimate of the character spacing applied to the
@@ -372,7 +367,6 @@ static float approximateCharSpacing(@NotNull List<PhysicalText> line) {
 
     return sum / (float) counted;
 }
-// latex, keep this line at 377
 
 /**
  * Calculates a list of distances between the given list of characters in the obvious way.

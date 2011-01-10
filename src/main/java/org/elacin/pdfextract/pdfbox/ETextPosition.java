@@ -42,34 +42,6 @@ private float     baseLine;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public ETextPosition(int pageRotation,
-                     float pageWidth,
-                     float pageHeight,
-                     Matrix textPositionSt,
-                     Matrix textPositionEnd,
-                     float maxFontH,
-                     float individualWidth,
-                     float spaceWidth,
-                     String string,
-                     PDFont currentFont,
-                     float fontSizeValue,
-                     int fontSizeInPt) {
-    super(pageRotation, pageWidth, pageHeight, textPositionSt, textPositionEnd, maxFontH,
-            individualWidth, spaceWidth, string, currentFont, fontSizeValue, fontSizeInPt);
-
-
-    float x = getX();
-    float y = getY();
-    float w = getWidth();
-    float h = getHeight();
-
-    if (h <= 0.0f || w < 0.0f) {
-        throw new IllegalArgumentException("Passed text '" + string + "' with no size.");
-    }
-
-    pos = new Rectangle(x, y, w, h);
-}
-
 public ETextPosition(final PDPage page,
                      final Matrix textPositionSt,
                      final Matrix textPositionEnd,

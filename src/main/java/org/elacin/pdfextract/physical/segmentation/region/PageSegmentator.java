@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.elacin.pdfextract.physical.PhysicalPage;
 import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
+import org.elacin.pdfextract.physical.segmentation.column.LayoutRecognizer;
 import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentator;
 import org.elacin.pdfextract.style.Style;
 
@@ -47,17 +48,20 @@ public static void segmentPageRegionWithSubRegions(PhysicalPage page) {
      *  main head lines. This is what most oftenly breaks out from standard logic */
 
 
-    createGraphicRegions(page.getGraphics(), page.getMainRegion());
+    final PhysicalPageRegion mainRegion = page.getMainRegion();
+    createGraphicRegions(page.getGraphics(), mainRegion);
+    mainRegion.addWhitespace(new LayoutRecognizer().findWhitespace(mainRegion));
 
-    recursivelySplitRegions(page.getMainRegion());
 
-    combineGraphicsWithTextAround(page.getMainRegion());
+//    recursivelySplitRegions(mainRegion);
 
-    for (PhysicalPageRegion subRegion : page.getMainRegion().getSubregions()) {
-        if (subRegion.getContainingGraphic() != null) {
-            recursivelySplitRegions(subRegion);
-        }
-    }
+//    combineGraphicsWithTextAround(page.getMainRegion());
+
+//    for (PhysicalPageRegion subRegion : page.getMainRegion().getSubregions()) {
+//        if (subRegion.getContainingGraphic() != null) {
+//            recursivelySplitRegions(subRegion);
+//        }
+//    }
 }
 
 // -------------------------- STATIC METHODS --------------------------

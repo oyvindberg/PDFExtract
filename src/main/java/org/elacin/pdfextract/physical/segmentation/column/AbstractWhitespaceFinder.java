@@ -45,12 +45,17 @@ private static final Logger log = Logger.getLogger(AbstractWhitespaceFinder.clas
 /* an artificial limit of the algorithm. */
 private static final int MAX_QUEUE_SIZE = 100000;
 
+/* all the obstacles in the algorithm are found here, and are initially all the
+    words on the page */
+protected final RectangleCollection region;
+
 /* min[Height|Width] are the thinnest rectangles we will accept */
 private final float minHeight;
 private final float minWidth;
 
 /* the number of whitespace we want to find */
 private final int wantedWhitespaces;
+
 
 /**
  * State while working follows below
@@ -64,17 +69,12 @@ private final List<WhitespaceRectangle> foundWhitespace;
 @NotNull
 private final PriorityQueue<QueueEntry> queue;
 
-/* all the obstacles in the algorithm are found here, and are initially all the
-    words on the page */
-private final RectangleCollection region;
-
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public AbstractWhitespaceFinder(RectangleCollection region,
                                 final int numWantedWhitespaces,
                                 final float minWidth,
                                 final float minHeight) {
-
     this.region = region;
 
     wantedWhitespaces = numWantedWhitespaces;
@@ -86,54 +86,11 @@ public AbstractWhitespaceFinder(RectangleCollection region,
     this.minHeight = minHeight;
 }
 
-// -------------------------- STATIC METHODS --------------------------
-
-/**
- * Finds the obstacle which is closest to the centre of the rectangle bound
- */
-@Nullable
-private static HasPosition choosePivot(@NotNull final Rectangle bound,
-                                       @NotNull final List<? extends HasPosition> obstacles) {
-
-    if (obstacles.size() == 1) {
-        return obstacles.get(0);
-    }
-    final FloatPoint centrePoint = bound.centre();
-    float minDistance = Float.MAX_VALUE;
-    HasPosition closestToCentre = null;
-
-    for (HasPosition obstacle : obstacles) {
-        final float distance = obstacle.getPos().distance(centrePoint);
-        if (distance < minDistance) {
-            minDistance = distance;
-            closestToCentre = obstacle;
-        }
-    }
-    return closestToCentre;
-}
-
-/**
- * Returns true if subrectangle is completely contained withing one of the obstacles. This
- happens
- * rarely, but a check is necessary
- */
-private static boolean isNotContainedByAnyObstacle(@NotNull final Rectangle subrectangle,
-                                                   @NotNull final Iterable<HasPosition>
-                                                   obstacles) {
-
-    for (HasPosition obstacle : obstacles) {
-        if (obstacle.getPos().contains(subrectangle)) {
-            return false;
-        }
-    }
-    return true;
-}
-
 // -------------------------- PUBLIC METHODS --------------------------
 
 /**
  * Finds the requested amount of whitespace rectangles based on the contents on the page which
- has
+ * has
  * been provided.
  *
  * @return whitespace rectangles
@@ -159,13 +116,15 @@ public List<WhitespaceRectangle> findWhitespace() {
     return foundWhitespace;
 }
 
-// -------------------------- OTHER METHODS --------------------------
+private int getNumberOfWhitespacesFound() {
+    return foundWhitespace.size();
+}
 
 @Nullable
 @SuppressWarnings({"ObjectAllocationInLoop"})
 private WhitespaceRectangle findNextWhitespace() {
-
     while (!queue.isEmpty()) {
+
         /* TODO: i can't help but feel this shouldnt be necessary */
         if (MAX_QUEUE_SIZE - 4 <= queue.size()) {
             log.warn("Queue too long");
@@ -182,19 +141,14 @@ private WhitespaceRectangle findNextWhitespace() {
             updateObstacleListForQueueEntry(current);
         }
 
-        /** If none of the obstacles are contained within outerBound,
-        then we found a rectangle */
-        if (current.obstacles.isEmpty()) {
-            /* if the rectangle is not higher than 25% of the page,
-            check whether it is surrounded
-                   on all sides by text. in that case, drop it */
+        if (isEmptyEnough(current)) {
             final WhitespaceRectangle newWhitespace = new WhitespaceRectangle(current.bound);
-            if (current.bound.getHeight() < region.getHeight() / 4.0f) {
-                if (!isNextToWhitespaceOrEdge(newWhitespace)) {
-                    continue;
-                }
+
+            if (acceptsRectangle(newWhitespace)) {
+                return newWhitespace;
+            } else {
+                continue;
             }
-            return newWhitespace;
         }
 
         /* choose an obstacle near the middle of the current rectangle */
@@ -233,40 +187,68 @@ private WhitespaceRectangle findNextWhitespace() {
     return null;
 }
 
-private int getNumberOfWhitespacesFound() {
+/**
+ * Checks if some of the newly added whitespace rectangles, that is those discovered after this
+ * queue entry was added to the queue, overlaps with the area of this queue entry, and if so adds
+ * them to this list of obstacles .
+ */
+private void updateObstacleListForQueueEntry(@NotNull final QueueEntry entry) {
+    int numNewestObstaclesToCheck = getNumberOfWhitespacesFound() - entry
+            .numberOfWhitespaceFound;
 
-    return foundWhitespace.size();
+    for (int i = 0; i < numNewestObstaclesToCheck; i++) {
+        final HasPosition obstacle = foundWhitespace.get(foundWhitespace.size() - 1 - i);
+        if (entry.bound.intersectsWith(obstacle)) {
+            entry.obstacles.add(obstacle);
+        }
+    }
 }
 
 /**
- * This method provides a personal touch to the algorithm described in the paper which is
- * referenced. Here we will just accept rectangles which are adjacent to either another one which
-  we
- * have already identified, or which are adjacent to the edge of the page. <p/> By assuring that
- the
- * we thus form continous chains of rectangles, the results seem to be much better.
+ * If none of the obstacles are contained within outerBound, then we found a rectangle
  */
+private boolean isEmptyEnough(QueueEntry current) {
 
-private boolean isNextToWhitespaceOrEdge(@NotNull final WhitespaceRectangle newWhitespace) {
-    /* accept this rectangle if it is adjacent to the edge of the page */
-    //noinspection FloatingPointEquality
-    if (newWhitespace.getPos().getX() == region.getPos().getX()
-            || newWhitespace.getPos().getY() == region.getPos().getY()
-            || newWhitespace.getPos().getEndX() == region.getPos().getEndX()
-            || newWhitespace.getPos().getEndY() == region.getPos().getEndY()) {
-        return true;
-    }
-
-    /* also accept if it borders one of the already identified whitespaces */
-    for (WhitespaceRectangle existing : foundWhitespace) {
-        if (newWhitespace.getPos().distance(existing.getPos()) < 1.0f) {
-            return true;
+    boolean emptyEnough = false;
+    if (current.obstacles.size() == 1) {
+        final float intersectArea = current.bound.intersection(current.obstacles.get(0).getPos()
+        ).area();
+        final float obstacleArea = current.obstacles.get(0).getPos().area();
+        if (intersectArea < obstacleArea * 0.1f) {
+            emptyEnough = true;
         }
+    } else if (current.obstacles.isEmpty()) {
+        emptyEnough = true;
     }
-
-    return false;
+    return emptyEnough;
 }
 
+protected boolean acceptsRectangle(WhitespaceRectangle newWhitespace) {
+    return true;
+}
+
+/**
+ * Finds the obstacle which is closest to the centre of the rectangle bound
+ */
+@Nullable
+private static HasPosition choosePivot(@NotNull final Rectangle bound,
+                                       @NotNull final List<? extends HasPosition> obstacles) {
+    if (obstacles.size() == 1) {
+        return obstacles.get(0);
+    }
+    final FloatPoint centrePoint = bound.centre();
+    float minDistance = Float.MAX_VALUE;
+    HasPosition closestToCentre = null;
+
+    for (HasPosition obstacle : obstacles) {
+        final float distance = obstacle.getPos().distance(centrePoint);
+        if (distance < minDistance) {
+            minDistance = distance;
+            closestToCentre = obstacle;
+        }
+    }
+    return closestToCentre;
+}
 
 /**
  * Creates four rectangles with the remaining space left after splitting the current rectangle
@@ -275,7 +257,6 @@ private boolean isNextToWhitespaceOrEdge(@NotNull final WhitespaceRectangle newW
 @Nullable
 private QueueEntry[] splitSearchAreaAround(@NotNull final QueueEntry current,
                                            @NotNull final HasPosition pivot) {
-
     final Rectangle p = current.bound;
     final Rectangle split = pivot.getPos();
 
@@ -336,22 +317,22 @@ private QueueEntry[] splitSearchAreaAround(@NotNull final QueueEntry current,
 }
 
 /**
- * Checks if some of the newly added whitespace rectangles, that is those discovered after this
- * queue entry was added to the queue, overlaps with the area of this queue entry, and if so adds
- * them to this list of obstacles .
+ * Returns true if subrectangle is completely contained withing one of the obstacles. This
+ * happens
+ * rarely, but a check is necessary
  */
-private void updateObstacleListForQueueEntry(@NotNull final QueueEntry entry) {
-
-    int numNewestObstaclesToCheck = getNumberOfWhitespacesFound() - entry
-    .numberOfWhitespaceFound;
-
-    for (int i = 0; i < numNewestObstaclesToCheck; i++) {
-        final HasPosition obstacle = foundWhitespace.get(foundWhitespace.size() - 1 - i);
-        if (entry.bound.intersectsWith(obstacle)) {
-            entry.obstacles.add(obstacle);
+private static boolean isNotContainedByAnyObstacle(@NotNull final Rectangle subrectangle,
+                                                   @NotNull final Iterable<HasPosition>
+                                                           obstacles) {
+    for (HasPosition obstacle : obstacles) {
+        if (obstacle.getPos().contains(subrectangle)) {
+            return false;
         }
     }
+    return true;
 }
+
+// -------------------------- OTHER METHODS --------------------------
 
 /**
  * This is the quality function by which we sort rectangles to choose the 'best' one first. The
@@ -359,18 +340,45 @@ private void updateObstacleListForQueueEntry(@NotNull final QueueEntry entry) {
  */
 protected abstract float rectangleQuality(Rectangle r);
 
+/**
+ * This method provides a personal touch to the algorithm described in the paper which is
+ * referenced. Here we will just accept rectangles which are adjacent to either another one which
+ * we
+ * have already identified, or which are adjacent to the edge of the page. <p/> By assuring that
+ * the
+ * we thus form continous chains of rectangles, the results seem to be much better.
+ */
+
+protected boolean isNextToWhitespaceOrEdge(@NotNull final WhitespaceRectangle newWhitespace) {
+    /* accept this rectangle if it is adjacent to the edge of the page */
+    //noinspection FloatingPointEquality
+    if (newWhitespace.getPos().getX() == region.getPos().getX()
+            || newWhitespace.getPos().getY() == region.getPos().getY()
+            || newWhitespace.getPos().getEndX() == region.getPos().getEndX()
+            || newWhitespace.getPos().getEndY() == region.getPos().getEndY()) {
+        return true;
+    }
+
+    /* also accept if it borders one of the already identified whitespaces */
+    for (WhitespaceRectangle existing : foundWhitespace) {
+        if (newWhitespace.getPos().distance(existing.getPos()) < 1.0f) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 // -------------------------- INNER CLASSES --------------------------
 
 private class QueueEntry implements Comparable<QueueEntry> {
-
-    final Rectangle bound;
+    final         Rectangle         bound;
     @NotNull
-    final List<HasPosition> obstacles;
-    final int numberOfWhitespaceFound;
-    private final float quality;
+    final         List<HasPosition> obstacles;
+    final         int               numberOfWhitespaceFound;
+    private final float             quality;
 
     private QueueEntry(final Rectangle bound, final List<? extends HasPosition> positions) {
-
         this.bound = bound;
         /* damn it, i honestly fail to understand why this cast is needed. */
         //noinspection unchecked
@@ -380,13 +388,11 @@ private class QueueEntry implements Comparable<QueueEntry> {
     }
 
     public int compareTo(@NotNull final QueueEntry o) {
-
         return Float.compare(o.quality, quality);
     }
 
     @Override
     public String toString() {
-
         final StringBuilder sb = new StringBuilder();
         sb.append("QueueEntry");
         sb.append("{area=").append(bound.area());
@@ -398,7 +404,6 @@ private class QueueEntry implements Comparable<QueueEntry> {
 
     @Override
     public boolean equals(@Nullable final Object o) {
-
         if (this == o) {
             return true;
         }
@@ -413,10 +418,7 @@ private class QueueEntry implements Comparable<QueueEntry> {
 
     @Override
     public int hashCode() {
-
         return bound != null ? bound.hashCode() : 0;
     }
 }
-
-
 }

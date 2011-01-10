@@ -136,8 +136,7 @@ public PageNode compileLogicalPage() {
     addRenderingInformation(page);
 
     if (log.isInfoEnabled()) {
-        log.info("LOG00230:compileLogicalPage took " + (System.currentTimeMillis() - t0) + " ms")
-        ;
+        log.info("LOG00230:compileLogicalPage took " + (System.currentTimeMillis() - t0) + " ms");
     }
     return page;
 }

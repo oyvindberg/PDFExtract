@@ -54,6 +54,7 @@ protected Color currentColor;
 
 private BasicStroke basicStroke;
 
+private static final boolean NO_DESCENDERS = true;
 // --------------------------- CONSTRUCTORS ---------------------------
 
 //--------------------------- CONSTRUCTORS ---------------------------
@@ -372,7 +373,7 @@ private void correctPosition(final PDFont fontObj, final byte[] string,
         /* remove the upper and lower bounds filtered away by character */
         final float spaceUnderChar = Math.min(fontBB.getLowerLeftY(), character.getLowerLeftY());
         final float spaceOverChar = fontBB.getUpperRightY() - character.getUpperRightY();
-        final float characterHeight = character.getHeight();
+
         final float fontHeight = fontBB.getHeight();
 
         final float beforeRoomForGlyph = pos.getEndY() - adjust * Math.max(fontHeight,
@@ -381,6 +382,9 @@ private void correctPosition(final PDFont fontObj, final byte[] string,
         float yStart = beforeRoomForGlyph;
         yStart += adjust * spaceOverChar;
         yStart -= adjust * spaceUnderChar;
+        if (!NO_DESCENDERS) {
+
+        }
         yStart -= pos.getHeight();
 
         float leftOfText = text.getX() - (adjust * fontBB.getLowerLeftX());
@@ -388,6 +392,14 @@ private void correctPosition(final PDFont fontObj, final byte[] string,
                 character.getLowerLeftX()));
 
         float w = pos.getWidth();
+
+        final float characterHeight;
+        if (NO_DESCENDERS && Character.getType(c.charAt(0)) != (int) Character.MATH_SYMBOL) {
+            characterHeight = character.getUpperRightY();
+        } else {
+            characterHeight = character.getHeight();
+        }
+
         float h = adjust * characterHeight;
 
         newPos = new Rectangle(x, yStart, w, h);

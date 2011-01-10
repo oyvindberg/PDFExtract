@@ -64,7 +64,7 @@ public static void splitHorizontallyBySpacing(@NotNull PhysicalPageRegion r) {
     /* increase it a bit */
     median++;
 
-    final int minimumDistanceToSplit = (int) (Math.max(6.0f, r.getAvgFontSizeY()) * 2);
+    final int minimumDistanceToSplit = (int) (Math.max(6.0f, r.getAvgFontSizeY()));
 
     float lastBoundary = -1000.0f;
     float minX = Float.MAX_VALUE, maxX = Float.MIN_VALUE;
@@ -131,12 +131,6 @@ public static void splitInVerticalColumns(@NotNull PhysicalPageRegion r) {
 
         final List<PhysicalContent> column = r.findContentAtXIndex(x);
 
-//        for (PhysicalContent physicalContent : column) {
-//            if (physicalContent.getPos().getX() > x + 1) {
-//                throw new RuntimeException();
-//            }
-//        }
-
         workingSet.addAll(column);
 
         /* keep track of current vertical bounds */
@@ -191,7 +185,7 @@ public static void splitInVerticalColumns(@NotNull PhysicalPageRegion r) {
 // -------------------------- STATIC METHODS --------------------------
 
 private static boolean columnContainsBlockingGraphics(@NotNull final List<PhysicalContent>
-column,
+                                                              column,
                                                       final float x,
                                                       final float minY,
                                                       final float maxY) {
