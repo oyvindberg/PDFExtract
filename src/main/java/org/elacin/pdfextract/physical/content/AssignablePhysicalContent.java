@@ -28,52 +28,52 @@ import org.jetbrains.annotations.Nullable;
 public abstract class AssignablePhysicalContent extends PhysicalContent {
 // ------------------------------ FIELDS ------------------------------
 
-private static final int BLOCK_NOT_ASSIGNED = -1;
-public               int blockNum           = BLOCK_NOT_ASSIGNED;
+public static final int BLOCK_NOT_ASSIGNED = -1;
+public              int blockNum           = BLOCK_NOT_ASSIGNED;
 @Nullable
 protected Style style;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public AssignablePhysicalContent(final Rectangle position, Style style) {
-	super(position);
-	this.style = style;
+    super(position);
+    this.style = style;
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
 
 @NotNull
 @Override
-public AssignablePhysicalContent getAssignablePhysicalContent() {
-	return this;
+public AssignablePhysicalContent getAssignable() {
+    return this;
 }
 
 @Override
 public boolean isAssignablePhysicalContent() {
-	return true;
+    return true;
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 public int getBlockNum() {
-	return blockNum;
+    return blockNum;
 }
 
 public void setBlockNum(final int blockNum) {
-	this.blockNum = blockNum;
+    this.blockNum = blockNum;
 }
 
 public Style getStyle() {
-	return style;
+    return style;
 }
 
 public void setStyle(final Style style) {
-	this.style = style;
+    this.style = style;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
 public boolean isAssignedBlock() {
-	return blockNum != BLOCK_NOT_ASSIGNED;
+    return blockNum != BLOCK_NOT_ASSIGNED;
 }
 }

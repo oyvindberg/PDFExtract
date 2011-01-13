@@ -21,6 +21,7 @@ import org.elacin.pdfextract.physical.content.HasPosition;
 import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
 import org.elacin.pdfextract.util.Rectangle;
+import org.elacin.pdfextract.util.RectangleCollection;
 import org.elacin.pdfextract.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -168,6 +169,9 @@ public static void splitInVerticalColumns(@NotNull PhysicalPageRegion r) {
             }
 
             r.extractSubRegionFromContent(workingSet);
+            Rectangle theRest = new Rectangle(x, r.getPos().getY(), r.getPos().getEndX() - x,
+                    r.getPos().getEndY());
+            r.extractSubRegionFromBound(theRest);
 
             /* reset vertical values */
             minY = Float.MAX_VALUE;
@@ -195,6 +199,8 @@ private static boolean columnContainsBlockingGraphics(@NotNull final List<Physic
             if (obstacle.getPos().intersectsWith(search)) {
                 return true;
             }
+        } else if (obstacle instanceof RectangleCollection) {
+            return true;
         }
     }
     return false;

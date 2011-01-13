@@ -42,8 +42,14 @@ public static final Comparator<HasPosition> sortByLowerY = new Comparator<HasPos
     }
 };
 
+public static final Comparator<HasPosition> sortByHigherX = new Comparator<HasPosition>() {
+    public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
+        return Float.compare(o2.getPos().getX(), o1.getPos().getX());
+    }
+};
+
 public static final Comparator<HasPosition> sortByLowerYThenLowerX = new Comparator<HasPosition>
-() {
+        () {
     public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
         final int compare = Float.compare(o1.getPos().getY(), o2.getPos().getY());
         if (compare != 0) {
@@ -72,12 +78,12 @@ public static final Comparator<Style> sortStylesById = new Comparator<Style>() {
 };
 
 public static final Comparator<ETextPosition> sortTextByBaseLine = new Comparator<ETextPosition>
-() {
+        () {
     public int compare(final ETextPosition o1, final ETextPosition o2) {
         return Float.compare(o1.getBaseLine(), o2.getBaseLine());
     }
 };
-public static final Comparator<HasPosition> regionComparator = new Comparator<HasPosition>() {
+public static final Comparator<HasPosition>   regionComparator   = new Comparator<HasPosition>() {
     public int compare(final HasPosition o1, final HasPosition o2) {
         if (o1.getPos().getEndX() < o2.getPos().getX()) {
             return -1;
@@ -103,7 +109,7 @@ public static final Comparator<HasPosition> regionComparator = new Comparator<Ha
 
 @NotNull
 public static <T extends PhysicalContent> PriorityQueue<T> createSmallestFirstQueue(@NotNull
-final List<T> graphicalRegions) {
+                                                                                    final List<T> graphicalRegions) {
     final int capacity = Math.max(1, graphicalRegions.size());
     PriorityQueue<T> queue = new PriorityQueue<T>(capacity, sortBySmallestArea);
     queue.addAll(graphicalRegions);

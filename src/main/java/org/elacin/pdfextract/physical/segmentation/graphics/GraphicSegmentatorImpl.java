@@ -397,8 +397,14 @@ private static Rectangle convertRectangle(@NotNull final java.awt.Rectangle boun
 
 private static boolean graphicContainsTextFromRegion(@NotNull final PhysicalPageRegion region,
                                                      @NotNull final GraphicContent graphic) {
+
+    final int limit = 5;
+    int found = 0;
     for (PhysicalContent content : region.getContents()) {
         if (graphic.getPos().contains(content.getPos())) {
+            found++;
+        }
+        if (found == limit) {
             return true;
         }
     }

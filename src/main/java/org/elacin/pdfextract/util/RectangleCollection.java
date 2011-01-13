@@ -27,7 +27,7 @@ import static org.elacin.pdfextract.util.Sorting.sortByLowerY;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Nov 2, 2010 Time: 1:20:36 AM To change this
- template
+ * template
  * use File | Settings | File Templates.
  */
 public class RectangleCollection extends PhysicalContent {
@@ -42,14 +42,14 @@ private final List<PhysicalContent> contents;
 will be pruned on update */
 @NotNull
 private Map<Integer, List<PhysicalContent>> yCache = new HashMap<Integer,
-List<PhysicalContent>>();
+        List<PhysicalContent>>();
 @NotNull
 private Map<Integer, List<PhysicalContent>> xCache = new HashMap<Integer,
-List<PhysicalContent>>();
+        List<PhysicalContent>>();
 
 /**
  * if all the contents in this collection is contained within some content (say a figure with
- text
+ * text
  * embedded, that will be marked here
  */
 private final PhysicalContent parent;
@@ -98,7 +98,7 @@ public List<PhysicalContent> findContentAtXIndex(float x) {
 public List<PhysicalContent> findContentAtXIndex(int x) {
     if (!CACHE_ENABLED || !xCache.containsKey(x)) {
         final Rectangle searchRectangle = new Rectangle((float) x, getPos().getY(), 1.0f,
-        getPos().getHeight());
+                getPos().getHeight());
         final List<PhysicalContent> result = findContentsIntersectingWith(searchRectangle);
         Collections.sort(result, sortByLowerY);
 
@@ -115,7 +115,7 @@ public List<PhysicalContent> findContentAtYIndex(float y) {
 public List<PhysicalContent> findContentAtYIndex(int y) {
     if (!CACHE_ENABLED || !yCache.containsKey(y)) {
         final Rectangle searchRectangle = new Rectangle(getPos().getX(), (float) y,
-        getPos().getWidth(), 1.0F);
+                getPos().getWidth(), 1.0F);
         final List<PhysicalContent> result = findContentsIntersectingWith(searchRectangle);
         Collections.sort(result, sortByLowerX);
         yCache.put(y, result);
@@ -127,7 +127,7 @@ public List<PhysicalContent> findContentAtYIndex(int y) {
 public List<PhysicalContent> findContentsIntersectingWith(@NotNull final HasPosition search) {
     final List<PhysicalContent> ret = new ArrayList<PhysicalContent>(50);
     for (PhysicalContent r : contents) {
-        if (search.getPos().intersectsWith(r.getPos()) && !(r instanceof RectangleCollection)) {
+        if (search.getPos().intersectsWith(r.getPos())) {
             ret.add(r);
         }
     }
@@ -135,9 +135,9 @@ public List<PhysicalContent> findContentsIntersectingWith(@NotNull final HasPosi
 }
 
 @NotNull
-public List<PhysicalContent> findSurrounding(@NotNull final PhysicalContent text,
+public List<PhysicalContent> findSurrounding(@NotNull final HasPosition content,
                                              final int distance) {
-    final Rectangle bound = text.getPos();
+    final Rectangle bound = content.getPos();
 
     Rectangle searchRectangle = new Rectangle(
             bound.getX() - (float) distance,
@@ -146,8 +146,8 @@ public List<PhysicalContent> findSurrounding(@NotNull final PhysicalContent text
 
     final List<PhysicalContent> ret = findContentsIntersectingWith(searchRectangle);
 
-    if (ret.contains(text)) {
-        ret.remove(text);
+    if (ret.contains(content)) {
+        ret.remove(content);
     }
 
     return ret;
@@ -181,7 +181,7 @@ public void removeContents(@NotNull Collection<PhysicalContent> listToRemove) {
 
 @NotNull
 public List<PhysicalContent> searchInDirectionFromOrigin(@NotNull Direction dir,
-                                                         @NotNull PhysicalContent origin,
+                                                         @NotNull HasPosition origin,
                                                          float distance) {
     final Rectangle pos = origin.getPos();
     final float x = pos.getX() + dir.xDiff * distance;

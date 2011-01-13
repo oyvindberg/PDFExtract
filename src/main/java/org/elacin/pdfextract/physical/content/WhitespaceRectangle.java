@@ -23,18 +23,30 @@ import org.elacin.pdfextract.util.Rectangle;
  * use File | Settings | File Templates.
  */
 public class WhitespaceRectangle extends PhysicalContent {
+// ------------------------------ FIELDS ------------------------------
+
+public int score = 0;
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public WhitespaceRectangle(final Rectangle bound) {
-
-	super(bound);
+    super(bound);
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
 
 @Override
 public boolean isWhitespace() {
+    return true;
+}
 
-	return true;
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+public int getScore() {
+    return score;
+}
+
+public void setScore(int score) {
+    this.score = score;
 }
 }

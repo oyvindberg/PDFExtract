@@ -71,8 +71,6 @@ public PhysicalPage(@NotNull List<? extends PhysicalContent> contents,
 
     graphics.segmentGraphicsUsingContentInRegion(mainRegion);
     mainRegion.addContents(graphics.getContents());
-    mainRegion.addContents(graphics.getHorizontalSeparators());
-    mainRegion.addContents(graphics.getVerticalSeparators());
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -81,27 +79,6 @@ public PhysicalPage(@NotNull List<? extends PhysicalContent> contents,
 public GraphicSegmentator getGraphics() {
     return graphics;
 }
-
-//private void verifyThatAllContentHasLine() {
-//    for (PhysicalPageRegion region : regions) {
-//        for (PhysicalPageRegion subRegion : region.getSubregions()) {
-//            for (PhysicalContent content : subRegion.getContents()) {
-//                if (content.isAssignablePhysicalContent() && !content
-//.getAssignablePhysicalContent()
-//                        .isAssignedBlock()) {
-//                    log.error("LOG00711:content " + content + "not assigned line");
-//                }
-//            }
-//        }
-//        for (PhysicalContent content : region.getContents()) {
-//            if (content.isAssignablePhysicalContent() && !content.getAssignablePhysicalContent ()
-//                    .isAssignedBlock()) {
-//                log.error("LOG00710:content " + content + "not assigned line");
-//            }
-//        }
-//    }
-//}
-
 
 @NotNull
 public PhysicalPageRegion getMainRegion() {
@@ -130,8 +107,6 @@ public PageNode compileLogicalPage() {
     if (log.isInfoEnabled()) {
         log.info("LOG00940:Page had " + regions.size() + " regions");
     }
-
-//    verifyThatAllContentHasLine();
 
     addRenderingInformation(page);
 

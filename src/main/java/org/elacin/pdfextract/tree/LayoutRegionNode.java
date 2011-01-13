@@ -25,15 +25,17 @@ import java.io.IOException;
  * File | Settings | File Templates.
  */
 public class LayoutRegionNode extends AbstractParentNode<AbstractParentNode, PageNode> {
+// ------------------------------ FIELDS ------------------------------
 
 private final boolean pictureRegion;
 
-
-// ------------------------ INTERFACE METHODS ------------------------
+// --------------------------- CONSTRUCTORS ---------------------------
 
 public LayoutRegionNode(final boolean region) {
     pictureRegion = region;
 }
+
+// ------------------------ INTERFACE METHODS ------------------------
 
 
 // --------------------- Interface XmlPrinter ---------------------
@@ -42,8 +44,6 @@ public LayoutRegionNode(final boolean region) {
 public void writeXmlRepresentation(@NotNull final Appendable out,
                                    final int indent,
                                    final boolean verbose) throws IOException {
-
-
     if (pictureRegion) {
         for (int i = 0; i < indent; i++) {
             out.append(" ");
@@ -58,7 +58,6 @@ public void writeXmlRepresentation(@NotNull final Appendable out,
         out.append(">\n");
 
         for (AbstractParentNode node : getChildren()) {
-
             node.writeXmlRepresentation(out, indent + 4, verbose);
         }
 
@@ -76,12 +75,15 @@ public void writeXmlRepresentation(@NotNull final Appendable out,
     }
 }
 
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+public boolean isPictureRegion() {
+    return pictureRegion;
+}
+
 //@NotNull
 //@Override
 //public Comparator<AbstractParentNode> getChildComparator() {
 //    return Sorting.regionComparator;
 //}
-
-// -------------------------- PUBLIC METHODS --------------------------
-
 }

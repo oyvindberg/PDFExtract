@@ -20,8 +20,10 @@ import org.apache.log4j.Logger;
 import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
+import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentator;
 import org.elacin.pdfextract.util.Rectangle;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,45 +44,45 @@ private static final Logger log = Logger.getLogger(PageRegionSplitBySeparators.c
  * Divide the region r by horizontal and vertical separators
  *
  * @param r
+ * @param graphics
  */
-static void splitRegionBySeparators(PhysicalPageRegion r) {
+static void splitRegionBySeparators(PhysicalPageRegion r, GraphicSegmentator graphics) {
 
-    for (int i = 0; i < r.getContents().size(); i++) {
+    List<GraphicContent> toRemove = new ArrayList<GraphicContent>();
+    for (GraphicContent hsep : graphics.getHorizontalSeparators()) {
+        if (hsep.getPos().getWidth() < r.getPos().getWidth() * 0.6f) {
+            continue;
+        }
 
-        PhysicalContent c = r.getContents().get(i);
-        if (c.isGraphic() && c.getGraphicContent().isHorizontalSeparator()) {
-            GraphicContent hsep = c.getGraphicContent();
-            if (hsep.getPos().getWidth() < r.getPos().getWidth() * 0.6f) {
-                continue;
+        /* search to see if this separator does not intersect with anything*/
+        Rectangle search = new Rectangle(0, hsep.getPos().getY(), r.getWidth(),
+                hsep.getPos().getHeight());
+
+        final List<PhysicalContent> list = r.findContentsIntersectingWith(search);
+        if (list.contains(hsep)) {
+            list.remove(hsep);
+        }
+        if (list.isEmpty()) {
+            Rectangle everythingAboveSep = new Rectangle(r.getPos().getX(), 0.0f,
+                    r.getWidth() + 1, hsep.getPos().getY());
+
+            if (log.isInfoEnabled()) {
+                log.info("LOG00880:split/hsep: " + hsep + ", extracting area at: "
+                        + everythingAboveSep);
             }
 
-            /* search to see if this separator does not intersect with anything*/
-            Rectangle search = new Rectangle(0, hsep.getPos().getY(), r.getWidth(),
-                    hsep.getPos().getHeight());
-
-            final List<PhysicalContent> list = r.findContentsIntersectingWith(search);
-            if (list.contains(hsep)) {
-                list.remove(hsep);
-            }
-            if (list.isEmpty()) {
-                Rectangle everythingAboveSep = new Rectangle(r.getPos().getX(), 0.0f,
-                        r.getWidth() + 1, hsep.getPos().getY());
-
-                if (log.isInfoEnabled()) {
-                    log.info("LOG00880:split/hsep: " + hsep + ", extracting area at: "
-                            + everythingAboveSep);
-                }
-
-                r.removeContent(hsep);
-                i--;
-
-                r.extractSubRegionFromBound(everythingAboveSep);
-            }
-        } else if (c.isGraphic() && c.getGraphicContent().isVerticalSeparator()) {
-            GraphicContent vsep = c.getGraphicContent();
-
-            //todo
+            r.addContent(hsep);
+            r.extractSubRegionFromBound(everythingAboveSep);
+            toRemove.add(hsep);
         }
     }
+
+    graphics.getHorizontalSeparators().removeAll(toRemove);
+
+    //TODO: do something with vsep
+    for (GraphicContent vsep : graphics.getVerticalSeparators()) {
+        r.addContent(vsep);
+    }
+
 }
 }

@@ -414,9 +414,9 @@ private void correctPosition(final PDFont fontObj, final byte[] string,
         if (fontObj instanceof PDType3Font) {
             /* type 3 fonts typically have almost no information
             * try to mitigate the damage by keeping them small.*/
-            h *= 0.3f;
+            h *= 0.8f;
             if (fontBB != null) {
-                h = adjust * fontBB.getHeight() * 0.3f;
+                h = adjust * fontBB.getHeight() * 0.8f;
                 startY = pos.getY() - adjust * fontBB.getHeight();
             }
 

@@ -21,6 +21,7 @@ import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.style.StyleComparator;
 import org.elacin.pdfextract.tree.LineNode;
 import org.elacin.pdfextract.tree.ParagraphNode;
+import org.elacin.pdfextract.tree.WordNode;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -33,9 +34,9 @@ import java.util.List;
 public class ParagraphSegmentator {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger log = Logger.getLogger(ParagraphSegmentator.class);
-private final boolean SPLIT_BY_STYLES = true;
-private int medianVerticalSpacing = -1;
+private static final Logger  log                   = Logger.getLogger(ParagraphSegmentator.class);
+private final        boolean SPLIT_BY_STYLES       = true;
+private              int     medianVerticalSpacing = -1;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -79,15 +80,37 @@ public List<ParagraphNode> segmentParagraphs(@NotNull final List<LineNode> lines
                     case SAME_STYLE:
                         /** if the styles are similar, only split if there seems to be much space
                          between the two lines */
-                        split = distance > (float) medianVerticalSpacing * 1.3f;
+//                        split = distance > (float) medianVerticalSpacing * 1.3f;
+                        split = false;
                         break;
                     case SUBTLE_DIFFERENCE:
-                        /** if the difference is subtle, do split if there seems to be some space
-                         between the two lines */
-                        split = distance > (float) medianVerticalSpacing * 1.02f;
+                        /* if there is a word with the same style, treat as same */
+                        boolean found = false;
+                        for (WordNode word : line.getChildren()) {
+                            if (word.getStyle().equals(currentStyle)) {
+                                found = true;
+                            }
+                        }
+                        if (found) {
+                            split = false;
+                        } else {
+                            /** if the difference is subtle, do split if there seems to be some space
+                             between the two lines */
+                            split = distance > (float) medianVerticalSpacing * 1.02f;
+                        }
                         break;
                     case BIG_DIFFERENCE:
-                        split = true;
+                        found = false;
+                        for (WordNode word : line.getChildren()) {
+                            if (word.getStyle().equals(currentStyle)) {
+                                found = true;
+                            }
+                        }
+                        if (found) {
+                            split = false;
+                        } else {
+                            split = true;
+                        }
                         break;
                     default:
                         throw new RuntimeException("made compiler happy :)");

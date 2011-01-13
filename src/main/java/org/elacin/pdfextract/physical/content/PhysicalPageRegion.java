@@ -19,20 +19,17 @@ package org.elacin.pdfextract.physical.content;
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.physical.PhysicalPage;
 import org.elacin.pdfextract.physical.segmentation.line.LineSegmentator;
-import org.elacin.pdfextract.physical.segmentation.paragraph.ParagraphSegmentator;
+import org.elacin.pdfextract.physical.segmentation.paragraph.ParagraphSegmentatorWS;
 import org.elacin.pdfextract.style.Style;
-import org.elacin.pdfextract.tree.LineNode;
 import org.elacin.pdfextract.tree.ParagraphNode;
 import org.elacin.pdfextract.util.Rectangle;
 import org.elacin.pdfextract.util.RectangleCollection;
-import org.elacin.pdfextract.util.Sorting;
 import org.elacin.pdfextract.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -47,7 +44,8 @@ private static final Logger log = Logger.getLogger(PhysicalPageRegion.class);
 
 protected final LineSegmentator lineSegmentator = new LineSegmentator(5.0f);
 
-protected final ParagraphSegmentator paragraphSegmentator = new ParagraphSegmentator();
+//protected final ParagraphSegmentator paragraphSegmentator = new ParagraphSegmentator();
+protected final ParagraphSegmentatorWS paragraphSegmentator = new ParagraphSegmentatorWS(this, lineSegmentator);
 
 /* average font sizes for this page region */
 private transient boolean fontInfoFound;
@@ -158,13 +156,13 @@ protected void findAndSetFontInformation() {
 
 @NotNull
 public List<ParagraphNode> createParagraphNodes() {
-    paragraphSegmentator.setMedianVerticalSpacing(getMedianOfVerticalDistances());
 
-    final List<LineNode> lines = lineSegmentator.segmentLines(this);
-    Collections.sort(lines, Sorting.sortByLowerY);
+//    final List<LineNode> lines = lineSegmentator.segmentLines(this);
+//    Collections.sort(lines, Sorting.sortByLowerY);
 
-    final List<ParagraphNode> ret = paragraphSegmentator.segmentParagraphs(lines);
-
+//    paragraphSegmentator.setMedianVerticalSpacing(getMedianOfVerticalDistances());
+//    final List<ParagraphNode> ret = paragraphSegmentator.segmentParagraphs(lines);
+    final List<ParagraphNode> ret = paragraphSegmentator.createParagraphNodes();
     return ret;
 }
 
@@ -173,6 +171,14 @@ public int getMedianOfVerticalDistances() {
         findAndSetMedianOfVerticalDistancesForRegion();
     }
     return _medianOfVerticalDistances;
+}
+
+@Override
+public Rectangle getPos() {
+    if (containingGraphic != null) {
+        return super.getPos().union(containingGraphic.getPos());
+    }
+    return super.getPos();
 }
 
 /**
@@ -251,6 +257,14 @@ private void doExtractSubRegion(@NotNull final Collection<PhysicalContent> subCo
     final PhysicalPageRegion newRegion = new PhysicalPageRegion(subContents, this, page);
     newRegion.setContainingGraphic(graphic);
 
+    List<PhysicalPageRegion> toMove = new ArrayList<PhysicalPageRegion>();
+    for (PhysicalPageRegion subregion : subregions) {
+        if (newRegion.getPos().contains(subregion)) {
+            toMove.add(subregion);
+        }
+    }
+    subregions.removeAll(toMove);
+    newRegion.subregions.addAll(toMove);
 
     log.warn("LOG00890:Extracted PPR:" + newRegion + " from " + this);
 
@@ -268,7 +282,7 @@ public void setContainingGraphic(GraphicContent containingGraphic) {
 
     if (containingGraphic != null) {
         this.containingGraphic = containingGraphic;
-        addContent(containingGraphic);
+//        addContent(containingGraphic);
     }
 }
 
@@ -286,12 +300,19 @@ public void extractSubRegionFromContent(@NotNull final Collection<PhysicalConten
  * @return the new region
  */
 public void extractSubRegionFromGraphic(@NotNull final GraphicContent graphic) {
-    final List<PhysicalContent> subContents = findContentsIntersectingWith(graphic.getPos());
+
+    /* we can allow us to search a bit outside the graphic */
+    final Rectangle pos = graphic.getPos();
+    final float extra = 2.0f;
+    final Rectangle searchPos = new Rectangle(pos.getX() - extra, pos.getY() - extra,
+            pos.getWidth() + 2 * extra, pos.getHeight() + 2 * extra);
+
+    final List<PhysicalContent> subContents = findContentsIntersectingWith(searchPos);
     doExtractSubRegion(subContents, graphic, graphic);
 }
 
 public float getMinimumRowSpacing() {
-    return getMedianOfVerticalDistances() * 1.2f;
+    return getMedianOfVerticalDistances();//* 0.8f;
 }
 
 public Style getMostCommonStyle() {

@@ -112,10 +112,6 @@ public boolean canBeCombinedWith(@NotNull final GraphicContent other) {
         return false;
     }
 
-    if (getPos().intersectsWith(other.getPos())) {
-        return true;
-    }
-
     return getPos().distance(other.getPos()) < 5.0f;
 }
 

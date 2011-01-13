@@ -69,6 +69,12 @@ public Rectangle getPos() {
     return this;
 }
 
+@NotNull
+public Rectangle getAdjustedBy(float adjust) {
+    return new Rectangle(Math.max(0.1f, x - adjust), Math.max(0.1f, y - adjust),
+            Math.max(0.1f, width + 2 * adjust), Math.max(0.1f, height + 2 * adjust));
+}
+
 // --------------------- Interface XmlPrinter ---------------------
 
 
@@ -190,8 +196,9 @@ public boolean containedBy(@NotNull Rectangle r) {
  * @param r The rectangle that might be contained by this rectangle
  * @return true if this rectangle contains the passed rectangle, false if it does not
  */
-public boolean contains(@NotNull Rectangle r) {
-    return getEndX() >= r.getEndX() && x <= r.x && getEndY() >= r.getEndY() && y <= r.y;
+public boolean contains(@NotNull HasPosition r) {
+    return getEndX() >= r.getPos().getEndX() && x <= r.getPos().x && getEndY()
+            >= r.getPos().getEndY() && y <= r.getPos().y;
 }
 
 /**
@@ -256,7 +263,15 @@ public float getEndY() {
     return y + height;
 }
 
-public boolean intersectsWith(@NotNull HasPosition other) {
+public float getMiddleX() {
+    return x + width / 2.0f;
+}
+
+public float getMiddleY() {
+    return y + height / 2.0f;
+}
+
+public boolean intersectsExclusiveWith(@NotNull HasPosition other) {
     final Rectangle that = other.getPos();
 
     if (isEmpty()) {
@@ -273,6 +288,25 @@ public boolean intersectsWith(@NotNull HasPosition other) {
         return false;
     }
     return that.getEndY() >= y;
+}
+
+public boolean intersectsWith(@NotNull HasPosition other) {
+    final Rectangle that = other.getPos();
+
+    if (isEmpty()) {
+        return false;
+    }
+
+    if (that.getEndX() < x) {
+        return false;
+    }
+    if (that.x > getEndX()) {
+        return false;
+    }
+    if (that.y > getEndY()) {
+        return false;
+    }
+    return that.getEndY() > y;
 }
 
 /**

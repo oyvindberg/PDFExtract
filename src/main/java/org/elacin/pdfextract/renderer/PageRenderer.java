@@ -23,10 +23,7 @@ import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.HasPosition;
 import org.elacin.pdfextract.physical.content.WhitespaceRectangle;
-import org.elacin.pdfextract.tree.AbstractParentNode;
-import org.elacin.pdfextract.tree.DocumentNode;
-import org.elacin.pdfextract.tree.LayoutRegionNode;
-import org.elacin.pdfextract.tree.PageNode;
+import org.elacin.pdfextract.tree.*;
 import org.elacin.pdfextract.util.Loggers;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
@@ -48,8 +45,10 @@ private static final Logger  log              = Logger.getLogger(PageRenderer.cl
 private static final boolean RENDER_REAL_PAGE = false;
 
 @NotNull
-private static final Color TRANSPARENT_WHITE           = new Color(255, 255, 255, 0);
-private static final int   DEFAULT_USER_SPACE_UNIT_DPI = 1200;
+private static final Color TRANSPARENT_WHITE = new Color(255, 255, 255, 0);
+private static final Color DONT_DRAW         = new Color(254, 254, 254, 0);
+
+private static final int DEFAULT_USER_SPACE_UNIT_DPI = 1200;
 private final int          resolution;
 private final PDDocument   document;
 private final DocumentNode documentNode;
@@ -82,6 +81,10 @@ private void drawRectangle(@NotNull final HasPosition object) {
     final Rectangle pos = object.getPos();
 
     final Color color = getColorForObject(object);
+
+    if (DONT_DRAW.equals(color)) {
+        return;
+    }
 
     graphics.setColor(color);
     final int x = (int) ((float) pos.getX() * xScale);
@@ -194,20 +197,37 @@ private BufferedImage createImage(@NotNull final PDPage page, final int imageTyp
 }
 
 Color getColorForObject(Object o) {
+
     if (o.getClass().equals(WhitespaceRectangle.class)) {
-        return Color.BLACK;
+        if (((WhitespaceRectangle) o).getScore() == 1000) {
+            return Color.RED;
+        }
+//        return Color.BLACK;
+        return DONT_DRAW;
+
     } else if (o.getClass().equals(GraphicContent.class)) {
         return Color.MAGENTA;
+
     } else if (o.getClass().equals(LayoutRegionNode.class)) {
-        return Color.GREEN;
-//    } else if (o.getClass().equals(ParagraphNode.class)) {
-//        return Color.RED;
-//    } else if (o.getClass().equals(LineNode.class)) {
-//        return Color.CYAN;
-//    } else if (o.getClass().equals(WordNode.class)) {
-//        return Color.BLACK;
+        if (((LayoutRegionNode) o).isPictureRegion()) {
+            return Color.MAGENTA;
+        }
+//        return Color.GREEN;
+        return DONT_DRAW;
+
+    } else if (o.getClass().equals(ParagraphNode.class)) {
+        return Color.YELLOW;
+//        return DONT_DRAW;
+
+    } else if (o.getClass().equals(LineNode.class)) {
+        return Color.BLUE;
+//        return DONT_DRAW;
+
+    } else if (o.getClass().equals(WordNode.class)) {
+        return Color.BLACK;
     } else {
-        return Color.GRAY;
+//        return Color.GRAY;
+        return DONT_DRAW;
     }
 }
 }

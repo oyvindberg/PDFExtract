@@ -47,7 +47,7 @@ public LineSegmentator(final float tolerance) {
 // -------------------------- STATIC METHODS --------------------------
 
 @NotNull
-private static WordNode createWordNode(@NotNull final PhysicalText text, int pageNumber) {
+public static WordNode createWordNode(@NotNull final PhysicalText text, int pageNumber) {
     return new WordNode(text.getPos(), pageNumber, text.getStyle(), text.text, text.charSpacing);
 }
 
@@ -69,7 +69,7 @@ public List<LineNode> segmentLines(@NotNull PhysicalPageRegion region) {
         while (iterator.hasNext()) {
             final PhysicalContent content = iterator.next();
             if (content.isAssignablePhysicalContent()) {
-                if (content.getAssignablePhysicalContent().isAssignedBlock()) {
+                if (content.getAssignable().isAssignedBlock()) {
                     iterator.remove();
                 }
             } else {
@@ -105,21 +105,21 @@ private LineNode createLineFrom(@NotNull final PhysicalPageRegion region,
                                 @NotNull final Set<PhysicalContent> workingSet) {
     LineNode lineNode = new LineNode();
     for (PhysicalContent content : workingSet) {
-        if (content.isAssignablePhysicalContent() && !content.getAssignablePhysicalContent()
+        if (content.isAssignablePhysicalContent() && !content.getAssignable()
                 .isAssignedBlock()) {
             if (content.isText()) {
                 lineNode.addChild(createWordNode(content.getPhysicalText(),
-                region.getPageNumber()));
+                        region.getPageNumber()));
             } else if (content.isGraphic()) {
                 final Style style = content.getGraphicContent().getStyle();
                 lineNode.addChild(new WordNode(content.getPos(), region.getPageNumber(), style,
-                style.id,
+                        style.id,
                         0.0f));
             } else {
                 throw new RuntimeException("asd");
             }
 
-            content.getAssignablePhysicalContent().setBlockNum(1);
+            content.getAssignable().setBlockNum(1);
         }
     }
     return lineNode;
@@ -130,7 +130,7 @@ private boolean isProbableLineBoundary(@NotNull PhysicalPageRegion region,
                                        final float yBoundary) {
 
     /** Finds all content on lines above and below the proposed boundary,
-    and sorts it on ascending x */
+     and sorts it on ascending x */
     Set<PhysicalContent> contentsAroundBoundary = new TreeSet<PhysicalContent>(sortByLowerX);
 
     final float startLooking = yBoundary;

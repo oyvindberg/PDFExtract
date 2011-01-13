@@ -35,11 +35,11 @@ protected Rectangle pos;
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public PhysicalContent(final Rectangle pos) {
-	this.pos = pos;
+    this.pos = pos;
 }
 
 public PhysicalContent(@NotNull final Collection<? extends PhysicalContent> contents) {
-	setPositionFromContentList(contents);
+    setPositionFromContentList(contents);
 }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -48,89 +48,94 @@ public PhysicalContent(@NotNull final Collection<? extends PhysicalContent> cont
 // --------------------- Interface HasPosition ---------------------
 
 public Rectangle getPos() {
-	return pos;
+    return pos;
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
 
 @Override
 public boolean equals(@Nullable final Object o) {
-	if (this == o) { return true; }
-	if (o == null || getClass() != o.getClass()) { return false; }
+    if (this == o) {
+        return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+        return false;
+    }
 
-	final PhysicalContent content = (PhysicalContent) o;
+    final PhysicalContent content = (PhysicalContent) o;
 
-	if (!pos.equals(content.pos)) { return false; }
+    if (!pos.equals(content.pos)) {
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 @Override
 public int hashCode() {
-	return pos.hashCode();
+    return pos.hashCode();
 }
 
 @Override
 public String toString() {
-	final StringBuilder sb = new StringBuilder();
-	sb.append(getClass().getSimpleName());
-	sb.append("{position=").append(pos);
-	sb.append('}');
-	return sb.toString();
+    final StringBuilder sb = new StringBuilder();
+    sb.append(getClass().getSimpleName());
+    sb.append("{position=").append(pos);
+    sb.append('}');
+    return sb.toString();
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 protected void setPos(final Rectangle pos) {
-	this.pos = pos;
+    this.pos = pos;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
 @NotNull
-public AssignablePhysicalContent getAssignablePhysicalContent() {
-	throw new RuntimeException("not an AssignablePhysicalContent");
+public AssignablePhysicalContent getAssignable() {
+    throw new RuntimeException("not an AssignablePhysicalContent");
 }
 
 @NotNull
 public GraphicContent getGraphicContent() {
-	throw new RuntimeException("not a graphic");
+    throw new RuntimeException("not a graphic");
 }
 
 @NotNull
 public PhysicalText getPhysicalText() {
-	throw new RuntimeException("not a text");
+    throw new RuntimeException("not a text");
 }
 
 public boolean isAssignablePhysicalContent() {
-	return false;
+    return false;
 }
 
 public boolean isFigure() {
-	return false;
+    return false;
 }
 
 public boolean isGraphic() {
-	return false;
+    return false;
 }
 
 public boolean isPicture() {
-	return false;
+    return false;
 }
 
 public boolean isText() {
-	return false;
+    return false;
 }
 
 public boolean isWhitespace() {
-	return false;
+    return false;
 }
 
 // -------------------------- OTHER METHODS --------------------------
 
 protected final void setPositionFromContentList(@NotNull final Collection<? extends
-		PhysicalContent> contents)
-{
-	pos = TextUtils.findBounds(contents);
+        PhysicalContent> contents) {
+    pos = TextUtils.findBounds(contents);
 }
 }

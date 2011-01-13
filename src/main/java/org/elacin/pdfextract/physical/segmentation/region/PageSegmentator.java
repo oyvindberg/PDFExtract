@@ -19,13 +19,22 @@ package org.elacin.pdfextract.physical.segmentation.region;
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.physical.PhysicalPage;
 import org.elacin.pdfextract.physical.content.GraphicContent;
+import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
+import org.elacin.pdfextract.physical.content.WhitespaceRectangle;
 import org.elacin.pdfextract.physical.segmentation.column.LayoutRecognizer;
 import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentator;
 import org.elacin.pdfextract.style.Style;
+import org.elacin.pdfextract.util.Rectangle;
+import org.elacin.pdfextract.util.Sorting;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.PriorityQueue;
 
+import static org.elacin.pdfextract.util.RectangleCollection.Direction.E;
+import static org.elacin.pdfextract.util.RectangleCollection.Direction.W;
 import static org.elacin.pdfextract.util.Sorting.createSmallestFirstQueue;
 
 /**
@@ -44,13 +53,29 @@ private static final Logger log = Logger.getLogger(PageSegmentator.class);
 
 public static void segmentPageRegionWithSubRegions(PhysicalPage page) {
 
-    /* first separate out regions which obviously belongs together, this will be things like
-     *  main head lines. This is what most oftenly breaks out from standard logic */
-
-
+    final LayoutRecognizer layoutRecognizer = new LayoutRecognizer();
     final PhysicalPageRegion mainRegion = page.getMainRegion();
+
+    /* first separate out what is contained by graphics */
     createGraphicRegions(page.getGraphics(), mainRegion);
-    mainRegion.addWhitespace(new LayoutRecognizer().findWhitespace(mainRegion));
+
+    /* then by separators */
+    PageRegionSplitBySeparators.splitRegionBySeparators(mainRegion, page.getGraphics());
+
+//    PageRegionSplitBySpacing.splitInVerticalColumns(mainRegion);
+//    PageRegionSplitBySpacing.splitHorizontallyBySpacing(mainRegion);
+
+    /* then perform whitespace analysis of all the regions we have now */
+    final List<WhitespaceRectangle> allWhitespaces = new ArrayList<WhitespaceRectangle>();
+
+    recursiveAnalysis(mainRegion, layoutRecognizer, allWhitespaces);
+
+
+//
+
+
+//    PageRegionSplitBySpacing.splitInVerticalColumns(r);
+//    PageRegionSplitBySpacing.splitHorizontallyBySpacing(r);
 
 
 //    recursivelySplitRegions(mainRegion);
@@ -64,7 +89,180 @@ public static void segmentPageRegionWithSubRegions(PhysicalPage page) {
 //    }
 }
 
+private static void recursiveAnalysis(PhysicalPageRegion region,
+                                      LayoutRecognizer layoutRecognizer,
+                                      List<WhitespaceRectangle> allWhitespaces) {
+
+//    final List<WhitespaceRectangle> whitespaces = layoutRecognizer.findPossibleColumns(region);
+    final List<WhitespaceRectangle> whitespaces = layoutRecognizer.findWhitespace(region);
+
+    final List<WhitespaceRectangle> columnBoundaries = new ArrayList<WhitespaceRectangle>();
+    for (WhitespaceRectangle whitespace : whitespaces) {
+        final Rectangle pos = whitespace.getPos();
+
+        if (pos.getX() == region.getPos().getX() || pos.getEndX() == region.getPos().getEndX()) {
+            continue;
+        }
+        if (pos.getHeight() < region.getPos().getHeight() / 7.0f) {
+            continue;
+        }
+
+        final List<PhysicalContent> right = region.searchInDirectionFromOrigin(E, pos, 6.0f);
+        final List<PhysicalContent> left = region.searchInDirectionFromOrigin(W, pos, 6.0f);
+
+        if (left.size() > 2 && right.size() + left.size() > 10) {
+            log.warn("LOG01050:Considering " + whitespace + " column boundary");
+            columnBoundaries.add(whitespace);
+        }
+    }
+
+
+//    /* invent some whitespace rectangles in case some columns are missed */
+//    int[] num = new int[(int) region.getPos().getWidth()];
+//    int offset = (int) region.getPos().getX();
+//    for (int x = 0; x < (int) region.getPos().getWidth(); x++) {
+//
+//        final int realX = x + offset;
+//        final List<PhysicalContent> column = region.findContentAtXIndex(realX);
+//
+//        for (PhysicalContent content : column) {
+//            final Rectangle pos = content.getPos();
+//            if ((int) pos.getX() == realX || (int) pos.getEndX() == realX) {
+//                num[x]++;
+//            }
+//        }
+//    }
+//
+//    for (int x = 0; x < num.length; x++) {
+//        int frequency = num[x];
+//        if (frequency > 15) {
+//            System.out.println("x = " + (x + offset) + ": frequency " + frequency);
+//        }
+//    }
+
+
+    /* adjust columns to real height*/
+    final Rectangle rpos = region.getPos();
+    for (int i = 0; i < columnBoundaries.size(); i++) {
+        final WhitespaceRectangle boundary = columnBoundaries.get(i);
+
+        final float x = boundary.getPos().getMiddleX();
+        final float endX = boundary.getPos().getEndX();
+
+        final Rectangle search = new Rectangle(x, rpos.getY(), rpos.getWidth(), rpos.getHeight());
+        final List<PhysicalContent> everythingRightOf = region.findContentsIntersectingWith(search);
+        Collections.sort(everythingRightOf, Sorting.sortByLowerYThenLowerX);
+
+//        float startY = boundary.getPos().getY();
+        float startY = rpos.getY();
+        float lastYWithContentRight = region.getPos().getEndY();
+
+        boolean startYFound = false;
+        boolean boundaryStarted = false;
+        for (int y = (int) rpos.getY() - 1; y <= rpos.getEndY() + 1; y++) {
+            boolean xIsUnoccupied = true;
+            boolean foundContentRightOfX = false;
+
+            for (PhysicalContent c : everythingRightOf) {
+                if (c.getPos().getY() > y || c.getPos().getEndY() < y) {
+                    continue;
+                }
+                if (!foundContentRightOfX && c.getPos().getX() > endX) {
+                    foundContentRightOfX = true;
+                }
+
+                /* if we find something blocking this row, look further down*/
+                if ((c.getPos().getX() < x || c.getPos().getEndX() < endX)
+                        && !(c instanceof WhitespaceRectangle)) {
+                    xIsUnoccupied = false;
+                    break;
+                }
+            }
+
+            if (xIsUnoccupied) {
+                if (!startYFound && foundContentRightOfX) {
+                    startYFound = true;
+                    startY = y - 1;
+                }
+                if (!boundaryStarted && y > boundary.getPos().getY()) {
+                    boundaryStarted = true;
+                }
+                if (foundContentRightOfX) {
+                    lastYWithContentRight = y;
+                }
+            } else {
+                if (boundaryStarted) {
+                    break;
+                }
+                startYFound = false;
+            }
+        }
+
+        final Rectangle adjusted = new Rectangle(x, startY, 1.0f, lastYWithContentRight - startY);
+        final WhitespaceRectangle newBoundary = new WhitespaceRectangle(adjusted);
+        newBoundary.setScore(1000);
+        columnBoundaries.set(i, newBoundary);
+        whitespaces.remove(boundary);
+        whitespaces.add(newBoundary);
+    }
+
+
+    Collections.sort(columnBoundaries, Sorting.sortByLowerX);
+
+    for (int i = 0; i < columnBoundaries.size() - 1; i++) {
+        WhitespaceRectangle left = columnBoundaries.get(i);
+        WhitespaceRectangle right = columnBoundaries.get(i + 1);
+        if (right.getPos().getX() - left.getPos().getX() < 15) {
+
+            if (right.getPos().getHeight() > left.getPos().getHeight()) {
+                columnBoundaries.remove(left);
+                whitespaces.remove(left);
+            } else {
+                columnBoundaries.remove(right);
+                whitespaces.remove(right);
+            }
+            i = -1;
+        }
+    }
+
+    region.addWhitespace(whitespaces);
+
+    Collections.sort(columnBoundaries, Sorting.sortByHigherX);
+    for (WhitespaceRectangle boundary : columnBoundaries) {
+        final Rectangle bpos = boundary.getPos();
+
+//        Rectangle top = new Rectangle(bpos.getX(), rpos.getY() , rpos.getWidth(),
+//                bpos.getEndY() - rpos.getEndY());
+//
+//        Rectangle left = new Rectangle(rpos.getX(), bpos.getY() +1, bpos.getMiddleX() - rpos.getX
+//                (), bpos.getHeight() -1);
+
+        Rectangle right = new Rectangle(bpos.getMiddleX(), bpos.getY() + 1,
+                rpos.getEndX() - bpos.getMiddleX(), bpos.getHeight() - 1);
+
+//        region.extractSubRegionFromBound(top);
+        region.extractSubRegionFromBound(right);
+//        region.extractSubRegionFromBound(left);
+    }
+
+
+    for (PhysicalPageRegion subRegion : region.getSubregions()) {
+        recursiveAnalysis(subRegion, layoutRecognizer, allWhitespaces);
+    }
+
+
+}
+
 // -------------------------- STATIC METHODS --------------------------
+
+private static void addWhiteSpaceFromRegion(List<WhitespaceRectangle> whitespaces,
+                                            PhysicalPageRegion region) {
+    whitespaces.addAll(region.getWhitespace());
+    for (PhysicalPageRegion subRegion : region.getSubregions()) {
+        addWhiteSpaceFromRegion(whitespaces, subRegion);
+    }
+}
+
 
 private static boolean canCombine(PhysicalPageRegion mainRegion, PhysicalPageRegion graphic,
                                   PhysicalPageRegion otherRegion) {
@@ -170,22 +368,4 @@ private static void moveRegionToIntoGraphic(PhysicalPageRegion origin,
     }
 }
 
-static void recursivelySplitRegions(PhysicalPageRegion r) {
-    /* dont split content within a graphic */
-//    if (r.getContainingGraphic() != null) {
-//        return;
-//    }
-
-    PageRegionSplitBySeparators.splitRegionBySeparators(r);
-    PageRegionSplitBySpacing.splitInVerticalColumns(r);
-    PageRegionSplitBySpacing.splitHorizontallyBySpacing(r);
-    PageRegionSplitBySpacing.splitInVerticalColumns(r);
-    PageRegionSplitBySpacing.splitHorizontallyBySpacing(r);
-
-    /* and then its subregions */
-    for (int i = 0, subregionsSize = r.getSubregions().size(); i < subregionsSize; i++) {
-        PhysicalPageRegion subRegion = r.getSubregions().get(i);
-        recursivelySplitRegions(subRegion);
-    }
-}
 }

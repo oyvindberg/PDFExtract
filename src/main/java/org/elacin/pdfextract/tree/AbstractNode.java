@@ -55,45 +55,45 @@ protected transient String toStringCache;
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 public ParentType getParent() {
-	return parent;
+    return parent;
 }
 
 public DocumentNode getRoot() {
-	return root;
+    return root;
 }
 
 public void setRoot(final DocumentNode root) {
-	this.root = root;
+    this.root = root;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
 public void addRole(Role r, String reason) {
-	log.warn(this + " got assigned role " + r);
-	if (roles == null) {
-		roles = new EnumMap<Role, String>(Role.class);
-	}
-	roles.put(r, reason);
+    log.warn(this + " got assigned role " + r);
+    if (roles == null) {
+        roles = new EnumMap<Role, String>(Role.class);
+    }
+    roles.put(r, reason);
 }
 
 @Nullable
 public PageNode getPage() {
-	AbstractNode current = this;
-	while (current != null) {
-		if (current instanceof PageNode) {
-			return (PageNode) current;
-		}
-		current = current.parent;
-	}
-	return null;
+    AbstractNode current = this;
+    while (current != null) {
+        if (current instanceof PageNode) {
+            return (PageNode) current;
+        }
+        current = current.parent;
+    }
+    return null;
 }
 
 @NotNull
 public Set<Role> getRoles() {
-	if (roles == null) {
-		return null;
-	}
-	return roles.keySet();
+    if (roles == null) {
+        return null;
+    }
+    return roles.keySet();
 }
 
 public abstract Style getStyle();
@@ -101,40 +101,36 @@ public abstract Style getStyle();
 public abstract String getText();
 
 public boolean hasRole(Role r) {
-	if (roles == null) {
-		return false;
-	}
+    if (roles == null) {
+        return false;
+    }
 
-	return roles.containsKey(r);
-}
-
-public boolean overlapsWith(@NotNull final HasPosition two) {
-	return getPos().intersectsWith(two.getPos());
+    return roles.containsKey(r);
 }
 
 public void printTree(String filename, boolean verbose) {
-	log.info("Opening " + filename + " for output");
-	PrintStream stream = null;
-	try {
-		stream = new PrintStream(new BufferedOutputStream(new FileOutputStream(filename, false),
-		                                                  8192 * 4), false, "UTF-8");
-		printTree(stream, verbose);
-	} catch (Exception e) {
-		log.error("Could not open output file", e);
-	} finally {
-		if (stream != null) {
-			stream.close();
-		}
-	}
+    log.info("Opening " + filename + " for output");
+    PrintStream stream = null;
+    try {
+        stream = new PrintStream(new BufferedOutputStream(new FileOutputStream(filename, false),
+                8192 * 4), false, "UTF-8");
+        printTree(stream, verbose);
+    } catch (Exception e) {
+        log.error("Could not open output file", e);
+    } finally {
+        if (stream != null) {
+            stream.close();
+        }
+    }
 }
 
 public void printTree(final PrintStream output, boolean verbose) {
-	output.append("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
-	try {
-		writeXmlRepresentation(output, 0, verbose);
-	} catch (IOException e) {
-		log.warn("error while printing tree", e);
-	}
+    output.append("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n");
+    try {
+        writeXmlRepresentation(output, 0, verbose);
+    } catch (IOException e) {
+        log.warn("error while printing tree", e);
+    }
 }
 
 // -------------------------- OTHER METHODS --------------------------

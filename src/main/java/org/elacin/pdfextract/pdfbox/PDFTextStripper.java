@@ -96,16 +96,18 @@ protected void processTextPosition(@NotNull TextPosition text) {
     super.processTextPosition(text);
 
     if (!includeText(text)) {
-        if (log.isInfoEnabled()) {
-            log.info("LOG00770: ignoring textposition " + TextUtils.getTextPositionString(text)
+        if (log.isDebugEnabled()) {
+            log.debug("LOG00770: ignoring textposition " + TextUtils.getTextPositionString(text)
                     + " because it seems to be rendered two times");
         }
         return;
     }
 
     if (!MathUtils.isWithinPercent(text.getDir(), (float) page.findRotation(), 1)) {
-        log.warn("LOG00560: ignoring textposition " + TextUtils.getTextPositionString(text)
-                + "because it has " + "wrong rotation. TODO :)");
+        if (log.isDebugEnabled()) {
+            log.debug("LOG00560: ignoring textposition " + TextUtils.getTextPositionString(text)
+                    + "because it has " + "wrong rotation. TODO :)");
+        }
         return;
     }
 
