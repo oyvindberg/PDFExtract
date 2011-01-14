@@ -50,19 +50,14 @@ public class PDFTextStripper extends PDFBoxSource {
 private static final Logger log = Logger.getLogger(PDFTextStripper.class);
 
 @NotNull
-protected final List<ETextPosition> charactersForPage = new ArrayList<ETextPosition>();
-
-@NotNull
 private final DocumentNode root;
-
-private int currentPageNo;
+private       int          currentPageNo;
 private int startPage = 1;
 private int endPage   = Integer.MAX_VALUE;
 
 /* used to filter out text which is written several times to create a bold effect */
 @NotNull
-private final Map<String, List<TextPosition>> characterListMapping
-        = new HashMap<String, List<TextPosition>>();
+private final Map<String, List<TextPosition>> characterListMapping = new HashMap<String, List<TextPosition>>();
 
 /* The normalizer is used to remove text ligatures/presentation forms and to correct
 the direction of right to left text, such as Arabic and Hebrew. */
@@ -87,13 +82,46 @@ public PDFTextStripper(final PDDocument doc,
 
 /**
  * This will process a TextPosition object and add the text to the list of characters on a page.
- * It
- * takes care of overlapping text.
+ * <p/>
+ * This method also filter out unwanted textpositions
+ * .
  *
  * @param text The text to process.
  */
-protected void processTextPosition(@NotNull TextPosition text) {
+protected void processTextPosition(@NotNull TextPosition text_) {
+
+    ETextPosition text = (ETextPosition) text_;
+
     super.processTextPosition(text);
+
+    if (text.getFontSize() == 0.0f) {
+        if (log.isDebugEnabled()) {
+            log.debug("LOG01100:ignoring text " + text.getCharacter() + " because fontSize is 0");
+        }
+        return;
+    }
+
+    if (!WordSegmentatorImpl.USE_EXISTING_WHITESPACE && "".equals(text.getCharacter().trim())) {
+        return;
+    }
+
+    if (text.getCharacter().length() == 0) {
+        if (log.isDebugEnabled()) {
+            log.debug("LOG01110:Tried to render no text. wtf?");
+        }
+        return;
+    }
+
+    java.awt.Rectangle javapos = new java.awt.Rectangle((int) text.getPos().getX(),
+            (int) text.getPos().getY(), (int) text.getPos().getWidth(), (int) text.getPos().getHeight());
+    if (!getGraphicsState().getCurrentClippingPath().intersects(javapos)) {
+        if (log.isDebugEnabled()) {
+            log.debug("LOG01090:Dropping text \"" + text.getCharacter() + "\" because it "
+                    + "was outside clipping path");
+        }
+        return;
+    }
+
 
     if (!includeText(text)) {
         if (log.isDebugEnabled()) {
@@ -111,35 +139,32 @@ protected void processTextPosition(@NotNull TextPosition text) {
         return;
     }
 
-    /* In the wild, some PDF encoded documents put diacritics (accents on
-              * top of characters) into a separate Tj element.  When displaying them
-              * graphically, the two chunks get overlayed.  With text output though,
-              * we need to do the overlay. This code recombines the diacritic with
-              * its associated character if the two are consecutive.
-              */
+    /** In the wild, some PDF encoded documents put diacritics (accents on
+     * top of characters) into a separate Tj element.  When displaying them
+     * graphically, the two chunks get overlayed.  With text output though,
+     * we need to do the overlay. This code recombines the diacritic with
+     * its associated character if the two are consecutive.
+     */
     if (charactersForPage.isEmpty()) {
-        charactersForPage.add((ETextPosition) text);
+        charactersForPage.add(text);
     } else {
-        /* test if we overlap the previous entry. Note that we are making an
-                                      assumption that we need to only look back one TextPosition
-                                      to
-                                      find what we are overlapping.
-                                      This may not always be true. */
-
+        /** test if we overlap the previous entry. Note that we are making an assumption that we
+         * need to only look back one TextPosition to find what we are overlapping.
+         * This may not always be true. */
         TextPosition previousTextPosition = charactersForPage.get(charactersForPage.size() - 1);
 
         if (text.isDiacritic() && previousTextPosition.contains(text)) {
             previousTextPosition.mergeDiacritic(text, normalize);
         }
 
-        /* If the previous TextPosition was the diacritic, merge it into
-                                      this one and remove it from the list. */
+        /** If the previous TextPosition was the diacritic, merge it into this one and remove it
+         * from the list. */
         else if (previousTextPosition.isDiacritic() && text.contains(previousTextPosition)) {
             text.mergeDiacritic(previousTextPosition, normalize);
             charactersForPage.remove(charactersForPage.size() - 1);
-            charactersForPage.add((ETextPosition) text);
+            charactersForPage.add(text);
         } else {
-            charactersForPage.add((ETextPosition) text);
+            charactersForPage.add(text);
         }
     }
 }
@@ -260,10 +285,8 @@ protected void processPage(@NotNull PDPage page, COSStream content) throws IOExc
             try {
                 /* segment words */
                 final List<PhysicalText> texts = segmentator.segmentWords(charactersForPage);
-                PhysicalPage physicalPage = new PhysicalPage(texts,
-                        graphicSegmentator,
-                        currentPageNo);
 
+                PhysicalPage physicalPage = new PhysicalPage(texts, graphicSegmentator, currentPageNo);
 
                 final PageNode pageNode = physicalPage.compileLogicalPage();
 

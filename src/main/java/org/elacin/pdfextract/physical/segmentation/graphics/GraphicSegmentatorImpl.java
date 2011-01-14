@@ -166,7 +166,7 @@ public List<GraphicContent> getHorizontalSeparators() {
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 public void drawImage(@NotNull final Image image,
                       @NotNull final AffineTransform at,
-                      @NotNull final Rectangle2D bounds) {
+                      @NotNull final Shape clippingPath) {
     assert !didSegment;
 
     /* transform the coordinates by using the affinetransform. */
@@ -182,6 +182,7 @@ public void drawImage(@NotNull final Image image,
     float endY = (float) Math.max(upperLeft.getY(), lowerRight.getY());
 
     /* respect the bound if set */
+    final Rectangle2D bounds = clippingPath.getBounds2D();
     x = (float) Math.max(bounds.getMinX(), x);
     y = (float) Math.max(bounds.getMinY(), y);
     if (bounds.getMaxX() > 0.0) {
@@ -204,15 +205,20 @@ public void drawImage(@NotNull final Image image,
     pictures.add(new GraphicContent(pos, true, Color.BLACK));
 }
 
-public void fill(@NotNull final GeneralPath originalPath, @NotNull final Color color) {
-    addVectorPath(originalPath, color);
+public void fill(@NotNull final GeneralPath originalPath,
+                 @NotNull final Color color,
+                 Shape currentClippingPath) {
+    addVectorPath(originalPath, color, currentClippingPath);
 }
 
-private boolean addVectorPath(GeneralPath originalPath, Color color) {
+private void addVectorPath(GeneralPath originalPath, Color color, Shape clippingPath) {
     assert !didSegment;
 
     if (color.equals(Color.WHITE)) {
-        return true;
+        return;
+    }
+    if (!clippingPath.contains(originalPath.getBounds())) {
+        return;
     }
 
     List<GeneralPath> paths = PathSplitter.splitPath(originalPath);
@@ -232,11 +238,13 @@ private boolean addVectorPath(GeneralPath originalPath, Color color) {
             figurePaths.add(newPath);
         }
     }
-    return false;
+
 }
 
-public void strokePath(@NotNull final GeneralPath originalPath, @NotNull final Color color) {
-    addVectorPath(originalPath, color);
+public void strokePath(@NotNull final GeneralPath originalPath,
+                       @NotNull final Color color,
+                       Shape currentClippingPath) {
+    addVectorPath(originalPath, color, currentClippingPath);
 }
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------

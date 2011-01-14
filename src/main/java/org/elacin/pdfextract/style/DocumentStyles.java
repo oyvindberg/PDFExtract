@@ -94,11 +94,15 @@ public void writeXmlRepresentation(final Appendable out,
     out.append("</styles>\n");
 }
 
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+public Map<String, Style> getStyles() {
+    return styles;
+}
+
 // -------------------------- PUBLIC METHODS --------------------------
 
 public Style getStyleForTextPosition(@NotNull TextPosition position) {
-
-
     int xSize = (int) (position.getFontSize() * position.getXScale());
     int ySize = (int) (position.getFontSize() * position.getYScale());
 

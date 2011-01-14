@@ -42,7 +42,7 @@ public class PageRenderer {
 // ------------------------------ FIELDS ------------------------------
 
 private static final Logger  log              = Logger.getLogger(PageRenderer.class);
-private static final boolean RENDER_REAL_PAGE = false;
+private static final boolean RENDER_REAL_PAGE = true;
 
 @NotNull
 private static final Color TRANSPARENT_WHITE = new Color(255, 255, 255, 0);
@@ -202,8 +202,8 @@ Color getColorForObject(Object o) {
         if (((WhitespaceRectangle) o).getScore() == 1000) {
             return Color.RED;
         }
-//        return Color.BLACK;
-        return DONT_DRAW;
+        return Color.BLACK;
+//        return DONT_DRAW;
 
     } else if (o.getClass().equals(GraphicContent.class)) {
         return Color.MAGENTA;
@@ -215,8 +215,8 @@ Color getColorForObject(Object o) {
 //        return Color.GREEN;
         return DONT_DRAW;
 
-    } else if (o.getClass().equals(ParagraphNode.class)) {
-        return Color.YELLOW;
+//    } else if (o.getClass().equals(ParagraphNode.class)) {
+//        return Color.YELLOW;
 //        return DONT_DRAW;
 
     } else if (o.getClass().equals(LineNode.class)) {
@@ -224,7 +224,7 @@ Color getColorForObject(Object o) {
 //        return DONT_DRAW;
 
     } else if (o.getClass().equals(WordNode.class)) {
-        return Color.BLACK;
+        return Color.ORANGE;
     } else {
 //        return Color.GRAY;
         return DONT_DRAW;

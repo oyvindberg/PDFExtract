@@ -27,14 +27,17 @@ import org.apache.pdfbox.pdmodel.font.PDType3Font;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentatorImpl;
-import org.elacin.pdfextract.physical.segmentation.word.WordSegmentatorImpl;
+import org.elacin.pdfextract.util.MathUtils;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
-import java.awt.geom.Rectangle2D;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -48,27 +51,32 @@ private static final Logger log         = Logger.getLogger(PDFBoxSource.class);
 @NotNull
 private static final byte[] SPACE_BYTES = {(byte) 32};
 
+private static final boolean NO_DESCENDERS = true;
+
 protected GraphicSegmentatorImpl graphicSegmentator;
 
 protected Color currentColor;
 
+@NotNull
+protected final List<ETextPosition> charactersForPage = new ArrayList<ETextPosition>();
+
+/* i couldnt find this information anywhere, so calculate it and cache it here */
+protected Map<PDFont, Boolean> areFontsMonospaced = new HashMap<PDFont, Boolean>();
+
 private BasicStroke basicStroke;
 
-private static final boolean NO_DESCENDERS = true;
 // --------------------------- CONSTRUCTORS ---------------------------
 
 //--------------------------- CONSTRUCTORS ---------------------------
 public PDFBoxSource() throws IOException {
-    super();
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
 
 @Override
 public void drawImage(Image awtImage, AffineTransform at) {
-    //		currentClippingPath = getGraphicsState().getCurrentClippingPath();
-    final Rectangle2D bounds2D = getGraphicsState().getCurrentClippingPath().getBounds2D();
-    graphicSegmentator.drawImage(awtImage, at, bounds2D);
+    final Shape currentClippingPath = getGraphicsState().getCurrentClippingPath();
+    graphicSegmentator.drawImage(awtImage, at, currentClippingPath);
 }
 
 @Override
@@ -82,8 +90,9 @@ public void drawPage(final Graphics g,
 public void fillPath(int windingRule) throws IOException {
     currentColor = getGraphicsState().getNonStrokingColor().getJavaColor();
     getLinePath().setWindingRule(windingRule);
-    //	currentClippingPath = getGraphicsState().getCurrentClippingPath();
-    graphicSegmentator.fill(getLinePath(), currentColor);
+
+    final Shape currentClippingPath = getGraphicsState().getCurrentClippingPath();
+    graphicSegmentator.fill(getLinePath(), currentColor, currentClippingPath);
     getLinePath().reset();
 }
 
@@ -272,63 +281,30 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
                 * yScaleDisp;
 
 
-        boolean add = true;
+        try {
+            final ETextPosition text = new ETextPosition(page, textMatrixStDisp,
+                    textMatrixEndDisp,
+                    totalVerticalDisplacementDisp,
+                    new float[]{widthText}, spaceWidthDisp,
+                    characterBuffer.toString(), font,
+                    fontSizeText,
+                    (int) (fontSizeText * getTextMatrix()
+                            .getXScale()), wordSpacingDisp);
 
-        if (fontSizeText == 0) {
-            log.trace("ignoring text " + c + " because fontSize is 0");
-            add = false;
-        }
-        if (!WordSegmentatorImpl.USE_EXISTING_WHITESPACE && "".equals(c.trim())) {
-            add = false;
-        }
+            correctPosition(font, string, i, c, fontSizeText, glyphSpaceToTextSpaceFactor,
+                    horizontalScalingText, codeLength,
+                    text);
 
-        if (add) {
-            try {
-                final ETextPosition text = new ETextPosition(page, textMatrixStDisp,
-                        textMatrixEndDisp,
-                        totalVerticalDisplacementDisp,
-                        new float[]{widthText}, spaceWidthDisp,
-                        characterBuffer.toString(), font,
-                        fontSizeText,
-                        (int) (fontSizeText * getTextMatrix()
-                                .getXScale()), wordSpacingDisp);
+            processTextPosition(text);
 
-                correctPosition(font, string, i, c, fontSizeText, glyphSpaceToTextSpaceFactor,
-                        horizontalScalingText, codeLength,
-                        text);
-
-                processTextPosition(text);
-            } catch (Exception e) {
-                log.warn("LOG00570:Error adding '" + characterBuffer + "': " + e.getMessage());
-            }
+        } catch (Exception e) {
+            log.warn("LOG00570:Error adding '" + characterBuffer + "': " + e.getMessage());
         }
 
         textMatrixStDisp = getTextMatrix().multiply(dispMatrix);
         characterBuffer.setLength(0);
     }
 }
-
-@Override
-protected void processTextPosition(@NotNull final TextPosition text) {
-    //ignore
-//    System.out.println("TextUtils.getTextPositionString(text) = " + TextUtils
-// .getTextPositionString(text));
-}
-
-@Override
-public void setStroke(final BasicStroke newStroke) {
-    basicStroke = newStroke;
-}
-
-@Override
-public void strokePath() throws IOException {
-    currentColor = getGraphicsState().getStrokingColor().getJavaColor();
-    //	currentClippingPath = getGraphicsState().getCurrentClippingPath();
-    graphicSegmentator.strokePath(getLinePath(), currentColor);
-    getLinePath().reset();
-}
-
-// -------------------------- OTHER METHODS --------------------------
 
 private void correctPosition(final PDFont fontObj, final byte[] string,
                              final int i, final String c, final float fontSizeText,
@@ -369,7 +345,6 @@ private void correctPosition(final PDFont fontObj, final byte[] string,
     final Rectangle newPos;
     if (character != null && fontBB != null && character.getHeight() > 0.0f
             && fontBB.getHeight() > 0.0f) {
-
         /* remove the upper and lower bounds filtered away by character */
         final float spaceUnderChar = Math.min(fontBB.getLowerLeftY(), character.getLowerLeftY());
         final float spaceOverChar = fontBB.getUpperRightY() - character.getUpperRightY();
@@ -379,48 +354,48 @@ private void correctPosition(final PDFont fontObj, final byte[] string,
         final float beforeRoomForGlyph = pos.getEndY() - adjust * Math.max(fontHeight,
                 pos.getHeight());
 
+        /* calculate the upper left corner of the rendered glyph */
         float yStart = beforeRoomForGlyph;
         yStart += adjust * spaceOverChar;
         yStart -= adjust * spaceUnderChar;
-        if (!NO_DESCENDERS) {
-
-        }
         yStart -= pos.getHeight();
 
-        float leftOfText = text.getX() - (adjust * fontBB.getLowerLeftX());
-        float x = leftOfText - adjust * (Math.max(fontBB.getLowerLeftX(),
-                character.getLowerLeftX()));
+        /* determine start X coordinate. */
+        final float x;
+        if (isMonoSpacedFont(fontObj)) {
+            x = pos.getX();
+        } else {
+            float leftOfText = text.getX() - (adjust * fontBB.getLowerLeftX());
+            x = leftOfText + adjust * character.getLowerLeftX();
+        }
 
+        /* It was much easier to write the word segmentation code with full font width,
+        *   so lets keep that. I havent seen this causing any problems */
         float w = pos.getWidth();
 
+        /* Line segmentation code was obviously much easier by not having any descenders which
+        *   can even overlap into the following line. Math symbols need to*/
         final float characterHeight;
         if (NO_DESCENDERS && Character.getType(c.charAt(0)) != (int) Character.MATH_SYMBOL) {
             characterHeight = character.getUpperRightY();
         } else {
             characterHeight = character.getHeight();
         }
-
-        float h = adjust * characterHeight;
+        final float h = adjust * characterHeight;
 
         newPos = new Rectangle(x, yStart, w, h);
-
-
     } else {
-
+        /* here we have a lot less information, so keep most of what was calculated. Just offset
+        *   the Y coordinate*/
         float h = pos.getHeight();
         float w = pos.getWidth();
-        float startY = pos.getY() - h;
+        float startY = pos.getY() - h * 0.8f;
 
         if (fontObj instanceof PDType3Font) {
             /* type 3 fonts typically have almost no information
             * try to mitigate the damage by keeping them small.*/
-            h *= 0.8f;
-            if (fontBB != null) {
-                h = adjust * fontBB.getHeight() * 0.8f;
-                startY = pos.getY() - adjust * fontBB.getHeight();
-            }
-
-            startY += h;
+            h *= 0.5f;
+            startY += h; /* this is a _very_ quick and dirty hack */
         }
 
         newPos = new Rectangle(pos.getX(), startY, w, h);
@@ -428,7 +403,51 @@ private void correctPosition(final PDFont fontObj, final byte[] string,
     if (log.isTraceEnabled()) {
         log.trace("LOG00730:Text " + c + ", " + "pos from " + pos + " to " + newPos);
     }
-    text.setPos(newPos);
     text.setBaseLine(pos.getY());
+    text.setPos(newPos);
+}
+
+private boolean isMonoSpacedFont(PDFont fontObj) {
+    if (areFontsMonospaced.containsKey(fontObj)) {
+        return areFontsMonospaced.get(fontObj);
+    }
+
+    List<Float> widths = (List<Float>) fontObj.getWidths();
+
+    boolean monospaced = true;
+    final float firstWidth = widths.get(0);
+    for (int i = 1; i < widths.size(); i++) {
+        final float width = widths.get(i);
+        if (!MathUtils.isWithinPercent(width, firstWidth, 1.0f)) {
+            monospaced = false;
+            break;
+        }
+    }
+
+    if (monospaced) {
+        log.debug("LOG01080:Font " + fontObj.getBaseFont() + " is monospaced");
+    }
+
+    areFontsMonospaced.put(fontObj, monospaced);
+
+    return monospaced;
+}
+
+@Override
+protected void processTextPosition(@NotNull final TextPosition text) {
+}
+
+@Override
+public void setStroke(final BasicStroke newStroke) {
+    basicStroke = newStroke;
+}
+
+@Override
+public void strokePath() throws IOException {
+    currentColor = getGraphicsState().getStrokingColor().getJavaColor();
+    final Shape currentClippingPath = getGraphicsState().getCurrentClippingPath();
+
+    graphicSegmentator.strokePath(getLinePath(), currentColor, currentClippingPath);
+    getLinePath().reset();
 }
 }

@@ -389,7 +389,7 @@ protected boolean isNextToWhitespaceOrEdge(@NotNull final WhitespaceRectangle ne
 
     /* also accept if it borders one of the already identified whitespaces */
     for (WhitespaceRectangle existing : foundWhitespace) {
-        if (newWhitespace.getPos().distance(existing.getPos()) < 1.0f) {
+        if (newWhitespace.getPos().distance(existing.getPos()) < 0.01f) {
             return true;
         }
     }

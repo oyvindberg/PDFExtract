@@ -22,6 +22,7 @@ import org.elacin.pdfextract.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.util.Comparator;
 
 /**
@@ -74,7 +75,12 @@ public void writeXmlRepresentation(@NotNull final Appendable out,
             out.append("</line>\n");
         } else {
             out.append(">");
-            out.append(getText());
+            if (out instanceof PrintStream) {
+                ((PrintStream) out).print(getText());
+            } else {
+                out.append(getText());
+            }
+
             out.append("</line>\n");
         }
     }

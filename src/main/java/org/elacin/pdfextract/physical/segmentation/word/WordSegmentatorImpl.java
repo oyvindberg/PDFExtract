@@ -76,6 +76,9 @@ public WordSegmentatorImpl(final DocumentStyles styles) {
 public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) {
     final long t0 = System.currentTimeMillis();
 
+    filterOutBadFonts(text);
+
+
     List<PhysicalText> ret = new ArrayList<PhysicalText>(text.size());
 
     /** iterate through all incoming TextPositions, and process them
@@ -129,6 +132,44 @@ public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) 
         log.debug("LOG00010:word segmentation took " + (System.currentTimeMillis() - t0) + " ms");
     }
     return ret;
+}
+
+private void filterOutBadFonts(List<ETextPosition> text) {
+
+    final Map<PDFont, Integer> badCharsForStyle = new HashMap<PDFont, Integer>(styles.getStyles().size());
+    final Map<PDFont, Integer> numCharsForStyle = new HashMap<PDFont, Integer>(styles.getStyles().size());
+
+    for (ETextPosition tp : text) {
+        if (!badCharsForStyle.containsKey(tp.getFont())) {
+            badCharsForStyle.put(tp.getFont(), 0);
+            numCharsForStyle.put(tp.getFont(), 0);
+        }
+
+        char c = tp.getCharacter().charAt(0);
+        if (Character.isISOControl(c)) {
+            badCharsForStyle.put(tp.getFont(), badCharsForStyle.get(tp.getFont()) + 1);
+        }
+        numCharsForStyle.put(tp.getFont(), numCharsForStyle.get(tp.getFont()) + 1);
+    }
+
+    final List<PDFont> ignoredFonts = new ArrayList<PDFont>();
+    for (PDFont font : numCharsForStyle.keySet()) {
+        int badChars = badCharsForStyle.get(font);
+        int totalChars = numCharsForStyle.get(font);
+        if (badChars > totalChars * 0.10f) {
+            ignoredFonts.add(font);
+            log.warn("LOG01060:Ignoring all content using font " + font.getBaseFont() + " as it "
+                    + "seems to be missing UTF-8 conversion information");
+        }
+    }
+
+    for (Iterator<ETextPosition> iterator = text.iterator(); iterator.hasNext();) {
+        ETextPosition tp = iterator.next();
+        if (ignoredFonts.contains(tp.getFont())) {
+            iterator.remove();
+        }
+    }
+
 }
 
 // -------------------------- STATIC METHODS --------------------------
@@ -227,7 +268,7 @@ static Collection<PhysicalText> createWordsInLine(@NotNull final List<PhysicalTe
          * */
         final boolean isWordBoundary;
         if (containsSpaces) {
-            isWordBoundary = " ".equals(nextChar.getText());
+            isWordBoundary = "".equals(nextChar.getText().trim());
         } else {
 
             final float distance = currentWord.getPos().distance(nextChar.getPos());
@@ -284,8 +325,6 @@ private static void printLine(List<PhysicalText> physicalTexts) {
 List<PhysicalText> convertText(@NotNull final List<ETextPosition> texts) {
     final List<PhysicalText> ret = new ArrayList<PhysicalText>(texts.size() * 2);
 
-    Collections.sort(texts, sortByLowerX);
-
     for (final ETextPosition text : texts) {
         ret.add(new PhysicalText(text.getCharacter(), styles.getStyleForTextPosition(text),
                 text.getPos().getX(),
@@ -294,6 +333,23 @@ List<PhysicalText> convertText(@NotNull final List<ETextPosition> texts) {
                 text.getPos().getHeight(),
                 (int) text.getDir()));
     }
+
+//    System.out.println("ret = " + ret);
+//    for (int i = 1; i < ret.size(); i++) {
+//        PhysicalText text = ret.get(i);
+//        PhysicalText former = ret.get(i -1);
+//
+//        /* if this character is an accent, combine it with the preceeding text */
+//        if (Character.getType(text.getText().charAt(0)) == Character.MODIFIER_SYMBOL) {
+//            PhysicalText combined = former.combineWith(text);
+//            log.warn("LOG01070:Combined into" + combined);
+//            ret.add(combined);
+//            ret.remove(i);
+//            ret.remove(i -1);
+//            i--;
+//        }
+//
+//    }
 
     return ret;
 }

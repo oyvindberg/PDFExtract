@@ -56,10 +56,10 @@ public ETextPosition(final PDPage page,
     super(page, textPositionSt, textPositionEnd, maxFontH, individualWidths, spaceWidth, string,
             currentFont, fontSizeValue, fontSizeInPt, ws);
 
-    float x = getX();
-    float y = getY();
-    float w = getWidth();
-    float h = getHeight();
+    float x = getXDirAdj();
+    float y = getYDirAdj();
+    float w = getWidthDirAdj();
+    float h = getHeightDir();
 
     if (h <= 0.0f && w < 0.0f) {
         throw new IllegalArgumentException("Passed text '" + string + "' with no size.");

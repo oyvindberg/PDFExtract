@@ -166,7 +166,10 @@ private static LayoutRegionNode createRegionNode(PhysicalPageRegion region) {
     }
 
     for (PhysicalPageRegion subRegion : region.getSubregions()) {
-        regionNode.addChild(createRegionNode(subRegion));
+        final LayoutRegionNode subRegionNode = createRegionNode(subRegion);
+        if (!subRegionNode.getChildren().isEmpty()) {
+            regionNode.addChild(subRegionNode);
+        }
     }
 
     return regionNode;
