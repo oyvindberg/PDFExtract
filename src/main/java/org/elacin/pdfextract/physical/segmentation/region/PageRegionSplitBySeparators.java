@@ -74,7 +74,11 @@ static void splitRegionBySeparators(PhysicalPageRegion r, GraphicSegmentator gra
             r.addContent(hsep);
             r.extractSubRegionFromBound(everythingAboveSep);
             toRemove.add(hsep);
+        } else {
+            /* just add this for now*/
+            r.addContent(hsep);
         }
+
     }
 
     graphics.getHorizontalSeparators().removeAll(toRemove);

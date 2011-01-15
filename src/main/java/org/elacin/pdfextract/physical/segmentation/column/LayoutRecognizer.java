@@ -17,7 +17,6 @@
 package org.elacin.pdfextract.physical.segmentation.column;
 
 import org.apache.log4j.Logger;
-import org.elacin.pdfextract.physical.AbstractWhitespaceFinder;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
 import org.elacin.pdfextract.physical.content.WhitespaceRectangle;
 import org.jetbrains.annotations.NotNull;

@@ -33,7 +33,7 @@ import java.util.*;
  * template use File | Settings | File Templates.
  */
 public abstract class AbstractParentNode<ChildType extends AbstractNode,
-ParentType extends AbstractParentNode> extends AbstractNode<ParentType> {
+        ParentType extends AbstractParentNode> extends AbstractNode<ParentType> {
 // ------------------------------ FIELDS ------------------------------
 
 /* a cache of group position */
@@ -44,11 +44,26 @@ protected Rectangle posCache;
 @NotNull
 private final List<ChildType> children = new ArrayList<ChildType>();
 
-
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public AbstractParentNode(@NotNull final ChildType child) {
     addChild(child);
+}
+
+public final void addChild(@NotNull final ChildType child) {
+    child.invalidateThisAndParents();
+    children.add(child);
+    child.parent = this;
+    child.invalidateThisAndParents();
+    Collections.sort(children, getChildComparator());
+    child.setRoot(getRoot());
+}
+
+//@NotNull
+//public abstract Comparator<ChildType> getChildComparator();
+
+public Comparator getChildComparator() {
+    return Sorting.regionComparator;
 }
 
 public AbstractParentNode() {
@@ -67,12 +82,6 @@ public final Rectangle getPos() {
     return posCache;
 }
 
-// --------------------- Interface XmlPrinter ---------------------
-
-public abstract void writeXmlRepresentation(@NotNull final Appendable out,
-                                            final int indent,
-                                            final boolean verbose) throws IOException;
-
 // ------------------------ CANONICAL METHODS ------------------------
 
 @NotNull
@@ -89,6 +98,10 @@ public String toString() {
     }
     return toStringCache;
 }
+
+public abstract void writeXmlRepresentation(@NotNull final Appendable out,
+                                            final int indent,
+                                            final boolean verbose) throws IOException;
 
 // ------------------------ OVERRIDING METHODS ------------------------
 
@@ -111,22 +124,6 @@ public List<ChildType> getChildren() {
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
-
-public final void addChild(@NotNull final ChildType child) {
-    child.invalidateThisAndParents();
-    children.add(child);
-    child.parent = this;
-    child.invalidateThisAndParents();
-    Collections.sort(children, getChildComparator());
-    child.setRoot(getRoot());
-}
-
-//@NotNull
-//public abstract Comparator<ChildType> getChildComparator();
-
-public Comparator getChildComparator() {
-    return Sorting.regionComparator;
-}
 
 public Style getStyle() {
     /* keep the value from last child*/

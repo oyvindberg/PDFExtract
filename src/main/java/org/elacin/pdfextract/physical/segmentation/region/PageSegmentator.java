@@ -63,12 +63,18 @@ public static void segmentPageRegionWithSubRegions(PhysicalPage page) {
     PageRegionSplitBySeparators.splitRegionBySeparators(mainRegion, page.getGraphics());
 
 //    PageRegionSplitBySpacing.splitInVerticalColumns(mainRegion);
-//    PageRegionSplitBySpacing.splitHorizontallyBySpacing(mainRegion);
+
+    /* i have seen some mistakes made on more complicated layouts. For papers that tends to be
+    *   the first page, so nudge it a bit in the right diretion there. The reason why it is not
+    * general is that it would break text ordering if erroneously applied*/
+//    if (page.getPageNumber() == 1) {
+//        PageRegionSplitBySpacing.splitHorizontallyBySpacing(mainRegion);
+//    }
 
     /* then perform whitespace analysis of all the regions we have now */
     final List<WhitespaceRectangle> allWhitespaces = new ArrayList<WhitespaceRectangle>();
 
-    recursiveAnalysis(mainRegion, layoutRecognizer, allWhitespaces);
+    recursiveAnalysis(mainRegion, layoutRecognizer, allWhitespaces, page.getGraphics());
 
 
 //
@@ -91,7 +97,10 @@ public static void segmentPageRegionWithSubRegions(PhysicalPage page) {
 
 private static void recursiveAnalysis(PhysicalPageRegion region,
                                       LayoutRecognizer layoutRecognizer,
-                                      List<WhitespaceRectangle> allWhitespaces) {
+                                      List<WhitespaceRectangle> allWhitespaces,
+                                      GraphicSegmentator graphics) {
+
+    PageRegionSplitBySeparators.splitRegionBySeparators(region, graphics);
 
 //    final List<WhitespaceRectangle> whitespaces = layoutRecognizer.findPossibleColumns(region);
     final List<WhitespaceRectangle> whitespaces = layoutRecognizer.findWhitespace(region);
@@ -247,7 +256,7 @@ private static void recursiveAnalysis(PhysicalPageRegion region,
 
 
     for (PhysicalPageRegion subRegion : region.getSubregions()) {
-        recursiveAnalysis(subRegion, layoutRecognizer, allWhitespaces);
+        recursiveAnalysis(subRegion, layoutRecognizer, allWhitespaces, page.getGraphics());
     }
 
 

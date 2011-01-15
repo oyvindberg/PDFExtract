@@ -217,9 +217,9 @@ private void addVectorPath(GeneralPath originalPath, Color color, Shape clipping
     if (color.equals(Color.WHITE)) {
         return;
     }
-    if (!clippingPath.contains(originalPath.getBounds())) {
-        return;
-    }
+//    if (!clippingPath.contains(originalPath.getBounds())) {
+//        return;
+//    }
 
     List<GeneralPath> paths = PathSplitter.splitPath(originalPath);
 

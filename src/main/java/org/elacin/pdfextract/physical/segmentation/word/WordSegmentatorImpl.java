@@ -25,6 +25,7 @@ import org.elacin.pdfextract.style.DocumentStyles;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.Normalizer;
 import java.util.*;
 
 import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
@@ -76,9 +77,6 @@ public WordSegmentatorImpl(final DocumentStyles styles) {
 public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) {
     final long t0 = System.currentTimeMillis();
 
-    filterOutBadFonts(text);
-
-
     List<PhysicalText> ret = new ArrayList<PhysicalText>(text.size());
 
     /** iterate through all incoming TextPositions, and process them
@@ -95,7 +93,6 @@ public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) 
     PDFont currentFont = null;
 
     for (final ETextPosition tp : text) {
-
         /* if this is the first text in a line */
         if (line.isEmpty()) {
             baseline = tp.getBaseLine();
@@ -134,63 +131,7 @@ public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) 
     return ret;
 }
 
-private void filterOutBadFonts(List<ETextPosition> text) {
-
-    final Map<PDFont, Integer> badCharsForStyle = new HashMap<PDFont, Integer>(styles.getStyles().size());
-    final Map<PDFont, Integer> numCharsForStyle = new HashMap<PDFont, Integer>(styles.getStyles().size());
-
-    for (ETextPosition tp : text) {
-        if (!badCharsForStyle.containsKey(tp.getFont())) {
-            badCharsForStyle.put(tp.getFont(), 0);
-            numCharsForStyle.put(tp.getFont(), 0);
-        }
-
-        char c = tp.getCharacter().charAt(0);
-        if (Character.isISOControl(c)) {
-            badCharsForStyle.put(tp.getFont(), badCharsForStyle.get(tp.getFont()) + 1);
-        }
-        numCharsForStyle.put(tp.getFont(), numCharsForStyle.get(tp.getFont()) + 1);
-    }
-
-    final List<PDFont> ignoredFonts = new ArrayList<PDFont>();
-    for (PDFont font : numCharsForStyle.keySet()) {
-        int badChars = badCharsForStyle.get(font);
-        int totalChars = numCharsForStyle.get(font);
-        if (badChars > totalChars * 0.10f) {
-            ignoredFonts.add(font);
-            log.warn("LOG01060:Ignoring all content using font " + font.getBaseFont() + " as it "
-                    + "seems to be missing UTF-8 conversion information");
-        }
-    }
-
-    for (Iterator<ETextPosition> iterator = text.iterator(); iterator.hasNext();) {
-        ETextPosition tp = iterator.next();
-        if (ignoredFonts.contains(tp.getFont())) {
-            iterator.remove();
-        }
-    }
-
-}
-
 // -------------------------- STATIC METHODS --------------------------
-
-private static boolean fontDiffers(final PDFont font, final ETextPosition tp) {
-    return !font.equals(tp.getFont());
-}
-
-private static boolean isOnAnotherLine(final float baseline,
-                                       final ETextPosition tp,
-                                       final float maxY) {
-    return (baseline != tp.getBaseLine() && tp.getBaseLine() > maxY);
-}
-
-private static boolean isTooFarAwayHorizontally(final float endX, @NotNull final ETextPosition tp) {
-    final float variation = tp.getPos().getWidth();
-
-    return !isWithinVariance(endX, tp.getPos().getX(), variation);
-}
-
-// -------------------------- OTHER METHODS --------------------------
 
 /**
  * The above methods are generally responsible for grouping text according to line and style;
@@ -213,7 +154,6 @@ private static boolean isTooFarAwayHorizontally(final float endX, @NotNull final
  */
 @NotNull
 static Collection<PhysicalText> createWordsInLine(@NotNull final List<PhysicalText> line) {
-
     /* keep the characters sorted at all times. note that unfinished words are put back into
     *   this queue, and will this be picked as currentWord below
     * */
@@ -270,7 +210,6 @@ static Collection<PhysicalText> createWordsInLine(@NotNull final List<PhysicalTe
         if (containsSpaces) {
             isWordBoundary = "".equals(nextChar.getText().trim());
         } else {
-
             final float distance = currentWord.getPos().distance(nextChar.getPos());
             isWordBoundary = distance - charSpacing > (fontSize / 8.0f) + charSpacing * 0.5;
 
@@ -281,7 +220,6 @@ static Collection<PhysicalText> createWordsInLine(@NotNull final List<PhysicalTe
                         + (distance - charSpacing) + ", fontSize:" + (fontSize) + ", charSpacing:"
                         + charSpacing);
             }
-
         }
 
         /**
@@ -307,51 +245,6 @@ static Collection<PhysicalText> createWordsInLine(@NotNull final List<PhysicalTe
     }
 
     return segmentedWords;
-}
-
-
-private static void printLine(List<PhysicalText> physicalTexts) {
-    StringBuffer sb = new StringBuffer();
-    for (PhysicalText physicalText : physicalTexts) {
-        sb.append(physicalText.getText());
-    }
-    if (log.isDebugEnabled()) {
-        log.debug("line:" + sb);
-    }
-}
-
-@NotNull
-@SuppressWarnings({"ObjectAllocationInLoop"})
-List<PhysicalText> convertText(@NotNull final List<ETextPosition> texts) {
-    final List<PhysicalText> ret = new ArrayList<PhysicalText>(texts.size() * 2);
-
-    for (final ETextPosition text : texts) {
-        ret.add(new PhysicalText(text.getCharacter(), styles.getStyleForTextPosition(text),
-                text.getPos().getX(),
-                text.getPos().getY(),
-                text.getPos().getWidth(),
-                text.getPos().getHeight(),
-                (int) text.getDir()));
-    }
-
-//    System.out.println("ret = " + ret);
-//    for (int i = 1; i < ret.size(); i++) {
-//        PhysicalText text = ret.get(i);
-//        PhysicalText former = ret.get(i -1);
-//
-//        /* if this character is an accent, combine it with the preceeding text */
-//        if (Character.getType(text.getText().charAt(0)) == Character.MODIFIER_SYMBOL) {
-//            PhysicalText combined = former.combineWith(text);
-//            log.warn("LOG01070:Combined into" + combined);
-//            ret.add(combined);
-//            ret.remove(i);
-//            ret.remove(i -1);
-//            i--;
-//        }
-//
-//    }
-
-    return ret;
 }
 
 private static boolean containsWhiteSpace(List<PhysicalText> line) {
@@ -445,5 +338,52 @@ private static float[] calculateDistancesBetweenCharacters(@NotNull List<Physica
     }
 
     return distances;
+}
+
+private static void printLine(List<PhysicalText> physicalTexts) {
+    StringBuffer sb = new StringBuffer();
+    for (PhysicalText physicalText : physicalTexts) {
+        sb.append(physicalText.getText());
+    }
+    if (log.isDebugEnabled()) {
+        log.debug("line:" + sb);
+    }
+}
+
+private static boolean fontDiffers(final PDFont font, final ETextPosition tp) {
+    return !font.equals(tp.getFont());
+}
+
+private static boolean isOnAnotherLine(final float baseline,
+                                       final ETextPosition tp,
+                                       final float maxY) {
+    return (baseline != tp.getBaseLine() && tp.getBaseLine() > maxY);
+}
+
+private static boolean isTooFarAwayHorizontally(final float endX, @NotNull final ETextPosition tp) {
+    final float variation = tp.getPos().getWidth();
+
+    return !isWithinVariance(endX, tp.getPos().getX(), variation);
+}
+
+// -------------------------- OTHER METHODS --------------------------
+
+@NotNull
+@SuppressWarnings({"ObjectAllocationInLoop"})
+List<PhysicalText> convertText(@NotNull final List<ETextPosition> texts) {
+    final List<PhysicalText> ret = new ArrayList<PhysicalText>(texts.size() * 2);
+
+    for (final ETextPosition text : texts) {
+        final String s = Normalizer.normalize(text.getCharacter(), Normalizer.Form.NFKD);
+
+        ret.add(new PhysicalText(s, styles.getStyleForTextPosition(text),
+                text.getPos().getX(),
+                text.getPos().getY(),
+                text.getPos().getWidth(),
+                text.getPos().getHeight(),
+                (int) text.getDir()));
+    }
+
+    return ret;
 }
 }

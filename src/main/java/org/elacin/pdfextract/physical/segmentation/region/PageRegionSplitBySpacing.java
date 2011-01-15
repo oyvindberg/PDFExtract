@@ -20,11 +20,15 @@ import org.apache.log4j.Logger;
 import org.elacin.pdfextract.physical.content.HasPosition;
 import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
+import org.elacin.pdfextract.style.Style;
+import org.elacin.pdfextract.style.StyleComparator;
+import org.elacin.pdfextract.style.StyleDifference;
 import org.elacin.pdfextract.util.Rectangle;
 import org.elacin.pdfextract.util.RectangleCollection;
 import org.elacin.pdfextract.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -92,6 +96,11 @@ public static void splitHorizontallyBySpacing(@NotNull PhysicalPageRegion r) {
                 continue;
             }
 
+            if (sameStyleOverAndUnderHorizontalLine(r, y, workingSet)) {
+                continue;
+            }
+
+
             if (log.isInfoEnabled()) {
                 log.info(String.format("LOG00530:split/hor at y=%s for %s ", y, r));
             }
@@ -104,6 +113,26 @@ public static void splitHorizontallyBySpacing(@NotNull PhysicalPageRegion r) {
             lastBoundary = y;
         }
     }
+
+}
+
+private static boolean sameStyleOverAndUnderHorizontalLine(final PhysicalPageRegion r,
+                                                           final float y,
+                                                           final Set<PhysicalContent> over) {
+
+    List<PhysicalContent> under = new ArrayList<PhysicalContent>();
+
+    float yIndex = y;
+    while (under.isEmpty() && yIndex < r.getPos().getEndY()) {
+        under.addAll(r.findContentAtYIndex(yIndex));
+        yIndex += 1.0f;
+
+    }
+
+    final Style styleOver = TextUtils.findDominatingStyle(over);
+    final Style styleUnder = TextUtils.findDominatingStyle(under);
+
+    return StyleComparator.styleCompare(styleOver, styleUnder) == StyleDifference.SAME_STYLE;
 
 }
 

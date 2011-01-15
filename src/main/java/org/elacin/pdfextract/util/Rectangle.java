@@ -55,6 +55,7 @@ public Rectangle(final float x, final float y, final float width, final float he
     //		throw new IllegalArgumentException("x can not be negative");
     //	}
     //	if (y < 0.0f) {
+    //	if (y < 0.0f) {
     //		throw new IllegalArgumentException("y can not be negative");
     //	}
 }

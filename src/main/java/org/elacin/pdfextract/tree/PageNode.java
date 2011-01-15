@@ -35,7 +35,8 @@ public class PageNode extends AbstractParentNode<LayoutRegionNode, DocumentNode>
 private final int pageNumber;
 @NotNull
 private final Map<Color, List<HasPosition>> debugFeatures = new HashMap<Color,
-List<HasPosition>>();
+        List<HasPosition>>();
+
 
 // --------------------------- CONSTRUCTORS ---------------------------
 

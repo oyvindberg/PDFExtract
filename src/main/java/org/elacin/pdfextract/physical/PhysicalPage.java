@@ -142,6 +142,7 @@ private List<LayoutRegionNode> createRegionNodes() {
 
     List<ParagraphNode> paragraphs = mainRegion.createParagraphNodes();
     for (ParagraphNode paragraph : paragraphs) {
+        System.out.println("paragraph = " + paragraph);
         regionNode.addChild(paragraph);
     }
     if (!regionNode.getChildren().isEmpty()) {

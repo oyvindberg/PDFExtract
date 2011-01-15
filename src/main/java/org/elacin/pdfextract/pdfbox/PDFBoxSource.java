@@ -415,12 +415,16 @@ private boolean isMonoSpacedFont(PDFont fontObj) {
     List<Float> widths = (List<Float>) fontObj.getWidths();
 
     boolean monospaced = true;
-    final float firstWidth = widths.get(0);
-    for (int i = 1; i < widths.size(); i++) {
-        final float width = widths.get(i);
-        if (!MathUtils.isWithinPercent(width, firstWidth, 1.0f)) {
-            monospaced = false;
-            break;
+    if (widths == null) {
+        monospaced = false;
+    } else {
+        final float firstWidth = widths.get(0);
+        for (int i = 1; i < widths.size(); i++) {
+            final float width = widths.get(i);
+            if (!MathUtils.isWithinPercent(width, firstWidth, 1.0f)) {
+                monospaced = false;
+                break;
+            }
         }
     }
 

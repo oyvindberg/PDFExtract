@@ -16,7 +16,6 @@
 
 package org.elacin.pdfextract.physical.segmentation.column;
 
-import org.elacin.pdfextract.physical.AbstractWhitespaceFinder;
 import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.physical.content.WhitespaceRectangle;
 import org.elacin.pdfextract.util.MathUtils;
@@ -62,10 +61,6 @@ protected boolean acceptsRectangle(WhitespaceRectangle newWhitespace) {
             return false;
         }
     }
-
-//    if (newWhitespace.getPos().getWidth() < 2.0f || newWhitespace.getPos().getHeight() < 2.0f){
-//        return false;
-//    }
 
     /** we do not want to accept whitespace rectangles which has only one or two words on each
      side (0 is fine), as these doesn't affect layout and tend to break up small paragraphs

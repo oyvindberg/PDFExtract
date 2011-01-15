@@ -23,6 +23,7 @@ import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.common.PDStream;
+import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.util.TextNormalize;
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.logical.operation.RecognizeRoles;
@@ -38,16 +39,13 @@ import org.elacin.pdfextract.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
-public class PDFTextStripper extends PDFBoxSource {
+public class PDFTextFilter extends PDFBoxSource {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger log = Logger.getLogger(PDFTextStripper.class);
+private static final Logger log = Logger.getLogger(PDFTextFilter.class);
 
 @NotNull
 private final DocumentNode root;
@@ -67,10 +65,9 @@ private final PDDocument doc;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public PDFTextStripper(final PDDocument doc,
-                       final int startPage,
-                       final int endPage) throws IOException {
-    super();
+public PDFTextFilter(final PDDocument doc,
+                     final int startPage,
+                     final int endPage) throws IOException {
 
     root = new DocumentNode();
     this.doc = doc;
@@ -89,7 +86,6 @@ public PDFTextStripper(final PDDocument doc,
  * @param text The text to process.
  */
 protected void processTextPosition(@NotNull TextPosition text_) {
-
     ETextPosition text = (ETextPosition) text_;
 
     super.processTextPosition(text);
@@ -139,6 +135,7 @@ protected void processTextPosition(@NotNull TextPosition text_) {
         return;
     }
 
+
     /** In the wild, some PDF encoded documents put diacritics (accents on
      * top of characters) into a separate Tj element.  When displaying them
      * graphically, the two chunks get overlayed.  With text output though,
@@ -168,39 +165,6 @@ protected void processTextPosition(@NotNull TextPosition text_) {
         }
     }
 }
-
-// -------------------------- PUBLIC METHODS --------------------------
-
-@NotNull
-public DocumentNode getDocumentNode() {
-    return root;
-}
-
-public void processDocument() throws IOException {
-    resetEngine();
-    try {
-        if (doc.isEncrypted()) {
-            doc.decrypt("");
-        }
-    } catch (Exception e) {
-        throw new RuntimeException("Could not decrypt document", e);
-    }
-    currentPageNo = 0;
-
-    for (final PDPage nextPage : (List<PDPage>) doc.getDocumentCatalog().getAllPages()) {
-        PDStream contentStream = nextPage.getContents();
-        currentPageNo++;
-        if (contentStream != null) {
-            COSStream contents = contentStream.getStream();
-            processPage(nextPage, contents);
-        }
-    }
-
-    /* postprocessing */
-    new RecognizeRoles().doOperation(root);
-}
-
-// -------------------------- OTHER METHODS --------------------------
 
 private boolean includeText(@NotNull final TextPosition text) {
     String c = text.getCharacter();
@@ -246,6 +210,37 @@ private boolean includeText(@NotNull final TextPosition text) {
     return showCharacter;
 }
 
+// -------------------------- PUBLIC METHODS --------------------------
+
+@NotNull
+public DocumentNode getDocumentNode() {
+    return root;
+}
+
+public void processDocument() throws IOException {
+    resetEngine();
+    try {
+        if (doc.isEncrypted()) {
+            doc.decrypt("");
+        }
+    } catch (Exception e) {
+        throw new RuntimeException("Could not decrypt document", e);
+    }
+    currentPageNo = 0;
+
+    for (final PDPage nextPage : (List<PDPage>) doc.getDocumentCatalog().getAllPages()) {
+        PDStream contentStream = nextPage.getContents();
+        currentPageNo++;
+        if (contentStream != null) {
+            COSStream contents = contentStream.getStream();
+            processPage(nextPage, contents);
+        }
+    }
+
+    /* postprocessing */
+    new RecognizeRoles().doOperation(root);
+}
+
 /**
  * This will process the contents of a page.
  *
@@ -260,28 +255,21 @@ protected void processPage(@NotNull PDPage page, COSStream content) throws IOExc
 
         /* show which page we are working on in the log */
         MDC.put("page", currentPageNo);
-
         pageSize = page.findCropBox().createDimension();
 
         /* this is used to 'draw' images on during pdf parsing */
-        graphicSegmentator = new GraphicSegmentatorImpl((float) pageSize.getWidth(),
-                (float) pageSize.getHeight());
+        graphicSegmentator = new GraphicSegmentatorImpl((float) pageSize.getWidth(), (float) pageSize.getHeight());
 
         processStream(page, page.findResources(), content);
 
-        /* getRotation might return null, something which doesnt play well with javas unboxing,
-          *   so take some care*/
-        final int rot;
-        if (page.getRotation() == null) {
-            rot = 0;
-        } else {
-            rot = page.getRotation();
-        }
+        filterOutBadFonts(charactersForPage);
+
+        /* filter out remaining definite bad characters */
+        filterOutControlCodes(charactersForPage);
 
         WordSegmentator segmentator = new WordSegmentatorImpl(root.getStyles());
 
         if (!charactersForPage.isEmpty()) {
-
             try {
                 /* segment words */
                 final List<PhysicalText> texts = segmentator.segmentWords(charactersForPage);
@@ -291,13 +279,63 @@ protected void processPage(@NotNull PDPage page, COSStream content) throws IOExc
                 final PageNode pageNode = physicalPage.compileLogicalPage();
 
                 root.addChild(pageNode);
-
             } catch (Exception e) {
                 log.error("LOG00350:Error while creating physical page", e);
             }
         }
 
         MDC.remove("page");
+    }
+}
+
+private void filterOutControlCodes(List<ETextPosition> text) {
+    for (Iterator<ETextPosition> iterator = text.iterator(); iterator.hasNext();) {
+        TextPosition tp = iterator.next();
+        if (Character.isISOControl(tp.getCharacter().charAt(0))) {
+            if (log.isDebugEnabled()) {
+                log.debug("Removing character \"" + tp.getCharacter() + "\"");
+            }
+            ;
+            iterator.remove();
+        }
+    }
+}
+
+// -------------------------- OTHER METHODS --------------------------
+
+private void filterOutBadFonts(List<ETextPosition> text) {
+    final Map<PDFont, Integer> badCharsForStyle = new HashMap<PDFont, Integer>();
+    final Map<PDFont, Integer> numCharsForStyle = new HashMap<PDFont, Integer>();
+
+    for (TextPosition tp : text) {
+        if (!badCharsForStyle.containsKey(tp.getFont())) {
+            badCharsForStyle.put(tp.getFont(), 0);
+            numCharsForStyle.put(tp.getFont(), 0);
+        }
+
+        char c = tp.getCharacter().charAt(0);
+        if (Character.isISOControl(c)) {
+            badCharsForStyle.put(tp.getFont(), badCharsForStyle.get(tp.getFont()) + 1);
+        }
+        numCharsForStyle.put(tp.getFont(), numCharsForStyle.get(tp.getFont()) + 1);
+    }
+
+    final List<PDFont> ignoredFonts = new ArrayList<PDFont>();
+    for (PDFont font : numCharsForStyle.keySet()) {
+        int badChars = badCharsForStyle.get(font);
+        int totalChars = numCharsForStyle.get(font);
+        if (badChars > totalChars * 0.10f) {
+            ignoredFonts.add(font);
+            log.warn("LOG01060:Ignoring all content using font " + font.getBaseFont() + " as it "
+                    + "seems to be missing UTF-8 conversion information");
+        }
+    }
+
+    for (Iterator<ETextPosition> iterator = text.iterator(); iterator.hasNext();) {
+        TextPosition tp = iterator.next();
+        if (ignoredFonts.contains(tp.getFont())) {
+            iterator.remove();
+        }
     }
 }
 }
