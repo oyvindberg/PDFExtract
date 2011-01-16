@@ -47,7 +47,6 @@ private static final Logger log = Logger.getLogger(PageRegionSplitBySeparators.c
  * @param graphics
  */
 static void splitRegionBySeparators(PhysicalPageRegion r, CategorizedGraphics graphics) {
-
     List<GraphicContent> toRemove = new ArrayList<GraphicContent>();
     for (GraphicContent hsep : graphics.getHorizontalSeparators()) {
         if (hsep.getPos().getWidth() < r.getPos().getWidth() * 0.6f) {
@@ -78,7 +77,6 @@ static void splitRegionBySeparators(PhysicalPageRegion r, CategorizedGraphics gr
             /* just add this for now*/
             r.addContent(hsep);
         }
-
     }
 
     graphics.getHorizontalSeparators().removeAll(toRemove);
@@ -87,6 +85,5 @@ static void splitRegionBySeparators(PhysicalPageRegion r, CategorizedGraphics gr
     for (GraphicContent vsep : graphics.getVerticalSeparators()) {
         r.addContent(vsep);
     }
-
 }
 }

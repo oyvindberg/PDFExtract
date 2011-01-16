@@ -42,13 +42,6 @@ private ArrayList<LineNode> lines;
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-@Test()
-public void testMinuxOneCharInterval() {
-    check("This text has inter-character intervals reduced by -1pt This text has inter-character intervals reduced by -1pt This text has");
-    check("inter-character intervals reduced by -1pt This text has inter-character intervals reduced by -1pt This text has inter-character");
-    check("intervals reduced by -1pt This text has inter-character intervals reduced by -1pt");
-}
-
 @BeforeClass(groups = "TestSpacing")
 public void setUp() throws IOException {
     doc = PDFDocumentLoader.readPDF("src/test/resources/renderX/spacing.pdf", "spacing_out.xml", 4);
@@ -84,6 +77,13 @@ public void testMinusTwoWordInterval() {
     check("In this text, spaces between words are reduced by -2pt In this text, spaces between words are reduced by");
     check("-2pt In this text, spaces between words are reduced by -2pt In this text, spaces between words are reduced");
     check("by -2pt In this text, spaces between words are reduced by -2pt");
+}
+
+@Test()
+public void testMinuxOneCharInterval() {
+    check("This text has inter-character intervals reduced by -1pt This text has inter-character intervals reduced by -1pt This text has");
+    check("inter-character intervals reduced by -1pt This text has inter-character intervals reduced by -1pt This text has inter-character");
+    check("intervals reduced by -1pt This text has inter-character intervals reduced by -1pt");
 }
 
 @Test()

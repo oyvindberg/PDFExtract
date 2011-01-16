@@ -26,6 +26,7 @@ import java.util.ArrayList;
  * template use File | Settings | File Templates.
  */
 public class TestColumns {
+// ------------------------------ FIELDS ------------------------------
 
 private DocumentNode        doc;
 private ArrayList<LineNode> lines;

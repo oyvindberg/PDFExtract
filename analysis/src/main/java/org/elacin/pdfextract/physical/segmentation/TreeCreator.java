@@ -67,29 +67,14 @@ public static PageNode compileLogicalPage(PhysicalPage page) {
     return ret;
 }
 
-@NotNull
-private static List<LayoutRegionNode> createRegionNodes(PhysicalPage page) {
-    List<LayoutRegionNode> ret = new ArrayList<LayoutRegionNode>();
+// -------------------------- STATIC METHODS --------------------------
 
-    final PhysicalPageRegion mainRegion = page.getMainRegion();
-
-    LayoutRegionNode regionNode = new LayoutRegionNode(false);
-
-    List<ParagraphNode> paragraphs = createParagraphNodes(mainRegion);
-    for (ParagraphNode paragraph : paragraphs) {
-        regionNode.addChild(paragraph);
+private static void addWhiteSpaceFromRegion(List<WhitespaceRectangle> whitespaces,
+                                            PhysicalPageRegion region) {
+    whitespaces.addAll(region.getWhitespace());
+    for (PhysicalPageRegion subRegion : region.getSubregions()) {
+        addWhiteSpaceFromRegion(whitespaces, subRegion);
     }
-    if (!regionNode.getChildren().isEmpty()) {
-        ret.add(regionNode);
-    }
-
-
-    for (PhysicalPageRegion subRegion : mainRegion.getSubregions()) {
-        ret.add(createRegionNode(subRegion));
-    }
-
-
-    return ret;
 }
 
 @NotNull
@@ -117,11 +102,28 @@ private static LayoutRegionNode createRegionNode(PhysicalPageRegion region) {
     return regionNode;
 }
 
-private static void addWhiteSpaceFromRegion(List<WhitespaceRectangle> whitespaces,
-                                            PhysicalPageRegion region) {
-    whitespaces.addAll(region.getWhitespace());
-    for (PhysicalPageRegion subRegion : region.getSubregions()) {
-        addWhiteSpaceFromRegion(whitespaces, subRegion);
+@NotNull
+private static List<LayoutRegionNode> createRegionNodes(PhysicalPage page) {
+    List<LayoutRegionNode> ret = new ArrayList<LayoutRegionNode>();
+
+    final PhysicalPageRegion mainRegion = page.getMainRegion();
+
+    LayoutRegionNode regionNode = new LayoutRegionNode(false);
+
+    List<ParagraphNode> paragraphs = createParagraphNodes(mainRegion);
+    for (ParagraphNode paragraph : paragraphs) {
+        regionNode.addChild(paragraph);
     }
+    if (!regionNode.getChildren().isEmpty()) {
+        ret.add(regionNode);
+    }
+
+
+    for (PhysicalPageRegion subRegion : mainRegion.getSubregions()) {
+        ret.add(createRegionNode(subRegion));
+    }
+
+
+    return ret;
 }
 }

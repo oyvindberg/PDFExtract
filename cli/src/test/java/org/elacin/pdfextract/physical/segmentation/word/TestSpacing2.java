@@ -40,6 +40,7 @@ public class TestSpacing2 {
 // ------------------------------ FIELDS ------------------------------
 
 private static final Logger log = Logger.getLogger(TestSpacing2.class);
+
 // -------------------------- STATIC METHODS --------------------------
 
 private static float[] parseDistancesString(final String s, final List<Float> distances) {
@@ -65,8 +66,6 @@ public void testSpacings() throws IOException {
 
     int correct = 0, total = 0;
     for (File file : files) {
-
-
         MDC.put("testInfo", file.getName());
         int fileCorrect = 0, fileTotal = 0;
         BufferedReader reader = new BufferedReader(new FileReader(file));

@@ -59,7 +59,6 @@ public static Rectangle findBounds(@NotNull final Collection<? extends HasPositi
 @NotNull
 public static Style findDominatingStyle(@NotNull final Collection<? extends HasPosition>
                                                 contents) {
-
     if (!listContainsStyledText(contents)) {
         return Style.NO_STYLE;
     }
@@ -94,7 +93,6 @@ public static Style findDominatingStyle(@NotNull final Collection<? extends HasP
     return style;
 }
 
-
 public static boolean listContainsStyledText(@NotNull final Collection<? extends HasPosition>
                                                      list) {
     for (HasPosition content : list) {
@@ -106,14 +104,11 @@ public static boolean listContainsStyledText(@NotNull final Collection<? extends
 }
 
 public static boolean stringContainsAnyCharacterOf(String string, String chars) {
-
     for (int i = 0; i < string.length(); i++) {
         if (chars.indexOf(string.charAt(i)) != -1) {
             return true;
         }
     }
     return false;
-
 }
-
 }

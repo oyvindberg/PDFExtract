@@ -26,6 +26,7 @@ import java.util.List;
  * use File | Settings | File Templates.
  */
 public interface WordSegmentator {
+// -------------------------- PUBLIC METHODS --------------------------
 
 @NotNull
 List<PhysicalText> segmentWords(List<PhysicalText> text);

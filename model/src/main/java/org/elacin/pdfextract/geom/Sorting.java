@@ -100,7 +100,6 @@ public static final Comparator<HasPosition>  regionComparator   = new Comparator
             return Float.compare(o1.getPos().getY(), o2.getPos().getY());
         }
         return Float.compare(o1.getPos().getX(), o2.getPos().getX());
-
     }
 };
 

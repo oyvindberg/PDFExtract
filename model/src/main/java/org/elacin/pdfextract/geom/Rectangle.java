@@ -244,25 +244,6 @@ public float distance(@NotNull Rectangle that) {
     return MathUtils.sqrt(distance);
 }
 
-public boolean intersectsWith(@NotNull HasPosition other) {
-    final Rectangle that = other.getPos();
-
-    if (isEmpty()) {
-        return false;
-    }
-
-    if (that.endX < x) {
-        return false;
-    }
-    if (that.x > endX) {
-        return false;
-    }
-    if (that.y > endY) {
-        return false;
-    }
-    return that.endY > y;
-}
-
 @NotNull
 public Rectangle getAdjustedBy(float adjust) {
     return new Rectangle(Math.max(0.1f, x - adjust), Math.max(0.1f, y - adjust),
@@ -305,6 +286,25 @@ public boolean intersectsExclusiveWith(@NotNull HasPosition other) {
         return false;
     }
     return that.endY >= y;
+}
+
+public boolean intersectsWith(@NotNull HasPosition other) {
+    final Rectangle that = other.getPos();
+
+    if (isEmpty()) {
+        return false;
+    }
+
+    if (that.endX < x) {
+        return false;
+    }
+    if (that.x > endX) {
+        return false;
+    }
+    if (that.y > endY) {
+        return false;
+    }
+    return that.endY > y;
 }
 
 /**

@@ -34,11 +34,13 @@ import java.io.FileOutputStream;
  * To change this template use File | Settings | File Templates.
  */
 public class XMLOutput {
+// ------------------------------ FIELDS ------------------------------
+
 private static final Logger log = Logger.getLogger(XMLOutput.class);
 
+// -------------------------- PUBLIC STATIC METHODS --------------------------
 
 public static void printTree(DocumentNode root, java.lang.String filename) {
-
     ObjectFactory of = new ObjectFactory();
     final TEI tei = of.createTEI();
 
@@ -57,44 +59,14 @@ public static void printTree(DocumentNode root, java.lang.String filename) {
         Marshaller marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
         marshaller.marshal(tei, new FileOutputStream(filename));
-
     } catch (JAXBException e) {
         log.warn("LOG01140:", e);
     } catch (FileNotFoundException e) {
         log.warn("LOG01120:", e);
     }
-
-
 }
 
-private static void addBack(DocumentNode root, ObjectFactory of, Text text) {
-    final Back back = of.createBack();
-
-    /* references goes here */
-
-    text.getIndicesAndSpenAndSpanGrps().add(back);
-}
-
-private static void addFront(DocumentNode root, ObjectFactory of, Text text) {
-    final Front front = of.createFront();
-
-    addAbstract(of, front);
-    text.getIndicesAndSpenAndSpanGrps().add(front);
-}
-
-private static void addBody(DocumentNode root, ObjectFactory of, Text text) {
-    final Body body = of.createBody();
-
-    /* add content here */
-    for (PageNode pageNode : root.getChildren()) {
-        for (LayoutRegionNode regionNode : pageNode.getChildren()) {
-
-        }
-    }
-
-
-    text.getIndicesAndSpenAndSpanGrps().add(body);
-}
+// -------------------------- STATIC METHODS --------------------------
 
 private static void addAbstract(ObjectFactory of, Front front) {
     final Div div = of.createDiv();
@@ -114,6 +86,34 @@ private static void addAbstract(ObjectFactory of, Front front) {
     div.getMeetingsAndBylinesAndDatelines().add(p);
 
     front.getSetsAndProloguesAndEpilogues().add(div);
+}
+
+private static void addBack(DocumentNode root, ObjectFactory of, Text text) {
+    final Back back = of.createBack();
+
+    /* references goes here */
+
+    text.getIndicesAndSpenAndSpanGrps().add(back);
+}
+
+private static void addBody(DocumentNode root, ObjectFactory of, Text text) {
+    final Body body = of.createBody();
+
+    /* add content here */
+    for (PageNode pageNode : root.getChildren()) {
+        for (LayoutRegionNode regionNode : pageNode.getChildren()) {
+        }
+    }
+
+
+    text.getIndicesAndSpenAndSpanGrps().add(body);
+}
+
+private static void addFront(DocumentNode root, ObjectFactory of, Text text) {
+    final Front front = of.createFront();
+
+    addAbstract(of, front);
+    text.getIndicesAndSpenAndSpanGrps().add(front);
 }
 
 private static void addHeader(DocumentNode root, ObjectFactory of, TEI tei) {
@@ -150,5 +150,4 @@ private static void addHeader(DocumentNode root, ObjectFactory of, TEI tei) {
     header.setFileDesc(fileDesc);
     tei.setTeiHeader(header);
 }
-
 }

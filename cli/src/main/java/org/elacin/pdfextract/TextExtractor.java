@@ -46,7 +46,6 @@ public TextExtractor(final List<File> pdfFiles,
                      final int startPage,
                      final int endPage,
                      final String password) {
-
     this.pdfFiles = pdfFiles;
     this.destination = destination;
     this.startPage = startPage;
@@ -57,6 +56,26 @@ public TextExtractor(final List<File> pdfFiles,
 // -------------------------- STATIC METHODS --------------------------
 
 @NotNull
+protected static List<File> findAllPdfFilesUnderDirectory(final String filename) {
+    List<File> ret = new ArrayList<File>();
+    File file = new File(filename);
+
+    if (!file.exists()) {
+        throw new RuntimeException("File " + file + " does not exist");
+    } else if (file.isDirectory()) {
+        try {
+            ret.addAll(FileWalker.getFileListing(file, ".pdf"));
+        } catch (FileNotFoundException e) {
+            log.error("Could not find file " + filename);
+        }
+    } else if (file.isFile()) {
+        ret.add(file);
+    }
+
+    return ret;
+}
+
+@NotNull
 private static Options getOptions() {
     Options options = new Options();
     options.addOption("p", "password", true, "Password for decryption of document");
@@ -65,6 +84,47 @@ private static Options getOptions() {
     options.addOption("r", "render", false, "Render document");
     options.addOption("v", "verbose", false, "Output verbose xml");
     return options;
+}
+
+@Nullable
+private static CommandLine parseParameters(final String[] args) {
+    Options options = getOptions();
+    CommandLineParser parser = new PosixParser();
+
+    CommandLine cmd = null;
+    try {
+        cmd = parser.parse(options, args);
+    } catch (ParseException e) {
+        log.error("Could not parse command line options: " + e.getMessage());
+        usage();
+        System.exit(1);
+    }
+    return cmd;
+}
+
+private static void usage() {
+    new HelpFormatter().printHelp(TextExtractor.class.getSimpleName()
+            + "<PDF file/dir> <XML output file/dir>", getOptions());
+}
+
+// -------------------------- PUBLIC METHODS --------------------------
+
+public final void processFiles() {
+    for (File pdfFile : pdfFiles) {
+        try {
+            final File output;
+            if (destination.isDirectory()) {
+                output = new File(destination, pdfFile.getName().replace(".pdf", ".elc.xml"));
+            } else {
+                output = destination;
+            }
+
+            DocumentAnalyzer DocumentAnalyzer = new DocumentAnalyzer(pdfFile, output, password, startPage, endPage);
+            DocumentAnalyzer.processFile();
+        } catch (Exception e) {
+            log.error("Error while processing PDF:", e);
+        }
+    }
 }
 
 // --------------------------- main() method ---------------------------
@@ -126,65 +186,6 @@ public static void main(String[] args) {
 
     final TextExtractor textExtractor = new TextExtractor(pdfFiles, destination, startPage, endPage, password);
     textExtractor.processFiles();
-}
-
-@Nullable
-private static CommandLine parseParameters(final String[] args) {
-    Options options = getOptions();
-    CommandLineParser parser = new PosixParser();
-
-    CommandLine cmd = null;
-    try {
-        cmd = parser.parse(options, args);
-    } catch (ParseException e) {
-        log.error("Could not parse command line options: " + e.getMessage());
-        usage();
-        System.exit(1);
-    }
-    return cmd;
-}
-
-private static void usage() {
-    new HelpFormatter().printHelp(TextExtractor.class.getSimpleName()
-            + "<PDF file/dir> <XML output file/dir>", getOptions());
-}
-
-@NotNull
-protected static List<File> findAllPdfFilesUnderDirectory(final String filename) {
-    List<File> ret = new ArrayList<File>();
-    File file = new File(filename);
-
-    if (!file.exists()) {
-        throw new RuntimeException("File " + file + " does not exist");
-    } else if (file.isDirectory()) {
-        try {
-            ret.addAll(FileWalker.getFileListing(file, ".pdf"));
-        } catch (FileNotFoundException e) {
-            log.error("Could not find file " + filename);
-        }
-    } else if (file.isFile()) {
-        ret.add(file);
-    }
-
-    return ret;
-}
-
-public final void processFiles() {
-    for (File pdfFile : pdfFiles) {
-        try {
-            final File output;
-            if (destination.isDirectory()) {
-                output = new File(destination, pdfFile.getName().replace(".pdf", ".elc.xml"));
-            } else {
-                output = destination;
-            }
-
-            DocumentAnalyzer DocumentAnalyzer = new DocumentAnalyzer(pdfFile, output, password, startPage, endPage);
-            DocumentAnalyzer.processFile();
-        } catch (Exception e) {
-            log.error("Error while processing PDF:", e);
-        }
-    }
 }
 }
 

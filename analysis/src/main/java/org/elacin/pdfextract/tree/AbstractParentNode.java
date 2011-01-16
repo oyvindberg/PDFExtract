@@ -49,22 +49,6 @@ public AbstractParentNode(@NotNull final ChildType child) {
     addChild(child);
 }
 
-public final void addChild(@NotNull final ChildType child) {
-    child.invalidateThisAndParents();
-    children.add(child);
-    child.parent = this;
-    child.invalidateThisAndParents();
-    Collections.sort(children, getChildComparator());
-    child.setRoot(getRoot());
-}
-
-//@NotNull
-//public abstract Comparator<ChildType> getChildComparator();
-
-public Comparator getChildComparator() {
-    return Sorting.regionComparator;
-}
-
 public AbstractParentNode() {
 }
 
@@ -116,6 +100,22 @@ public List<ChildType> getChildren() {
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
+
+public final void addChild(@NotNull final ChildType child) {
+    child.invalidateThisAndParents();
+    children.add(child);
+    child.parent = this;
+    child.invalidateThisAndParents();
+    Collections.sort(children, getChildComparator());
+    child.setRoot(getRoot());
+}
+
+//@NotNull
+//public abstract Comparator<ChildType> getChildComparator();
+
+public Comparator getChildComparator() {
+    return Sorting.regionComparator;
+}
 
 public Style getStyle() {
     /* keep the value from last child*/

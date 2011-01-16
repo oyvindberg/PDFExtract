@@ -28,6 +28,7 @@ import java.net.URL;
  * template use File | Settings | File Templates.
  */
 public class PDFDocumentLoader {
+// -------------------------- PUBLIC STATIC METHODS --------------------------
 
 @NotNull
 public static DocumentNode readPDF(String filename,
@@ -39,6 +40,5 @@ public static DocumentNode readPDF(String filename,
     DocumentAnalyzer.processFile();
     final DocumentNode documentNode = DocumentAnalyzer.getRoot();
     return documentNode;
-
 }
 }

@@ -47,9 +47,8 @@ import static org.elacin.pdfextract.Constants.OUTPUT_EXTENSION;
 public class DocumentAnalyzer {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger log = Logger.getLogger(DocumentAnalyzer.class);
-
-public static WordSegmentator wordSegmentator = new WordSegmentatorImpl();
+public static        WordSegmentator wordSegmentator = new WordSegmentatorImpl();
+private static final Logger          log             = Logger.getLogger(DocumentAnalyzer.class);
 
 
 public final DocumentNode root = new DocumentNode();
@@ -73,7 +72,7 @@ public DocumentNode getRoot() {
     return root;
 }
 
-// -------------------------- OTHER METHODS --------------------------
+// -------------------------- PUBLIC METHODS --------------------------
 
 public void processFile() throws IOException {
     final DocumentContent content = source.readPages();
@@ -115,7 +114,6 @@ public void processFile() throws IOException {
     }
     source.closeSource();
 }
-
 
 public void renderPDF() {
     long t0 = System.currentTimeMillis();

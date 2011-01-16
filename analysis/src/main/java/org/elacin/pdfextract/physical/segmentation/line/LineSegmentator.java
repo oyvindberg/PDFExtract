@@ -44,7 +44,7 @@ public LineSegmentator(final float tolerance) {
     this.tolerance = tolerance;
 }
 
-// -------------------------- STATIC METHODS --------------------------
+// -------------------------- PUBLIC STATIC METHODS --------------------------
 
 @NotNull
 public static WordNode createWordNode(@NotNull final PhysicalText text, int pageNumber) {
@@ -128,7 +128,6 @@ private LineNode createLineFrom(@NotNull final PhysicalPageRegion region,
 private boolean isProbableLineBoundary(@NotNull PhysicalPageRegion region,
                                        @NotNull final Set<PhysicalContent> lineContents,
                                        final float yBoundary) {
-
     /** Finds all content on lines above and below the proposed boundary,
      and sorts it on ascending x */
     Set<PhysicalContent> contentsAroundBoundary = new TreeSet<PhysicalContent>(sortByLowerX);

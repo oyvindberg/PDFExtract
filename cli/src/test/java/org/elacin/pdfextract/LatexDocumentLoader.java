@@ -25,7 +25,7 @@ import java.io.IOException;
  * use File | Settings | File Templates.
  */
 public class LatexDocumentLoader {
-
+// -------------------------- PUBLIC STATIC METHODS --------------------------
 
 @NotNull
 public static String readLatex(String filename) throws IOException {
@@ -60,5 +60,4 @@ public static String readLatex(String filename) throws IOException {
     //        return session.buildXMLString(options);
     return "enable Snuggle in dependencies and rebuild :)";
 }
-
 }

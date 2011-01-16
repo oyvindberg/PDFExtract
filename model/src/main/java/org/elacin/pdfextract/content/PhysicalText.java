@@ -86,6 +86,12 @@ public boolean isText() {
     return true;
 }
 
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+public float getBaseLine() {
+    return baseLine;
+}
+
 // -------------------------- PUBLIC METHODS --------------------------
 
 @NotNull
@@ -99,9 +105,5 @@ public float getAverageCharacterWidth() {
 
 public boolean isSameStyleAs(@NotNull final PhysicalText next) {
     return getStyle().equals(next.getStyle());
-}
-
-public float getBaseLine() {
-    return baseLine;
 }
 }

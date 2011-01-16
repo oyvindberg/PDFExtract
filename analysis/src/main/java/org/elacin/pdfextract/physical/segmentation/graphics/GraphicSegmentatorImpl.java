@@ -76,6 +76,81 @@ public CategorizedGraphics segmentGraphicsUsingContentInRegion(@NotNull List<Gra
     return ret;
 }
 
+// -------------------------- PUBLIC STATIC METHODS --------------------------
+
+public static boolean canBeConsideredCharacterInRegion(GraphicContent g,
+                                                       final PhysicalPageRegion region) {
+    float doubleCharArea = region.getAvgFontSizeY() * region.getAvgFontSizeX() * 2.0f;
+    return g.getPos().area() < doubleCharArea;
+}
+
+/**
+ * consider the graphic a separator if the aspect ratio is high
+ */
+public static boolean canBeConsideredHorizontalSeparator(GraphicContent g) {
+    if (g.getPos().getHeight() > 15.0f) {
+        return false;
+    }
+
+    return g.getPos().getWidth() / g.getPos().getHeight() > 15.0f;
+}
+
+public static boolean canBeConsideredMathBarInRegion(GraphicContent g,
+                                                     final PhysicalPageRegion region) {
+    if (!canBeConsideredHorizontalSeparator(g)) {
+        return false;
+    }
+
+    final List<PhysicalContent> surrounding = region.findSurrounding(g, 15);
+    boolean foundOver = false, foundUnder = false, foundMath = false;
+
+    for (PhysicalContent content : surrounding) {
+        if (content.getPos().getY() < g.getPos().getEndY()) {
+            foundUnder = true;
+        }
+        if (content.getPos().getEndY() > g.getPos().getY()) {
+            foundOver = true;
+        }
+        if (content.isText()) {
+            if (Formulas.textContainsMath(content.getPhysicalText())) {
+                foundMath = true;
+            }
+        }
+        if (foundOver && foundUnder && foundMath) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * consider the graphic a separator if the aspect ratio is high
+ */
+public static boolean canBeConsideredVerticalSeparator(GraphicContent g) {
+    if (g.getPos().getWidth() > 15.0f) {
+        return false;
+    }
+
+    return g.getPos().getHeight() / g.getPos().getWidth() > 15.0f;
+}
+
+// -------------------------- STATIC METHODS --------------------------
+
+private static boolean graphicContainsTextFromRegion(@NotNull final PhysicalPageRegion region,
+                                                     @NotNull final GraphicContent graphic) {
+    final int limit = 5;
+    int found = 0;
+    for (PhysicalContent content : region.getContents()) {
+        if (graphic.getPos().contains(content.getPos())) {
+            found++;
+        }
+        if (found == limit) {
+            return true;
+        }
+    }
+    return false;
+}
+
 // -------------------------- OTHER METHODS --------------------------
 
 private void categorizeGraphics(CategorizedGraphics ret,
@@ -117,81 +192,6 @@ private void categorizeGraphics(CategorizedGraphics ret,
 
         ret.getGraphicsToRender().add(graphic);
     }
-}
-
-private boolean isTooBigGraphic(@NotNull final PhysicalContent graphic) {
-    return graphic.getPos().area() >= (w * h);
-}
-
-private static boolean graphicContainsTextFromRegion(@NotNull final PhysicalPageRegion region,
-                                                     @NotNull final GraphicContent graphic) {
-    final int limit = 5;
-    int found = 0;
-    for (PhysicalContent content : region.getContents()) {
-        if (graphic.getPos().contains(content.getPos())) {
-            found++;
-        }
-        if (found == limit) {
-            return true;
-        }
-    }
-    return false;
-}
-
-public static boolean canBeConsideredMathBarInRegion(GraphicContent g,
-                                                     final PhysicalPageRegion region) {
-    if (!canBeConsideredHorizontalSeparator(g)) {
-        return false;
-    }
-
-    final List<PhysicalContent> surrounding = region.findSurrounding(g, 15);
-    boolean foundOver = false, foundUnder = false, foundMath = false;
-
-    for (PhysicalContent content : surrounding) {
-        if (content.getPos().getY() < g.getPos().getEndY()) {
-            foundUnder = true;
-        }
-        if (content.getPos().getEndY() > g.getPos().getY()) {
-            foundOver = true;
-        }
-        if (content.isText()) {
-            if (Formulas.textContainsMath(content.getPhysicalText())) {
-                foundMath = true;
-            }
-        }
-        if (foundOver && foundUnder && foundMath) {
-            return true;
-        }
-    }
-    return false;
-}
-
-/**
- * consider the graphic a separator if the aspect ratio is high
- */
-public static boolean canBeConsideredHorizontalSeparator(GraphicContent g) {
-    if (g.getPos().getHeight() > 15.0f) {
-        return false;
-    }
-
-    return g.getPos().getWidth() / g.getPos().getHeight() > 15.0f;
-}
-
-/**
- * consider the graphic a separator if the aspect ratio is high
- */
-public static boolean canBeConsideredVerticalSeparator(GraphicContent g) {
-    if (g.getPos().getWidth() > 15.0f) {
-        return false;
-    }
-
-    return g.getPos().getHeight() / g.getPos().getWidth() > 15.0f;
-}
-
-public static boolean canBeConsideredCharacterInRegion(GraphicContent g,
-                                                       final PhysicalPageRegion region) {
-    float doubleCharArea = region.getAvgFontSizeY() * region.getAvgFontSizeX() * 2.0f;
-    return g.getPos().area() < doubleCharArea;
 }
 
 private List<GraphicContent> combineHorizontalSeparators(CategorizedGraphics ret) {
@@ -239,6 +239,10 @@ private List<GraphicContent> combineHorizontalSeparators(CategorizedGraphics ret
         combinedGraphics.add(newlyCombined);
     }
     return combinedGraphics;
+}
+
+private boolean isTooBigGraphic(@NotNull final PhysicalContent graphic) {
+    return graphic.getPos().area() >= (w * h);
 }
 
 private void logGraphics(CategorizedGraphics ret) {

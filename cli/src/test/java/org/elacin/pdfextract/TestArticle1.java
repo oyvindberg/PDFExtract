@@ -21,12 +21,10 @@ package org.elacin.pdfextract;
  * template use File | Settings | File Templates.
  */
 public class TestArticle1 {
-// ------------------------------ FIELDS ------------------------------
-
 //private DocumentNode        doc;
 //private ArrayList<LineNode> lines;
 //
-//// -------------------------- PUBLIC METHODS --------------------------
+//
 //
 //@BeforeClass(groups = "TestArticle1")
 //public void setUp() throws IOException {
@@ -56,7 +54,7 @@ public class TestArticle1 {
 //	assertExistsLineWithText("de-n ny-e forstå-ing-a hennar av seg sjølv");
 //}
 //
-//// -------------------------- OTHER METHODS --------------------------
+//
 //
 //private void assertExistsLineWithText(final String text) {
 //	for (LineNode line : lines) {

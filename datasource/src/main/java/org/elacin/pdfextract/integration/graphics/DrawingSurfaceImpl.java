@@ -61,6 +61,12 @@ List<GraphicContent> combined = new ArrayList<GraphicContent>();
 
 // --------------------- Interface DrawingSurface ---------------------
 
+public void clearSurface() {
+    figurePaths.clear();
+    pictures.clear();
+    combined = new ArrayList<GraphicContent>();
+}
+
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 public void drawImage(@NotNull final Image image,
                       @NotNull final AffineTransform at,
@@ -106,22 +112,6 @@ public void fill(@NotNull final GeneralPath originalPath,
     addVectorPath(originalPath, color, currentClippingPath);
 }
 
-public void strokePath(@NotNull final GeneralPath originalPath,
-                       @NotNull final Color color,
-                       Shape currentClippingPath) {
-    addVectorPath(originalPath, color, currentClippingPath);
-}
-
-// -------------------------- PUBLIC METHODS --------------------------
-
-public void clearSurface() {
-    figurePaths.clear();
-    pictures.clear();
-    combined = new ArrayList<GraphicContent>();
-}
-
-// -------------------------- OTHER METHODS --------------------------
-
 @NotNull
 public List<GraphicContent> getGraphicContents() {
     if (!combined.isEmpty()) {
@@ -163,11 +153,13 @@ public List<GraphicContent> getGraphicContents() {
     return combined;
 }
 
-@NotNull
-private static Rectangle convertRectangle(@NotNull final java.awt.Rectangle bounds) {
-    return new Rectangle((float) bounds.x, (float) bounds.y, (float) bounds.width,
-            (float) bounds.height);
+public void strokePath(@NotNull final GeneralPath originalPath,
+                       @NotNull final Color color,
+                       Shape currentClippingPath) {
+    addVectorPath(originalPath, color, currentClippingPath);
 }
+
+// -------------------------- STATIC METHODS --------------------------
 
 private static void combineGraphics(@NotNull final List<GraphicContent> list) {
     /**
@@ -255,6 +247,14 @@ private static void combineGraphics(@NotNull final List<GraphicContent> list) {
                 + (System.currentTimeMillis() - t0) + "ms");
     }
 }
+
+@NotNull
+private static Rectangle convertRectangle(@NotNull final java.awt.Rectangle bounds) {
+    return new Rectangle((float) bounds.x, (float) bounds.y, (float) bounds.width,
+            (float) bounds.height);
+}
+
+// -------------------------- OTHER METHODS --------------------------
 
 private void addVectorPath(GeneralPath originalPath, Color color, Shape clippingPath) {
     if (color.equals(Color.WHITE)) {

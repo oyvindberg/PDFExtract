@@ -47,6 +47,8 @@ private final PDDocument doc;
 private final int        startPage;
 private final int        endPage;
 
+// --------------------------- CONSTRUCTORS ---------------------------
+
 public PDFBoxSource(File pdfDocument, int startPage, int endPage, String password) {
     this.startPage = startPage;
     this.endPage = endPage;
@@ -78,7 +80,6 @@ public DocumentContent readPages() {
 
 @Nullable
 public RenderedPage renderPage(int pageNum) {
-
     final PDPage page = (PDPage) doc.getDocumentCatalog().getAllPages().get(pageNum - 1);
 
     final BufferedImage image;
@@ -92,7 +93,6 @@ public RenderedPage renderPage(int pageNum) {
     float yScale = (float) image.getHeight() / page.getArtBox().getHeight();
 
     return new RenderedPage(image, xScale, yScale);
-
 }
 
 public void closeSource() {

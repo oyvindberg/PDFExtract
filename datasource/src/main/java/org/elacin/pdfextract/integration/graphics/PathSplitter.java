@@ -30,6 +30,7 @@ import static java.awt.geom.PathIterator.*;
  * File | Settings | File Templates.
  */
 public class PathSplitter {
+// -------------------------- PUBLIC STATIC METHODS --------------------------
 
 @NotNull
 public static List<GeneralPath> splitPath(@NotNull final GeneralPath path) {
@@ -40,7 +41,6 @@ public static List<GeneralPath> splitPath(@NotNull final GeneralPath path) {
 
     float[] coords = new float[6];
     while (!iterator.isDone()) {
-
         switch (iterator.currentSegment(coords)) {
             case SEG_MOVETO:
                 subPath.moveTo(coords[0], coords[1]);

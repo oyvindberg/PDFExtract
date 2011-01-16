@@ -32,8 +32,7 @@ public class LayoutRecognizer {
 
 private static final Logger log = Logger.getLogger(LayoutRecognizer.class);
 
-// -------------------------- STATIC METHODS --------------------------
-
+// -------------------------- PUBLIC METHODS --------------------------
 
 @NotNull
 public List<WhitespaceRectangle> findWhitespace(@NotNull final PhysicalPageRegion region) {
@@ -53,6 +52,4 @@ public List<WhitespaceRectangle> findWhitespace(@NotNull final PhysicalPageRegio
 
     return ret;
 }
-
-
 }

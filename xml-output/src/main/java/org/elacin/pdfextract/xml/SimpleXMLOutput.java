@@ -42,7 +42,7 @@ public class SimpleXMLOutput {
 
 private static final Logger log = Logger.getLogger(SimpleXMLOutput.class);
 
-// -------------------------- PUBLIC METHODS --------------------------
+// -------------------------- PUBLIC STATIC METHODS --------------------------
 
 public static void printTree(@NotNull final DocumentNode root, @NotNull final File output) {
     /* write to file */
@@ -65,6 +65,8 @@ public static void printTree(@NotNull final DocumentNode root, @NotNull final Fi
     out.close();
 }
 
+// -------------------------- STATIC METHODS --------------------------
+
 private static void writeDocument(@NotNull final Appendable out,
                                   DocumentNode root) throws IOException {
     out.append("<document>\n");
@@ -77,29 +79,29 @@ private static void writeDocument(@NotNull final Appendable out,
     out.append("</document");
 }
 
-private static void writeStyles(final Appendable out, List<Style> styles) throws IOException {
-    out.append("<styles>\n");
+private static void writeLine(@NotNull final Appendable out, LineNode line) throws IOException {
+    if (Formulas.textSeemsToBeFormula(line.getChildren())) {
+        out.append("<formula>");
+        out.append(line.getText());
+        out.append("</formula>\n");
+    } else {
+        out.append("<line");
+        out.append(" styleRef=\"").append(String.valueOf(line.findDominatingStyle().id)).append("\"");
 
-    /* output the styles sorted by id */
+        if (Constants.VERBOSE_OUTPUT) {
+            writeRectangle(out, line.getPos());
+            out.append(">\n");
 
-    Collections.sort(styles, sortStylesById);
-    for (Style style : styles) {
-        out.append("<style");
-        out.append(" id=\"").append(String.valueOf(style.id)).append("\"");
-        out.append(" font=\"").append(style.fontName).append("\"");
-        out.append(" size=\"").append(String.valueOf(style.xSize)).append("\"");
-        if (style.isItalic()) {
-            out.append(" italic=\"true\"");
+            for (WordNode word : line.getChildren()) {
+                writeWord(out, word);
+            }
+            out.append("</line>\n");
+        } else {
+            out.append(">");
+            out.append(line.getText());
+            out.append("</line>\n");
         }
-        if (style.isMathFont()) {
-            out.append(" math=\"true\"");
-        }
-        if (style.isBold()) {
-            out.append(" bold=\"true\"");
-        }
-        out.append("/>\n");
     }
-    out.append("</styles>\n");
 }
 
 private static void writePage(Appendable out, PageNode page) throws IOException {
@@ -115,6 +117,27 @@ private static void writePage(Appendable out, PageNode page) throws IOException 
     }
 
     out.append("</page>\n");
+}
+
+private static void writeParagraph(@NotNull final Appendable out,
+                                   final ParagraphNode paragraph) throws IOException {
+    out.append("<paragraph");
+
+    writeRectangle(out, paragraph.getPos());
+
+    out.append(">\n");
+    for (LineNode line : paragraph.getChildren()) {
+        writeLine(out, line);
+    }
+
+    out.append("</paragraph>\n");
+}
+
+private static void writeRectangle(Appendable sb, Rectangle pos) throws IOException {
+    sb.append(" x=\"").append(String.valueOf(pos.getX())).append("\"");
+    sb.append(" y=\"").append(String.valueOf(pos.getY())).append("\"");
+    sb.append(" w=\"").append(String.valueOf(pos.getWidth())).append("\"");
+    sb.append(" h=\"").append(String.valueOf(pos.getHeight())).append("\"");
 }
 
 private static void writeRegion(Appendable out, LayoutRegionNode region) throws IOException {
@@ -148,50 +171,29 @@ private static void writeRegion(Appendable out, LayoutRegionNode region) throws 
     }
 }
 
-private static void writeParagraph(@NotNull final Appendable out,
-                                   final ParagraphNode paragraph) throws IOException {
-    out.append("<paragraph");
+private static void writeStyles(final Appendable out, List<Style> styles) throws IOException {
+    out.append("<styles>\n");
 
-    writeRectangle(out, paragraph.getPos());
+    /* output the styles sorted by id */
 
-    out.append(">\n");
-    for (LineNode line : paragraph.getChildren()) {
-        writeLine(out, line);
-    }
-
-    out.append("</paragraph>\n");
-}
-
-private static void writeLine(@NotNull final Appendable out, LineNode line) throws IOException {
-    if (Formulas.textSeemsToBeFormula(line.getChildren())) {
-        out.append("<formula>");
-        out.append(line.getText());
-        out.append("</formula>\n");
-    } else {
-        out.append("<line");
-        out.append(" styleRef=\"").append(String.valueOf(line.findDominatingStyle().id)).append("\"");
-
-        if (Constants.VERBOSE_OUTPUT) {
-            writeRectangle(out, line.getPos());
-            out.append(">\n");
-
-            for (WordNode word : line.getChildren()) {
-                writeWord(out, word);
-            }
-            out.append("</line>\n");
-        } else {
-            out.append(">");
-            out.append(line.getText());
-            out.append("</line>\n");
+    Collections.sort(styles, sortStylesById);
+    for (Style style : styles) {
+        out.append("<style");
+        out.append(" id=\"").append(String.valueOf(style.id)).append("\"");
+        out.append(" font=\"").append(style.fontName).append("\"");
+        out.append(" size=\"").append(String.valueOf(style.xSize)).append("\"");
+        if (style.isItalic()) {
+            out.append(" italic=\"true\"");
         }
+        if (style.isMathFont()) {
+            out.append(" math=\"true\"");
+        }
+        if (style.isBold()) {
+            out.append(" bold=\"true\"");
+        }
+        out.append("/>\n");
     }
-}
-
-private static void writeRectangle(Appendable sb, Rectangle pos) throws IOException {
-    sb.append(" x=\"").append(String.valueOf(pos.getX())).append("\"");
-    sb.append(" y=\"").append(String.valueOf(pos.getY())).append("\"");
-    sb.append(" w=\"").append(String.valueOf(pos.getWidth())).append("\"");
-    sb.append(" h=\"").append(String.valueOf(pos.getHeight())).append("\"");
+    out.append("</styles>\n");
 }
 
 private static void writeWord(@NotNull final Appendable out, WordNode word) throws IOException {

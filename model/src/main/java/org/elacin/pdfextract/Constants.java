@@ -24,8 +24,7 @@ package org.elacin.pdfextract;
  * To change this template use File | Settings | File Templates.
  */
 public class Constants {
-
-public static String OUTPUT_EXTENSION = ".elc.xml";
+// ------------------------------ FIELDS ------------------------------
 
 public static final boolean USE_EXISTING_WHITESPACE = true;
 
@@ -38,4 +37,5 @@ public static final int     DEFAULT_USER_SPACE_UNIT_DPI = 1200;
 /* output */
 public static final boolean VERBOSE_OUTPUT = false;
 
+public static String OUTPUT_EXTENSION = ".elc.xml";
 }

@@ -28,6 +28,7 @@ import java.util.ArrayList;
  * template use File | Settings | File Templates.
  */
 public class DocumentNavigator {
+// -------------------------- PUBLIC STATIC METHODS --------------------------
 
 @NotNull
 public static ArrayList<LineNode> getLineNodes(@NotNull DocumentNode doc) {

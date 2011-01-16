@@ -24,10 +24,11 @@ package org.elacin.pdfextract.integration;
  * To change this template use File | Settings | File Templates.
  */
 public interface PDFSource {
+// -------------------------- PUBLIC METHODS --------------------------
+
+void closeSource();
 
 DocumentContent readPages();
 
 RenderedPage renderPage(int page);
-
-void closeSource();
 }

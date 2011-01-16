@@ -28,15 +28,13 @@ import static org.testng.Assert.assertEquals;
  * use File | Settings | File Templates.
  */
 public class TestDocument07050002 extends TestLatexComparison {
+// --------------------------- CONSTRUCTORS ---------------------------
 
 public TestDocument07050002() {
     super("0705.0002");
 }
 
-@BeforeClass(groups = "TestDocument07050002")
-public void setUp() throws IOException {
-    readFiles();
-}
+// -------------------------- PUBLIC METHODS --------------------------
 
 @Test(enabled = false)
 public void TestMainTitle() {
@@ -51,6 +49,13 @@ public void TestMainTitle() {
     assertEquals(found, true, "Could not find the correct title in " + PDFFILENAME + "!");
 }
 
+@BeforeClass(groups = "TestDocument07050002")
+public void setUp() throws IOException {
+    readFiles();
+}
+
+// -------------------------- OTHER METHODS --------------------------
+
 @Test(enabled = false)
 void testTopText() {
     //            final Collection<AbstractNode> sections = pdfDOM.getNodesWithRole(Role.SECTION);
@@ -63,5 +68,4 @@ void testTopText() {
     //            }
     assertEquals(found, true, "Could not find the correct title in " + PDFFILENAME + "!");
 }
-
 }

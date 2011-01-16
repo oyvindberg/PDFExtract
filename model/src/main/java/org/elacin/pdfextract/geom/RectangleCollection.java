@@ -50,7 +50,6 @@ private Map<Integer, List<PhysicalContent>> xCache = new HashMap<Integer,
  */
 private final PhysicalContent parent;
 
-
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public RectangleCollection(@NotNull final Collection<? extends PhysicalContent> newContents,
@@ -80,11 +79,6 @@ public void addContent(final PhysicalContent content) {
     clearCache();
 }
 
-protected void clearCache() {
-    yCache.clear();
-    xCache.clear();
-}
-
 public void addContents(Collection<? extends PhysicalContent> newContents) {
     contents.addAll(newContents);
     clearCache();
@@ -107,17 +101,6 @@ public List<PhysicalContent> findContentAtXIndex(int x) {
     return xCache.get(x);
 }
 
-@NotNull
-public List<PhysicalContent> findContentsIntersectingWith(@NotNull final HasPosition search) {
-    final List<PhysicalContent> ret = new ArrayList<PhysicalContent>(50);
-    for (PhysicalContent r : contents) {
-        if (search.getPos().intersectsWith(r.getPos())) {
-            ret.add(r);
-        }
-    }
-    return ret;
-}
-
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 public List<PhysicalContent> findContentAtYIndex(float y) {
     return findContentAtYIndex((int) y);
@@ -132,6 +115,17 @@ public List<PhysicalContent> findContentAtYIndex(int y) {
         yCache.put(y, result);
     }
     return yCache.get(y);
+}
+
+@NotNull
+public List<PhysicalContent> findContentsIntersectingWith(@NotNull final HasPosition search) {
+    final List<PhysicalContent> ret = new ArrayList<PhysicalContent>(50);
+    for (PhysicalContent r : contents) {
+        if (search.getPos().intersectsWith(r.getPos())) {
+            ret.add(r);
+        }
+    }
+    return ret;
 }
 
 @NotNull
@@ -192,6 +186,13 @@ public List<PhysicalContent> searchInDirectionFromOrigin(@NotNull Direction dir,
     }
 
     return ret;
+}
+
+// -------------------------- OTHER METHODS --------------------------
+
+protected void clearCache() {
+    yCache.clear();
+    xCache.clear();
 }
 
 // -------------------------- ENUMERATIONS --------------------------

@@ -76,6 +76,23 @@ public PhysicalPageRegion(@NotNull final List<? extends PhysicalContent> content
     this(contents, null, page);
 }
 
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface HasPosition ---------------------
+
+@Override
+public Rectangle getPos() {
+    if (!_posSet) {
+        setPositionFromContentList(getContents());
+        if (containingGraphic != null) {
+            pos = pos.union(containingGraphic);
+        }
+        _posSet = true;
+    }
+    return pos;
+}
+
 // ------------------------ OVERRIDING METHODS ------------------------
 
 @Override
@@ -113,8 +130,38 @@ public boolean columnBoundaryWouldBeTooNarrow(final float lastBoundary, final fl
     return x - lastBoundary < getMinimumColumnSpacing();
 }
 
-public float getMinimumColumnSpacing() {
-    return getAvgFontSizeX() * 0.8f;
+public void extractSubRegionFromBound(Rectangle bound) {
+    final List<PhysicalContent> subContents = findContentsIntersectingWith(bound.getPos());
+    doExtractSubRegion(subContents, bound, null);
+}
+
+public void extractSubRegionFromContent(@NotNull final Collection<PhysicalContent> subContents) {
+    doExtractSubRegion(subContents, null, null);
+}
+
+public void extractSubRegionFromContentAndWithGraphics(List<PhysicalContent> block,
+                                                       GraphicContent fakeCoverGraphic) {
+    doExtractSubRegion(block, null, fakeCoverGraphic);
+}
+
+/**
+ * Returns a subregion with all the contents which is contained by bound. If more than two pieces
+ * of
+ * content crosses the boundary of bound, it is deemed inappropriate for dividing the page,
+ * and an
+ * exception is thrown
+ *
+ * @return the new region
+ */
+public void extractSubRegionFromGraphic(@NotNull final GraphicContent graphic) {
+    /* we can allow us to search a bit outside the graphic */
+    final Rectangle pos = graphic.getPos();
+    final float extra = 2.0f;
+    final Rectangle searchPos = new Rectangle(pos.getX() - extra, pos.getY() - extra,
+            pos.getWidth() + 2 * extra, pos.getHeight() + 2 * extra);
+
+    final List<PhysicalContent> subContents = findContentsIntersectingWith(searchPos);
+    doExtractSubRegion(subContents, graphic, graphic);
 }
 
 public float getAvgFontSizeX() {
@@ -124,32 +171,12 @@ public float getAvgFontSizeX() {
     return _avgFontSizeX;
 }
 
-/* find average font sizes, and most used style for the region */
-protected void findAndSetFontInformation() {
-    float xFontSizeSum = 0.0f, yFontSizeSum = 0.0f;
-    int numCharsFound = 0;
-    for (PhysicalContent content : getContents()) {
-        if (content.isText()) {
-            final Style style = content.getPhysicalText().getStyle();
-
-            final int length = content.getPhysicalText().getText().length();
-            xFontSizeSum += (float) (style.xSize * length);
-            yFontSizeSum += (float) (style.ySize * length);
-            numCharsFound += length;
-        }
+public float getAvgFontSizeY() {
+    if (!fontInfoFound) {
+        findAndSetFontInformation();
     }
-    if (numCharsFound == 0) {
-        _avgFontSizeX = Float.MIN_VALUE;
-        _avgFontSizeY = Float.MIN_VALUE;
-        _mostCommonStyle = null;
-    } else {
-        _avgFontSizeX = xFontSizeSum / (float) numCharsFound;
-        _avgFontSizeY = yFontSizeSum / (float) numCharsFound;
-        _mostCommonStyle = TextUtils.findDominatingStyle(getContents());
-    }
-    fontInfoFound = true;
+    return _avgFontSizeY;
 }
-
 
 public int getMedianOfVerticalDistances() {
     if (!medianFound) {
@@ -158,73 +185,41 @@ public int getMedianOfVerticalDistances() {
     return _medianOfVerticalDistances;
 }
 
-
-@Override
-public Rectangle getPos() {
-    if (!_posSet) {
-        setPositionFromContentList(getContents());
-        if (containingGraphic != null) {
-            pos = pos.union(containingGraphic);
-        }
-        _posSet = true;
-    }
-    return pos;
+public float getMinimumColumnSpacing() {
+    return getAvgFontSizeX() * 0.8f;
 }
 
-
-/**
- * Finds an approximation of the normal vertical line spacing for the region.
- * <p/>
- * This is done by looking at three vertical rays, calculating distances between all the lines
- * intersecting those lines, and then returning the median of all those distances.
- * <p/>
- * minimum value is 2, max is (avgFontSize * 3) -1. -1 if nothing is found;
- */
-protected int findAndSetMedianOfVerticalDistancesForRegion() {
-    final int LIMIT = (int) getAvgFontSizeY() * 3;
-
-    int[] distanceCount = new int[LIMIT];
-    for (float x = getPos().getX(); x <= getPos().getEndX(); x += getPos().getWidth() / 3) {
-        final List<PhysicalContent> column = findContentAtXIndex(x);
-        for (int i = 1; i < column.size(); i++) {
-            final PhysicalContent current = column.get(i - 1);
-            final PhysicalContent below = column.get(i);
-
-            /* increase count for this distance (rounded down to an int) */
-            final int d = (int) (below.getPos().getY() - current.getPos().getEndY());
-            if (d > 0 && d < LIMIT) {
-                distanceCount[d]++;
-            }
-        }
-    }
-
-    int highestFrequency = -1;
-    int index = -1;
-    for (int i = 2; i < distanceCount.length; i++) {
-        if (distanceCount[i] >= highestFrequency) {
-            index = i;
-            highestFrequency = distanceCount[i];
-        }
-    }
-
-    float temp = Math.max(index, (int) (getAvgFontSizeY() * 0.5f));
-    _medianOfVerticalDistances = (int) (temp + Math.max(1.0f, temp * 0.1f));
-    medianFound = true;
-
-    return _medianOfVerticalDistances;
+public float getMinimumRowSpacing() {
+    return getMedianOfVerticalDistances();//* 0.8f;
 }
 
-public float getAvgFontSizeY() {
+public Style getMostCommonStyle() {
     if (!fontInfoFound) {
         findAndSetFontInformation();
     }
-    return _avgFontSizeY;
+    return _mostCommonStyle;
 }
 
-public void extractSubRegionFromBound(Rectangle bound) {
-    final List<PhysicalContent> subContents = findContentsIntersectingWith(bound.getPos());
-    doExtractSubRegion(subContents, bound, null);
+public int getPageNumber() {
+    return page.getPageNumber();
 }
+
+public boolean isGraphicalRegion() {
+    return containingGraphic != null;
+}
+
+public void setContainingGraphic(GraphicContent containingGraphic) {
+    if (this.containingGraphic != null) {
+        removeContent(this.containingGraphic);
+    }
+
+    if (containingGraphic != null) {
+        this.containingGraphic = containingGraphic;
+//        addContent(containingGraphic);
+    }
+}
+
+// -------------------------- OTHER METHODS --------------------------
 
 private void doExtractSubRegion(@NotNull final Collection<PhysicalContent> subContents,
                                 @Nullable final HasPosition bound,
@@ -266,65 +261,72 @@ private void doExtractSubRegion(@NotNull final Collection<PhysicalContent> subCo
     subregions.add(newRegion);
 }
 
-public void setContainingGraphic(GraphicContent containingGraphic) {
-    if (this.containingGraphic != null) {
-        removeContent(this.containingGraphic);
-    }
+/* find average font sizes, and most used style for the region */
+protected void findAndSetFontInformation() {
+    float xFontSizeSum = 0.0f, yFontSizeSum = 0.0f;
+    int numCharsFound = 0;
+    for (PhysicalContent content : getContents()) {
+        if (content.isText()) {
+            final Style style = content.getPhysicalText().getStyle();
 
-    if (containingGraphic != null) {
-        this.containingGraphic = containingGraphic;
-//        addContent(containingGraphic);
+            final int length = content.getPhysicalText().getText().length();
+            xFontSizeSum += (float) (style.xSize * length);
+            yFontSizeSum += (float) (style.ySize * length);
+            numCharsFound += length;
+        }
     }
-}
-
-public void extractSubRegionFromContent(@NotNull final Collection<PhysicalContent> subContents) {
-    doExtractSubRegion(subContents, null, null);
+    if (numCharsFound == 0) {
+        _avgFontSizeX = Float.MIN_VALUE;
+        _avgFontSizeY = Float.MIN_VALUE;
+        _mostCommonStyle = null;
+    } else {
+        _avgFontSizeX = xFontSizeSum / (float) numCharsFound;
+        _avgFontSizeY = yFontSizeSum / (float) numCharsFound;
+        _mostCommonStyle = TextUtils.findDominatingStyle(getContents());
+    }
+    fontInfoFound = true;
 }
 
 /**
- * Returns a subregion with all the contents which is contained by bound. If more than two pieces
- * of
- * content crosses the boundary of bound, it is deemed inappropriate for dividing the page,
- * and an
- * exception is thrown
- *
- * @return the new region
+ * Finds an approximation of the normal vertical line spacing for the region.
+ * <p/>
+ * This is done by looking at three vertical rays, calculating distances between all the lines
+ * intersecting those lines, and then returning the median of all those distances.
+ * <p/>
+ * minimum value is 2, max is (avgFontSize * 3) -1. -1 if nothing is found;
  */
-public void extractSubRegionFromGraphic(@NotNull final GraphicContent graphic) {
+protected int findAndSetMedianOfVerticalDistancesForRegion() {
+    final int LIMIT = (int) getAvgFontSizeY() * 3;
 
-    /* we can allow us to search a bit outside the graphic */
-    final Rectangle pos = graphic.getPos();
-    final float extra = 2.0f;
-    final Rectangle searchPos = new Rectangle(pos.getX() - extra, pos.getY() - extra,
-            pos.getWidth() + 2 * extra, pos.getHeight() + 2 * extra);
+    int[] distanceCount = new int[LIMIT];
+    for (float x = getPos().getX(); x <= getPos().getEndX(); x += getPos().getWidth() / 3) {
+        final List<PhysicalContent> column = findContentAtXIndex(x);
+        for (int i = 1; i < column.size(); i++) {
+            final PhysicalContent current = column.get(i - 1);
+            final PhysicalContent below = column.get(i);
 
-    final List<PhysicalContent> subContents = findContentsIntersectingWith(searchPos);
-    doExtractSubRegion(subContents, graphic, graphic);
-}
-
-public float getMinimumRowSpacing() {
-    return getMedianOfVerticalDistances();//* 0.8f;
-}
-
-public Style getMostCommonStyle() {
-    if (!fontInfoFound) {
-        findAndSetFontInformation();
+            /* increase count for this distance (rounded down to an int) */
+            final int d = (int) (below.getPos().getY() - current.getPos().getEndY());
+            if (d > 0 && d < LIMIT) {
+                distanceCount[d]++;
+            }
+        }
     }
-    return _mostCommonStyle;
-}
 
-public int getPageNumber() {
-    return page.getPageNumber();
-}
+    int highestFrequency = -1;
+    int index = -1;
+    for (int i = 2; i < distanceCount.length; i++) {
+        if (distanceCount[i] >= highestFrequency) {
+            index = i;
+            highestFrequency = distanceCount[i];
+        }
+    }
 
-public boolean isGraphicalRegion() {
-    return containingGraphic != null;
+    float temp = Math.max(index, (int) (getAvgFontSizeY() * 0.5f));
+    _medianOfVerticalDistances = (int) (temp + Math.max(1.0f, temp * 0.1f));
+    medianFound = true;
 
-}
-
-public void extractSubRegionFromContentAndWithGraphics(List<PhysicalContent> block,
-                                                       GraphicContent fakeCoverGraphic) {
-    doExtractSubRegion(block, null, fakeCoverGraphic);
+    return _medianOfVerticalDistances;
 }
 }
 

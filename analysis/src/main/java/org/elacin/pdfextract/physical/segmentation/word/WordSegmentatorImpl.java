@@ -107,7 +107,7 @@ public List<PhysicalText> segmentWords(@NotNull final List<PhysicalText> texts) 
     return ret;
 }
 
-// -------------------------- STATIC METHODS --------------------------
+// -------------------------- PUBLIC STATIC METHODS --------------------------
 
 /**
  * The above methods are generally responsible for grouping text according to line and style;
@@ -169,8 +169,8 @@ public static Collection<PhysicalText> createWordsInLine(@NotNull final List<Phy
         final PhysicalText currentWord = queue.remove();
         final PhysicalText nextChar = queue.peek();
 
-        /* we have no need for these spaces after establishing word boundaries, so skip */
-        if (" ".equals(currentWord.getText())) {
+        /* we have no need for spaces after establishing word boundaries, so skip */
+        if ("".equals(currentWord.getText().trim())) {
             continue;
         }
         /* if it is the last in line */
@@ -223,14 +223,7 @@ public static Collection<PhysicalText> createWordsInLine(@NotNull final List<Phy
     return segmentedWords;
 }
 
-private static boolean containsWhiteSpace(List<PhysicalText> line) {
-    for (PhysicalText physicalText : line) {
-        if (" ".equals(physicalText.getText())) {
-            return true;
-        }
-    }
-    return false;
-}
+// -------------------------- STATIC METHODS --------------------------
 
 /**
  * Tries to find an estimate of the character spacing applied to the
@@ -316,14 +309,13 @@ private static float[] calculateDistancesBetweenCharacters(@NotNull List<Physica
     return distances;
 }
 
-private static void printLine(List<PhysicalText> physicalTexts) {
-    StringBuffer sb = new StringBuffer();
-    for (PhysicalText physicalText : physicalTexts) {
-        sb.append(physicalText.getText());
+private static boolean containsWhiteSpace(List<PhysicalText> line) {
+    for (PhysicalText physicalText : line) {
+        if (" ".equals(physicalText.getText())) {
+            return true;
+        }
     }
-    if (log.isDebugEnabled()) {
-        log.debug("line:" + sb);
-    }
+    return false;
 }
 
 private static boolean fontDiffers(final Style style, final PhysicalText text) {
@@ -341,5 +333,13 @@ private static boolean isTooFarAwayHorizontally(final float endX,
     final float variation = text.getPos().getWidth();
 
     return !isWithinVariance(endX, text.getPos().getX(), variation);
+}
+
+private static void printLine(List<PhysicalText> physicalTexts) {
+    StringBuffer sb = new StringBuffer();
+    for (PhysicalText physicalText : physicalTexts) {
+        sb.append(physicalText.getText());
+    }
+    log.debug("line:" + sb);
 }
 }

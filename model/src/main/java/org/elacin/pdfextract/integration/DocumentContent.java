@@ -45,13 +45,13 @@ public List<Style> getStyles() {
     return styles;
 }
 
-public void setStyles(Collection<Style> newStyles) {
-    styles.addAll(newStyles);
-}
-
 // -------------------------- PUBLIC METHODS --------------------------
 
 public void addPage(PageContent page) {
     pages.add(page);
+}
+
+public void setStyles(Collection<Style> newStyles) {
+    styles.addAll(newStyles);
 }
 }

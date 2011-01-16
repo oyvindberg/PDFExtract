@@ -57,29 +57,31 @@ private static final Logger log = Logger.getLogger(PDFBoxIntegration.class);
 private static final byte[]  SPACE_BYTES   = {(byte) 32};
 private static final boolean NO_DESCENDERS = true;
 
-/* The normalizer is used to remove text ligatures/presentation forms and to correct
-the direction of right to left text, such as Arabic and Hebrew. */
-@NotNull
-private final TextNormalize normalize = new TextNormalize("UTF-8");
+/**
+ * document state
+ */
+public DocumentContent docContent;
+public float           rotation;
+public Fonts           fonts;
 
 /**
  * page state
  */
-protected final DrawingSurface                  graphicsDrawer       = new DrawingSurfaceImpl();
-@NotNull
-private final   List<ETextPosition>             charactersForPage    = new ArrayList<ETextPosition>();
-@NotNull
-private final   Map<String, List<TextPosition>> characterListMapping = new HashMap<String, List<TextPosition>>();
-
-/**
- * document state
- */
-public        DocumentContent docContent;
-private final int             startPage;
-private final int             endPage;
+protected final DrawingSurface graphicsDrawer = new DrawingSurfaceImpl();
 
 /* i couldnt find this information anywhere, so calculate it and cache it here */
 protected Map<PDFont, Boolean> areFontsMonospaced = new HashMap<PDFont, Boolean>();
+
+/* The normalizer is used to remove text ligatures/presentation forms and to correct
+the direction of right to left text, such as Arabic and Hebrew. */
+@NotNull
+private final TextNormalize                   normalize            = new TextNormalize("UTF-8");
+@NotNull
+private final List<ETextPosition>             charactersForPage    = new ArrayList<ETextPosition>();
+@NotNull
+private final Map<String, List<TextPosition>> characterListMapping = new HashMap<String, List<TextPosition>>();
+private final int startPage;
+private final int endPage;
 
 
 /**
@@ -89,9 +91,6 @@ protected Map<PDFont, Boolean> areFontsMonospaced = new HashMap<PDFont, Boolean>
 private final PDDocument  doc;
 private       BasicStroke basicStroke;
 private       int         currentPageNo;
-public        float       rotation;
-public        Fonts       fonts;
-
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -337,6 +336,139 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
     }
 }
 
+/**
+ * This will process a TextPosition object and add the text to the list of characters on a page.
+ * <p/>
+ * This method also filter out unwanted textpositions
+ * .
+ *
+ * @param text The text to process.
+ */
+protected void processTextPosition(@NotNull TextPosition text_) {
+    ETextPosition text = (ETextPosition) text_;
+
+    if (text.getFontSize() == 0.0f) {
+        if (log.isDebugEnabled()) {
+            log.debug("LOG01100:ignoring text " + text.getCharacter() + " because fontSize is 0");
+        }
+        return;
+    }
+
+    if (!Constants.USE_EXISTING_WHITESPACE && "".equals(text.getCharacter().trim())) {
+        return;
+    }
+
+    if (text.getCharacter().length() == 0) {
+        if (log.isDebugEnabled()) {
+            log.debug("LOG01110:Tried to render no text. wtf?");
+        }
+        return;
+    }
+
+    java.awt.Rectangle javapos = new java.awt.Rectangle((int) text.getPos().getX(),
+            (int) text.getPos().getY(), (int) text.getPos().getWidth(), (int) text.getPos().getHeight());
+    if (!getGraphicsState().getCurrentClippingPath().intersects(javapos)) {
+        if (log.isDebugEnabled()) {
+            log.debug("LOG01090:Dropping text \"" + text.getCharacter() + "\" because it "
+                    + "was outside clipping path");
+        }
+        return;
+    }
+
+
+    if (!includeText(text)) {
+        if (log.isDebugEnabled()) {
+            log.debug("LOG00770: ignoring text " + text.getCharacter()
+                    + " because it seems to be rendered two times");
+        }
+        return;
+    }
+
+    if (!MathUtils.isWithinPercent(text.getDir(), rotation, 1)) {
+        if (log.isDebugEnabled()) {
+            log.debug("LOG00560: ignoring textposition " + text.getCharacter() + "because it has "
+                    + "wrong rotation. TODO :)");
+        }
+        return;
+    }
+
+
+    /** In the wild, some PDF encoded documents put diacritics (accents on
+     * top of characters) into a separate Tj element.  When displaying them
+     * graphically, the two chunks get overlayed.  With text output though,
+     * we need to do the overlay. This code recombines the diacritic with
+     * its associated character if the two are consecutive.
+     */
+    if (charactersForPage.isEmpty()) {
+        charactersForPage.add(text);
+    } else {
+        /** test if we overlap the previous entry. Note that we are making an assumption that we
+         * need to only look back one TextPosition to find what we are overlapping.
+         * This may not always be true. */
+        TextPosition previousTextPosition = charactersForPage.get(charactersForPage.size() - 1);
+
+        if (text.isDiacritic() && previousTextPosition.contains(text)) {
+            previousTextPosition.mergeDiacritic(text, normalize);
+        }
+
+        /** If the previous TextPosition was the diacritic, merge it into this one and remove it
+         * from the list. */
+        else if (previousTextPosition.isDiacritic() && text.contains(previousTextPosition)) {
+            text.mergeDiacritic(previousTextPosition, normalize);
+            charactersForPage.remove(charactersForPage.size() - 1);
+            charactersForPage.add(text);
+        } else {
+            charactersForPage.add(text);
+        }
+    }
+}
+
+@Override
+public void setStroke(final BasicStroke newStroke) {
+    basicStroke = newStroke;
+}
+
+@Override
+public void strokePath() throws IOException {
+    Color currentColor = getGraphicsState().getStrokingColor().getJavaColor();
+    final Shape currentClippingPath = getGraphicsState().getCurrentClippingPath();
+
+    graphicsDrawer.strokePath(getLinePath(), currentColor, currentClippingPath);
+    getLinePath().reset();
+}
+
+// -------------------------- PUBLIC METHODS --------------------------
+
+public DocumentContent getContents() {
+    return docContent;
+}
+
+public void processDocument() throws IOException {
+    resetEngine();
+    try {
+        if (doc.isEncrypted()) {
+            doc.decrypt("");
+        }
+    } catch (Exception e) {
+        throw new RuntimeException("Could not decrypt document", e);
+    }
+    currentPageNo = 0;
+
+    docContent = new DocumentContent();
+    fonts = new Fonts();
+    for (final PDPage nextPage : (List<PDPage>) doc.getDocumentCatalog().getAllPages()) {
+        PDStream contentStream = nextPage.getContents();
+        currentPageNo++;
+        if (contentStream != null) {
+            COSStream contents = contentStream.getStream();
+            processPage(nextPage, contents);
+        }
+    }
+    docContent.setStyles(fonts.styles.values());
+}
+
+// -------------------------- OTHER METHODS --------------------------
+
 private void correctPosition(final PDFont fontObj, final byte[] string,
                              final int i, final String c, final float fontSizeText,
                              final float glyphSpaceToTextSpaceFactor,
@@ -438,119 +570,51 @@ private void correctPosition(final PDFont fontObj, final byte[] string,
     text.setPos(newPos);
 }
 
-private boolean isMonoSpacedFont(PDFont fontObj) {
-    if (areFontsMonospaced.containsKey(fontObj)) {
-        return areFontsMonospaced.get(fontObj);
+private void filterOutBadFonts(List<ETextPosition> text) {
+    final Map<PDFont, Integer> badCharsForStyle = new HashMap<PDFont, Integer>();
+    final Map<PDFont, Integer> numCharsForStyle = new HashMap<PDFont, Integer>();
+
+    for (TextPosition tp : text) {
+        if (!badCharsForStyle.containsKey(tp.getFont())) {
+            badCharsForStyle.put(tp.getFont(), 0);
+            numCharsForStyle.put(tp.getFont(), 0);
+        }
+
+        char c = tp.getCharacter().charAt(0);
+        if (Character.isISOControl(c)) {
+            badCharsForStyle.put(tp.getFont(), badCharsForStyle.get(tp.getFont()) + 1);
+        }
+        numCharsForStyle.put(tp.getFont(), numCharsForStyle.get(tp.getFont()) + 1);
     }
 
-    List<Float> widths = (List<Float>) fontObj.getWidths();
-
-    boolean monospaced = true;
-    if (widths == null) {
-        monospaced = false;
-    } else {
-        final float firstWidth = widths.get(0);
-        for (int i = 1; i < widths.size(); i++) {
-            final float width = widths.get(i);
-            if (!MathUtils.isWithinPercent(width, firstWidth, 1.0f)) {
-                monospaced = false;
-                break;
-            }
+    final Collection<PDFont> ignoredFonts = new ArrayList<PDFont>();
+    for (Map.Entry<PDFont, Integer> pdFontIntegerEntry : numCharsForStyle.entrySet()) {
+        int badChars = badCharsForStyle.get(pdFontIntegerEntry.getKey());
+        int totalChars = pdFontIntegerEntry.getValue();
+        if (badChars > totalChars * 0.10f) {
+            ignoredFonts.add(pdFontIntegerEntry.getKey());
+            log.warn("LOG01060:Ignoring all content using font "
+                    + pdFontIntegerEntry.getKey().getBaseFont() + " as it "
+                    + "seems to be missing UTF-8 conversion information");
         }
     }
 
-    if (monospaced) {
-        log.debug("LOG01080:Font " + fontObj.getBaseFont() + " is monospaced");
+    for (Iterator<ETextPosition> iterator = text.iterator(); iterator.hasNext();) {
+        TextPosition tp = iterator.next();
+        if (ignoredFonts.contains(tp.getFont())) {
+            iterator.remove();
+        }
     }
-
-    areFontsMonospaced.put(fontObj, monospaced);
-
-    return monospaced;
 }
 
-/**
- * This will process a TextPosition object and add the text to the list of characters on a page.
- * <p/>
- * This method also filter out unwanted textpositions
- * .
- *
- * @param text The text to process.
- */
-protected void processTextPosition(@NotNull TextPosition text_) {
-    ETextPosition text = (ETextPosition) text_;
-
-    if (text.getFontSize() == 0.0f) {
-        if (log.isDebugEnabled()) {
-            log.debug("LOG01100:ignoring text " + text.getCharacter() + " because fontSize is 0");
-        }
-        return;
-    }
-
-    if (!Constants.USE_EXISTING_WHITESPACE && "".equals(text.getCharacter().trim())) {
-        return;
-    }
-
-    if (text.getCharacter().length() == 0) {
-        if (log.isDebugEnabled()) {
-            log.debug("LOG01110:Tried to render no text. wtf?");
-        }
-        return;
-    }
-
-    java.awt.Rectangle javapos = new java.awt.Rectangle((int) text.getPos().getX(),
-            (int) text.getPos().getY(), (int) text.getPos().getWidth(), (int) text.getPos().getHeight());
-    if (!getGraphicsState().getCurrentClippingPath().intersects(javapos)) {
-        if (log.isDebugEnabled()) {
-            log.debug("LOG01090:Dropping text \"" + text.getCharacter() + "\" because it "
-                    + "was outside clipping path");
-        }
-        return;
-    }
-
-
-    if (!includeText(text)) {
-        if (log.isDebugEnabled()) {
-            log.debug("LOG00770: ignoring text " + text.getCharacter()
-                    + " because it seems to be rendered two times");
-        }
-        return;
-    }
-
-    if (!MathUtils.isWithinPercent(text.getDir(), rotation, 1)) {
-        if (log.isDebugEnabled()) {
-            log.debug("LOG00560: ignoring textposition " + text.getCharacter() + "because it has "
-                    + "wrong rotation. TODO :)");
-        }
-        return;
-    }
-
-
-    /** In the wild, some PDF encoded documents put diacritics (accents on
-     * top of characters) into a separate Tj element.  When displaying them
-     * graphically, the two chunks get overlayed.  With text output though,
-     * we need to do the overlay. This code recombines the diacritic with
-     * its associated character if the two are consecutive.
-     */
-    if (charactersForPage.isEmpty()) {
-        charactersForPage.add(text);
-    } else {
-        /** test if we overlap the previous entry. Note that we are making an assumption that we
-         * need to only look back one TextPosition to find what we are overlapping.
-         * This may not always be true. */
-        TextPosition previousTextPosition = charactersForPage.get(charactersForPage.size() - 1);
-
-        if (text.isDiacritic() && previousTextPosition.contains(text)) {
-            previousTextPosition.mergeDiacritic(text, normalize);
-        }
-
-        /** If the previous TextPosition was the diacritic, merge it into this one and remove it
-         * from the list. */
-        else if (previousTextPosition.isDiacritic() && text.contains(previousTextPosition)) {
-            text.mergeDiacritic(previousTextPosition, normalize);
-            charactersForPage.remove(charactersForPage.size() - 1);
-            charactersForPage.add(text);
-        } else {
-            charactersForPage.add(text);
+private void filterOutControlCodes(List<ETextPosition> text) {
+    for (Iterator<ETextPosition> iterator = text.iterator(); iterator.hasNext();) {
+        TextPosition tp = iterator.next();
+        if (Character.isISOControl(tp.getCharacter().charAt(0))) {
+            if (log.isDebugEnabled()) {
+                log.debug("Removing character \"" + tp.getCharacter() + "\"");
+            }
+            iterator.remove();
         }
     }
 }
@@ -599,48 +663,34 @@ private boolean includeText(@NotNull final TextPosition text) {
     return showCharacter;
 }
 
-@Override
-public void setStroke(final BasicStroke newStroke) {
-    basicStroke = newStroke;
-}
-
-@Override
-public void strokePath() throws IOException {
-    Color currentColor = getGraphicsState().getStrokingColor().getJavaColor();
-    final Shape currentClippingPath = getGraphicsState().getCurrentClippingPath();
-
-    graphicsDrawer.strokePath(getLinePath(), currentColor, currentClippingPath);
-    getLinePath().reset();
-}
-
-// -------------------------- PUBLIC METHODS --------------------------
-
-public DocumentContent getContents() {
-    return docContent;
-}
-
-public void processDocument() throws IOException {
-    resetEngine();
-    try {
-        if (doc.isEncrypted()) {
-            doc.decrypt("");
-        }
-    } catch (Exception e) {
-        throw new RuntimeException("Could not decrypt document", e);
+private boolean isMonoSpacedFont(PDFont fontObj) {
+    if (areFontsMonospaced.containsKey(fontObj)) {
+        return areFontsMonospaced.get(fontObj);
     }
-    currentPageNo = 0;
 
-    docContent = new DocumentContent();
-    fonts = new Fonts();
-    for (final PDPage nextPage : (List<PDPage>) doc.getDocumentCatalog().getAllPages()) {
-        PDStream contentStream = nextPage.getContents();
-        currentPageNo++;
-        if (contentStream != null) {
-            COSStream contents = contentStream.getStream();
-            processPage(nextPage, contents);
+    List<Float> widths = (List<Float>) fontObj.getWidths();
+
+    boolean monospaced = true;
+    if (widths == null) {
+        monospaced = false;
+    } else {
+        final float firstWidth = widths.get(0);
+        for (int i = 1; i < widths.size(); i++) {
+            final float width = widths.get(i);
+            if (!MathUtils.isWithinPercent(width, firstWidth, 1.0f)) {
+                monospaced = false;
+                break;
+            }
         }
     }
-    docContent.setStyles(fonts.styles.values());
+
+    if (monospaced) {
+        log.debug("LOG01080:Font " + fontObj.getBaseFont() + " is monospaced");
+    }
+
+    areFontsMonospaced.put(fontObj, monospaced);
+
+    return monospaced;
 }
 
 /**
@@ -682,55 +732,6 @@ protected void processPage(@NotNull PDPage page, COSStream content) throws IOExc
         docContent.addPage(thisPage);
 
         MDC.remove("page");
-    }
-}
-
-private void filterOutBadFonts(List<ETextPosition> text) {
-    final Map<PDFont, Integer> badCharsForStyle = new HashMap<PDFont, Integer>();
-    final Map<PDFont, Integer> numCharsForStyle = new HashMap<PDFont, Integer>();
-
-    for (TextPosition tp : text) {
-        if (!badCharsForStyle.containsKey(tp.getFont())) {
-            badCharsForStyle.put(tp.getFont(), 0);
-            numCharsForStyle.put(tp.getFont(), 0);
-        }
-
-        char c = tp.getCharacter().charAt(0);
-        if (Character.isISOControl(c)) {
-            badCharsForStyle.put(tp.getFont(), badCharsForStyle.get(tp.getFont()) + 1);
-        }
-        numCharsForStyle.put(tp.getFont(), numCharsForStyle.get(tp.getFont()) + 1);
-    }
-
-    final Collection<PDFont> ignoredFonts = new ArrayList<PDFont>();
-    for (Map.Entry<PDFont, Integer> pdFontIntegerEntry : numCharsForStyle.entrySet()) {
-        int badChars = badCharsForStyle.get(pdFontIntegerEntry.getKey());
-        int totalChars = pdFontIntegerEntry.getValue();
-        if (badChars > totalChars * 0.10f) {
-            ignoredFonts.add(pdFontIntegerEntry.getKey());
-            log.warn("LOG01060:Ignoring all content using font "
-                    + pdFontIntegerEntry.getKey().getBaseFont() + " as it "
-                    + "seems to be missing UTF-8 conversion information");
-        }
-    }
-
-    for (Iterator<ETextPosition> iterator = text.iterator(); iterator.hasNext();) {
-        TextPosition tp = iterator.next();
-        if (ignoredFonts.contains(tp.getFont())) {
-            iterator.remove();
-        }
-    }
-}
-
-private void filterOutControlCodes(List<ETextPosition> text) {
-    for (Iterator<ETextPosition> iterator = text.iterator(); iterator.hasNext();) {
-        TextPosition tp = iterator.next();
-        if (Character.isISOControl(tp.getCharacter().charAt(0))) {
-            if (log.isDebugEnabled()) {
-                log.debug("Removing character \"" + tp.getCharacter() + "\"");
-            }
-            iterator.remove();
-        }
     }
 }
 }

@@ -29,6 +29,7 @@ import java.io.PrintStream;
  * use File | Settings | File Templates.
  */
 public abstract class TestLatexComparison {
+// ------------------------------ FIELDS ------------------------------
 
 protected final String TESTNAME;
 @NotNull
@@ -43,6 +44,8 @@ protected final String ELCXMLFILENAME;
 protected DocumentNode pdfDOM;
 protected String       latexDOMString;
 
+// --------------------------- CONSTRUCTORS ---------------------------
+
 public TestLatexComparison(String inputname) {
     TESTNAME = inputname;
     PDFFILENAME = TESTNAME + ".pdf";
@@ -51,16 +54,17 @@ public TestLatexComparison(String inputname) {
     LATEXFILENAME = TESTNAME + ".tex";
 }
 
-protected void readFiles() throws IOException {
-    pdfDOM = PDFDocumentLoader.readPDF(PDFFILENAME, ELCXMLFILENAME, 4);
-    latexDOMString = LatexDocumentLoader.readLatex(LATEXFILENAME);
-    printLatexDOMToFile();
-}
-
+// -------------------------- OTHER METHODS --------------------------
 
 protected void printLatexDOMToFile() throws FileNotFoundException {
     PrintStream out = new PrintStream(new File(XMLFILENAME));
     out.print(latexDOMString);
     out.close();
+}
+
+protected void readFiles() throws IOException {
+    pdfDOM = PDFDocumentLoader.readPDF(PDFFILENAME, ELCXMLFILENAME, 4);
+    latexDOMString = LatexDocumentLoader.readLatex(LATEXFILENAME);
+    printLatexDOMToFile();
 }
 }

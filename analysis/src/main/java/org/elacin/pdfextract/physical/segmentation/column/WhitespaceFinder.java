@@ -45,7 +45,6 @@ WhitespaceFinder(RectangleCollection region,
 
 @Override
 protected boolean acceptsRectangle(WhitespaceRectangle newWhitespace) {
-
     /** find all the surrounding content. make sure this rectangle is not too small.
      * This is an expensive check, which is why it is done here. i think it is still
      * correct. */
@@ -99,7 +98,6 @@ protected boolean acceptsRectangle(WhitespaceRectangle newWhitespace) {
 
 // -------------------------- OTHER METHODS --------------------------
 
-
 //@Override
 protected float rectangleQuality(Rectangle r) {
     final Rectangle pos = r.getPos();
@@ -120,5 +118,4 @@ protected float rectangleQuality(Rectangle r) {
 
     return MathUtils.sqrt(pos.area() * weight);
 }
-
 }

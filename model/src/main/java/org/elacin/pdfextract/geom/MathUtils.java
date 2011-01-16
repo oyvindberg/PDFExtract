@@ -62,5 +62,4 @@ public static float log(float a) {
 public static float sqrt(float a) {
     return (float) StrictMath.sqrt((double) a);
 }
-
 }

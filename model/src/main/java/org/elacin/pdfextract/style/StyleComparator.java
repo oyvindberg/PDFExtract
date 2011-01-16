@@ -21,8 +21,10 @@ package org.elacin.pdfextract.style;
  * File | Settings | File Templates.
  */
 public class StyleComparator {
+// ------------------------------ FIELDS ------------------------------
 
 private static final int SUBTLE_SIZE_DIFFERENCE = 2;
+
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
 public static StyleDifference styleCompare(final Style one, final Style two) {

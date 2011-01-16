@@ -135,18 +135,24 @@ public BufferedImage renderToFile(final int pageNum, File outputFile) {
     return image;
 }
 
-private void drawTree(AbstractParentNode parent) {
-//    if (!(parent instanceof AbstractParentNode)) {
-    drawRectangle(parent);
-//    }
+// -------------------------- OTHER METHODS --------------------------
 
-    for (Object o : parent.getChildren()) {
-        if (o instanceof AbstractParentNode) {
-            drawTree((AbstractParentNode) o);
-        } else {
-            drawRectangle((HasPosition) o);
-        }
-    }
+@NotNull
+private BufferedImage createImage(@NotNull final Rectangle pageDimensions,
+                                  final int imageType,
+                                  final int resolution) {
+    float scaling = resolution / (float) DEFAULT_USER_SPACE_UNIT_DPI;
+
+    int widthPx = Math.round(pageDimensions.getWidth() * scaling);
+    int heightPx = Math.round(pageDimensions.getHeight() * scaling);
+
+    BufferedImage ret = new BufferedImage(widthPx, heightPx, imageType);
+    Graphics2D graphics = (Graphics2D) ret.getGraphics();
+    graphics.setBackground(TRANSPARENT_WHITE);
+    graphics.clearRect(0, 0, ret.getWidth(), ret.getHeight());
+    graphics.scale(scaling, scaling);
+
+    return ret;
 }
 
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
@@ -204,24 +210,17 @@ Color getColorForObject(Object o) {
     }
 }
 
-// -------------------------- OTHER METHODS --------------------------
+private void drawTree(AbstractParentNode parent) {
+//    if (!(parent instanceof AbstractParentNode)) {
+    drawRectangle(parent);
+//    }
 
-@NotNull
-private BufferedImage createImage(@NotNull final Rectangle pageDimensions,
-                                  final int imageType,
-                                  final int resolution) {
-
-    float scaling = resolution / (float) DEFAULT_USER_SPACE_UNIT_DPI;
-
-    int widthPx = Math.round(pageDimensions.getWidth() * scaling);
-    int heightPx = Math.round(pageDimensions.getHeight() * scaling);
-
-    BufferedImage ret = new BufferedImage(widthPx, heightPx, imageType);
-    Graphics2D graphics = (Graphics2D) ret.getGraphics();
-    graphics.setBackground(TRANSPARENT_WHITE);
-    graphics.clearRect(0, 0, ret.getWidth(), ret.getHeight());
-    graphics.scale(scaling, scaling);
-
-    return ret;
+    for (Object o : parent.getChildren()) {
+        if (o instanceof AbstractParentNode) {
+            drawTree((AbstractParentNode) o);
+        } else {
+            drawRectangle((HasPosition) o);
+        }
+    }
 }
 }

@@ -31,12 +31,6 @@ public LayoutRegionNode(final boolean region) {
     pictureRegion = region;
 }
 
-// ------------------------ INTERFACE METHODS ------------------------
-
-
-// --------------------- Interface XmlPrinter ---------------------
-
-
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 public boolean isPictureRegion() {

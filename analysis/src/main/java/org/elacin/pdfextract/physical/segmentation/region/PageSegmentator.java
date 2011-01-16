@@ -49,9 +49,7 @@ private static final Logger log = Logger.getLogger(PageSegmentator.class);
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-
 public static void segmentPageRegionWithSubRegions(PhysicalPage page) {
-
     final PhysicalPageRegion mainRegion = page.getMainRegion();
 
 
@@ -103,11 +101,123 @@ public static void segmentPageRegionWithSubRegions(PhysicalPage page) {
 //    }
 }
 
+// -------------------------- STATIC METHODS --------------------------
+
+private static void addWhiteSpaceFromRegion(List<WhitespaceRectangle> whitespaces,
+                                            PhysicalPageRegion region) {
+    whitespaces.addAll(region.getWhitespace());
+    for (PhysicalPageRegion subRegion : region.getSubregions()) {
+        addWhiteSpaceFromRegion(whitespaces, subRegion);
+    }
+}
+
+private static boolean canCombine(PhysicalPageRegion mainRegion, PhysicalPageRegion graphic,
+                                  PhysicalPageRegion otherRegion) {
+    if (graphic.equals(otherRegion)) {
+        return false;
+    }
+
+    if (graphic.getPos().intersectsWith(otherRegion.getPos())) {
+        return true;
+    }
+
+    if (graphic.getPos().distance(otherRegion.getPos()) <= mainRegion.getMinimumColumnSpacing()) {
+        return true;
+    }
+
+    return false;
+}
+
+private static void combineGraphicsWithTextAround(PhysicalPageRegion r) {
+    for (int i = 0; i < r.getSubregions().size(); i++) {
+        PhysicalPageRegion graphic = r.getSubregions().get(i);
+
+        if (graphic.getContainingGraphic() != null) {
+            for (PhysicalPageRegion otherRegion : r.getSubregions()) {
+                if (canCombine(r, graphic, otherRegion)) {
+                    /* if this subregion does not contain others, combine the whole thing */
+                    if (otherRegion.getSubregions().isEmpty()) {
+                        moveRegionToIntoGraphic(r, graphic, otherRegion);
+                        /* restart */
+                        i = -1;
+                        break;
+                    }
+
+                    /* else, consider each subsubregion separately */
+                    boolean added = false;
+                    for (PhysicalPageRegion subsubRegion : otherRegion.getSubregions()) {
+                        if (canCombine(r, graphic, subsubRegion)) {
+                            moveRegionToIntoGraphic(otherRegion, graphic, subsubRegion);
+                            added = true;
+                            break;
+                        }
+                    }
+
+                    /* if none of the subregions qualified - again the whole thing */
+                    if (added) {
+                        /* restart */
+                        i = -1;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * separate out the content which is contained within a graphic.
+ * sort the graphics by smallest, because they might overlap.
+ *
+ * @param graphics
+ * @param r
+ */
+private static void createGraphicRegions(CategorizedGraphics graphics, PhysicalPageRegion r) {
+    PriorityQueue<GraphicContent> queue = createSmallestFirstQueue(graphics.getContainers());
+
+    while (!queue.isEmpty()) {
+        final GraphicContent graphic = queue.remove();
+        try {
+            r.extractSubRegionFromGraphic(graphic);
+        } catch (Exception e) {
+            log.info("LOG00320:Could not divide page::" + e.getMessage());
+            if (graphic.getPos().area() < r.getPos().area() * 0.4f) {
+                if (log.isInfoEnabled()) {
+                    log.info("LOG00690:Adding " + graphic + " as content");
+                }
+                graphic.setCanBeAssigned(true);
+                graphic.setStyle(Style.GRAPHIC_IMAGE);
+                r.addContent(graphic);
+            } else {
+                graphics.getGraphicsToRender().remove(graphic);
+            }
+        }
+    }
+}
+
+private static void moveRegionToIntoGraphic(PhysicalPageRegion origin,
+                                            PhysicalPageRegion destination,
+                                            PhysicalPageRegion toBeMoved) {
+    assert destination.getContainingGraphic() != null;
+    assert origin.getSubregions().contains(toBeMoved);
+
+    origin.removeContent(toBeMoved);
+    origin.getSubregions().remove(toBeMoved);
+
+    if (toBeMoved.getPos().intersectsWith(destination)) {
+        log.warn("LOG00990:Combined region " + toBeMoved + " with " + destination);
+        destination.addContents(toBeMoved.getContents());
+    } else {
+        log.warn("LOG01010:Moved region " + toBeMoved + " from " + origin + " to " + destination)
+        ;
+        destination.getSubregions().add(toBeMoved);
+    }
+}
+
 private static void recursiveAnalysis(PhysicalPageRegion region,
                                       LayoutRecognizer layoutRecognizer,
                                       List<WhitespaceRectangle> allWhitespaces,
                                       CategorizedGraphics graphics) {
-
     PageRegionSplitBySeparators.splitRegionBySeparators(region, graphics);
 
 //    final List<WhitespaceRectangle> whitespaces = layoutRecognizer.findPossibleColumns(region);
@@ -230,7 +340,6 @@ private static void recursiveAnalysis(PhysicalPageRegion region,
         WhitespaceRectangle left = columnBoundaries.get(i);
         WhitespaceRectangle right = columnBoundaries.get(i + 1);
         if (right.getPos().getX() - left.getPos().getX() < 15) {
-
             if (right.getPos().getHeight() > left.getPos().getHeight()) {
                 columnBoundaries.remove(left);
                 whitespaces.remove(left);
@@ -266,123 +375,5 @@ private static void recursiveAnalysis(PhysicalPageRegion region,
     for (PhysicalPageRegion subRegion : region.getSubregions()) {
         recursiveAnalysis(subRegion, layoutRecognizer, allWhitespaces, graphics);
     }
-
-
 }
-
-// -------------------------- STATIC METHODS --------------------------
-
-private static void addWhiteSpaceFromRegion(List<WhitespaceRectangle> whitespaces,
-                                            PhysicalPageRegion region) {
-    whitespaces.addAll(region.getWhitespace());
-    for (PhysicalPageRegion subRegion : region.getSubregions()) {
-        addWhiteSpaceFromRegion(whitespaces, subRegion);
-    }
-}
-
-
-private static boolean canCombine(PhysicalPageRegion mainRegion, PhysicalPageRegion graphic,
-                                  PhysicalPageRegion otherRegion) {
-    if (graphic.equals(otherRegion)) {
-        return false;
-    }
-
-    if (graphic.getPos().intersectsWith(otherRegion.getPos())) {
-        return true;
-    }
-
-    if (graphic.getPos().distance(otherRegion.getPos()) <= mainRegion.getMinimumColumnSpacing()) {
-        return true;
-    }
-
-    return false;
-}
-
-private static void combineGraphicsWithTextAround(PhysicalPageRegion r) {
-    for (int i = 0; i < r.getSubregions().size(); i++) {
-        PhysicalPageRegion graphic = r.getSubregions().get(i);
-
-        if (graphic.getContainingGraphic() != null) {
-            for (PhysicalPageRegion otherRegion : r.getSubregions()) {
-                if (canCombine(r, graphic, otherRegion)) {
-
-                    /* if this subregion does not contain others, combine the whole thing */
-                    if (otherRegion.getSubregions().isEmpty()) {
-                        moveRegionToIntoGraphic(r, graphic, otherRegion);
-                        /* restart */
-                        i = -1;
-                        break;
-                    }
-
-                    /* else, consider each subsubregion separately */
-                    boolean added = false;
-                    for (PhysicalPageRegion subsubRegion : otherRegion.getSubregions()) {
-                        if (canCombine(r, graphic, subsubRegion)) {
-                            moveRegionToIntoGraphic(otherRegion, graphic, subsubRegion);
-                            added = true;
-                            break;
-                        }
-                    }
-
-                    /* if none of the subregions qualified - again the whole thing */
-                    if (added) {
-                        /* restart */
-                        i = -1;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-}
-
-/**
- * separate out the content which is contained within a graphic.
- * sort the graphics by smallest, because they might overlap.
- *
- * @param graphics
- * @param r
- */
-private static void createGraphicRegions(CategorizedGraphics graphics, PhysicalPageRegion r) {
-    PriorityQueue<GraphicContent> queue = createSmallestFirstQueue(graphics.getContainers());
-
-    while (!queue.isEmpty()) {
-        final GraphicContent graphic = queue.remove();
-        try {
-            r.extractSubRegionFromGraphic(graphic);
-        } catch (Exception e) {
-            log.info("LOG00320:Could not divide page::" + e.getMessage());
-            if (graphic.getPos().area() < r.getPos().area() * 0.4f) {
-                if (log.isInfoEnabled()) {
-                    log.info("LOG00690:Adding " + graphic + " as content");
-                }
-                graphic.setCanBeAssigned(true);
-                graphic.setStyle(Style.GRAPHIC_IMAGE);
-                r.addContent(graphic);
-            } else {
-                graphics.getGraphicsToRender().remove(graphic);
-            }
-        }
-    }
-}
-
-private static void moveRegionToIntoGraphic(PhysicalPageRegion origin,
-                                            PhysicalPageRegion destination,
-                                            PhysicalPageRegion toBeMoved) {
-    assert destination.getContainingGraphic() != null;
-    assert origin.getSubregions().contains(toBeMoved);
-
-    origin.removeContent(toBeMoved);
-    origin.getSubregions().remove(toBeMoved);
-
-    if (toBeMoved.getPos().intersectsWith(destination)) {
-        log.warn("LOG00990:Combined region " + toBeMoved + " with " + destination);
-        destination.addContents(toBeMoved.getContents());
-    } else {
-        log.warn("LOG01010:Moved region " + toBeMoved + " from " + origin + " to " + destination)
-        ;
-        destination.getSubregions().add(toBeMoved);
-    }
-}
-
 }

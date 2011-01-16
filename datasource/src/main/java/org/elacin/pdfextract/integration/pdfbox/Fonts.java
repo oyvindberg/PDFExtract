@@ -50,13 +50,7 @@ private static List<String> mathFonts = new ArrayList<String>() {{
 
 final Map<String, Style> styles = new HashMap<String, Style>();
 
-private class FontInfo {
-    String  font;
-    boolean mathFont, bold, italic;
-}
-
 final Map<PDFont, FontInfo> fontInfoCache = new HashMap<PDFont, FontInfo>();
-
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -97,8 +91,9 @@ public Style getStyleForTextPosition(@NotNull TextPosition tp) {
     return styles.get(id);
 }
 
-private FontInfo getFontInfo(PDFont pdFont) {
+// -------------------------- OTHER METHODS --------------------------
 
+private FontInfo getFontInfo(PDFont pdFont) {
     if (fontInfoCache.containsKey(pdFont)) {
         return fontInfoCache.get(pdFont);
     }
@@ -177,5 +172,12 @@ private FontInfo getFontInfo(PDFont pdFont) {
 
     fontInfoCache.put(pdFont, fi);
     return fi;
+}
+
+// -------------------------- INNER CLASSES --------------------------
+
+private class FontInfo {
+    String  font;
+    boolean mathFont, bold, italic;
 }
 }

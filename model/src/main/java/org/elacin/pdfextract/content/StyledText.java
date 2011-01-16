@@ -24,8 +24,9 @@ import org.elacin.pdfextract.style.Style;
  * File | Settings | File Templates.
  */
 public interface StyledText extends HasPosition {
-
-String getText();
+// -------------------------- PUBLIC METHODS --------------------------
 
 Style getStyle();
+
+String getText();
 }

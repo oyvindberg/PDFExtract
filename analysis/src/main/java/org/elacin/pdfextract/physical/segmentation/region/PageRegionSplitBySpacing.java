@@ -49,7 +49,6 @@ private static final Logger log = Logger.getLogger(PageRegionSplitBySpacing.clas
 
 @NotNull
 public static void splitHorizontallyBySpacing(@NotNull PhysicalPageRegion r) {
-
     /* If the size of this region is this small, dont bother splitting it further */
     if (r.getPos().getHeight() < r.getAvgFontSizeY() * 2) {
         return;
@@ -86,7 +85,6 @@ public static void splitHorizontallyBySpacing(@NotNull PhysicalPageRegion r) {
 
 
         if (row.isEmpty()) {
-
             if (!TextUtils.listContainsStyledText(workingSet)) {
                 continue;
             }
@@ -113,27 +111,6 @@ public static void splitHorizontallyBySpacing(@NotNull PhysicalPageRegion r) {
             lastBoundary = y;
         }
     }
-
-}
-
-private static boolean sameStyleOverAndUnderHorizontalLine(final PhysicalPageRegion r,
-                                                           final float y,
-                                                           final Set<PhysicalContent> over) {
-
-    List<PhysicalContent> under = new ArrayList<PhysicalContent>();
-
-    float yIndex = y;
-    while (under.isEmpty() && yIndex < r.getPos().getEndY()) {
-        under.addAll(r.findContentAtYIndex(yIndex));
-        yIndex += 1.0f;
-
-    }
-
-    final Style styleOver = TextUtils.findDominatingStyle(over);
-    final Style styleUnder = TextUtils.findDominatingStyle(under);
-
-    return StyleComparator.styleCompare(styleOver, styleUnder) == StyleDifference.SAME_STYLE;
-
 }
 
 @NotNull
@@ -235,4 +212,20 @@ private static boolean columnContainsBlockingGraphics(@NotNull final List<Physic
     return false;
 }
 
+private static boolean sameStyleOverAndUnderHorizontalLine(final PhysicalPageRegion r,
+                                                           final float y,
+                                                           final Set<PhysicalContent> over) {
+    List<PhysicalContent> under = new ArrayList<PhysicalContent>();
+
+    float yIndex = y;
+    while (under.isEmpty() && yIndex < r.getPos().getEndY()) {
+        under.addAll(r.findContentAtYIndex(yIndex));
+        yIndex += 1.0f;
+    }
+
+    final Style styleOver = TextUtils.findDominatingStyle(over);
+    final Style styleUnder = TextUtils.findDominatingStyle(under);
+
+    return StyleComparator.styleCompare(styleOver, styleUnder) == StyleDifference.SAME_STYLE;
+}
 }

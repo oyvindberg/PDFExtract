@@ -40,7 +40,6 @@ private              int     medianVerticalSpacing = -1;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-
 public void setMedianVerticalSpacing(final int medianVerticalSpacing) {
     this.medianVerticalSpacing = medianVerticalSpacing;
 }

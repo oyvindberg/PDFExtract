@@ -38,8 +38,26 @@ public LineNode() {
     super();
 }
 
-
 // ------------------------ OVERRIDING METHODS ------------------------
+
+/**
+ * Returns a Comparator which compares only X coordinates
+ */
+@NotNull
+@Override
+public Comparator getChildComparator() {
+    return new Comparator<WordNode>() {
+        public int compare(@NotNull final WordNode o1, @NotNull final WordNode o2) {
+            if (o1.getPos().getX() < o2.getPos().getX()) {
+                return -1;
+            } else if (o1.getPos().getX() > o2.getPos().getX()) {
+                return 1;
+            }
+
+            return 0;
+        }
+    };
+}
 
 @NotNull
 @Override
@@ -63,25 +81,6 @@ public String getText() {
 
 public Style findDominatingStyle() {
     return TextUtils.findDominatingStyle(getChildren());
-}
-
-/**
- * Returns a Comparator which compares only X coordinates
- */
-@NotNull
-@Override
-public Comparator getChildComparator() {
-    return new Comparator<WordNode>() {
-        public int compare(@NotNull final WordNode o1, @NotNull final WordNode o2) {
-            if (o1.getPos().getX() < o2.getPos().getX()) {
-                return -1;
-            } else if (o1.getPos().getX() > o2.getPos().getX()) {
-                return 1;
-            }
-
-            return 0;
-        }
-    };
 }
 
 // -------------------------- OTHER METHODS --------------------------

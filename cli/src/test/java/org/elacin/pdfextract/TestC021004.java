@@ -33,8 +33,8 @@ import java.util.ArrayList;
  * template use File | Settings | File Templates.
  */
 public class TestC021004 {
-
 // ------------------------------ FIELDS ------------------------------
+
 private DocumentNode        doc;
 private ArrayList<LineNode> lines;
 private BufferedReader      reader;
@@ -50,7 +50,6 @@ public void setUp() throws IOException {
     reader = new BufferedReader(new FileReader(url.getFile()));
 }
 
-
 @Test()
 public void testContents() throws IOException {
     int found = 0, total = 0;
@@ -65,10 +64,11 @@ public void testContents() throws IOException {
                 found++;
             }
         }
-
     }
     System.out.println("Found " + found + " of " + total);
 }
+
+// -------------------------- OTHER METHODS --------------------------
 
 @Nullable
 private LineNode findLine(final String line) {
@@ -79,5 +79,4 @@ private LineNode findLine(final String line) {
     }
     return null;
 }
-
 }

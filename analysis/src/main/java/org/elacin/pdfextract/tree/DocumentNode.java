@@ -49,16 +49,6 @@ public DocumentNode() {
 
 // ------------------------ OVERRIDING METHODS ------------------------
 
-
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-@NotNull
-public List<Style> getStyles() {
-    return styles;
-}
-
-// -------------------------- PUBLIC METHODS --------------------------
-
 /**
  * Returns a Comparator which will compare pagenumbers of the pages
  */
@@ -77,6 +67,15 @@ public Comparator getChildComparator() {
         }
     };
 }
+
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+@NotNull
+public List<Style> getStyles() {
+    return styles;
+}
+
+// -------------------------- PUBLIC METHODS --------------------------
 
 @Nullable
 public PageNode getPageNumber(final int pageNumber) {

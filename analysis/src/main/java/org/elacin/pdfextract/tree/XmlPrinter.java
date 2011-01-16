@@ -23,6 +23,7 @@ import java.io.IOException;
  * File | Settings | File Templates.
  */
 public interface XmlPrinter {
+// -------------------------- PUBLIC METHODS --------------------------
 
 void writeXmlRepresentation(Appendable sb, int indent, final boolean verbose) throws IOException;
 }

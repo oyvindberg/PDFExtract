@@ -56,6 +56,35 @@ public ParagraphSegmentatorWS(PhysicalPageRegion region) {
     paragraphSegmentator.setMedianVerticalSpacing(region.getMedianOfVerticalDistances());
 }
 
+// -------------------------- STATIC METHODS --------------------------
+
+private static List<Integer> findLineBoundaries(int[] counts) {
+    List<Integer> lineBoundaries = new ArrayList<Integer>();
+    lineBoundaries.add(0);
+    boolean hasFoundText = false;
+    for (int i = 0; i < counts.length; i++) {
+        if (hasFoundText && counts[i] == 0) {
+            boolean isBoundary = true;
+//            for (int j = i +1; j < i +3 && j < counts.length; j++){
+//                if (counts[j] != 0){
+//                    isBoundary = false;
+//                    break;
+//                }
+//            }
+            if (isBoundary) {
+                lineBoundaries.add(i + 1);
+                hasFoundText = false;
+            }
+        } else if (counts[i] > 0) {
+            hasFoundText = true;
+        }
+    }
+    /* add the end as well*/
+    lineBoundaries.add(counts.length);
+
+    return lineBoundaries;
+}
+
 // -------------------------- PUBLIC METHODS --------------------------
 
 @NotNull
@@ -80,7 +109,6 @@ public List<ParagraphNode> createParagraphNodes() {
 
     /* compile paragraphs of text based on the assigned block numbers */
     for (int blockNum = 0; blockNum < blockContents.size(); blockNum++) {
-
         List<PhysicalContent> block = blockContents.get(blockNum);
 
 //        /* if the block contains graphics, separate it out as a separate region instead*/
@@ -155,7 +183,6 @@ public List<ParagraphNode> createParagraphNodes() {
                                 region.getPageNumber()));
                     }
                 }
-
             }
 
             if (!currentLine.getChildren().isEmpty()) {
@@ -169,36 +196,9 @@ public List<ParagraphNode> createParagraphNodes() {
     }
 
     return ret;
-
 }
 
-private static List<Integer> findLineBoundaries(int[] counts) {
-    List<Integer> lineBoundaries = new ArrayList<Integer>();
-    lineBoundaries.add(0);
-    boolean hasFoundText = false;
-    for (int i = 0; i < counts.length; i++) {
-        if (hasFoundText && counts[i] == 0) {
-            boolean isBoundary = true;
-//            for (int j = i +1; j < i +3 && j < counts.length; j++){
-//                if (counts[j] != 0){
-//                    isBoundary = false;
-//                    break;
-//                }
-//            }
-            if (isBoundary) {
-                lineBoundaries.add(i + 1);
-                hasFoundText = false;
-            }
-        } else if (counts[i] > 0) {
-            hasFoundText = true;
-        }
-    }
-    /* add the end as well*/
-    lineBoundaries.add(counts.length);
-
-    return lineBoundaries;
-}
-
+// -------------------------- OTHER METHODS --------------------------
 
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent current) {

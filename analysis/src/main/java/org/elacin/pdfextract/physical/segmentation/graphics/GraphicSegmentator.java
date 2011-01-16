@@ -10,6 +10,7 @@ import java.util.List;
  * File | Settings | File Templates.
  */
 public interface GraphicSegmentator {
+// -------------------------- PUBLIC METHODS --------------------------
 
 CategorizedGraphics segmentGraphicsUsingContentInRegion(List<GraphicContent> graphics,
                                                         PhysicalPageRegion region);
