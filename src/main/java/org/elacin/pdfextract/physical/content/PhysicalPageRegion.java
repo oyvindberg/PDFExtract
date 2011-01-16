@@ -44,7 +44,6 @@ private static final Logger log = Logger.getLogger(PhysicalPageRegion.class);
 
 protected final LineSegmentator lineSegmentator = new LineSegmentator(5.0f);
 
-//protected final ParagraphSegmentator paragraphSegmentator = new ParagraphSegmentator();
 protected final ParagraphSegmentatorWS paragraphSegmentator = new ParagraphSegmentatorWS(this, lineSegmentator);
 
 /* average font sizes for this page region */
@@ -324,6 +323,16 @@ public Style getMostCommonStyle() {
 
 public int getPageNumber() {
     return page.getPageNumber();
+}
+
+public boolean isGraphicalRegion() {
+    return containingGraphic != null;
+
+}
+
+public void extractSubRegionFromContentAndWithGraphics(List<PhysicalContent> block,
+                                                       GraphicContent fakeCoverGraphic) {
+    doExtractSubRegion(block, null, fakeCoverGraphic);
 }
 }
 

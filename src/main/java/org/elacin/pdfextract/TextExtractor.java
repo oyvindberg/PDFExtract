@@ -18,21 +18,14 @@ package org.elacin.pdfextract;
 
 import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
-import org.apache.log4j.MDC;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.elacin.pdfextract.pdfbox.PDFTextFilter;
-import org.elacin.pdfextract.renderer.PageRenderer;
-import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.util.FileWalker;
 import org.elacin.pdfextract.util.Loggers;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -48,8 +41,6 @@ private final File       destination;
 private final int        startPage;
 private final int        endPage;
 private final String     password;
-private final boolean    render;
-private       boolean    verbose;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -66,31 +57,9 @@ public TextExtractor(final List<File> pdfFiles,
 
     this.endPage = endPage;
     this.password = password;
-    this.render = render;
-    this.verbose = verbose;
 }
 
 // -------------------------- STATIC METHODS --------------------------
-
-@NotNull
-protected static List<File> findAllPdfFilesUnderDirectory(final String filename) {
-    List<File> ret = new ArrayList<File>();
-    File file = new File(filename);
-
-    if (!file.exists()) {
-        throw new RuntimeException("File " + file + " does not exist");
-    } else if (file.isDirectory()) {
-        try {
-            ret.addAll(FileWalker.getFileListing(file, ".pdf"));
-        } catch (FileNotFoundException e) {
-            log.error("Could not find file " + filename);
-        }
-    } else if (file.isFile()) {
-        ret.add(file);
-    }
-
-    return ret;
-}
 
 @NotNull
 private static Options getOptions() {
@@ -101,180 +70,6 @@ private static Options getOptions() {
     options.addOption("r", "render", false, "Render document");
     options.addOption("v", "verbose", false, "Output verbose xml");
     return options;
-}
-
-@NotNull
-protected static PrintStream openOutputStream(final File file) {
-    Loggers.getInterfaceLog().info("LOG00110:Opening " + file + " for output");
-    try {
-        return new PrintStream(new BufferedOutputStream(new FileOutputStream(file, false),
-                8192 * 4), false, "UTF-8");
-    } catch (Exception e) {
-        throw new RuntimeException("Could not open output file", e);
-    }
-}
-
-protected static PDDocument openPdfDocument(@NotNull final File pdfFile,
-                                            @Nullable final String password) {
-    long t0 = System.currentTimeMillis();
-    Loggers.getInterfaceLog().info("LOG00120:Opening PDF file " + pdfFile + ".");
-    MDC.put("doc", pdfFile.getName());
-
-    try {
-        final PDDocument document = PDDocument.load(pdfFile);
-        if (document.isEncrypted()) {
-            if (password != null) {
-                try {
-                    document.decrypt(password);
-                } catch (Exception e) {
-                    throw new RuntimeException("Error while reading encrypted PDF:", e);
-                }
-            } else {
-                Loggers.getInterfaceLog().warn("File claims to be encrypted, a password should be provided");
-            }
-        }
-
-        Loggers.getInterfaceLog().debug(
-                "LOG00130:PDFBox load() took " + (System.currentTimeMillis() - t0) + "ms");
-        return document;
-    } catch (IOException e) {
-        MDC.put("doc", "");
-        throw new RuntimeException("Error while reading " + pdfFile + ".", e);
-    }
-}
-
-@Nullable
-private static CommandLine parseParameters(final String[] args) {
-    Options options = getOptions();
-    CommandLineParser parser = new PosixParser();
-
-    CommandLine cmd = null;
-    try {
-        cmd = parser.parse(options, args);
-    } catch (ParseException e) {
-        Loggers.getInterfaceLog().error("Could not parse command line options: " + e.getMessage());
-        usage();
-        System.exit(1);
-    }
-    return cmd;
-}
-
-private static void usage() {
-    new HelpFormatter().printHelp(TextExtractor.class.getSimpleName()
-            + "<PDF file/dir> <XML output file/dir>", getOptions());
-}
-
-// -------------------------- PUBLIC METHODS --------------------------
-
-public final void processFiles() {
-    Collection<Long> timings = new ArrayList<Long>();
-    for (File pdfFile : pdfFiles) {
-        try {
-            final long t0 = System.currentTimeMillis();
-            processFile(pdfFile);
-            timings.add(System.currentTimeMillis() - t0);
-        } catch (Exception e) {
-            Loggers.getInterfaceLog().error("Error while processing PDF:", e);
-        }
-    }
-
-    long sum = 0L;
-    for (Long timing : timings) {
-        sum += timing;
-    }
-    Loggers.getInterfaceLog().info(String.format("Total time for analyzing %d documents: %dms (%sms average)", pdfFiles.size(), sum,
-            sum / pdfFiles.size()));
-}
-
-// -------------------------- OTHER METHODS --------------------------
-
-protected void printTree(@NotNull final File pdfFile, @NotNull final DocumentNode root) {
-    /* write to file */
-    final File output;
-    if (destination.isDirectory()) {
-        output = new File(destination, pdfFile.getName().replace(".pdf", ".elc.xml"));
-    } else {
-        output = destination;
-    }
-
-    final PrintStream outStream = openOutputStream(output);
-    root.printTree(outStream, verbose);
-    outStream.close();
-}
-
-protected void processFile(@NotNull final File pdfFile) throws IOException {
-    if (startPage != -1) {
-        Loggers.getInterfaceLog().info("LOG00140:Reading from page " + startPage);
-    }
-    if (endPage != Integer.MAX_VALUE) {
-        Loggers.getInterfaceLog().info("LOG00150:Reading until page " + endPage);
-    }
-
-    PDDocument doc = null;
-    try {
-        /* open the document */
-        doc = openPdfDocument(pdfFile, password);
-
-        long t1 = System.currentTimeMillis();
-
-        PDFTextFilter stripper = new PDFTextFilter(doc, startPage, endPage);
-        stripper.processDocument();
-
-        Loggers.getInterfaceLog().debug(
-                "LOG00160:Document analysis took " + (System.currentTimeMillis() - t1) + "ms");
-
-        final DocumentNode root = stripper.getDocumentNode();
-        printTree(pdfFile, root);
-
-        if (render) {
-            renderPDF(pdfFile, doc, root);
-        }
-    } catch (IOException e) {
-        throw new RuntimeException("Error while parsing document", e);
-    } finally {
-        if (doc != null) {
-            MDC.put("doc", "");
-            doc.close();
-        }
-    }
-}
-
-protected void renderPDF(@NotNull final File pdfFile,
-                         @NotNull final PDDocument doc,
-                         final DocumentNode root) {
-    long t0 = System.currentTimeMillis();
-
-    List pages = doc.getDocumentCatalog().getAllPages();
-    final PageRenderer renderer = new PageRenderer(doc, root);
-
-    /* one indexed pages */
-    for (int i = Math.max(1, startPage); i <= Math.min(pages.size(), endPage); i++) {
-
-        BufferedImage image;
-        try {
-            image = renderer.renderPage(i);
-        } catch (RuntimeException e) {
-            Loggers.getInterfaceLog().warn(
-                    "Error while rendering page " + i + ":" + e.getMessage());
-            continue;
-        }
-
-        /* then open and write to file */
-        final File output;
-        if (destination.isDirectory()) {
-            output = new File(destination, pdfFile.getName().replace(".pdf", ".elc." + i + ".png"));
-        } else {
-            output = new File(destination.getAbsolutePath().replace(".xml", ".elc." + i + ".png"));
-        }
-
-        try {
-            ImageIO.write(image, "png", output);
-        } catch (IOException e) {
-            Loggers.getInterfaceLog().warn("Error while writing rendered image to file", e);
-        }
-    }
-    Loggers.getInterfaceLog().debug(
-            "LOG00170:Rendering of pdf took " + (System.currentTimeMillis() - t0) + " ms");
 }
 
 // --------------------------- main() method ---------------------------
@@ -290,11 +85,13 @@ public static void main(String[] args) {
     int startPage = -1;
     if (cmd.hasOption("startpage")) {
         startPage = Integer.valueOf(cmd.getOptionValue("startpage"));
+        Loggers.getInterfaceLog().info("LOG00140:Reading from page " + startPage);
     }
 
     int endPage = Integer.MAX_VALUE;
     if (cmd.hasOption("endpage")) {
         endPage = Integer.valueOf(cmd.getOptionValue("endpage"));
+        Loggers.getInterfaceLog().info("LOG00150:Reading until page " + endPage);
     }
 
     String password = null;
@@ -311,6 +108,7 @@ public static void main(String[] args) {
     if (cmd.hasOption("verbose")) {
         verbose = true;
     }
+
 
     List<File> pdfFiles = findAllPdfFilesUnderDirectory(cmd.getArgs()[0]);
 
@@ -334,6 +132,65 @@ public static void main(String[] args) {
     final TextExtractor textExtractor
             = new TextExtractor(pdfFiles, destination, startPage, endPage, password, render, verbose);
     textExtractor.processFiles();
+}
+
+@Nullable
+private static CommandLine parseParameters(final String[] args) {
+    Options options = getOptions();
+    CommandLineParser parser = new PosixParser();
+
+    CommandLine cmd = null;
+    try {
+        cmd = parser.parse(options, args);
+    } catch (ParseException e) {
+        Loggers.getInterfaceLog().error("Could not parse command line options: " + e.getMessage());
+        usage();
+        System.exit(1);
+    }
+    return cmd;
+}
+
+private static void usage() {
+    new HelpFormatter().printHelp(TextExtractor.class.getSimpleName()
+            + "<PDF file/dir> <XML output file/dir>", getOptions());
+}
+
+@NotNull
+protected static List<File> findAllPdfFilesUnderDirectory(final String filename) {
+    List<File> ret = new ArrayList<File>();
+    File file = new File(filename);
+
+    if (!file.exists()) {
+        throw new RuntimeException("File " + file + " does not exist");
+    } else if (file.isDirectory()) {
+        try {
+            ret.addAll(FileWalker.getFileListing(file, ".pdf"));
+        } catch (FileNotFoundException e) {
+            log.error("Could not find file " + filename);
+        }
+    } else if (file.isFile()) {
+        ret.add(file);
+    }
+
+    return ret;
+}
+
+public final void processFiles() {
+    for (File pdfFile : pdfFiles) {
+        try {
+            final File output;
+            if (destination.isDirectory()) {
+                output = new File(destination, pdfFile.getName().replace(".pdf", ".elc.xml"));
+            } else {
+                output = destination;
+            }
+
+            DocumentAnalyzer DocumentAnalyzer = new DocumentAnalyzer(pdfFile, output, password, startPage, endPage);
+            DocumentAnalyzer.processFile();
+        } catch (Exception e) {
+            Loggers.getInterfaceLog().error("Error while processing PDF:", e);
+        }
+    }
 }
 }
 

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.elacin.pdfextract.pdfbox;
+package org.elacin.pdfextract.input.pdfbox;
 
 import org.apache.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -23,8 +23,12 @@ import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.physical.content.HasPosition;
+import org.elacin.pdfextract.physical.content.PhysicalText;
+import org.elacin.pdfextract.style.DocumentStyles;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
+
+import java.text.Normalizer;
 
 /**
  * This represents a string and a position on the screen of those characters.
@@ -106,8 +110,14 @@ public void setBaseLine(final float baseLine) {
     this.baseLine = baseLine;
 }
 
-
 public void setPos(@NotNull final Rectangle pos) {
     this.pos = pos;
+}
+
+// -------------------------- PUBLIC METHODS --------------------------
+
+public PhysicalText convertText(final DocumentStyles styles) {
+    final String s = Normalizer.normalize(getCharacter(), Normalizer.Form.NFKD);
+    return new PhysicalText(s, styles.getStyleForTextPosition(this), pos, baseLine);
 }
 }

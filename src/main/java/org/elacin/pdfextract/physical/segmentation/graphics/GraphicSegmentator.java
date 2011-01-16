@@ -2,7 +2,6 @@ package org.elacin.pdfextract.physical.segmentation.graphics;
 
 import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -12,18 +11,6 @@ import java.util.List;
  */
 public interface GraphicSegmentator {
 
-@NotNull
-List<GraphicContent> getContents();
-
-@NotNull
-List<GraphicContent> getContainers();
-
-@NotNull
-List<GraphicContent> getGraphicsToRender();
-
-void segmentGraphicsUsingContentInRegion(PhysicalPageRegion region);
-
-List<GraphicContent> getVerticalSeparators();
-
-List<GraphicContent> getHorizontalSeparators();
+CategorizedGraphics segmentGraphicsUsingContentInRegion(List<GraphicContent> graphics,
+                                                        PhysicalPageRegion region);
 }

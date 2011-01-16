@@ -120,6 +120,10 @@ public boolean isGraphic() {
     return false;
 }
 
+public boolean isGraphicButNotSeparator() {
+    return false;
+}
+
 public boolean isPicture() {
     return false;
 }

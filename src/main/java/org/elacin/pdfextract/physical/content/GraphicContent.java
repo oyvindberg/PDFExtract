@@ -86,6 +86,11 @@ public boolean isGraphic() {
 }
 
 @Override
+public boolean isGraphicButNotSeparator() {
+    return !(isVerticalSeparator() || isHorizontalSeparator());
+}
+
+@Override
 public boolean isPicture() {
     return picture;
 }
@@ -95,7 +100,6 @@ public boolean isPicture() {
 public Color getColor() {
     return color;
 }
-
 
 public void setCanBeAssigned(final boolean canBeAssigned) {
     this.canBeAssigned = canBeAssigned;
@@ -135,13 +139,6 @@ public boolean isCharacter(@NotNull final PhysicalPageRegion region) {
     return getStyle() != null && getStyle().equals(Style.GRAPHIC_CHARACTER);
 }
 
-/**
- * consider the graphic a separator if the aspect ratio is high
- */
-public boolean isHorizontalSeparator() {
-    return getStyle() != null && getStyle().equals(Style.GRAPHIC_HSEP);
-}
-
 public boolean isMathBar(final PhysicalPageRegion region) {
     return getStyle() != null && getStyle().equals(Style.GRAPHIC_MATH_BAR);
 }
@@ -155,5 +152,12 @@ public boolean isSeparator() {
  */
 public boolean isVerticalSeparator() {
     return getStyle() != null && getStyle().equals(Style.GRAPHIC_VSEP);
+}
+
+/**
+ * consider the graphic a separator if the aspect ratio is high
+ */
+public boolean isHorizontalSeparator() {
+    return getStyle() != null && getStyle().equals(Style.GRAPHIC_HSEP);
 }
 }

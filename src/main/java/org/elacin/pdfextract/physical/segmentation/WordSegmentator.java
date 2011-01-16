@@ -16,7 +16,6 @@
 
 package org.elacin.pdfextract.physical.segmentation;
 
-import org.elacin.pdfextract.pdfbox.ETextPosition;
 import org.elacin.pdfextract.physical.content.PhysicalText;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,5 +28,5 @@ import java.util.List;
 public interface WordSegmentator {
 
 @NotNull
-List<PhysicalText> segmentWords(List<ETextPosition> text);
+List<PhysicalText> segmentWords(List<PhysicalText> text);
 }

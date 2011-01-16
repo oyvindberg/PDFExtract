@@ -158,7 +158,8 @@ private boolean processInput(final String[] input) {
         final char c = base.charAt(i);
         float distance = i == 0 ? 0.0f : distancesArray[i - 1];
         currentX += distance;
-        line.add(new PhysicalText(new String(new char[]{c}), style, currentX, 0.0f, width, 1.0f, 0));
+        line.add(new PhysicalText(new String(new char[]{c}), style, currentX, 0.0f, width, 1.0f,
+                0.0f));
         currentX += width;
     }
     Collections.sort(line, Sorting.sortByLowerX);

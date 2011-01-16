@@ -85,6 +85,29 @@ public List<ParagraphNode> createParagraphNodes() {
 
         List<PhysicalContent> block = blockContents.get(blockNum);
 
+//        /* if the block contains graphics, separate it out as a separate region instead*/
+//        boolean graphics = false;
+//        for (PhysicalContent content : block) {
+//            if (content.isGraphicButNotSeparator()){
+//                graphics = true;
+//                break;
+//            }
+//        }
+//
+//        if (region.getContainingGraphic() == null && graphics){
+//            final Rectangle bounds = TextUtils.findBounds(block);
+//            for (Iterator<PhysicalContent> iterator = block.iterator(); iterator.hasNext();) {
+//                PhysicalContent content = iterator.next();
+//                content.getAssignable().setBlockNum(AssignablePhysicalContent.BLOCK_NOT_ASSIGNED);
+//                if (content.isGraphicButNotSeparator()) {
+//                    iterator.remove();
+//                }
+//            }
+//            GraphicContent fakeCoverGraphic = new GraphicContent(bounds, false, Color.BLACK);
+//            region.extractSubRegionFromContentAndWithGraphics(block, fakeCoverGraphic);
+//            continue;
+//        }
+
         int minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
         /* reuse the assignment numbers */
         for (PhysicalContent content : block) {

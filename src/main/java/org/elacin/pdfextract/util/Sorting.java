@@ -16,9 +16,9 @@
 
 package org.elacin.pdfextract.util;
 
-import org.elacin.pdfextract.pdfbox.ETextPosition;
 import org.elacin.pdfextract.physical.content.HasPosition;
 import org.elacin.pdfextract.physical.content.PhysicalContent;
+import org.elacin.pdfextract.physical.content.PhysicalText;
 import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
 
@@ -77,13 +77,13 @@ public static final Comparator<Style> sortStylesById = new Comparator<Style>() {
     }
 };
 
-public static final Comparator<ETextPosition> sortTextByBaseLine = new Comparator<ETextPosition>
+public static final Comparator<PhysicalText> sortTextByBaseLine = new Comparator<PhysicalText>
         () {
-    public int compare(final ETextPosition o1, final ETextPosition o2) {
+    public int compare(final PhysicalText o1, final PhysicalText o2) {
         return Float.compare(o1.getBaseLine(), o2.getBaseLine());
     }
 };
-public static final Comparator<HasPosition>   regionComparator   = new Comparator<HasPosition>() {
+public static final Comparator<HasPosition>  regionComparator   = new Comparator<HasPosition>() {
     public int compare(final HasPosition o1, final HasPosition o2) {
         if (o1.getPos().getEndX() < o2.getPos().getX()) {
             return -1;

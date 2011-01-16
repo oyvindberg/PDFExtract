@@ -16,7 +16,6 @@
 
 package org.elacin.pdfextract.physical.content;
 
-import org.elacin.pdfextract.StyledText;
 import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
@@ -28,9 +27,9 @@ import org.jetbrains.annotations.NotNull;
 public class PhysicalText extends AssignablePhysicalContent implements StyledText {
 // ------------------------------ FIELDS ------------------------------
 
-public       float  charSpacing;
-public final String text;
-public final int    rotation;
+public        float  charSpacing;
+public final  String text;
+private final float  baseLine;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -39,18 +38,16 @@ public PhysicalText(final String text,
                     final float x,
                     final float y,
                     final float width,
-                    final float height,
-                    final int rotation) {
-    this(text, style, new Rectangle(x, y, width, height), rotation);
+                    final float height, float baseLine) {
+    this(text, style, new Rectangle(x, y, width, height), baseLine);
 }
 
-PhysicalText(final String text,
-             final Style style,
-             final Rectangle position,
-             final int rotation) {
+public PhysicalText(final String text,
+                    final Style style,
+                    final Rectangle position, float baseLine) {
     super(position, style);
     this.text = text;
-    this.rotation = rotation;
+    this.baseLine = baseLine;
 }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -89,18 +86,11 @@ public boolean isText() {
     return true;
 }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-
-public int getRotation() {
-    return rotation;
-}
-
 // -------------------------- PUBLIC METHODS --------------------------
 
 @NotNull
 public PhysicalText combineWith(@NotNull final PhysicalText next) {
-    return new PhysicalText(text + next.text, style, pos.union(next.pos), rotation);
+    return new PhysicalText(text + next.text, style, pos.union(next.pos), baseLine);
 }
 
 public float getAverageCharacterWidth() {
@@ -109,5 +99,9 @@ public float getAverageCharacterWidth() {
 
 public boolean isSameStyleAs(@NotNull final PhysicalText next) {
     return getStyle().equals(next.getStyle());
+}
+
+public float getBaseLine() {
+    return baseLine;
 }
 }

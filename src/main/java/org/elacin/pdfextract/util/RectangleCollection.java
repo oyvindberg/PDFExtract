@@ -54,6 +54,8 @@ private Map<Integer, List<PhysicalContent>> xCache = new HashMap<Integer,
  */
 private final PhysicalContent parent;
 
+private transient boolean posSet = false;
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public RectangleCollection(@NotNull final Collection<? extends PhysicalContent> newContents,
@@ -63,6 +65,21 @@ public RectangleCollection(@NotNull final Collection<? extends PhysicalContent> 
 
     contents = new ArrayList<PhysicalContent>(newContents.size());
     contents.addAll(newContents);
+}
+
+
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface HasPosition ---------------------
+
+@Override
+public Rectangle getPos() {
+    if (!posSet) {
+        setPositionFromContentList(contents);
+        posSet = true;
+    }
+    return pos;
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -78,16 +95,20 @@ public PhysicalContent getParent() {
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-public void addContents(Collection<? extends PhysicalContent> newContents) {
-    contents.addAll(newContents);
-    clearCache();
-    setPositionFromContentList(contents);
-}
-
 public void addContent(final PhysicalContent content) {
     contents.add(content);
     clearCache();
-    setPositionFromContentList(contents);
+}
+
+public void addContents(Collection<? extends PhysicalContent> newContents) {
+    contents.addAll(newContents);
+    clearCache();
+}
+
+protected void clearCache() {
+    yCache.clear();
+    xCache.clear();
+    posSet = false;
 }
 
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
@@ -107,6 +128,17 @@ public List<PhysicalContent> findContentAtXIndex(int x) {
     return xCache.get(x);
 }
 
+@NotNull
+public List<PhysicalContent> findContentsIntersectingWith(@NotNull final HasPosition search) {
+    final List<PhysicalContent> ret = new ArrayList<PhysicalContent>(50);
+    for (PhysicalContent r : contents) {
+        if (search.getPos().intersectsWith(r.getPos())) {
+            ret.add(r);
+        }
+    }
+    return ret;
+}
+
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 public List<PhysicalContent> findContentAtYIndex(float y) {
     return findContentAtYIndex((int) y);
@@ -121,17 +153,6 @@ public List<PhysicalContent> findContentAtYIndex(int y) {
         yCache.put(y, result);
     }
     return yCache.get(y);
-}
-
-@NotNull
-public List<PhysicalContent> findContentsIntersectingWith(@NotNull final HasPosition search) {
-    final List<PhysicalContent> ret = new ArrayList<PhysicalContent>(50);
-    for (PhysicalContent r : contents) {
-        if (search.getPos().intersectsWith(r.getPos())) {
-            ret.add(r);
-        }
-    }
-    return ret;
 }
 
 @NotNull
@@ -196,13 +217,6 @@ public List<PhysicalContent> searchInDirectionFromOrigin(@NotNull Direction dir,
     }
 
     return ret;
-}
-
-// -------------------------- OTHER METHODS --------------------------
-
-protected void clearCache() {
-    yCache.clear();
-    xCache.clear();
 }
 
 // -------------------------- ENUMERATIONS --------------------------

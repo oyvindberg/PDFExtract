@@ -29,36 +29,11 @@
     <artifactId>TextExtractor</artifactId>
     <version>M3-SNAPSHOT</version>
     <repositories>
-        <!--<repository>-->
-        <!--<id>jinahya.googlecode.com_svn_maven_2_repo</id>-->
-        <!--<name>Jinahya's maven 2 repository</name>-->
-        <!--<url>http://jinahya.googlecode.com/svn/maven/2/repo</url>-->
-        <!--</repository>-->
         <repository>
             <id>apache</id>
             <name>Apache snapshot repo</name>
             <url>http://repository.apache.org/snapshots/</url>
         </repository>
-
-        <!--
-                <repository>
-                    <id>www2.ph.ed.ac.uk-releases</id>
-                    <url>http://www2.ph.ed.ac.uk/maven2</url>
-                </repository>
-        -->
-
-        <!--
-                <repository>
-                    <id>jahmm repo</id>
-                    <url>http://jahmm.googlecode.com/svn/repo</url>
-                </repository>
-        -->
-        <!-- for oscar3 -->
-        <!--<repository>-->
-        <!--<id>maven.ch.cam.ac.uk</id>-->
-        <!--<url>https://maven.ch.cam.ac.uk/m2repo</url>-->
-        <!--</repository>-->
-
     </repositories>
 
     <dependencies>
@@ -76,6 +51,12 @@
             <version>1.2.14</version>
         </dependency>
 
+
+        <dependency>
+            <groupId>org.elacin</groupId>
+            <artifactId>tei-p5-schema</artifactId>
+            <version>1.0</version>
+        </dependency>
 
         <!--<dependency>-->
         <!--<groupId>uk.ac.ed.ph.snuggletex</groupId>-->

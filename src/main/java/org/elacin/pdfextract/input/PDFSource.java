@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.elacin.pdfextract;
+package org.elacin.pdfextract.input;
 
-import org.elacin.pdfextract.physical.content.HasPosition;
-import org.elacin.pdfextract.style.Style;
+import java.io.File;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: 29.11.10 Time: 05.22 To change this template use
- * File | Settings | File Templates.
+ * Created by IntelliJ IDEA.
+ * User: elacin
+ * Date: 15.01.11
+ * Time: 19.32
+ * To change this template use File | Settings | File Templates.
  */
-public interface StyledText extends HasPosition {
+public interface PDFSource {
 
-String getText();
-
-Style getStyle();
+DocumentContent readPages(File pdfDocument, int startPage, int endPage, String password);
 }

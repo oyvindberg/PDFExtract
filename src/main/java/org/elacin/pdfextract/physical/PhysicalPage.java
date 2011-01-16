@@ -17,17 +17,13 @@
 package org.elacin.pdfextract.physical;
 
 import org.apache.log4j.Logger;
+import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
-import org.elacin.pdfextract.physical.content.WhitespaceRectangle;
-import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentator;
-import org.elacin.pdfextract.physical.segmentation.region.PageSegmentator;
 import org.elacin.pdfextract.tree.LayoutRegionNode;
-import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.tree.ParagraphNode;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,30 +50,23 @@ private final PhysicalPageRegion mainRegion;
  * Contains all the graphics on the page
  */
 @NotNull
-private final GraphicSegmentator graphics;
-
-private final int numberOfWords;
+private final List<GraphicContent> allGraphics;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public PhysicalPage(@NotNull List<? extends PhysicalContent> contents,
-                    @NotNull final GraphicSegmentator graphics,
-                    int pageNumber) throws Exception {
+                    @NotNull final List<GraphicContent> graphics,
+                    int pageNumber) {
     this.pageNumber = pageNumber;
-    this.graphics = graphics;
-
+    allGraphics = graphics;
     mainRegion = new PhysicalPageRegion(contents, this);
-    numberOfWords = contents.size();
-
-    graphics.segmentGraphicsUsingContentInRegion(mainRegion);
-    mainRegion.addContents(graphics.getContents());
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 @NotNull
-public GraphicSegmentator getGraphics() {
-    return graphics;
+public List<GraphicContent> getAllGraphics() {
+    return allGraphics;
 }
 
 @NotNull
@@ -89,52 +78,10 @@ public int getPageNumber() {
     return pageNumber;
 }
 
-// -------------------------- PUBLIC METHODS --------------------------
-
-@NotNull
-public PageNode compileLogicalPage() {
-    long t0 = System.currentTimeMillis();
-
-
-    PageSegmentator.segmentPageRegionWithSubRegions(this);
-
-    PageNode page = new PageNode(pageNumber);
-
-    List<LayoutRegionNode> regions = createRegionNodes();
-    for (LayoutRegionNode regionNode : regions) {
-        page.addChild(regionNode);
-    }
-    if (log.isInfoEnabled()) {
-        log.info("LOG00940:Page had " + regions.size() + " regions");
-    }
-
-    addRenderingInformation(page);
-
-    if (log.isInfoEnabled()) {
-        log.info("LOG00230:compileLogicalPage took " + (System.currentTimeMillis() - t0) + " ms");
-    }
-    return page;
-}
-
 // -------------------------- OTHER METHODS --------------------------
 
-private void addRenderingInformation(PageNode page) {
-    page.addDebugFeatures(Color.CYAN, graphics.getGraphicsToRender());
 
-    final List<WhitespaceRectangle> whitespaces = new ArrayList<WhitespaceRectangle>();
-    addWhiteSpaceFromRegion(whitespaces, mainRegion);
-    page.addDebugFeatures(Color.GREEN, whitespaces);
-}
-
-private static void addWhiteSpaceFromRegion(List<WhitespaceRectangle> whitespaces,
-                                            PhysicalPageRegion region) {
-    whitespaces.addAll(region.getWhitespace());
-    for (PhysicalPageRegion subRegion : region.getSubregions()) {
-        addWhiteSpaceFromRegion(whitespaces, subRegion);
-    }
-}
-
-private List<LayoutRegionNode> createRegionNodes() {
+public List<LayoutRegionNode> createRegionNodes() {
     List<LayoutRegionNode> ret = new ArrayList<LayoutRegionNode>();
 
 
@@ -142,7 +89,6 @@ private List<LayoutRegionNode> createRegionNodes() {
 
     List<ParagraphNode> paragraphs = mainRegion.createParagraphNodes();
     for (ParagraphNode paragraph : paragraphs) {
-        System.out.println("paragraph = " + paragraph);
         regionNode.addChild(paragraph);
     }
     if (!regionNode.getChildren().isEmpty()) {
@@ -159,7 +105,7 @@ private List<LayoutRegionNode> createRegionNodes() {
 }
 
 private static LayoutRegionNode createRegionNode(PhysicalPageRegion region) {
-    LayoutRegionNode regionNode = new LayoutRegionNode(region.getContainingGraphic() != null);
+    LayoutRegionNode regionNode = new LayoutRegionNode(region.isGraphicalRegion());
 
     List<ParagraphNode> paragraphs = region.createParagraphNodes();
     for (ParagraphNode paragraph : paragraphs) {

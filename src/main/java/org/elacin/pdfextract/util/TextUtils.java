@@ -17,9 +17,9 @@
 package org.elacin.pdfextract.util;
 
 import org.apache.pdfbox.util.TextPosition;
-import org.elacin.pdfextract.StyledText;
 import org.elacin.pdfextract.logical.Formulas;
 import org.elacin.pdfextract.physical.content.HasPosition;
+import org.elacin.pdfextract.physical.content.StyledText;
 import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,8 +41,8 @@ public static Rectangle findBounds(@NotNull final Collection<? extends HasPositi
 
     if (contents.isEmpty()) {
         //TODO: handle empty regions in a better way
-//		newPos = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
-        throw new RuntimeException("no content!");
+        newPos = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
+//        throw new RuntimeException("no content!");
     } else {
         /* calculate bounds for this region */
         float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
@@ -61,7 +61,7 @@ public static Rectangle findBounds(@NotNull final Collection<? extends HasPositi
 
 @NotNull
 public static Style findDominatingStyle(@NotNull final Collection<? extends HasPosition>
-contents) {
+                                                contents) {
     if (Formulas.textSeemsToBeFormula(contents)) {
         return Style.FORMULA;
     }
@@ -122,7 +122,7 @@ public static String getTextPositionString(@NotNull final TextPosition position)
 }
 
 public static boolean listContainsStyledText(@NotNull final Collection<? extends HasPosition>
-list) {
+                                                     list) {
     for (HasPosition content : list) {
         if (content instanceof StyledText) {
             return true;
@@ -134,8 +134,9 @@ list) {
 public static boolean stringContainsAnyCharacterOf(String string, String chars) {
 
     for (int i = 0; i < string.length(); i++) {
-        if (chars.indexOf(string.charAt(i)) != -1)
+        if (chars.indexOf(string.charAt(i)) != -1) {
             return true;
+        }
     }
     return false;
 

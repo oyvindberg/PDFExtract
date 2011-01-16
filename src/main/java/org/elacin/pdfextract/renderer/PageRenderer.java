@@ -19,7 +19,6 @@ package org.elacin.pdfextract.renderer;
 import org.apache.log4j.Logger;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.HasPosition;
 import org.elacin.pdfextract.physical.content.WhitespaceRectangle;
@@ -111,27 +110,36 @@ public BufferedImage renderPage(final int pageNum) {
 
     /* first have PDFBox draw the pdf to a BufferedImage */
     long t1 = System.currentTimeMillis();
-    PDPage page = (PDPage) document.getDocumentCatalog().getAllPages().get(pageNum - 1);
 
+    final PDPage page;
+    if (document == null) {
+        page = null;
+    } else {
+        page = (PDPage) document.getDocumentCatalog().getAllPages().get(pageNum - 1);
+    }
 
     final BufferedImage image;
-    if (RENDER_REAL_PAGE) {
+
+    if (RENDER_REAL_PAGE && page != null) {
         try {
             image = page.convertToImage();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        xScale = (float) image.getWidth() / page.getArtBox().getWidth();
+        yScale = (float) image.getHeight() / page.getArtBox().getHeight();
+
     } else {
-        image = createImage(page, BufferedImage.TYPE_INT_ARGB, resolution);
+        final Rectangle dimensions = documentNode.getPageNumber(pageNum).getPos();
+        image = createImage(dimensions, BufferedImage.TYPE_INT_ARGB, resolution);
+        xScale = 1.0f;
+        yScale = 1.0f;
     }
 
     /* then draw our information on top */
     graphics = image.createGraphics();
-    graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
-    ;
+    graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-    xScale = (float) image.getWidth() / page.getArtBox().getWidth();
-    yScale = (float) image.getHeight() / page.getArtBox().getHeight();
 
     for (Map.Entry<Color, List<HasPosition>> o : pageNode.getDebugFeatures().entrySet()) {
         for (HasPosition position : o.getValue()) {
@@ -179,21 +187,21 @@ private void drawTree(AbstractParentNode parent) {
 // -------------------------- OTHER METHODS --------------------------
 
 @NotNull
-private BufferedImage createImage(@NotNull final PDPage page, final int imageType,
+private BufferedImage createImage(@NotNull final Rectangle pageDimensions, final int imageType,
                                   final int resolution) {
-    PDRectangle mBox = page.findMediaBox();
+
     float scaling = resolution / (float) DEFAULT_USER_SPACE_UNIT_DPI;
 
-    int widthPx = Math.round(mBox.getWidth() * scaling);
-    int heightPx = Math.round(mBox.getHeight() * scaling);
+    int widthPx = Math.round(pageDimensions.getWidth() * scaling);
+    int heightPx = Math.round(pageDimensions.getHeight() * scaling);
 
-    BufferedImage retval = new BufferedImage(widthPx, heightPx, imageType);
-    Graphics2D graphics = (Graphics2D) retval.getGraphics();
+    BufferedImage ret = new BufferedImage(widthPx, heightPx, imageType);
+    Graphics2D graphics = (Graphics2D) ret.getGraphics();
     graphics.setBackground(TRANSPARENT_WHITE);
-    graphics.clearRect(0, 0, retval.getWidth(), retval.getHeight());
+    graphics.clearRect(0, 0, ret.getWidth(), ret.getHeight());
     graphics.scale(scaling, scaling);
 
-    return retval;
+    return ret;
 }
 
 Color getColorForObject(Object o) {

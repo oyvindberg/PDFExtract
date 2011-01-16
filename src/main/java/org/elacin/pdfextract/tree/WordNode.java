@@ -16,7 +16,7 @@
 
 package org.elacin.pdfextract.tree;
 
-import org.elacin.pdfextract.StyledText;
+import org.elacin.pdfextract.physical.content.StyledText;
 import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
@@ -51,13 +51,12 @@ public WordNode(final Rectangle position,
                 final int pageNum,
                 final Style style,
                 final String text,
-                final float charSpacing)
-{
-	this.position = position;
-	this.pageNum = pageNum;
-	this.style = style;
-	this.text = text;
-	this.charSpacing = charSpacing;
+                final float charSpacing) {
+    this.position = position;
+    this.pageNum = pageNum;
+    this.style = style;
+    this.text = text;
+    this.charSpacing = charSpacing;
 }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -66,7 +65,7 @@ public WordNode(final Rectangle position,
 // --------------------- Interface HasPosition ---------------------
 
 public Rectangle getPos() {
-	return position;
+    return position;
 }
 
 // --------------------- Interface StyledText ---------------------
@@ -74,28 +73,27 @@ public Rectangle getPos() {
 
 @Override
 public Style getStyle() {
-	return style;
+    return style;
 }
 
 @Override
 public String getText() {
-	return text;
+    return text;
 }
 
 // --------------------- Interface XmlPrinter ---------------------
 
 public void writeXmlRepresentation(@NotNull final Appendable out,
                                    final int indent,
-                                   final boolean verbose) throws IOException
-{
-	for (int i = 0; i < indent; i++) {
-		out.append(" ");
-	}
-	out.append("<word");
-	out.append(" value=\"").append(text).append("\"");
-	out.append(" styleRef=\"").append(String.valueOf(style.id)).append("\" ");
-	position.writeXmlRepresentation(out, indent, verbose);
-	out.append("/>\n");
+                                   final boolean verbose) throws IOException {
+    for (int i = 0; i < indent; i++) {
+        out.append(" ");
+    }
+    out.append("<word");
+    out.append(" value=\"").append(text).append("\"");
+    out.append(" styleRef=\"").append(String.valueOf(style.id)).append("\" ");
+    position.writeXmlRepresentation(out, indent, verbose);
+    out.append("/>\n");
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
@@ -103,42 +101,42 @@ public void writeXmlRepresentation(@NotNull final Appendable out,
 @NotNull
 @Override
 public String toString() {
-	if (toStringCache == null) {
-		final StringBuilder sb = new StringBuilder();
-		try {
-			writeXmlRepresentation(sb, 0, false);
-		} catch (IOException e) {
-			throw new RuntimeException("Could not write string", e);
-		}
-		toStringCache = sb.toString();
-	}
-	return toStringCache;
+    if (toStringCache == null) {
+        final StringBuilder sb = new StringBuilder();
+        try {
+            writeXmlRepresentation(sb, 0, false);
+        } catch (IOException e) {
+            throw new RuntimeException("Could not write string", e);
+        }
+        toStringCache = sb.toString();
+    }
+    return toStringCache;
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 public float getCharSpacing() {
-	return charSpacing;
+    return charSpacing;
 }
 
 public int getPageNum() {
-	return pageNum;
+    return pageNum;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
 public boolean isPartOfSameWordAs(@NotNull final WordNode nextNode) {
-	float distance = nextNode.position.getX() - position.getEndX();
-	return distance <= charSpacing;// * 1.01f;
+    float distance = nextNode.position.getX() - position.getEndX();
+    return distance <= charSpacing;// * 1.01f;
 }
 
 // -------------------------- OTHER METHODS --------------------------
 
 protected void invalidateThisAndParents() {
-	textCache = null;
-	toStringCache = null;
-	if (getParent() != null) {
-		getParent().invalidateThisAndParents();
-	}
+    textCache = null;
+    toStringCache = null;
+    if (getParent() != null) {
+        getParent().invalidateThisAndParents();
+    }
 }
 }

@@ -23,7 +23,9 @@ import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
 import org.elacin.pdfextract.physical.content.WhitespaceRectangle;
 import org.elacin.pdfextract.physical.segmentation.column.LayoutRecognizer;
+import org.elacin.pdfextract.physical.segmentation.graphics.CategorizedGraphics;
 import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentator;
+import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentatorImpl;
 import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.util.Rectangle;
 import org.elacin.pdfextract.util.Sorting;
@@ -51,16 +53,25 @@ private static final Logger log = Logger.getLogger(PageSegmentator.class);
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
+
 public static void segmentPageRegionWithSubRegions(PhysicalPage page) {
 
-    final LayoutRecognizer layoutRecognizer = new LayoutRecognizer();
     final PhysicalPageRegion mainRegion = page.getMainRegion();
 
+
+    GraphicSegmentator gSeg = new GraphicSegmentatorImpl(mainRegion.getPos().getWidth(),
+            mainRegion.getPos().getHeight());
+
+    final CategorizedGraphics categorizedGraphics = gSeg.segmentGraphicsUsingContentInRegion(page.getAllGraphics(), mainRegion);
+
+    mainRegion.addContents(categorizedGraphics.getContents());
+
+
     /* first separate out what is contained by graphics */
-    createGraphicRegions(page.getGraphics(), mainRegion);
+    createGraphicRegions(categorizedGraphics, mainRegion);
 
     /* then by separators */
-    PageRegionSplitBySeparators.splitRegionBySeparators(mainRegion, page.getGraphics());
+    PageRegionSplitBySeparators.splitRegionBySeparators(mainRegion, categorizedGraphics);
 
 //    PageRegionSplitBySpacing.splitInVerticalColumns(mainRegion);
 
@@ -71,10 +82,11 @@ public static void segmentPageRegionWithSubRegions(PhysicalPage page) {
 //        PageRegionSplitBySpacing.splitHorizontallyBySpacing(mainRegion);
 //    }
 
-    /* then perform whitespace analysis of all the regions we have now */
-    final List<WhitespaceRectangle> allWhitespaces = new ArrayList<WhitespaceRectangle>();
 
-    recursiveAnalysis(mainRegion, layoutRecognizer, allWhitespaces, page.getGraphics());
+    /* then perform whitespace analysis of all the regions we have now */
+    final LayoutRecognizer layoutRecognizer = new LayoutRecognizer();
+    final List<WhitespaceRectangle> allWhitespaces = new ArrayList<WhitespaceRectangle>();
+    recursiveAnalysis(mainRegion, layoutRecognizer, allWhitespaces, categorizedGraphics);
 
 
 //
@@ -98,7 +110,7 @@ public static void segmentPageRegionWithSubRegions(PhysicalPage page) {
 private static void recursiveAnalysis(PhysicalPageRegion region,
                                       LayoutRecognizer layoutRecognizer,
                                       List<WhitespaceRectangle> allWhitespaces,
-                                      GraphicSegmentator graphics) {
+                                      CategorizedGraphics graphics) {
 
     PageRegionSplitBySeparators.splitRegionBySeparators(region, graphics);
 
@@ -256,7 +268,7 @@ private static void recursiveAnalysis(PhysicalPageRegion region,
 
 
     for (PhysicalPageRegion subRegion : region.getSubregions()) {
-        recursiveAnalysis(subRegion, layoutRecognizer, allWhitespaces, page.getGraphics());
+        recursiveAnalysis(subRegion, layoutRecognizer, allWhitespaces, graphics);
     }
 
 
@@ -335,7 +347,7 @@ private static void combineGraphicsWithTextAround(PhysicalPageRegion r) {
  * @param graphics
  * @param r
  */
-private static void createGraphicRegions(GraphicSegmentator graphics, PhysicalPageRegion r) {
+private static void createGraphicRegions(CategorizedGraphics graphics, PhysicalPageRegion r) {
     PriorityQueue<GraphicContent> queue = createSmallestFirstQueue(graphics.getContainers());
 
     while (!queue.isEmpty()) {

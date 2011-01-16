@@ -17,37 +17,19 @@
 package org.elacin.pdfextract.physical.segmentation.word;
 
 import org.apache.log4j.Logger;
-import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.elacin.pdfextract.pdfbox.ETextPosition;
 import org.elacin.pdfextract.physical.content.PhysicalText;
 import org.elacin.pdfextract.physical.segmentation.WordSegmentator;
 import org.elacin.pdfextract.style.DocumentStyles;
+import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.util.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.Normalizer;
 import java.util.*;
 
 import static org.elacin.pdfextract.util.MathUtils.isWithinVariance;
 import static org.elacin.pdfextract.util.Sorting.sortByLowerX;
 import static org.elacin.pdfextract.util.Sorting.sortTextByBaseLine;
 
-/**
- * Created by IntelliJ IDEA. User: elacin Date: May 12, 2010 Time: 3:34:09 AM <p/>
- * <p/>
- * <p/>
- * This class provides a way to convert incoming TextPositions (as created by PDFBox) into
- * PhysicalTexts, as used by this application. The difference between the two classes is
- * technical,
- * but also semantic, in that they are defined to be at most a whole word (the normal case: Word
- * fragments will only occur when a word is split over two lines, or if the word is formatted
- * with
- * two different styles) instead of arbitrary length.
- * <p/>
- * This makes it easier to reason about the information we have, and also reconstructs some
- * notion of word and character spacing, which will be an important property for feature
- * recognition.
- */
 public class WordSegmentatorImpl implements WordSegmentator {
 // ------------------------------ FIELDS ------------------------------
 
@@ -74,54 +56,54 @@ public WordSegmentatorImpl(final DocumentStyles styles) {
  * those
  */
 @NotNull
-public List<PhysicalText> segmentWords(@NotNull final List<ETextPosition> text) {
+public List<PhysicalText> segmentWords(@NotNull final List<PhysicalText> texts) {
     final long t0 = System.currentTimeMillis();
 
-    List<PhysicalText> ret = new ArrayList<PhysicalText>(text.size());
+    List<PhysicalText> ret = new ArrayList<PhysicalText>(texts.size());
 
     /** iterate through all incoming TextPositions, and process them
      in a line by line fashion. We do this to be able to calculate
      char and word distances for each line
      */
-    List<ETextPosition> line = new ArrayList<ETextPosition>();
+    List<PhysicalText> line = new ArrayList<PhysicalText>();
 
-    Collections.sort(text, sortTextByBaseLine);
+    Collections.sort(texts, sortTextByBaseLine);
 
     float baseline = 0.0f;
     float maxY = Float.MIN_VALUE;
     float maxX = 0.0f;
-    PDFont currentFont = null;
+    Style currentStyle = null;
 
-    for (final ETextPosition tp : text) {
+    for (final PhysicalText text : texts) {
         /* if this is the first text in a line */
         if (line.isEmpty()) {
-            baseline = tp.getBaseLine();
-            maxX = tp.getPos().getEndX();
-            currentFont = tp.getFont();
+            baseline = text.getBaseLine();
+            maxX = text.getPos().getEndX();
+            currentStyle = text.getStyle();
         }
 
-        final boolean stopGrouping = isOnAnotherLine(baseline, tp, maxY)
-                || isTooFarAwayHorizontally(maxX, tp)
-                || fontDiffers(currentFont, tp);
+        final boolean stopGrouping = isOnAnotherLine(baseline, text, maxY)
+                || isTooFarAwayHorizontally(maxX, text)
+                || fontDiffers(currentStyle, text);
 
         if (stopGrouping) {
             if (!line.isEmpty()) {
-                ret.addAll(createWordsInLine(convertText(line)));
+                ret.addAll(createWordsInLine(line));
                 line.clear();
             }
-            baseline = tp.getBaseLine();
-            maxY = tp.getPos().getEndY();
-            currentFont = tp.getFont();
+            baseline = text.getBaseLine();
+            maxY = text.getPos().getEndY();
+            currentStyle = text.getStyle();
         }
 
         /* then add the current text to start next line */
-        line.add(tp);
-        maxY = Math.max(maxY, tp.getPos().getEndX());
-        maxX = tp.getPos().getEndX();
+        line.add(text);
+        maxY = Math.max(maxY, text.getPos().getEndX());
+        maxX = text.getPos().getEndX();
     }
 
     if (!line.isEmpty()) {
-        ret.addAll(createWordsInLine(convertText(line)));
+        ret.addAll(createWordsInLine(line));
         line.clear();
     }
 
@@ -350,40 +332,20 @@ private static void printLine(List<PhysicalText> physicalTexts) {
     }
 }
 
-private static boolean fontDiffers(final PDFont font, final ETextPosition tp) {
-    return !font.equals(tp.getFont());
+private static boolean fontDiffers(final Style style, final PhysicalText text) {
+    return !style.equals(text.getStyle());
 }
 
 private static boolean isOnAnotherLine(final float baseline,
-                                       final ETextPosition tp,
+                                       final PhysicalText text,
                                        final float maxY) {
-    return (baseline != tp.getBaseLine() && tp.getBaseLine() > maxY);
+    return (baseline != text.getBaseLine() && text.getBaseLine() > maxY);
 }
 
-private static boolean isTooFarAwayHorizontally(final float endX, @NotNull final ETextPosition tp) {
-    final float variation = tp.getPos().getWidth();
+private static boolean isTooFarAwayHorizontally(final float endX,
+                                                @NotNull final PhysicalText text) {
+    final float variation = text.getPos().getWidth();
 
-    return !isWithinVariance(endX, tp.getPos().getX(), variation);
-}
-
-// -------------------------- OTHER METHODS --------------------------
-
-@NotNull
-@SuppressWarnings({"ObjectAllocationInLoop"})
-List<PhysicalText> convertText(@NotNull final List<ETextPosition> texts) {
-    final List<PhysicalText> ret = new ArrayList<PhysicalText>(texts.size() * 2);
-
-    for (final ETextPosition text : texts) {
-        final String s = Normalizer.normalize(text.getCharacter(), Normalizer.Form.NFKD);
-
-        ret.add(new PhysicalText(s, styles.getStyleForTextPosition(text),
-                text.getPos().getX(),
-                text.getPos().getY(),
-                text.getPos().getWidth(),
-                text.getPos().getHeight(),
-                (int) text.getDir()));
-    }
-
-    return ret;
+    return !isWithinVariance(endX, text.getPos().getX(), variation);
 }
 }

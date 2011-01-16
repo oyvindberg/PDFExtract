@@ -16,11 +16,10 @@
 
 package org.elacin.pdfextract;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.elacin.pdfextract.pdfbox.PDFTextFilter;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
@@ -35,13 +34,11 @@ public static DocumentNode readPDF(String filename,
                                    final String outFile,
                                    final int endPage) throws IOException {
     final URL url = PDFDocumentLoader.class.getClassLoader().getResource(filename);
-    PDDocument document = PDDocument.load(url);
-    PDFTextFilter stripper = new PDFTextFilter(document, -1, endPage);
-    stripper.processDocument();
 
-    final DocumentNode documentNode = stripper.getDocumentNode();
+    final DocumentAnalyzer DocumentAnalyzer = new DocumentAnalyzer(new File(url.getFile()), new File(outFile), "", -1, endPage);
+    DocumentAnalyzer.processFile();
+    final DocumentNode documentNode = DocumentAnalyzer.getRoot();
     documentNode.printTree(outFile, false);
-    document.close();
     return documentNode;
 
 }

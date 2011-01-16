@@ -19,7 +19,6 @@ package org.elacin.pdfextract.style;
 import org.apache.log4j.Logger;
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.tree.XmlPrinter;
-import org.elacin.pdfextract.util.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -190,8 +189,7 @@ public Style getStyleForTextPosition(@NotNull TextPosition position) {
         final Style style = new Style(font, xSize, ySize, id, italic, bold, mathFont);
         styles.put(id, style);
         if (log.isInfoEnabled()) {
-            log.info("LOG00800:New style:" + style + " from " + TextUtils
-                    .getTextPositionString(position));
+            log.info("LOG00800:New style:" + style);
         }
     }
 

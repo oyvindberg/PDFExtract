@@ -20,7 +20,7 @@ import org.apache.log4j.Logger;
 import org.elacin.pdfextract.physical.content.GraphicContent;
 import org.elacin.pdfextract.physical.content.PhysicalContent;
 import org.elacin.pdfextract.physical.content.PhysicalPageRegion;
-import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentator;
+import org.elacin.pdfextract.physical.segmentation.graphics.CategorizedGraphics;
 import org.elacin.pdfextract.util.Rectangle;
 
 import java.util.ArrayList;
@@ -46,7 +46,7 @@ private static final Logger log = Logger.getLogger(PageRegionSplitBySeparators.c
  * @param r
  * @param graphics
  */
-static void splitRegionBySeparators(PhysicalPageRegion r, GraphicSegmentator graphics) {
+static void splitRegionBySeparators(PhysicalPageRegion r, CategorizedGraphics graphics) {
 
     List<GraphicContent> toRemove = new ArrayList<GraphicContent>();
     for (GraphicContent hsep : graphics.getHorizontalSeparators()) {
