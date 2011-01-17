@@ -22,7 +22,9 @@ import org.elacin.pdfextract.content.GraphicContent;
 import org.elacin.pdfextract.content.WhitespaceRectangle;
 import org.elacin.pdfextract.geom.HasPosition;
 import org.elacin.pdfextract.geom.Rectangle;
+import org.elacin.pdfextract.integration.DocumentContent;
 import org.elacin.pdfextract.integration.PDFSource;
+import org.elacin.pdfextract.integration.PageContent;
 import org.elacin.pdfextract.integration.RenderedPage;
 import org.elacin.pdfextract.tree.*;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +37,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import static org.elacin.pdfextract.Constants.DEFAULT_USER_SPACE_UNIT_DPI;
+import static org.elacin.pdfextract.Constants.RENDER_DPI;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Jun 17, 2010 Time: 5:02:09 AM To change this
@@ -61,9 +63,7 @@ private float      yScale;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public PageRenderer(final PDFSource source,
-                    final DocumentNode documentNode,
-                    final int resolution) {
+public PageRenderer(final PDFSource source, final DocumentNode documentNode, final int resolution) {
     this.source = source;
     this.documentNode = documentNode;
     this.resolution = resolution;
@@ -85,12 +85,37 @@ public BufferedImage renderToFile(final int pageNum, File outputFile) {
     if (Constants.RENDER_REAL_PAGE) {
         final RenderedPage renderedPage = source.renderPage(pageNum);
         image = renderedPage.getRendering();
-        xScale = renderedPage.getxScale();
-        yScale = renderedPage.getyScale();
+        xScale = renderedPage.getXScale();
+        yScale = renderedPage.getYScale();
     } else {
-        image = createImage(pageNode.getPos(), BufferedImage.TYPE_INT_ARGB, resolution);
-        xScale = 1.0f;
-        yScale = 1.0f;
+        Rectangle dims = null;
+        final DocumentContent docContent = source.readPages();
+        for (PageContent page : docContent.getPages()) {
+            if (page.getPageNum() == pageNum) {
+                dims = page.getDimensions();
+            }
+        }
+        assert dims != null;
+
+
+        float scaling = resolution / (float) RENDER_DPI;
+
+        int widthPx = Math.round(dims.getWidth() * scaling);
+        int heightPx = Math.round(dims.getHeight() * scaling);
+
+        BufferedImage ret = new BufferedImage(widthPx, heightPx, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = (Graphics2D) ret.getGraphics();
+        g.setBackground(TRANSPARENT_WHITE);
+        g.clearRect(0, 0, ret.getWidth(), ret.getHeight());
+        g.scale(scaling, scaling);
+
+        image = ret;
+        //        yScale = heightPx / pageNode.getPos().getHeight();
+        yScale = scaling;
+        xScale = scaling;
+        //        xScale = widthPx / pageNode.getPos().getWidth();
+        //        xScale = 1.0f;
+        //        yScale = 1.0f;
     }
 
 
@@ -137,24 +162,6 @@ public BufferedImage renderToFile(final int pageNum, File outputFile) {
 
 // -------------------------- OTHER METHODS --------------------------
 
-@NotNull
-private BufferedImage createImage(@NotNull final Rectangle pageDimensions,
-                                  final int imageType,
-                                  final int resolution) {
-    float scaling = resolution / (float) DEFAULT_USER_SPACE_UNIT_DPI;
-
-    int widthPx = Math.round(pageDimensions.getWidth() * scaling);
-    int heightPx = Math.round(pageDimensions.getHeight() * scaling);
-
-    BufferedImage ret = new BufferedImage(widthPx, heightPx, imageType);
-    Graphics2D graphics = (Graphics2D) ret.getGraphics();
-    graphics.setBackground(TRANSPARENT_WHITE);
-    graphics.clearRect(0, 0, ret.getWidth(), ret.getHeight());
-    graphics.scale(scaling, scaling);
-
-    return ret;
-}
-
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 private void drawRectangle(@NotNull final HasPosition object) {
     final int ALPHA = 60;
@@ -186,34 +193,34 @@ Color getColorForObject(Object o) {
             return Color.RED;
         }
         return Color.BLACK;
-//        return DONT_DRAW;
+        //        return DONT_DRAW;
     } else if (o.getClass().equals(GraphicContent.class)) {
         return Color.MAGENTA;
     } else if (o.getClass().equals(LayoutRegionNode.class)) {
         if (((LayoutRegionNode) o).isPictureRegion()) {
             return Color.MAGENTA;
         }
-//        return Color.GREEN;
+        //        return Color.GREEN;
         return DONT_DRAW;
 
-//    } else if (o.getClass().equals(ParagraphNode.class)) {
-//        return Color.YELLOW;
-//        return DONT_DRAW;
+        //    } else if (o.getClass().equals(ParagraphNode.class)) {
+        //        return Color.YELLOW;
+        //        return DONT_DRAW;
     } else if (o.getClass().equals(LineNode.class)) {
         return Color.BLUE;
-//        return DONT_DRAW;
+        //        return DONT_DRAW;
     } else if (o.getClass().equals(WordNode.class)) {
         return Color.ORANGE;
     } else {
-//        return Color.GRAY;
+        //        return Color.GRAY;
         return DONT_DRAW;
     }
 }
 
 private void drawTree(AbstractParentNode parent) {
-//    if (!(parent instanceof AbstractParentNode)) {
+    //    if (!(parent instanceof AbstractParentNode)) {
     drawRectangle(parent);
-//    }
+    //    }
 
     for (Object o : parent.getChildren()) {
         if (o instanceof AbstractParentNode) {

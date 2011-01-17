@@ -26,16 +26,25 @@ package org.elacin.pdfextract;
 public class Constants {
 // ------------------------------ FIELDS ------------------------------
 
-public static final boolean USE_EXISTING_WHITESPACE = true;
+/* segmentation */
+public static final boolean USE_EXISTING_WHITESPACE    = true;
+public static final boolean SPLIT_PARAGRAPHS_BY_STYLES = true;
+
+/* technical */
+public static final boolean RECTANGLE_COLLECTION_CACHE_ENABLED = true;
 
 /* rendering */
-public static final boolean RENDER_ENABLED              = true;
-public static final boolean RENDER_REAL_PAGE            = false;
-public static final int     RENDER_RESOLUTION           = 1200;
-public static final int     DEFAULT_USER_SPACE_UNIT_DPI = 1200;
+public static final boolean RENDER_ENABLED    = true;
+public static final boolean RENDER_REAL_PAGE  = true;
+public static final int     RENDER_RESOLUTION = 150;
+public static final int     RENDER_DPI        = 72;
 
 /* output */
-public static final boolean VERBOSE_OUTPUT = false;
 
-public static String OUTPUT_EXTENSION = ".elc.xml";
+public static final boolean VERBOSE_OUTPUT        = false;
+public static final boolean SIMPLE_OUTPUT_ENABLED = true;
+public static final boolean TEI_OUTPUT_ENABLED    = false;
+
+public static String SIMPLE_OUTPUT_EXTENSION = ".xml";
+public static String TEI_OUTPUT_EXTENSION    = ".tei.xml";
 }

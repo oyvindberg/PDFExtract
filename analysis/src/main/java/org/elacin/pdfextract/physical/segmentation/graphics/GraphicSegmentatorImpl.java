@@ -195,8 +195,7 @@ private void categorizeGraphics(CategorizedGraphics ret,
 }
 
 private List<GraphicContent> combineHorizontalSeparators(CategorizedGraphics ret) {
-    Map<String, List<GraphicContent>> hsepsForXCoordinate = new HashMap<String,
-            List<GraphicContent>>();
+    Map<String, List<GraphicContent>> hsepsForXCoordinate = new HashMap<String, List<GraphicContent>>();
 
     for (int i = 0; i < ret.getHorizontalSeparators().size(); i++) {
         GraphicContent hsep = ret.getHorizontalSeparators().get(i);
@@ -259,7 +258,7 @@ private void logGraphics(CategorizedGraphics ret) {
     }
 
     for (GraphicContent g : ret.getContents()) {
-        log.info("LOG00980:considered content: " + g);
+        log.debug("LOG00980:considered content: " + g);
     }
 }
 }

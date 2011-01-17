@@ -22,10 +22,10 @@ import org.elacin.pdfextract.content.PhysicalPageRegion;
 import org.elacin.pdfextract.geom.HasPosition;
 import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.geom.RectangleCollection;
-import org.elacin.pdfextract.geom.TextUtils;
 import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.style.StyleComparator;
 import org.elacin.pdfextract.style.StyleDifference;
+import org.elacin.pdfextract.style.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -175,8 +175,8 @@ public static void splitInVerticalColumns(@NotNull PhysicalPageRegion r) {
             }
 
             r.extractSubRegionFromContent(workingSet);
-            Rectangle theRest = new Rectangle(x, r.getPos().getY(), r.getPos().getEndX() - x,
-                    r.getPos().getEndY());
+            Rectangle theRest = new Rectangle(x, r.getPos().getY(),
+                    r.getPos().getEndX() - x, r.getPos().getEndY());
             r.extractSubRegionFromBound(theRest);
 
             /* reset vertical values */
@@ -194,8 +194,7 @@ public static void splitInVerticalColumns(@NotNull PhysicalPageRegion r) {
 
 // -------------------------- STATIC METHODS --------------------------
 
-private static boolean columnContainsBlockingGraphics(@NotNull final List<PhysicalContent>
-                                                              column,
+private static boolean columnContainsBlockingGraphics(@NotNull final List<PhysicalContent> column,
                                                       final float x,
                                                       final float minY,
                                                       final float maxY) {

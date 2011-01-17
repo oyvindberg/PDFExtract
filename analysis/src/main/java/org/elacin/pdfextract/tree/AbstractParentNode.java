@@ -16,9 +16,9 @@
 
 package org.elacin.pdfextract.tree;
 
+import org.elacin.pdfextract.geom.MathUtils;
 import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.geom.Sorting;
-import org.elacin.pdfextract.geom.TextUtils;
 import org.elacin.pdfextract.logical.text.Role;
 import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
@@ -31,8 +31,7 @@ import java.util.*;
  * Created by IntelliJ IDEA. User: elacin Date: Mar 18, 2010 Time: 3:16:53 PM To change this
  * template use File | Settings | File Templates.
  */
-public abstract class AbstractParentNode<ChildType extends AbstractNode,
-        ParentType extends AbstractParentNode> extends AbstractNode<ParentType> {
+public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentType extends AbstractParentNode> extends AbstractNode<ParentType> {
 // ------------------------------ FIELDS ------------------------------
 
 /* a cache of group position */
@@ -60,7 +59,7 @@ public AbstractParentNode() {
 @NotNull
 public final Rectangle getPos() {
     if (posCache == null) {
-        posCache = TextUtils.findBounds(children);
+        posCache = MathUtils.findBounds(children);
     }
     return posCache;
 }

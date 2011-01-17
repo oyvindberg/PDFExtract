@@ -112,14 +112,7 @@ private static void usage() {
 public final void processFiles() {
     for (File pdfFile : pdfFiles) {
         try {
-            final File output;
-            if (destination.isDirectory()) {
-                output = new File(destination, pdfFile.getName().replace(".pdf", ".elc.xml"));
-            } else {
-                output = destination;
-            }
-
-            DocumentAnalyzer DocumentAnalyzer = new DocumentAnalyzer(pdfFile, output, password, startPage, endPage);
+            DocumentAnalyzer DocumentAnalyzer = new DocumentAnalyzer(pdfFile, destination, password, startPage, endPage);
             DocumentAnalyzer.processFile();
         } catch (Exception e) {
             log.error("Error while processing PDF:", e);

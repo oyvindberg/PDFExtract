@@ -30,12 +30,13 @@ import org.elacin.pdfextract.renderer.PageRenderer;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.xml.SimpleXMLOutput;
+import org.elacin.pdfextract.xml.TEIOutput;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import static org.elacin.pdfextract.Constants.OUTPUT_EXTENSION;
+import static org.elacin.pdfextract.Constants.*;
 
 /**
  * Created by IntelliJ IDEA.
@@ -54,6 +55,7 @@ private static final Logger          log             = Logger.getLogger(Document
 public final DocumentNode root = new DocumentNode();
 private final PDFSource source;
 private final File      destination;
+public final  File      pdfFile;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -63,7 +65,28 @@ public DocumentAnalyzer(File pdfFile,
                         int startPage,
                         int endPage) {
     this.destination = destination;
-    source = new PDFBoxSource(pdfFile, startPage, endPage, password);
+    this.pdfFile = pdfFile;
+    source = new PDFBoxSource(this.pdfFile, startPage, endPage, password);
+}
+
+// -------------------------- STATIC METHODS --------------------------
+
+static void renderPDF(PDFSource source, DocumentNode root, File destination) {
+    long t0 = System.currentTimeMillis();
+
+    final PageRenderer renderer = new PageRenderer(source, root, RENDER_RESOLUTION);
+
+    for (int i = 0; i < root.getChildren().size(); i++) {
+        /* one indexed pages */
+        final int pageNum = root.getChildren().get(i).getPageNumber();
+
+        /* then open and write to file */
+        final File outputFile = new File(destination.getAbsolutePath().replace("%", String.valueOf(pageNum)));
+
+        renderer.renderToFile(pageNum, outputFile);
+    }
+
+    log.debug("Rendering of pdf took " + (System.currentTimeMillis() - t0) + " ms");
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -100,37 +123,35 @@ public void processFile() throws IOException {
 
         root.addChild(pageNode);
     }
+    root.getStyles().addAll(content.getStyles());
 
     MDC.remove("page");
 
-    SimpleXMLOutput.printTree(root, destination);
+    if (Constants.SIMPLE_OUTPUT_ENABLED) {
+        new SimpleXMLOutput().writeTree(root, getOutputFile(SIMPLE_OUTPUT_EXTENSION));
+    }
+    if (Constants.TEI_OUTPUT_ENABLED) {
+        new TEIOutput().writeTree(root, getOutputFile(TEI_OUTPUT_EXTENSION));
+    }
+
 
     final long td = System.currentTimeMillis() - t0;
-
     log.info("Analyzed " + content.getPages().size() + " pages in " + td + "ms");
 
     if (Constants.RENDER_ENABLED) {
-        renderPDF();
+        renderPDF(source, root, getOutputFile(".%.png"));
     }
     source.closeSource();
 }
 
-public void renderPDF() {
-    long t0 = System.currentTimeMillis();
-
-    final PageRenderer renderer = new PageRenderer(source, root, Constants.RENDER_RESOLUTION);
-
-    for (int i = 0; i < root.getChildren().size(); i++) {
-        /* one indexed pages */
-        final int pageNum = root.getChildren().get(i).getPageNumber();
-
-        /* then open and write to file */
-        final File outputFile = new File(destination.getAbsolutePath().replace(OUTPUT_EXTENSION,
-                "_" + pageNum + ".png"));
-
-        renderer.renderToFile(pageNum, outputFile);
+private File getOutputFile(String extension) {
+    final File output;
+    if (destination.isDirectory()) {
+        output = new File(destination, pdfFile.getName().replace(".pdf", extension));
+    } else {
+        output = new File(destination.getAbsolutePath().replace(".pdf", extension));
     }
 
-    log.debug("Rendering of pdf took " + (System.currentTimeMillis() - t0) + " ms");
+    return output;
 }
 }

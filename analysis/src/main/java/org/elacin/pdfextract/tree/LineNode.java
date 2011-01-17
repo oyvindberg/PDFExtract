@@ -16,8 +16,8 @@
 
 package org.elacin.pdfextract.tree;
 
-import org.elacin.pdfextract.geom.TextUtils;
 import org.elacin.pdfextract.style.Style;
+import org.elacin.pdfextract.style.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;

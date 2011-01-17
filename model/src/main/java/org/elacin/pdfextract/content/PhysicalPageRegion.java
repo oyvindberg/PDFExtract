@@ -20,8 +20,8 @@ import org.apache.log4j.Logger;
 import org.elacin.pdfextract.geom.HasPosition;
 import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.geom.RectangleCollection;
-import org.elacin.pdfextract.geom.TextUtils;
 import org.elacin.pdfextract.style.Style;
+import org.elacin.pdfextract.style.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -157,8 +157,9 @@ public void extractSubRegionFromGraphic(@NotNull final GraphicContent graphic) {
     /* we can allow us to search a bit outside the graphic */
     final Rectangle pos = graphic.getPos();
     final float extra = 2.0f;
-    final Rectangle searchPos = new Rectangle(pos.getX() - extra, pos.getY() - extra,
-            pos.getWidth() + 2 * extra, pos.getHeight() + 2 * extra);
+    final Rectangle searchPos = new Rectangle(
+            pos.getX() - extra,
+            pos.getY() - extra, pos.getWidth() + 2 * extra, pos.getHeight() + 2 * extra);
 
     final List<PhysicalContent> subContents = findContentsIntersectingWith(searchPos);
     doExtractSubRegion(subContents, graphic, graphic);
@@ -215,7 +216,7 @@ public void setContainingGraphic(GraphicContent containingGraphic) {
 
     if (containingGraphic != null) {
         this.containingGraphic = containingGraphic;
-//        addContent(containingGraphic);
+        //        addContent(containingGraphic);
     }
 }
 
@@ -226,16 +227,16 @@ private void doExtractSubRegion(@NotNull final Collection<PhysicalContent> subCo
                                 @Nullable final GraphicContent graphic) {
     if (subContents.isEmpty()) {
         if (log.isInfoEnabled()) {
-            log.info("LOG00960:bound " + bound + " contains no content in " + this + ". wont " +
-                    "extract");
+            log.info("LOG00960:bound " + bound + " contains no content in " + this + ". wont "
+                    + "extract");
         }
         return;
     }
 
     if (subContents.size() == getContents().size()) {
         if (log.isInfoEnabled()) {
-            log.info("LOG00950:bound " + bound + " contains all content in " + this + ". wont " +
-                    "extract");
+            log.info("LOG00950:bound " + bound + " contains all content in " + this + ". wont "
+                    + "extract");
         }
         return;
     }

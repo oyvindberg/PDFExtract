@@ -24,7 +24,10 @@ import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.tree.*;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.Collections;
 import java.util.List;
 
@@ -37,14 +40,17 @@ import static org.elacin.pdfextract.geom.Sorting.sortStylesById;
  * Time: 17.14
  * To change this template use File | Settings | File Templates.
  */
-public class SimpleXMLOutput {
+public class SimpleXMLOutput implements XMLWriter {
 // ------------------------------ FIELDS ------------------------------
 
 private static final Logger log = Logger.getLogger(SimpleXMLOutput.class);
 
-// -------------------------- PUBLIC STATIC METHODS --------------------------
+// ------------------------ INTERFACE METHODS ------------------------
 
-public static void printTree(@NotNull final DocumentNode root, @NotNull final File output) {
+
+// --------------------- Interface XMLWriter ---------------------
+
+public void writeTree(@NotNull final DocumentNode root, @NotNull final File output) {
     /* write to file */
     log.info("LOG00110:Opening " + output + " for output");
 
@@ -56,19 +62,17 @@ public static void printTree(@NotNull final DocumentNode root, @NotNull final Fi
         throw new RuntimeException("Could not open output file", e);
     }
 
-    try {
-        writeDocument(out, root);
-    } catch (IOException e) {
-        e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
-    }
+    StringBuffer sb = new StringBuffer();
+    writeDocument(sb, root);
 
+    //    final String result = PrettyPrinter.prettyFormat(sb.toString());
+    out.print(sb);
     out.close();
 }
 
-// -------------------------- STATIC METHODS --------------------------
+// -------------------------- OTHER METHODS --------------------------
 
-private static void writeDocument(@NotNull final Appendable out,
-                                  DocumentNode root) throws IOException {
+private void writeDocument(@NotNull final StringBuffer out, DocumentNode root) {
     out.append("<document>\n");
 
     writeStyles(out, root.getStyles());
@@ -76,10 +80,10 @@ private static void writeDocument(@NotNull final Appendable out,
     for (PageNode node : root.getChildren()) {
         writePage(out, node);
     }
-    out.append("</document");
+    out.append("</document>");
 }
 
-private static void writeLine(@NotNull final Appendable out, LineNode line) throws IOException {
+private void writeLine(@NotNull final StringBuffer out, LineNode line) {
     if (Formulas.textSeemsToBeFormula(line.getChildren())) {
         out.append("<formula>");
         out.append(line.getText());
@@ -104,7 +108,7 @@ private static void writeLine(@NotNull final Appendable out, LineNode line) thro
     }
 }
 
-private static void writePage(Appendable out, PageNode page) throws IOException {
+private void writePage(StringBuffer out, PageNode page) {
     out.append("<page");
     out.append(" num=\"").append(Integer.toString(page.getPageNumber())).append("\"");
     if (Constants.VERBOSE_OUTPUT) {
@@ -119,8 +123,7 @@ private static void writePage(Appendable out, PageNode page) throws IOException 
     out.append("</page>\n");
 }
 
-private static void writeParagraph(@NotNull final Appendable out,
-                                   final ParagraphNode paragraph) throws IOException {
+private void writeParagraph(@NotNull final StringBuffer out, final ParagraphNode paragraph) {
     out.append("<paragraph");
 
     writeRectangle(out, paragraph.getPos());
@@ -133,14 +136,14 @@ private static void writeParagraph(@NotNull final Appendable out,
     out.append("</paragraph>\n");
 }
 
-private static void writeRectangle(Appendable sb, Rectangle pos) throws IOException {
+private void writeRectangle(StringBuffer sb, Rectangle pos) {
     sb.append(" x=\"").append(String.valueOf(pos.getX())).append("\"");
     sb.append(" y=\"").append(String.valueOf(pos.getY())).append("\"");
     sb.append(" w=\"").append(String.valueOf(pos.getWidth())).append("\"");
     sb.append(" h=\"").append(String.valueOf(pos.getHeight())).append("\"");
 }
 
-private static void writeRegion(Appendable out, LayoutRegionNode region) throws IOException {
+private void writeRegion(StringBuffer out, LayoutRegionNode region) {
     if (region.isPictureRegion()) {
         out.append("<graphic");
 
@@ -171,7 +174,7 @@ private static void writeRegion(Appendable out, LayoutRegionNode region) throws 
     }
 }
 
-private static void writeStyles(final Appendable out, List<Style> styles) throws IOException {
+private void writeStyles(final StringBuffer out, List<Style> styles) {
     out.append("<styles>\n");
 
     /* output the styles sorted by id */
@@ -196,7 +199,7 @@ private static void writeStyles(final Appendable out, List<Style> styles) throws
     out.append("</styles>\n");
 }
 
-private static void writeWord(@NotNull final Appendable out, WordNode word) throws IOException {
+private void writeWord(@NotNull final StringBuffer out, WordNode word) {
     out.append("<word");
     out.append(" value=\"").append(word.getText()).append("\"");
     out.append(" styleRef=\"").append(String.valueOf(word.getStyle().id)).append("\" ");

@@ -21,6 +21,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+import static org.elacin.pdfextract.Constants.RECTANGLE_COLLECTION_CACHE_ENABLED;
+
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Nov 2, 2010 Time: 1:20:36 AM To change this
  * template
@@ -29,7 +31,6 @@ import java.util.*;
 public class RectangleCollection extends PhysicalContent {
 // ------------------------------ FIELDS ------------------------------
 
-private static final boolean CACHE_ENABLED = true;
 
 @NotNull
 private final List<PhysicalContent> contents;
@@ -37,11 +38,9 @@ private final List<PhysicalContent> contents;
 /* calculating all the intersections while searching is expensive, so keep this cached.
 will be pruned on update */
 @NotNull
-private Map<Integer, List<PhysicalContent>> yCache = new HashMap<Integer,
-        List<PhysicalContent>>();
+private final Map<Integer, List<PhysicalContent>> yCache = new HashMap<Integer, List<PhysicalContent>>();
 @NotNull
-private Map<Integer, List<PhysicalContent>> xCache = new HashMap<Integer,
-        List<PhysicalContent>>();
+private final Map<Integer, List<PhysicalContent>> xCache = new HashMap<Integer, List<PhysicalContent>>();
 
 /**
  * if all the contents in this collection is contained within some content (say a figure with
@@ -90,9 +89,8 @@ public List<PhysicalContent> findContentAtXIndex(float x) {
 }
 
 public List<PhysicalContent> findContentAtXIndex(int x) {
-    if (!CACHE_ENABLED || !xCache.containsKey(x)) {
-        final Rectangle searchRectangle = new Rectangle((float) x, getPos().getY(), 1.0f,
-                getPos().getHeight());
+    if (!RECTANGLE_COLLECTION_CACHE_ENABLED || !xCache.containsKey(x)) {
+        final Rectangle searchRectangle = new Rectangle((float) x, getPos().getY(), 1.0f, getPos().getHeight());
         final List<PhysicalContent> result = findContentsIntersectingWith(searchRectangle);
         Collections.sort(result, Sorting.sortByLowerY);
 
@@ -107,9 +105,8 @@ public List<PhysicalContent> findContentAtYIndex(float y) {
 }
 
 public List<PhysicalContent> findContentAtYIndex(int y) {
-    if (!CACHE_ENABLED || !yCache.containsKey(y)) {
-        final Rectangle searchRectangle = new Rectangle(getPos().getX(), (float) y,
-                getPos().getWidth(), 1.0F);
+    if (!RECTANGLE_COLLECTION_CACHE_ENABLED || !yCache.containsKey(y)) {
+        final Rectangle searchRectangle = new Rectangle(getPos().getX(), (float) y, getPos().getWidth(), 1.0F);
         final List<PhysicalContent> result = findContentsIntersectingWith(searchRectangle);
         Collections.sort(result, Sorting.sortByLowerX);
         yCache.put(y, result);

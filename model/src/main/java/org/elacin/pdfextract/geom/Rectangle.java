@@ -186,8 +186,8 @@ public boolean containedBy(@NotNull Rectangle r) {
  * @return true if this rectangle contains the passed rectangle, false if it does not
  */
 public boolean contains(@NotNull HasPosition r) {
-    return endX >= r.getPos().endX && x <= r.getPos().x && endY
-            >= r.getPos().endY && y <= r.getPos().y;
+    return endX >= r.getPos().endX && x <= r.getPos().x && endY >= r.getPos().endY
+            && y <= r.getPos().y;
 }
 
 /**
@@ -246,8 +246,8 @@ public float distance(@NotNull Rectangle that) {
 
 @NotNull
 public Rectangle getAdjustedBy(float adjust) {
-    return new Rectangle(Math.max(0.1f, x - adjust), Math.max(0.1f, y - adjust),
-            Math.max(0.1f, width + 2 * adjust), Math.max(0.1f, height + 2 * adjust));
+    return new Rectangle(Math.max(0.1f, x - adjust), Math.max(0.1f, y - adjust), Math.max(0.1f,
+            width + 2 * adjust), Math.max(0.1f, height + 2 * adjust));
 }
 
 public float getMiddleX() {
@@ -337,4 +337,6 @@ public Rectangle union(@NotNull HasPosition that) {
     }
     return new Rectangle(x1, y1, x2 - x1, y2 - y1);
 }
+
+
 }

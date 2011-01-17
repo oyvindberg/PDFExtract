@@ -16,6 +16,10 @@
 
 package org.elacin.pdfextract.geom;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
+
 /**
  * Created by IntelliJ IDEA. User: elacin Date: May 7, 2010 Time: 5:54:30 AM To change this template
  * use File | Settings | File Templates.
@@ -61,5 +65,29 @@ public static float log(float a) {
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 public static float sqrt(float a) {
     return (float) StrictMath.sqrt((double) a);
+}
+
+@NotNull
+public static Rectangle findBounds(@NotNull final Collection<? extends HasPosition> contents) {
+    final Rectangle newPos;
+
+    if (contents.isEmpty()) {
+        //TODO: handle empty regions in a better way
+        newPos = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
+        //        throw new RuntimeException("no content!");
+    } else {
+        /* calculate bounds for this region */
+        float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
+        float maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE;
+
+        for (HasPosition content : contents) {
+            minX = Math.min(minX, content.getPos().getX());
+            minY = Math.min(minY, content.getPos().getY());
+            maxX = Math.max(maxX, content.getPos().getEndX());
+            maxY = Math.max(maxY, content.getPos().getEndY());
+        }
+        newPos = new Rectangle(minX, minY, maxX - minX, maxY - minY);
+    }
+    return newPos;
 }
 }

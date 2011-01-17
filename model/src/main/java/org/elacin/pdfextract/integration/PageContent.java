@@ -18,6 +18,7 @@ package org.elacin.pdfextract.integration;
 
 import org.elacin.pdfextract.content.GraphicContent;
 import org.elacin.pdfextract.content.PhysicalText;
+import org.elacin.pdfextract.geom.Rectangle;
 
 import java.util.List;
 
@@ -34,19 +35,28 @@ public class PageContent {
 final List<PhysicalText>   characters;
 final List<GraphicContent> graphics;
 final int                  pageNum;
+final Rectangle            dimensions;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public PageContent(List<PhysicalText> characters, List<GraphicContent> graphics, int pageNum) {
+public PageContent(List<PhysicalText> characters,
+                   List<GraphicContent> graphics,
+                   int pageNum,
+                   Rectangle dimensions) {
     this.characters = characters;
     this.graphics = graphics;
     this.pageNum = pageNum;
+    this.dimensions = dimensions;
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
 public List<PhysicalText> getCharacters() {
     return characters;
+}
+
+public Rectangle getDimensions() {
+    return dimensions;
 }
 
 public List<GraphicContent> getGraphics() {

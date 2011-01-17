@@ -18,7 +18,7 @@ package org.elacin.pdfextract.logical;
 
 import org.elacin.pdfextract.content.StyledText;
 import org.elacin.pdfextract.geom.HasPosition;
-import org.elacin.pdfextract.geom.TextUtils;
+import org.elacin.pdfextract.style.TextUtils;
 
 import java.util.Collection;
 
@@ -68,8 +68,7 @@ public static boolean textSeemsToBeFormula(Collection<? extends HasPosition> con
         }
         StyledText word = (StyledText) content;
 
-        if (word.getStyle().equals(GRAPHIC_MATH_BAR) || word.getStyle().equals(GRAPHIC_CHARACTER)
-                ) {
+        if (word.getStyle().equals(GRAPHIC_MATH_BAR) || word.getStyle().equals(GRAPHIC_CHARACTER)) {
             containedGraphics++;
             continue;
         }

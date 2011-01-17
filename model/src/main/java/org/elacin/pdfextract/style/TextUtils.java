@@ -14,11 +14,11 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.geom;
+package org.elacin.pdfextract.style;
 
 
 import org.elacin.pdfextract.content.StyledText;
-import org.elacin.pdfextract.style.Style;
+import org.elacin.pdfextract.geom.HasPosition;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -33,37 +33,11 @@ public class TextUtils {
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
 @NotNull
-public static Rectangle findBounds(@NotNull final Collection<? extends HasPosition> contents) {
-    final Rectangle newPos;
-
-    if (contents.isEmpty()) {
-        //TODO: handle empty regions in a better way
-        newPos = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
-//        throw new RuntimeException("no content!");
-    } else {
-        /* calculate bounds for this region */
-        float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
-        float maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE;
-
-        for (HasPosition content : contents) {
-            minX = Math.min(minX, content.getPos().getX());
-            minY = Math.min(minY, content.getPos().getY());
-            maxX = Math.max(maxX, content.getPos().getEndX());
-            maxY = Math.max(maxY, content.getPos().getEndY());
-        }
-        newPos = new Rectangle(minX, minY, maxX - minX, maxY - minY);
-    }
-    return newPos;
-}
-
-@NotNull
-public static Style findDominatingStyle(@NotNull final Collection<? extends HasPosition>
-                                                contents) {
+public static Style findDominatingStyle(@NotNull final Collection<? extends HasPosition> contents) {
     if (!listContainsStyledText(contents)) {
         return Style.NO_STYLE;
     }
 
-    boolean textFound = false;
     Map<Style, Integer> letterCountPerStyle = new HashMap<Style, Integer>(10);
     for (HasPosition content : contents) {
         if (!(content instanceof StyledText)) {
@@ -77,10 +51,7 @@ public static Style findDominatingStyle(@NotNull final Collection<? extends HasP
         }
         final int numChars = text.getText().length();
         letterCountPerStyle.put(style, letterCountPerStyle.get(style) + numChars);
-        textFound = true;
     }
-
-    assert textFound;
 
     int highestNumChars = -1;
     Style style = null;
@@ -93,8 +64,7 @@ public static Style findDominatingStyle(@NotNull final Collection<? extends HasP
     return style;
 }
 
-public static boolean listContainsStyledText(@NotNull final Collection<? extends HasPosition>
-                                                     list) {
+public static boolean listContainsStyledText(@NotNull final Collection<? extends HasPosition> list) {
     for (HasPosition content : list) {
         if (content instanceof StyledText) {
             return true;
@@ -103,12 +73,4 @@ public static boolean listContainsStyledText(@NotNull final Collection<? extends
     return false;
 }
 
-public static boolean stringContainsAnyCharacterOf(String string, String chars) {
-    for (int i = 0; i < string.length(); i++) {
-        if (chars.indexOf(string.charAt(i)) != -1) {
-            return true;
-        }
-    }
-    return false;
-}
 }

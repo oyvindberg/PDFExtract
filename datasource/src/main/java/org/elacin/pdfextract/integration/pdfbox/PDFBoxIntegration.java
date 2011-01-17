@@ -149,8 +149,8 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
          */
 
     final float fontSizeText = getGraphicsState().getTextState().getFontSize();
-    final float horizontalScalingText = getGraphicsState().getTextState()
-            .getHorizontalScalingPercent() / 100f;
+    final float horizontalScalingText =
+            getGraphicsState().getTextState().getHorizontalScalingPercent() / 100f;
     //float verticalScalingText = horizontalScaling;//not sure if this is right but what else to
     // do???
     final float riseText = getGraphicsState().getTextState().getRise();
@@ -239,12 +239,11 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
         float characterHorizontalDisplacementText = (fontWidth / glyphSpaceToTextSpaceFactor);
 
         maxVerticalDisplacementText = Math.max(maxVerticalDisplacementText,
-                font.getFontHeight(string, i, codeLength)
-                        / glyphSpaceToTextSpaceFactor);
+                font.getFontHeight(string, i, codeLength) / glyphSpaceToTextSpaceFactor);
 
         if (maxVerticalDisplacementText <= 0.0f) {
-            maxVerticalDisplacementText = font.getFontBoundingBox().getHeight() /
-                    glyphSpaceToTextSpaceFactor;
+            maxVerticalDisplacementText =
+                    font.getFontBoundingBox().getHeight() / glyphSpaceToTextSpaceFactor;
         }
         /**
          PDF Spec - 5.5.2 Word Spacing
@@ -280,8 +279,7 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
         float adjustment = 0.0F;
         // TODO : tx should be set for horizontal text and ty for vertical text
         // which seems to be specified in the font (not the direction in the matrix).
-        float tx = ((characterHorizontalDisplacementText - adjustment /
-                glyphSpaceToTextSpaceFactor)
+        float tx = ((characterHorizontalDisplacementText - adjustment / glyphSpaceToTextSpaceFactor)
                 * fontSizeText) * horizontalScalingText;
         float ty = 0.0F;
 
@@ -308,23 +306,15 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
 
         textMatrixEndDisp = glyphMatrixEndDisp;
 
-        float totalVerticalDisplacementDisp = maxVerticalDisplacementText * fontSizeText
-                * yScaleDisp;
+        float totalVerticalDisplacementDisp =
+                maxVerticalDisplacementText * fontSizeText * yScaleDisp;
 
 
         try {
-            final ETextPosition text = new ETextPosition(page, textMatrixStDisp,
-                    textMatrixEndDisp,
-                    totalVerticalDisplacementDisp,
-                    new float[]{widthText}, spaceWidthDisp,
-                    characterBuffer.toString(), font,
-                    fontSizeText,
-                    (int) (fontSizeText * getTextMatrix()
-                            .getXScale()), wordSpacingDisp);
+            final ETextPosition text = new ETextPosition(page, textMatrixStDisp, textMatrixEndDisp, totalVerticalDisplacementDisp, new float[]{widthText}, spaceWidthDisp, characterBuffer.toString(), font, fontSizeText, (int) (
+                    fontSizeText * getTextMatrix().getXScale()), wordSpacingDisp);
 
-            correctPosition(font, string, i, c, fontSizeText, glyphSpaceToTextSpaceFactor,
-                    horizontalScalingText, codeLength,
-                    text);
+            correctPosition(font, string, i, c, fontSizeText, glyphSpaceToTextSpaceFactor, horizontalScalingText, codeLength, text);
 
             processTextPosition(text);
         } catch (Exception e) {
@@ -365,8 +355,7 @@ protected void processTextPosition(@NotNull TextPosition text_) {
         return;
     }
 
-    java.awt.Rectangle javapos = new java.awt.Rectangle((int) text.getPos().getX(),
-            (int) text.getPos().getY(), (int) text.getPos().getWidth(), (int) text.getPos().getHeight());
+    java.awt.Rectangle javapos = new java.awt.Rectangle((int) text.getPos().getX(), (int) text.getPos().getY(), (int) text.getPos().getWidth(), (int) text.getPos().getHeight());
     if (!getGraphicsState().getCurrentClippingPath().intersects(javapos)) {
         if (log.isDebugEnabled()) {
             log.debug("LOG01090:Dropping text \"" + text.getCharacter() + "\" because it "
@@ -469,10 +458,14 @@ public void processDocument() throws IOException {
 
 // -------------------------- OTHER METHODS --------------------------
 
-private void correctPosition(final PDFont fontObj, final byte[] string,
-                             final int i, final String c, final float fontSizeText,
+private void correctPosition(final PDFont fontObj,
+                             final byte[] string,
+                             final int i,
+                             final String c,
+                             final float fontSizeText,
                              final float glyphSpaceToTextSpaceFactor,
-                             float horizontalScalingText, final int codeLength,
+                             float horizontalScalingText,
+                             final int codeLength,
                              final ETextPosition text) throws IOException { /**
  * Provide precise positioning of glyphs.
  *
@@ -514,8 +507,8 @@ private void correctPosition(final PDFont fontObj, final byte[] string,
 
         final float fontHeight = fontBB.getHeight();
 
-        final float beforeRoomForGlyph = pos.getEndY() - adjust * Math.max(fontHeight,
-                pos.getHeight());
+        final float beforeRoomForGlyph =
+                pos.getEndY() - adjust * Math.max(fontHeight, pos.getHeight());
 
         /* calculate the upper left corner of the rendered glyph */
         float yStart = beforeRoomForGlyph;
@@ -728,7 +721,10 @@ protected void processPage(@NotNull PDPage page, COSStream content) throws IOExc
             texts.add(tp.convertText(fonts));
         }
 
-        PageContent thisPage = new PageContent(texts, graphicsDrawer.getGraphicContents(), currentPageNo);
+        final PDRectangle mediaBox = page.findMediaBox();
+        Rectangle dimensions = new Rectangle(mediaBox.getLowerLeftX(), mediaBox.getLowerLeftY(), mediaBox.getWidth(), mediaBox.getHeight());
+
+        PageContent thisPage = new PageContent(texts, graphicsDrawer.getGraphicContents(), currentPageNo, dimensions);
         docContent.addPage(thisPage);
 
         MDC.remove("page");

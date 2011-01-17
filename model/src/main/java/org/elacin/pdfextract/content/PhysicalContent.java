@@ -17,8 +17,8 @@
 package org.elacin.pdfextract.content;
 
 import org.elacin.pdfextract.geom.HasPosition;
+import org.elacin.pdfextract.geom.MathUtils;
 import org.elacin.pdfextract.geom.Rectangle;
-import org.elacin.pdfextract.geom.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -141,6 +141,6 @@ public boolean isWhitespace() {
 
 protected final void setPositionFromContentList(@NotNull final Collection<? extends
         PhysicalContent> contents) {
-    pos = TextUtils.findBounds(contents);
+    pos = MathUtils.findBounds(contents);
 }
 }

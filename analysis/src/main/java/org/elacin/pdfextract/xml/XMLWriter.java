@@ -14,16 +14,20 @@
  * limitations under the License.
  */
 
-package org.elacin.pdfextract.tree;
+package org.elacin.pdfextract.xml;
 
-import java.io.IOException;
+import org.elacin.pdfextract.tree.DocumentNode;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.File;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: 17.11.10 Time: 12.10 To change this template use
- * File | Settings | File Templates.
+ * Created by IntelliJ IDEA.
+ * User: elacin
+ * Date: 16.01.11
+ * Time: 23.41
+ * To change this template use File | Settings | File Templates.
  */
-public interface XmlPrinter {
-// -------------------------- PUBLIC METHODS --------------------------
-
-void writeXmlRepresentation(Appendable sb, int indent, final boolean verbose) throws IOException;
+public interface XMLWriter {
+void writeTree(@NotNull DocumentNode root, @NotNull File output);
 }

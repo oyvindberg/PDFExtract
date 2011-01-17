@@ -1,4 +1,4 @@
-/*
+package org.elacin.pdfextract.xml;/*
  * Copyright 2010 Øyvind Berg (elacin@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,10 +19,12 @@ import org.elacin.pdfextract.teischema.*;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.LayoutRegionNode;
 import org.elacin.pdfextract.tree.PageNode;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
@@ -33,14 +35,17 @@ import java.io.FileOutputStream;
  * Time: 17.02
  * To change this template use File | Settings | File Templates.
  */
-public class XMLOutput {
+public class TEIOutput implements XMLWriter {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger log = Logger.getLogger(XMLOutput.class);
+private static final Logger log = Logger.getLogger(TEIOutput.class);
 
-// -------------------------- PUBLIC STATIC METHODS --------------------------
+// ------------------------ INTERFACE METHODS ------------------------
 
-public static void printTree(DocumentNode root, java.lang.String filename) {
+
+// --------------------- Interface XMLWriter ---------------------
+
+public void writeTree(@NotNull DocumentNode root, File destination) {
     ObjectFactory of = new ObjectFactory();
     final TEI tei = of.createTEI();
 
@@ -58,7 +63,7 @@ public static void printTree(DocumentNode root, java.lang.String filename) {
         JAXBContext jaxbContext = JAXBContext.newInstance("org.elacin.pdfextract.teischema");
         Marshaller marshaller = jaxbContext.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-        marshaller.marshal(tei, new FileOutputStream(filename));
+        marshaller.marshal(tei, new FileOutputStream(destination));
     } catch (JAXBException e) {
         log.warn("LOG01140:", e);
     } catch (FileNotFoundException e) {
@@ -66,9 +71,9 @@ public static void printTree(DocumentNode root, java.lang.String filename) {
     }
 }
 
-// -------------------------- STATIC METHODS --------------------------
+// -------------------------- OTHER METHODS --------------------------
 
-private static void addAbstract(ObjectFactory of, Front front) {
+private void addAbstract(ObjectFactory of, Front front) {
     final Div div = of.createDiv();
     div.setType("abs");
 
@@ -88,7 +93,7 @@ private static void addAbstract(ObjectFactory of, Front front) {
     front.getSetsAndProloguesAndEpilogues().add(div);
 }
 
-private static void addBack(DocumentNode root, ObjectFactory of, Text text) {
+private void addBack(DocumentNode root, ObjectFactory of, Text text) {
     final Back back = of.createBack();
 
     /* references goes here */
@@ -96,7 +101,7 @@ private static void addBack(DocumentNode root, ObjectFactory of, Text text) {
     text.getIndicesAndSpenAndSpanGrps().add(back);
 }
 
-private static void addBody(DocumentNode root, ObjectFactory of, Text text) {
+private void addBody(DocumentNode root, ObjectFactory of, Text text) {
     final Body body = of.createBody();
 
     /* add content here */
@@ -109,14 +114,14 @@ private static void addBody(DocumentNode root, ObjectFactory of, Text text) {
     text.getIndicesAndSpenAndSpanGrps().add(body);
 }
 
-private static void addFront(DocumentNode root, ObjectFactory of, Text text) {
+private void addFront(DocumentNode root, ObjectFactory of, Text text) {
     final Front front = of.createFront();
 
     addAbstract(of, front);
     text.getIndicesAndSpenAndSpanGrps().add(front);
 }
 
-private static void addHeader(DocumentNode root, ObjectFactory of, TEI tei) {
+private void addHeader(DocumentNode root, ObjectFactory of, TEI tei) {
     final TeiHeader header = of.createTeiHeader();
     final FileDesc fileDesc = of.createFileDesc();
 

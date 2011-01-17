@@ -43,9 +43,10 @@ public class PDFBoxSource implements PDFSource {
 private static final Logger log = Logger.getLogger(PDFBoxSource.class);
 
 @NotNull
-private final PDDocument doc;
-private final int        startPage;
-private final int        endPage;
+private final PDDocument      doc;
+private final int             startPage;
+private final int             endPage;
+private       DocumentContent contents;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -62,25 +63,30 @@ public PDFBoxSource(File pdfDocument, int startPage, int endPage, String passwor
 
 @NotNull
 public DocumentContent readPages() {
+    if (contents != null) {
+        return contents;
+    }
+
     final long t0 = System.currentTimeMillis();
 
     PDFBoxIntegration stripper;
     try {
         stripper = new PDFBoxIntegration(doc, startPage, endPage);
         stripper.processDocument();
-        doc.close();
     } catch (IOException e) {
         throw new RuntimeException("Error while reading document", e);
     }
 
     final long td = System.currentTimeMillis() - t0;
     log.info("LOG01190:Read document in " + td + " ms");
-    return stripper.getContents();
+    contents = stripper.getContents();
+    return contents;
 }
 
 @Nullable
 public RenderedPage renderPage(int pageNum) {
     final PDPage page = (PDPage) doc.getDocumentCatalog().getAllPages().get(pageNum - 1);
+
 
     final BufferedImage image;
     try {
@@ -96,13 +102,12 @@ public RenderedPage renderPage(int pageNum) {
 }
 
 public void closeSource() {
-    if (doc != null) {
-        try {
-            doc.close();
-        } catch (IOException e) {
-            log.warn("LOG01250:Error while closing PDF document", e);
-        }
+    try {
+        doc.close();
+    } catch (IOException e) {
+        log.warn("LOG01250:Error while closing PDF document", e);
     }
+
 }
 
 // -------------------------- STATIC METHODS --------------------------

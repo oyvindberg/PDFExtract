@@ -47,11 +47,11 @@ public BufferedImage getRendering() {
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-public float getxScale() {
+public float getXScale() {
     return xScale;
 }
 
-public float getyScale() {
+public float getYScale() {
     return yScale;
 }
 }
