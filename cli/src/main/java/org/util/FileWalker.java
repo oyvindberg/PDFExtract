@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.util;
+package org.util;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

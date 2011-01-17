@@ -26,7 +26,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <name>PDFExtract: PDFBox data source</name>
-    <artifactId>datasource</artifactId>
+    <artifactId>datasource-pdfbox</artifactId>
     <version>${minversion}</version>
 
     <dependencies>

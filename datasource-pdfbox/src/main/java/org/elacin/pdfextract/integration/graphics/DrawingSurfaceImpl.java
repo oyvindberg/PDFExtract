@@ -234,8 +234,8 @@ private static void combineGraphics(@NotNull final List<GraphicContent> list) {
                 list.remove(i);
 
                 /* then add the new graphic */
-                list.add(new GraphicContent(new Rectangle(minX, minY, maxX - minX, maxY - minY),
-                        current.isPicture(), c));
+                list.add(new GraphicContent(new Rectangle(minX, minY,
+                        maxX - minX, maxY - minY), current.isPicture(), c));
                 i = -1; // start over
                 break;
             }
@@ -250,8 +250,7 @@ private static void combineGraphics(@NotNull final List<GraphicContent> list) {
 
 @NotNull
 private static Rectangle convertRectangle(@NotNull final java.awt.Rectangle bounds) {
-    return new Rectangle((float) bounds.x, (float) bounds.y, (float) bounds.width,
-            (float) bounds.height);
+    return new Rectangle((float) bounds.x, (float) bounds.y, (float) bounds.width, (float) bounds.height);
 }
 
 // -------------------------- OTHER METHODS --------------------------
@@ -260,9 +259,9 @@ private void addVectorPath(GeneralPath originalPath, Color color, Shape clipping
     if (color.equals(Color.WHITE)) {
         return;
     }
-//    if (!clippingPath.contains(originalPath.getBounds())) {
-//        return;
-//    }
+    //    if (!clippingPath.contains(originalPath.getBounds())) {
+    //        return;
+    //    }
 
     java.util.List<GeneralPath> paths = PathSplitter.splitPath(originalPath);
 

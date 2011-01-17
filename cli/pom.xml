@@ -33,7 +33,7 @@
 
         <dependency>
             <groupId>org.elacin</groupId>
-            <artifactId>datasource</artifactId>
+            <artifactId>datasource-pdfbox</artifactId>
             <version>${minversion}</version>
         </dependency>
 

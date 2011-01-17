@@ -21,8 +21,8 @@ import org.apache.log4j.MDC;
 import org.elacin.pdfextract.content.PhysicalText;
 import org.elacin.pdfextract.geom.Sorting;
 import org.elacin.pdfextract.style.Style;
-import org.elacin.pdfextract.util.FileWalker;
 import org.testng.annotations.Test;
+import org.util.FileWalker;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -45,8 +45,7 @@ private static final Logger log = Logger.getLogger(TestSpacing2.class);
 
 private static float[] parseDistancesString(final String s, final List<Float> distances) {
     String distancesString = s.trim().substring(1, s.length() - 2);
-    for (StringTokenizer tokenizer = new StringTokenizer(distancesString, ", "); tokenizer
-            .hasMoreTokens();) {
+    for (StringTokenizer tokenizer = new StringTokenizer(distancesString, ", "); tokenizer.hasMoreTokens();) {
         distances.add(Float.valueOf(tokenizer.nextToken()));
     }
 
@@ -61,8 +60,7 @@ private static float[] parseDistancesString(final String s, final List<Float> di
 
 @Test
 public void testSpacings() throws IOException {
-    final List<File> files = FileWalker.getFileListing(new File("target/test-classes/spacings"),
-            ".spacing");
+    final List<File> files = FileWalker.getFileListing(new File("target/test-classes/spacings"), ".spacing");
 
     int correct = 0, total = 0;
     for (File file : files) {
@@ -157,8 +155,7 @@ private boolean processInput(final String[] input) {
         final char c = base.charAt(i);
         float distance = i == 0 ? 0.0f : distancesArray[i - 1];
         currentX += distance;
-        line.add(new PhysicalText(new String(new char[]{c}), style, currentX, 0.0f, width, 1.0f,
-                0.0f));
+        line.add(new PhysicalText(new String(new char[]{c}), style, currentX, 0.0f, width, 1.0f, 0.0f));
         currentX += width;
     }
     Collections.sort(line, Sorting.sortByLowerX);
@@ -172,13 +169,13 @@ private boolean processInput(final String[] input) {
     sb.setLength(sb.length() - 1);
     String result = sb.toString();
 
-//    final String result = findResult(base, fontSize, distances, distancesArray);
-//
-//    final boolean equals = answer.equals(result);
+    //    final String result = findResult(base, fontSize, distances, distancesArray);
+    //
+    //    final boolean equals = answer.equals(result);
 
     if (!equals) {
         log.warn("wrong result: got '" + result + "', expected: '" + answer + "'");
-//        findResult(base, fontSize, distances, distancesArray);
+        //        findResult(base, fontSize, distances, distancesArray);
     }
 
     return equals;

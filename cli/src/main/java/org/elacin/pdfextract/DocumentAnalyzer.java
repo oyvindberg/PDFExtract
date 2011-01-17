@@ -53,9 +53,9 @@ private static final Logger          log             = Logger.getLogger(Document
 
 
 public final DocumentNode root = new DocumentNode();
+public final  File      pdfFile;
 private final PDFSource source;
 private final File      destination;
-public final  File      pdfFile;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -70,6 +70,17 @@ public DocumentAnalyzer(File pdfFile,
 }
 
 // -------------------------- STATIC METHODS --------------------------
+
+private static File getOutputFile(File destination, File baseFile, String extension) {
+    final File output;
+    if (destination.isDirectory()) {
+        output = new File(destination, baseFile.getName().replace(".pdf", extension));
+    } else {
+        output = new File(destination.getAbsolutePath().replace(".pdf", extension));
+    }
+
+    return output;
+}
 
 static void renderPDF(PDFSource source, DocumentNode root, File destination) {
     long t0 = System.currentTimeMillis();
@@ -102,6 +113,8 @@ public void processFile() throws IOException {
 
     final long t0 = System.currentTimeMillis();
 
+    root.getStyles().addAll(content.getStyles());
+
     for (PageContent inputPage : content.getPages()) {
         MDC.put("page", inputPage.getPageNum());
 
@@ -123,35 +136,25 @@ public void processFile() throws IOException {
 
         root.addChild(pageNode);
     }
-    root.getStyles().addAll(content.getStyles());
+
 
     MDC.remove("page");
 
-    if (Constants.SIMPLE_OUTPUT_ENABLED) {
-        new SimpleXMLOutput().writeTree(root, getOutputFile(SIMPLE_OUTPUT_EXTENSION));
+    if (SIMPLE_OUTPUT_ENABLED) {
+        new SimpleXMLOutput().writeTree(root, getOutputFile(destination, pdfFile, SIMPLE_OUTPUT_EXTENSION));
     }
-    if (Constants.TEI_OUTPUT_ENABLED) {
-        new TEIOutput().writeTree(root, getOutputFile(TEI_OUTPUT_EXTENSION));
+    if (TEI_OUTPUT_ENABLED) {
+        new TEIOutput().writeTree(root, getOutputFile(destination, pdfFile, TEI_OUTPUT_EXTENSION));
     }
 
 
     final long td = System.currentTimeMillis() - t0;
     log.info("Analyzed " + content.getPages().size() + " pages in " + td + "ms");
 
-    if (Constants.RENDER_ENABLED) {
-        renderPDF(source, root, getOutputFile(".%.png"));
+    if (RENDER_ENABLED) {
+        renderPDF(source, root, getOutputFile(destination, pdfFile, ".%.png"));
     }
+
     source.closeSource();
-}
-
-private File getOutputFile(String extension) {
-    final File output;
-    if (destination.isDirectory()) {
-        output = new File(destination, pdfFile.getName().replace(".pdf", extension));
-    } else {
-        output = new File(destination.getAbsolutePath().replace(".pdf", extension));
-    }
-
-    return output;
 }
 }

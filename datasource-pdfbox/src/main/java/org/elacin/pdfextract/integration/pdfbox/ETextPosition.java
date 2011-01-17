@@ -27,8 +27,6 @@ import org.elacin.pdfextract.geom.HasPosition;
 import org.elacin.pdfextract.geom.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
-import java.text.Normalizer;
-
 /**
  * This represents a string and a position on the screen of those characters.
  *
@@ -56,8 +54,7 @@ public ETextPosition(final PDPage page,
                      final float fontSizeValue,
                      final int fontSizeInPt,
                      final float ws) {
-    super(page, textPositionSt, textPositionEnd, maxFontH, individualWidths, spaceWidth, string,
-            currentFont, fontSizeValue, fontSizeInPt, ws);
+    super(page, textPositionSt, textPositionEnd, maxFontH, individualWidths, spaceWidth, string, currentFont, fontSizeValue, fontSizeInPt, ws);
 
     float x = getXDirAdj();
     float y = getYDirAdj();
@@ -73,16 +70,14 @@ public ETextPosition(final PDPage page,
         h *= 1.5;
 
         if (log.isDebugEnabled()) {
-            log.debug(String.format("LOG00630:Guessing height of text %s at (%s,%s). height = %f",
-                    string, x, y, h));
+            log.debug(String.format("LOG00630:Guessing height of text %s at (%s,%s). height = %f", string, x, y, h));
         }
     }
 
     if (w <= 0.0f) {
         w = getHeight() / 2.0f;
         if (log.isDebugEnabled()) {
-            log.debug(String.format("LOG00630:Guessing width of text %s at (%s,%s). height = %f",
-                    string, x, y, w));
+            log.debug(String.format("LOG00630:Guessing width of text %s at (%s,%s). height = %f", string, x, y, w));
         }
     }
 
@@ -116,6 +111,7 @@ public void setPos(@NotNull final Rectangle pos) {
 // -------------------------- PUBLIC METHODS --------------------------
 
 public PhysicalText convertText(final Fonts styles) {
-    return new PhysicalText(Normalizer.normalize(getCharacter(), Normalizer.Form.NFKD), styles.getStyleForTextPosition(this), pos, baseLine);
+    //    final String normalizedText = Normalizer.normalize(getCharacter(), Normalizer.Form.NFKD);
+    return new PhysicalText(getCharacter(), styles.getStyleForTextPosition(this), pos, baseLine);
 }
 }
