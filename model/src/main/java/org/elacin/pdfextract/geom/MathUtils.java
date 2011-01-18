@@ -16,6 +16,7 @@
 
 package org.elacin.pdfextract.geom;
 
+import org.elacin.pdfextract.content.WhitespaceRectangle;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -71,23 +72,28 @@ public static float sqrt(float a) {
 public static Rectangle findBounds(@NotNull final Collection<? extends HasPosition> contents) {
     final Rectangle newPos;
 
-    if (contents.isEmpty()) {
-        //TODO: handle empty regions in a better way
-        newPos = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
-        //        throw new RuntimeException("no content!");
-    } else {
-        /* calculate bounds for this region */
-        float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
-        float maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE;
+    /* calculate bounds for this region */
+    float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
+    float maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE;
 
-        for (HasPosition content : contents) {
-            minX = Math.min(minX, content.getPos().getX());
-            minY = Math.min(minY, content.getPos().getY());
-            maxX = Math.max(maxX, content.getPos().getEndX());
-            maxY = Math.max(maxY, content.getPos().getEndY());
+    int counted = 0;
+    for (HasPosition content : contents) {
+        //TODO: this really doesnt belong here
+        if (content instanceof WhitespaceRectangle) {
+            continue;
         }
+        minX = Math.min(minX, content.getPos().getX());
+        minY = Math.min(minY, content.getPos().getY());
+        maxX = Math.max(maxX, content.getPos().getEndX());
+        maxY = Math.max(maxY, content.getPos().getEndY());
+        counted++;
+    }
+    if (counted == 0) {
+        newPos = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
+    } else {
         newPos = new Rectangle(minX, minY, maxX - minX, maxY - minY);
     }
+
     return newPos;
 }
 }

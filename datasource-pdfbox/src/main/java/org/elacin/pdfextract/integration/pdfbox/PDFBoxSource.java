@@ -47,10 +47,12 @@ private final PDDocument      doc;
 private final int             startPage;
 private final int             endPage;
 private       DocumentContent contents;
+public final  File            pdfDocument;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public PDFBoxSource(File pdfDocument, int startPage, int endPage, String password) {
+    this.pdfDocument = pdfDocument;
     this.startPage = startPage;
     this.endPage = endPage;
     doc = openPdfDocument(pdfDocument, password);
@@ -68,7 +70,6 @@ public DocumentContent readPages() {
     }
 
     final long t0 = System.currentTimeMillis();
-
     PDFBoxIntegration stripper;
     try {
         stripper = new PDFBoxIntegration(doc, startPage, endPage);

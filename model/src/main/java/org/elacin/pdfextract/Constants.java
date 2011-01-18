@@ -38,6 +38,7 @@ public static final boolean RENDER_ENABLED    = true;
 public static final boolean RENDER_REAL_PAGE  = false;
 public static final int     RENDER_RESOLUTION = 150;
 public static final int     RENDER_DPI        = 72;
+public static final boolean RENDER_WHITESPACE = true;
 
 /* output */
 

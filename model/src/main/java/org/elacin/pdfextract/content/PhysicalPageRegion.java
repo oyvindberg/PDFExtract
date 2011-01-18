@@ -45,6 +45,7 @@ private transient boolean fontInfoFound;
 private transient float   _avgFontSizeX;
 private transient float   _avgFontSizeY;
 private transient Style   _mostCommonStyle;
+private transient float   _shortestText;
 private transient boolean _posSet = false;
 
 
@@ -61,6 +62,7 @@ private final List<PhysicalPageRegion> subregions = new ArrayList<PhysicalPageRe
 private final List<WhitespaceRectangle> whitespace = new ArrayList<WhitespaceRectangle>();
 
 private GraphicContent containingGraphic;
+;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -191,7 +193,13 @@ public float getMinimumColumnSpacing() {
 }
 
 public float getMinimumRowSpacing() {
+    if (!fontInfoFound) {
+        findAndSetFontInformation();
+    }
+
     return getMedianOfVerticalDistances();//* 0.8f;
+    //    return _shortestText * 1.2f;
+    //
 }
 
 public Style getMostCommonStyle() {
@@ -266,6 +274,7 @@ private void doExtractSubRegion(@NotNull final Collection<PhysicalContent> subCo
 protected void findAndSetFontInformation() {
     float xFontSizeSum = 0.0f, yFontSizeSum = 0.0f;
     int numCharsFound = 0;
+    float shortestText = Float.MAX_VALUE;
     for (PhysicalContent content : getContents()) {
         if (content.isText()) {
             final Style style = content.getPhysicalText().getStyle();
@@ -274,16 +283,19 @@ protected void findAndSetFontInformation() {
             xFontSizeSum += (float) (style.xSize * length);
             yFontSizeSum += (float) (style.ySize * length);
             numCharsFound += length;
+            shortestText = Math.min(shortestText, content.getPos().getHeight());
         }
     }
     if (numCharsFound == 0) {
         _avgFontSizeX = Float.MIN_VALUE;
         _avgFontSizeY = Float.MIN_VALUE;
         _mostCommonStyle = null;
+        _shortestText = 0.0f;
     } else {
         _avgFontSizeX = xFontSizeSum / (float) numCharsFound;
         _avgFontSizeY = yFontSizeSum / (float) numCharsFound;
         _mostCommonStyle = TextUtils.findDominatingStyle(getContents());
+        _shortestText = shortestText;
     }
     fontInfoFound = true;
 }

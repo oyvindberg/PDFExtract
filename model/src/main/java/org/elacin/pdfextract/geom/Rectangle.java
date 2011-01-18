@@ -224,7 +224,8 @@ public float distance(@NotNull final FloatPoint p) {
  * @param that another rectangle
  * @return the distance
  */
-public float distance(@NotNull Rectangle that) {
+public float distance(@NotNull HasPosition that_) {
+    final Rectangle that = that_.getPos();
     if (intersectsWith(that)) {
         return 0.0f;
     }

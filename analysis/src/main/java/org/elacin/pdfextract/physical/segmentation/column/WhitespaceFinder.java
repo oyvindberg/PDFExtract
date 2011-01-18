@@ -51,13 +51,19 @@ protected boolean acceptsRectangle(WhitespaceRectangle newWhitespace) {
     final List<PhysicalContent> surroundings = region.findSurrounding(newWhitespace, 4);
     if (!surroundings.isEmpty()) {
         float averageHeight = 0.0f;
+        int counted = 0;
         for (PhysicalContent surrounding : surroundings) {
-            averageHeight += surrounding.getPos().getHeight();
+            if (surrounding.isText()) {
+                averageHeight += surrounding.getPos().getHeight();
+                counted++;
+            }
         }
-        averageHeight /= (float) surroundings.size();
+        if (counted != 0) {
+            averageHeight /= (float) counted;
 
-        if (averageHeight * 0.8f > newWhitespace.getPos().getHeight()) {
-            return false;
+            if (averageHeight * 1.1f > newWhitespace.getPos().getHeight()) {
+                return false;
+            }
         }
     }
 
@@ -103,15 +109,15 @@ protected float rectangleQuality(Rectangle r) {
     final Rectangle pos = r.getPos();
 
     final float temp = Math.abs(
-            MathUtils.log(pos.getHeight() / pos.getWidth()) / MathUtils.log(2.0f));
+            MathUtils.log(pos.getWidth() / pos.getHeight()) / MathUtils.log(2.0f));
 
     final float weight;
-    if (temp < 3) {
+    if (temp < 1.5f) {
         weight = 0.5f;
-    } else if (temp >= 3 && temp <= 5) {
+    } else if (temp >= 2 && temp <= 3) {
         weight = 2.5f;
-    } else if (temp > 5) {
-        weight = 1.0f;
+    } else if (temp > 3) {
+        weight = 8.0f;
     } else {
         weight = 0.1f;
     }

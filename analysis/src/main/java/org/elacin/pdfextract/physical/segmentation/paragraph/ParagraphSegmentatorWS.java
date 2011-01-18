@@ -63,14 +63,14 @@ private static List<Integer> findLineBoundaries(int[] counts) {
     lineBoundaries.add(0);
     boolean hasFoundText = false;
     for (int i = 0; i < counts.length; i++) {
-        if (hasFoundText && counts[i] == 0) {
+        if (hasFoundText && counts[i] < 3) {
             boolean isBoundary = true;
-//            for (int j = i +1; j < i +3 && j < counts.length; j++){
-//                if (counts[j] != 0){
-//                    isBoundary = false;
-//                    break;
-//                }
-//            }
+            //            for (int j = i +1; j < i +3 && j < counts.length; j++){
+            //                if (counts[j] != 0){
+            //                    isBoundary = false;
+            //                    break;
+            //                }
+            //            }
             if (isBoundary) {
                 lineBoundaries.add(i + 1);
                 hasFoundText = false;
@@ -111,28 +111,28 @@ public List<ParagraphNode> createParagraphNodes() {
     for (int blockNum = 0; blockNum < blockContents.size(); blockNum++) {
         List<PhysicalContent> block = blockContents.get(blockNum);
 
-//        /* if the block contains graphics, separate it out as a separate region instead*/
-//        boolean graphics = false;
-//        for (PhysicalContent content : block) {
-//            if (content.isGraphicButNotSeparator()){
-//                graphics = true;
-//                break;
-//            }
-//        }
-//
-//        if (region.getContainingGraphic() == null && graphics){
-//            final Rectangle bounds = TextUtils.findBounds(block);
-//            for (Iterator<PhysicalContent> iterator = block.iterator(); iterator.hasNext();) {
-//                PhysicalContent content = iterator.next();
-//                content.getAssignable().setBlockNum(AssignablePhysicalContent.BLOCK_NOT_ASSIGNED);
-//                if (content.isGraphicButNotSeparator()) {
-//                    iterator.remove();
-//                }
-//            }
-//            GraphicContent fakeCoverGraphic = new GraphicContent(bounds, false, Color.BLACK);
-//            region.extractSubRegionFromContentAndWithGraphics(block, fakeCoverGraphic);
-//            continue;
-//        }
+        //        /* if the block contains graphics, separate it out as a separate region instead*/
+        //        boolean graphics = false;
+        //        for (PhysicalContent content : block) {
+        //            if (content.isGraphicButNotSeparator()){
+        //                graphics = true;
+        //                break;
+        //            }
+        //        }
+        //
+        //        if (region.getContainingGraphic() == null && graphics){
+        //            final Rectangle bounds = TextUtils.findBounds(block);
+        //            for (Iterator<PhysicalContent> iterator = block.iterator(); iterator.hasNext();) {
+        //                PhysicalContent content = iterator.next();
+        //                content.getAssignable().setBlockNum(AssignablePhysicalContent.BLOCK_NOT_ASSIGNED);
+        //                if (content.isGraphicButNotSeparator()) {
+        //                    iterator.remove();
+        //                }
+        //            }
+        //            GraphicContent fakeCoverGraphic = new GraphicContent(bounds, false, Color.BLACK);
+        //            region.extractSubRegionFromContentAndWithGraphics(block, fakeCoverGraphic);
+        //            continue;
+        //        }
 
         int minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
         /* reuse the assignment numbers */
@@ -179,8 +179,7 @@ public List<ParagraphNode> createParagraphNodes() {
                     content.getAssignable().setBlockNum(1);
 
                     if (content.isText()) {
-                        currentLine.addChild(LineSegmentator.createWordNode(content.getPhysicalText(),
-                                region.getPageNumber()));
+                        currentLine.addChild(LineSegmentator.createWordNode(content.getPhysicalText(), region.getPageNumber()));
                     }
                 }
             }

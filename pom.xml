@@ -29,7 +29,7 @@
 
     <modules>
         <module>tei-p5-schema</module>
-        <module>datasource</module>
+        <module>datasource-pdfbox</module>
         <module>model</module>
         <module>analysis</module>
         <module>xml-output</module>

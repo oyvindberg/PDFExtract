@@ -69,6 +69,36 @@ public PageRenderer(final PDFSource source, final DocumentNode documentNode, fin
     this.resolution = resolution;
 }
 
+// -------------------------- STATIC METHODS --------------------------
+
+static Color getColorForObject(Object o) {
+    if (o.getClass().equals(WhitespaceRectangle.class)) {
+        if (((WhitespaceRectangle) o).getScore() == 1000) {
+            return Color.RED;
+        }
+        if (Constants.RENDER_WHITESPACE) {
+            return Color.BLACK;
+        } else {
+            return DONT_DRAW;
+        }
+    } else if (o.getClass().equals(GraphicContent.class)) {
+        return Color.MAGENTA;
+    } else if (o.getClass().equals(LayoutRegionNode.class)) {
+        if (((LayoutRegionNode) o).isPictureRegion()) {
+            return Color.MAGENTA;
+        }
+        return Color.PINK;
+    } else if (o.getClass().equals(ParagraphNode.class)) {
+        return Color.YELLOW;
+    } else if (o.getClass().equals(LineNode.class)) {
+        return Color.BLUE;
+    } else if (o.getClass().equals(WordNode.class)) {
+        return Color.ORANGE;
+    } else {
+        return DONT_DRAW;
+    }
+}
+
 // -------------------------- PUBLIC METHODS --------------------------
 
 @NotNull
@@ -140,7 +170,7 @@ public BufferedImage renderToFile(final int pageNum, File outputFile) {
 
     for (Map.Entry<Color, List<HasPosition>> o : pageNode.getDebugFeatures().entrySet()) {
         for (HasPosition position : o.getValue()) {
-            if (!(position instanceof GraphicContent)) {
+            if ((position instanceof WhitespaceRectangle)) {
                 drawRectangle(position);
             }
         }
@@ -184,36 +214,6 @@ private void drawRectangle(@NotNull final HasPosition object) {
     if (true) {
         graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), ALPHA));
         graphics.fillRect(x, y, width, height);
-    }
-}
-
-Color getColorForObject(Object o) {
-    if (o.getClass().equals(WhitespaceRectangle.class)) {
-        if (((WhitespaceRectangle) o).getScore() == 1000) {
-            return Color.RED;
-        }
-        return Color.BLACK;
-        //        return DONT_DRAW;
-    } else if (o.getClass().equals(GraphicContent.class)) {
-        return Color.MAGENTA;
-    } else if (o.getClass().equals(LayoutRegionNode.class)) {
-        if (((LayoutRegionNode) o).isPictureRegion()) {
-            return Color.MAGENTA;
-        }
-        //        return Color.GREEN;
-        return DONT_DRAW;
-
-        //    } else if (o.getClass().equals(ParagraphNode.class)) {
-        //        return Color.YELLOW;
-        //        return DONT_DRAW;
-    } else if (o.getClass().equals(LineNode.class)) {
-        return Color.BLUE;
-        //        return DONT_DRAW;
-    } else if (o.getClass().equals(WordNode.class)) {
-        return Color.ORANGE;
-    } else {
-        //        return Color.GRAY;
-        return DONT_DRAW;
     }
 }
 

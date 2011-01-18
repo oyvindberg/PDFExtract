@@ -80,7 +80,7 @@
     </logger>
 
     <logger name="org.elacin.pdfextract.integration.pdfbox">
-        <level value="WARN"/>
+        <level value="INFO"/>
     </logger>
 
     <logger name="org.elacin.org.elacin.pdfextract.physical.segmentation.word">

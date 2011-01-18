@@ -17,7 +17,10 @@
 package org.elacin.pdfextract.physical.segmentation.region;
 
 import org.apache.log4j.Logger;
-import org.elacin.pdfextract.content.*;
+import org.elacin.pdfextract.content.GraphicContent;
+import org.elacin.pdfextract.content.PhysicalPage;
+import org.elacin.pdfextract.content.PhysicalPageRegion;
+import org.elacin.pdfextract.content.WhitespaceRectangle;
 import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.geom.Sorting;
 import org.elacin.pdfextract.physical.segmentation.column.LayoutRecognizer;
@@ -26,13 +29,10 @@ import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentator;
 import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentatorImpl;
 import org.elacin.pdfextract.style.Style;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.PriorityQueue;
 
-import static org.elacin.pdfextract.geom.RectangleCollection.Direction.E;
-import static org.elacin.pdfextract.geom.RectangleCollection.Direction.W;
 import static org.elacin.pdfextract.geom.Sorting.createSmallestFirstQueue;
 
 /**
@@ -45,7 +45,8 @@ import static org.elacin.pdfextract.geom.Sorting.createSmallestFirstQueue;
 public class PageSegmentator {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger log = Logger.getLogger(PageSegmentator.class);
+public static final  LayoutRecognizer layoutRecognizer = new LayoutRecognizer();
+private static final Logger           log              = Logger.getLogger(PageSegmentator.class);
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
@@ -53,8 +54,7 @@ public static void segmentPageRegionWithSubRegions(PhysicalPage page) {
     final PhysicalPageRegion mainRegion = page.getMainRegion();
 
 
-    GraphicSegmentator gSeg = new GraphicSegmentatorImpl(mainRegion.getPos().getWidth(),
-            mainRegion.getPos().getHeight());
+    GraphicSegmentator gSeg = new GraphicSegmentatorImpl(mainRegion.getPos().getWidth(), mainRegion.getPos().getHeight());
 
     final CategorizedGraphics categorizedGraphics = gSeg.segmentGraphicsUsingContentInRegion(page.getAllGraphics(), mainRegion);
 
@@ -64,106 +64,13 @@ public static void segmentPageRegionWithSubRegions(PhysicalPage page) {
     /* first separate out what is contained by graphics */
     createGraphicRegions(categorizedGraphics, mainRegion);
 
-    /* then by separators */
-    PageRegionSplitBySeparators.splitRegionBySeparators(mainRegion, categorizedGraphics);
-
-//    PageRegionSplitBySpacing.splitInVerticalColumns(mainRegion);
-
-    /* i have seen some mistakes made on more complicated layouts. For papers that tends to be
-    *   the first page, so nudge it a bit in the right diretion there. The reason why it is not
-    * general is that it would break text ordering if erroneously applied*/
-//    if (page.getPageNumber() == 1) {
-//        PageRegionSplitBySpacing.splitHorizontallyBySpacing(mainRegion);
-//    }
-
 
     /* then perform whitespace analysis of all the regions we have now */
-    final LayoutRecognizer layoutRecognizer = new LayoutRecognizer();
-    final List<WhitespaceRectangle> allWhitespaces = new ArrayList<WhitespaceRectangle>();
-    recursiveAnalysis(mainRegion, layoutRecognizer, allWhitespaces, categorizedGraphics);
 
-
-//
-
-
-//    PageRegionSplitBySpacing.splitInVerticalColumns(r);
-//    PageRegionSplitBySpacing.splitHorizontallyBySpacing(r);
-
-
-//    recursivelySplitRegions(mainRegion);
-
-//    combineGraphicsWithTextAround(page.getMainRegion());
-
-//    for (PhysicalPageRegion subRegion : page.getMainRegion().getSubregions()) {
-//        if (subRegion.getContainingGraphic() != null) {
-//            recursivelySplitRegions(subRegion);
-//        }
-//    }
+    recursiveAnalysis(mainRegion, categorizedGraphics);
 }
 
 // -------------------------- STATIC METHODS --------------------------
-
-private static void addWhiteSpaceFromRegion(List<WhitespaceRectangle> whitespaces,
-                                            PhysicalPageRegion region) {
-    whitespaces.addAll(region.getWhitespace());
-    for (PhysicalPageRegion subRegion : region.getSubregions()) {
-        addWhiteSpaceFromRegion(whitespaces, subRegion);
-    }
-}
-
-private static boolean canCombine(PhysicalPageRegion mainRegion, PhysicalPageRegion graphic,
-                                  PhysicalPageRegion otherRegion) {
-    if (graphic.equals(otherRegion)) {
-        return false;
-    }
-
-    if (graphic.getPos().intersectsWith(otherRegion.getPos())) {
-        return true;
-    }
-
-    if (graphic.getPos().distance(otherRegion.getPos()) <= mainRegion.getMinimumColumnSpacing()) {
-        return true;
-    }
-
-    return false;
-}
-
-private static void combineGraphicsWithTextAround(PhysicalPageRegion r) {
-    for (int i = 0; i < r.getSubregions().size(); i++) {
-        PhysicalPageRegion graphic = r.getSubregions().get(i);
-
-        if (graphic.getContainingGraphic() != null) {
-            for (PhysicalPageRegion otherRegion : r.getSubregions()) {
-                if (canCombine(r, graphic, otherRegion)) {
-                    /* if this subregion does not contain others, combine the whole thing */
-                    if (otherRegion.getSubregions().isEmpty()) {
-                        moveRegionToIntoGraphic(r, graphic, otherRegion);
-                        /* restart */
-                        i = -1;
-                        break;
-                    }
-
-                    /* else, consider each subsubregion separately */
-                    boolean added = false;
-                    for (PhysicalPageRegion subsubRegion : otherRegion.getSubregions()) {
-                        if (canCombine(r, graphic, subsubRegion)) {
-                            moveRegionToIntoGraphic(otherRegion, graphic, subsubRegion);
-                            added = true;
-                            break;
-                        }
-                    }
-
-                    /* if none of the subregions qualified - again the whole thing */
-                    if (added) {
-                        /* restart */
-                        i = -1;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-}
 
 /**
  * separate out the content which is contained within a graphic.
@@ -195,185 +102,36 @@ private static void createGraphicRegions(CategorizedGraphics graphics, PhysicalP
     }
 }
 
-private static void moveRegionToIntoGraphic(PhysicalPageRegion origin,
-                                            PhysicalPageRegion destination,
-                                            PhysicalPageRegion toBeMoved) {
-    assert destination.getContainingGraphic() != null;
-    assert origin.getSubregions().contains(toBeMoved);
-
-    origin.removeContent(toBeMoved);
-    origin.getSubregions().remove(toBeMoved);
-
-    if (toBeMoved.getPos().intersectsWith(destination)) {
-        log.warn("LOG00990:Combined region " + toBeMoved + " with " + destination);
-        destination.addContents(toBeMoved.getContents());
-    } else {
-        log.warn("LOG01010:Moved region " + toBeMoved + " from " + origin + " to " + destination)
-        ;
-        destination.getSubregions().add(toBeMoved);
-    }
-}
-
-private static void recursiveAnalysis(PhysicalPageRegion region,
-                                      LayoutRecognizer layoutRecognizer,
-                                      List<WhitespaceRectangle> allWhitespaces,
-                                      CategorizedGraphics graphics) {
+private static void recursiveAnalysis(PhysicalPageRegion region, CategorizedGraphics graphics) {
     PageRegionSplitBySeparators.splitRegionBySeparators(region, graphics);
 
-//    final List<WhitespaceRectangle> whitespaces = layoutRecognizer.findPossibleColumns(region);
+
     final List<WhitespaceRectangle> whitespaces = layoutRecognizer.findWhitespace(region);
-
-    final List<WhitespaceRectangle> columnBoundaries = new ArrayList<WhitespaceRectangle>();
-    for (WhitespaceRectangle whitespace : whitespaces) {
-        final Rectangle pos = whitespace.getPos();
-
-        if (pos.getX() == region.getPos().getX() || pos.getEndX() == region.getPos().getEndX()) {
-            continue;
-        }
-        if (pos.getHeight() < region.getPos().getHeight() / 8.0f) {
-            continue;
-        }
-
-        final List<PhysicalContent> right = region.searchInDirectionFromOrigin(E, pos, 6.0f);
-        final List<PhysicalContent> left = region.searchInDirectionFromOrigin(W, pos, 15.0f);
-
-        if (left.size() > 2 && right.size() > 4) {
-            log.warn("LOG01050:Considering " + whitespace + " column boundary");
-            columnBoundaries.add(whitespace);
-        }
-    }
-
-
-//    /* invent some whitespace rectangles in case some columns are missed */
-//    int[] num = new int[(int) region.getPos().getWidth()];
-//    int offset = (int) region.getPos().getX();
-//    for (int x = 0; x < (int) region.getPos().getWidth(); x++) {
-//
-//        final int realX = x + offset;
-//        final List<PhysicalContent> column = region.findContentAtXIndex(realX);
-//
-//        for (PhysicalContent content : column) {
-//            final Rectangle pos = content.getPos();
-//            if ((int) pos.getX() == realX || (int) pos.getEndX() == realX) {
-//                num[x]++;
-//            }
-//        }
-//    }
-//
-//    for (int x = 0; x < num.length; x++) {
-//        int frequency = num[x];
-//        if (frequency > 15) {
-//            System.out.println("x = " + (x + offset) + ": frequency " + frequency);
-//        }
-//    }
-
-
-    /* adjust columns to real height*/
-    final Rectangle rpos = region.getPos();
-    for (int i = 0; i < columnBoundaries.size(); i++) {
-        final WhitespaceRectangle boundary = columnBoundaries.get(i);
-
-        final float x = boundary.getPos().getMiddleX();
-        final float endX = boundary.getPos().getEndX();
-
-        final Rectangle search = new Rectangle(x, rpos.getY(), rpos.getWidth(), rpos.getHeight());
-        final List<PhysicalContent> everythingRightOf = region.findContentsIntersectingWith(search);
-        Collections.sort(everythingRightOf, Sorting.sortByLowerYThenLowerX);
-
-//        float startY = boundary.getPos().getY();
-        float startY = rpos.getY();
-        float lastYWithContentRight = region.getPos().getEndY();
-
-        boolean startYFound = false;
-        boolean boundaryStarted = false;
-        for (int y = (int) rpos.getY() - 1; y <= (int) (rpos.getEndY() + 1); y++) {
-            boolean xIsUnoccupied = true;
-            boolean foundContentRightOfX = false;
-
-            for (PhysicalContent c : everythingRightOf) {
-                if (c.getPos().getY() > y || c.getPos().getEndY() < y) {
-                    continue;
-                }
-                if (!foundContentRightOfX && c.getPos().getX() > endX - 1) {
-                    foundContentRightOfX = true;
-                }
-
-                /* if we find something blocking this row, look further down*/
-                if ((c.getPos().getX() < x || c.getPos().getEndX() < endX)
-                        && !(c instanceof WhitespaceRectangle)) {
-                    xIsUnoccupied = false;
-                    break;
-                }
-            }
-
-            if (xIsUnoccupied) {
-                if (!startYFound && foundContentRightOfX) {
-                    startYFound = true;
-                    startY = y - 1;
-                }
-                if (!boundaryStarted && y > boundary.getPos().getY()) {
-                    boundaryStarted = true;
-                }
-                if (foundContentRightOfX) {
-                    lastYWithContentRight = y;
-                }
-            } else {
-                if (boundaryStarted) {
-                    break;
-                }
-                startYFound = false;
-            }
-        }
-
-        final Rectangle adjusted = new Rectangle(x, startY, 1.0f, lastYWithContentRight - startY);
-        final WhitespaceRectangle newBoundary = new WhitespaceRectangle(adjusted);
-        newBoundary.setScore(1000);
-        columnBoundaries.set(i, newBoundary);
-        whitespaces.remove(boundary);
-        whitespaces.add(newBoundary);
-    }
-
-
-    Collections.sort(columnBoundaries, Sorting.sortByLowerX);
-
-    for (int i = 0; i < columnBoundaries.size() - 1; i++) {
-        WhitespaceRectangle left = columnBoundaries.get(i);
-        WhitespaceRectangle right = columnBoundaries.get(i + 1);
-        if (right.getPos().getX() - left.getPos().getX() < 15) {
-            if (right.getPos().getHeight() > left.getPos().getHeight()) {
-                columnBoundaries.remove(left);
-                whitespaces.remove(left);
-            } else {
-                columnBoundaries.remove(right);
-                whitespaces.remove(right);
-            }
-            i = -1;
-        }
-    }
-
     region.addWhitespace(whitespaces);
+
+    final List<WhitespaceRectangle> columnBoundaries = LayoutRecognizer.extractColumnBoundaries(region, whitespaces);
+
+    for (WhitespaceRectangle columnBoundary : columnBoundaries) {
+        log.info("LOG01050:Region " + region + ", column boundary: " + columnBoundary);
+    }
+
+    region.addWhitespace(columnBoundaries);
+
+    for (PhysicalPageRegion subRegion : region.getSubregions()) {
+        recursiveAnalysis(subRegion, graphics);
+    }
 
     Collections.sort(columnBoundaries, Sorting.sortByHigherX);
     for (WhitespaceRectangle boundary : columnBoundaries) {
         final Rectangle bpos = boundary.getPos();
 
-//        Rectangle top = new Rectangle(bpos.getX(), rpos.getY() , rpos.getWidth(),
-//                bpos.getEndY() - rpos.getEndY());
-//
-//        Rectangle left = new Rectangle(rpos.getX(), bpos.getY() +1, bpos.getMiddleX() - rpos.getX
-//                (), bpos.getHeight() -1);
+        Rectangle right = new Rectangle(bpos.getMiddleX(),
+                bpos.getY() + 1,
+                region.getPos().getEndX() - bpos.getMiddleX(), bpos.getHeight() - 1);
 
-        Rectangle right = new Rectangle(bpos.getMiddleX(), bpos.getY() + 1,
-                rpos.getEndX() - bpos.getMiddleX(), bpos.getHeight() - 1);
-
-//        region.extractSubRegionFromBound(top);
         region.extractSubRegionFromBound(right);
-//        region.extractSubRegionFromBound(left);
     }
 
 
-    for (PhysicalPageRegion subRegion : region.getSubregions()) {
-        recursiveAnalysis(subRegion, layoutRecognizer, allWhitespaces, graphics);
-    }
 }
 }

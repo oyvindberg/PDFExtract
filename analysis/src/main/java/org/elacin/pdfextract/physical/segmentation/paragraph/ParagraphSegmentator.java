@@ -37,7 +37,7 @@ public class ParagraphSegmentator {
 // ------------------------------ FIELDS ------------------------------
 
 private static final Logger log                   = Logger.getLogger(ParagraphSegmentator.class);
-private              int    medianVerticalSpacing = -1;
+private              float  medianVerticalSpacing = 1.0f;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -75,13 +75,12 @@ public List<ParagraphNode> segmentParagraphs(@NotNull final List<LineNode> lines
                 final boolean split;
                 switch (StyleComparator.styleCompare(currentStyle, lineStyle)) {
                     case SAME_STYLE_AND_BIG_TEXT:
-                        split = distance > (float) medianVerticalSpacing * 2.5f;
+                        split = distance > medianVerticalSpacing * 2.5f;
                         break;
                     case SAME_STYLE:
                         /** if the styles are similar, only split if there seems to be much space
                          between the two lines */
-                        //                        split = distance > (float) medianVerticalSpacing * 1.3f;
-                        split = false;
+                        split = distance > medianVerticalSpacing * 1.3f;
                         break;
                     case SUBTLE_DIFFERENCE:
                         /* if there is a word with the same style, treat as same */
@@ -92,11 +91,11 @@ public List<ParagraphNode> segmentParagraphs(@NotNull final List<LineNode> lines
                             }
                         }
                         if (found) {
-                            split = false;
+                            split = distance > medianVerticalSpacing * 1.3f;
                         } else {
                             /** if the difference is subtle, do split if there seems to be some space
                              between the two lines */
-                            split = distance > (float) medianVerticalSpacing * 1.02f;
+                            split = distance > medianVerticalSpacing * 1.02f;
                         }
                         break;
                     case BIG_DIFFERENCE:
@@ -120,7 +119,7 @@ public List<ParagraphNode> segmentParagraphs(@NotNull final List<LineNode> lines
                     if (!currentParagraph.getChildren().isEmpty()) {
                         if (log.isInfoEnabled()) {
                             log.info(String.format("LOG00660:Split/style: y:%s, "
-                                    + "medianVerticalSpacing: %d, distance: %s, style: %s, %s, "
+                                    + "medianVerticalSpacing: %f, distance: %s, style: %s, %s, "
                                     + "line: %s", line.getPos().getY(), medianVerticalSpacing, distance, currentStyle, lineStyle, line));
                         }
                         ret.add(currentParagraph);

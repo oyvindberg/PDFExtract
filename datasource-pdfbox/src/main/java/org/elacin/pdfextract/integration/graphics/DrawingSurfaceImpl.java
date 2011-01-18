@@ -242,9 +242,9 @@ private static void combineGraphics(@NotNull final List<GraphicContent> list) {
         }
     }
 
-    if (log.isInfoEnabled()) {
-        log.info("Combined " + originalSize + " graphical elements into " + list.size() + " in "
-                + (System.currentTimeMillis() - t0) + "ms");
+    if (log.isInfoEnabled() && originalSize != list.size()) {
+        log.info("LOG01310:Combined " + originalSize + " graphical elements into " + list.size()
+                + " in " + (System.currentTimeMillis() - t0) + "ms");
     }
 }
 
@@ -263,7 +263,7 @@ private void addVectorPath(GeneralPath originalPath, Color color, Shape clipping
     //        return;
     //    }
 
-    java.util.List<GeneralPath> paths = PathSplitter.splitPath(originalPath);
+    List<GeneralPath> paths = PathSplitter.splitPath(originalPath);
 
     for (GeneralPath path : paths) {
         boolean addedPath = false;
