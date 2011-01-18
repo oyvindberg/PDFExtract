@@ -31,6 +31,7 @@ import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.tree.TreeCreator;
 import org.elacin.pdfextract.xml.SimpleXMLOutput;
 import org.elacin.pdfextract.xml.TEIOutput;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,12 +49,15 @@ import static org.elacin.pdfextract.Constants.*;
 public class DocumentAnalyzer {
 // ------------------------------ FIELDS ------------------------------
 
+@NotNull
 public static        WordSegmentator wordSegmentator = new WordSegmentatorImpl();
 private static final Logger          log             = Logger.getLogger(DocumentAnalyzer.class);
 
 
+@NotNull
 public final DocumentNode root = new DocumentNode();
 public final  File      pdfFile;
+@NotNull
 private final PDFSource source;
 private final File      destination;
 
@@ -71,7 +75,10 @@ public DocumentAnalyzer(File pdfFile,
 
 // -------------------------- STATIC METHODS --------------------------
 
-private static File getOutputFile(File destination, File baseFile, String extension) {
+@NotNull
+private static File getOutputFile(@NotNull File destination,
+                                  @NotNull File baseFile,
+                                  String extension) {
     final File output;
     if (destination.isDirectory()) {
         output = new File(destination, baseFile.getName().replace(".pdf", extension));
@@ -82,7 +89,7 @@ private static File getOutputFile(File destination, File baseFile, String extens
     return output;
 }
 
-static void renderPDF(PDFSource source, DocumentNode root, File destination) {
+static void renderPDF(PDFSource source, @NotNull DocumentNode root, @NotNull File destination) {
     long t0 = System.currentTimeMillis();
 
     final PageRenderer renderer = new PageRenderer(source, root, RENDER_RESOLUTION);
@@ -102,6 +109,7 @@ static void renderPDF(PDFSource source, DocumentNode root, File destination) {
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
+@NotNull
 public DocumentNode getRoot() {
     return root;
 }

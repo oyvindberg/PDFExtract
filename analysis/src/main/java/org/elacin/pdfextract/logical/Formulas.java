@@ -19,6 +19,7 @@ package org.elacin.pdfextract.logical;
 import org.elacin.pdfextract.content.StyledText;
 import org.elacin.pdfextract.geom.HasPosition;
 import org.elacin.pdfextract.style.TextUtils;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
@@ -32,7 +33,7 @@ import static org.elacin.pdfextract.style.Style.GRAPHIC_MATH_BAR;
 public class Formulas {
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-public static boolean stringContainsMath(final String text1) {
+public static boolean stringContainsMath(@NotNull final String text1) {
     for (int i = 0; i < text1.length(); i++) {
         if (Character.getType(text1.codePointAt(i)) == Character.MATH_SYMBOL) {
             return true;
@@ -41,7 +42,7 @@ public static boolean stringContainsMath(final String text1) {
     return false;
 }
 
-public static boolean textContainsMath(StyledText text) {
+public static boolean textContainsMath(@NotNull StyledText text) {
     if (text.getStyle().isMathFont()) {
         return true;
     }
@@ -49,7 +50,7 @@ public static boolean textContainsMath(StyledText text) {
     return stringContainsMath(text.getText());
 }
 
-public static boolean textSeemsToBeFormula(Collection<? extends HasPosition> contents) {
+public static boolean textSeemsToBeFormula(@NotNull Collection<? extends HasPosition> contents) {
     if (contents.size() < 4) {
         return false;
     }

@@ -53,6 +53,7 @@ public GraphicSegmentatorImpl(final float w, final float h) {
 
 // --------------------- Interface GraphicSegmentator ---------------------
 
+@NotNull
 public CategorizedGraphics segmentGraphicsUsingContentInRegion(@NotNull List<GraphicContent> graphics,
                                                                @NotNull PhysicalPageRegion region) {
     CategorizedGraphics ret = new CategorizedGraphics();
@@ -78,8 +79,8 @@ public CategorizedGraphics segmentGraphicsUsingContentInRegion(@NotNull List<Gra
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-public static boolean canBeConsideredCharacterInRegion(GraphicContent g,
-                                                       final PhysicalPageRegion region) {
+public static boolean canBeConsideredCharacterInRegion(@NotNull GraphicContent g,
+                                                       @NotNull final PhysicalPageRegion region) {
     float doubleCharArea = region.getAvgFontSizeY() * region.getAvgFontSizeX() * 2.0f;
     return g.getPos().area() < doubleCharArea;
 }
@@ -87,7 +88,7 @@ public static boolean canBeConsideredCharacterInRegion(GraphicContent g,
 /**
  * consider the graphic a separator if the aspect ratio is high
  */
-public static boolean canBeConsideredHorizontalSeparator(GraphicContent g) {
+public static boolean canBeConsideredHorizontalSeparator(@NotNull GraphicContent g) {
     if (g.getPos().getHeight() > 15.0f) {
         return false;
     }
@@ -95,8 +96,8 @@ public static boolean canBeConsideredHorizontalSeparator(GraphicContent g) {
     return g.getPos().getWidth() / g.getPos().getHeight() > 15.0f;
 }
 
-public static boolean canBeConsideredMathBarInRegion(GraphicContent g,
-                                                     final PhysicalPageRegion region) {
+public static boolean canBeConsideredMathBarInRegion(@NotNull GraphicContent g,
+                                                     @NotNull final PhysicalPageRegion region) {
     if (!canBeConsideredHorizontalSeparator(g)) {
         return false;
     }
@@ -126,7 +127,7 @@ public static boolean canBeConsideredMathBarInRegion(GraphicContent g,
 /**
  * consider the graphic a separator if the aspect ratio is high
  */
-public static boolean canBeConsideredVerticalSeparator(GraphicContent g) {
+public static boolean canBeConsideredVerticalSeparator(@NotNull GraphicContent g) {
     if (g.getPos().getWidth() > 15.0f) {
         return false;
     }
@@ -153,9 +154,9 @@ private static boolean graphicContainsTextFromRegion(@NotNull final PhysicalPage
 
 // -------------------------- OTHER METHODS --------------------------
 
-private void categorizeGraphics(CategorizedGraphics ret,
-                                PhysicalPageRegion region,
-                                List<GraphicContent> list) {
+private void categorizeGraphics(@NotNull CategorizedGraphics ret,
+                                @NotNull PhysicalPageRegion region,
+                                @NotNull List<GraphicContent> list) {
     for (GraphicContent graphic : list) {
         if (isTooBigGraphic(graphic)) {
             if (log.isInfoEnabled()) {
@@ -194,7 +195,8 @@ private void categorizeGraphics(CategorizedGraphics ret,
     }
 }
 
-private List<GraphicContent> combineHorizontalSeparators(CategorizedGraphics ret) {
+@NotNull
+private List<GraphicContent> combineHorizontalSeparators(@NotNull CategorizedGraphics ret) {
     Map<String, List<GraphicContent>> hsepsForXCoordinate = new HashMap<String, List<GraphicContent>>();
 
     for (int i = 0; i < ret.getHorizontalSeparators().size(); i++) {
@@ -244,7 +246,7 @@ private boolean isTooBigGraphic(@NotNull final PhysicalContent graphic) {
     return graphic.getPos().area() >= (w * h);
 }
 
-private void logGraphics(CategorizedGraphics ret) {
+private void logGraphics(@NotNull CategorizedGraphics ret) {
     for (GraphicContent g : ret.getContainers()) {
         log.info("LOG00502:considered container: " + g);
     }

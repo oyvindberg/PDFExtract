@@ -309,7 +309,7 @@ private static float[] calculateDistancesBetweenCharacters(@NotNull List<Physica
     return distances;
 }
 
-private static boolean containsWhiteSpace(List<PhysicalText> line) {
+private static boolean containsWhiteSpace(@NotNull List<PhysicalText> line) {
     for (PhysicalText physicalText : line) {
         if (" ".equals(physicalText.getText())) {
             return true;
@@ -318,12 +318,12 @@ private static boolean containsWhiteSpace(List<PhysicalText> line) {
     return false;
 }
 
-private static boolean fontDiffers(final Style style, final PhysicalText text) {
+private static boolean fontDiffers(@NotNull final Style style, @NotNull final PhysicalText text) {
     return !style.equals(text.getStyle());
 }
 
 private static boolean isOnAnotherLine(final float baseline,
-                                       final PhysicalText text,
+                                       @NotNull final PhysicalText text,
                                        final float maxY) {
     return (baseline != text.getBaseLine() && text.getBaseLine() > maxY);
 }
@@ -335,7 +335,7 @@ private static boolean isTooFarAwayHorizontally(final float endX,
     return !isWithinVariance(endX, text.getPos().getX(), variation);
 }
 
-private static void printLine(List<PhysicalText> physicalTexts) {
+private static void printLine(@NotNull List<PhysicalText> physicalTexts) {
     StringBuffer sb = new StringBuffer();
     for (PhysicalText physicalText : physicalTexts) {
         sb.append(physicalText.getText());

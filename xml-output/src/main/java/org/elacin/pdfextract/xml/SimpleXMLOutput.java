@@ -72,7 +72,7 @@ public void writeTree(@NotNull final DocumentNode root, @NotNull final File outp
 
 // -------------------------- OTHER METHODS --------------------------
 
-private void writeDocument(@NotNull final StringBuffer out, DocumentNode root) {
+private void writeDocument(@NotNull final StringBuffer out, @NotNull DocumentNode root) {
     out.append("<document>\n");
 
     writeStyles(out, root.getStyles());
@@ -83,7 +83,7 @@ private void writeDocument(@NotNull final StringBuffer out, DocumentNode root) {
     out.append("</document>");
 }
 
-private void writeLine(@NotNull final StringBuffer out, LineNode line) {
+private void writeLine(@NotNull final StringBuffer out, @NotNull LineNode line) {
     if (Formulas.textSeemsToBeFormula(line.getChildren())) {
         out.append("<formula>");
         out.append(line.getText());
@@ -108,7 +108,7 @@ private void writeLine(@NotNull final StringBuffer out, LineNode line) {
     }
 }
 
-private void writePage(StringBuffer out, PageNode page) {
+private void writePage(@NotNull StringBuffer out, @NotNull PageNode page) {
     out.append("<page");
     out.append(" num=\"").append(Integer.toString(page.getPageNumber())).append("\"");
     if (Constants.VERBOSE_OUTPUT) {
@@ -123,7 +123,8 @@ private void writePage(StringBuffer out, PageNode page) {
     out.append("</page>\n");
 }
 
-private void writeParagraph(@NotNull final StringBuffer out, final ParagraphNode paragraph) {
+private void writeParagraph(@NotNull final StringBuffer out,
+                            @NotNull final ParagraphNode paragraph) {
     out.append("<paragraph");
 
     writeRectangle(out, paragraph.getPos());
@@ -136,14 +137,14 @@ private void writeParagraph(@NotNull final StringBuffer out, final ParagraphNode
     out.append("</paragraph>\n");
 }
 
-private void writeRectangle(StringBuffer sb, Rectangle pos) {
+private void writeRectangle(@NotNull StringBuffer sb, @NotNull Rectangle pos) {
     sb.append(" x=\"").append(String.valueOf(pos.getX())).append("\"");
     sb.append(" y=\"").append(String.valueOf(pos.getY())).append("\"");
     sb.append(" w=\"").append(String.valueOf(pos.getWidth())).append("\"");
     sb.append(" h=\"").append(String.valueOf(pos.getHeight())).append("\"");
 }
 
-private void writeRegion(StringBuffer out, LayoutRegionNode region) {
+private void writeRegion(@NotNull StringBuffer out, @NotNull LayoutRegionNode region) {
     if (region.isPictureRegion()) {
         out.append("<graphic");
 
@@ -174,7 +175,7 @@ private void writeRegion(StringBuffer out, LayoutRegionNode region) {
     }
 }
 
-private void writeStyles(final StringBuffer out, List<Style> styles) {
+private void writeStyles(@NotNull final StringBuffer out, @NotNull List<Style> styles) {
     out.append("<styles>\n");
 
     /* output the styles sorted by id */
@@ -199,7 +200,7 @@ private void writeStyles(final StringBuffer out, List<Style> styles) {
     out.append("</styles>\n");
 }
 
-private void writeWord(@NotNull final StringBuffer out, WordNode word) {
+private void writeWord(@NotNull final StringBuffer out, @NotNull WordNode word) {
     out.append("<word");
     out.append(" value=\"").append(word.getText()).append("\"");
     out.append(" styleRef=\"").append(String.valueOf(word.getStyle().id)).append("\" ");

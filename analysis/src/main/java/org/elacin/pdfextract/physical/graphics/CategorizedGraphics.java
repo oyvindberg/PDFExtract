@@ -41,7 +41,9 @@ private final List<GraphicContent> contents = new ArrayList<GraphicContent>();
 private final List<GraphicContent> containers = new ArrayList<GraphicContent>();
 
 /* these are separators which might divide regions of a page */
+@NotNull
 private final List<GraphicContent> verticalSeparators   = new ArrayList<GraphicContent>();
+@NotNull
 private final List<GraphicContent> horizontalSeparators = new ArrayList<GraphicContent>();
 
 /* This contains all the segmented pictures (except those which has been dropped for being too
@@ -66,10 +68,12 @@ public List<GraphicContent> getGraphicsToRender() {
     return graphicsToRender;
 }
 
+@NotNull
 public List<GraphicContent> getHorizontalSeparators() {
     return horizontalSeparators;
 }
 
+@NotNull
 public List<GraphicContent> getVerticalSeparators() {
     return verticalSeparators;
 }

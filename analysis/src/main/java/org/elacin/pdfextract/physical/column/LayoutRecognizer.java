@@ -44,8 +44,9 @@ private static final Logger log                  = Logger.getLogger(LayoutRecogn
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-public static List<WhitespaceRectangle> extractColumnBoundaries(PhysicalPageRegion region,
-                                                                List<WhitespaceRectangle> whitespaces) {
+@NotNull
+public static List<WhitespaceRectangle> extractColumnBoundaries(@NotNull PhysicalPageRegion region,
+                                                                @NotNull List<WhitespaceRectangle> whitespaces) {
     final List<WhitespaceRectangle> columnBoundaries = selectCandidateColumnBoundaries(region, whitespaces);
 
     //    columnBoundaries.add(guessAColumnFromRegion(region));
@@ -61,8 +62,8 @@ public static List<WhitespaceRectangle> extractColumnBoundaries(PhysicalPageRegi
 
 // -------------------------- STATIC METHODS --------------------------
 
-private static void adjustColumnHeights(PhysicalPageRegion region,
-                                        List<WhitespaceRectangle> columnBoundaries) {
+private static void adjustColumnHeights(@NotNull PhysicalPageRegion region,
+                                        @NotNull List<WhitespaceRectangle> columnBoundaries) {
     final Rectangle rpos = region.getPos();
 
     for (int i = 0; i < columnBoundaries.size(); i++) {
@@ -159,8 +160,8 @@ private static void adjustColumnHeights(PhysicalPageRegion region,
     }
 }
 
-private static void combineColumnBoundaries(PhysicalPageRegion region,
-                                            List<WhitespaceRectangle> columnBoundaries) {
+private static void combineColumnBoundaries(@NotNull PhysicalPageRegion region,
+                                            @NotNull List<WhitespaceRectangle> columnBoundaries) {
     for (int i = 0; i < columnBoundaries.size() - 1; i++) {
         WhitespaceRectangle left = columnBoundaries.get(i);
         WhitespaceRectangle right = columnBoundaries.get(i + 1);
@@ -202,8 +203,9 @@ private static void combineColumnBoundaries(PhysicalPageRegion region,
     }
 }
 
-private static List<PhysicalContent> findAllContentsImmediatelyLeftOf(PhysicalPageRegion region,
-                                                                      Rectangle rpos,
+@NotNull
+private static List<PhysicalContent> findAllContentsImmediatelyLeftOf(@NotNull PhysicalPageRegion region,
+                                                                      @NotNull Rectangle rpos,
                                                                       float x) {
     final float lookLeft = 10.0f;
     final Rectangle search = new Rectangle(x - lookLeft, rpos.getY(), lookLeft, rpos.getHeight());
@@ -211,15 +213,17 @@ private static List<PhysicalContent> findAllContentsImmediatelyLeftOf(PhysicalPa
     return closeOnLeft;
 }
 
-private static List<PhysicalContent> findAllContentsRightOf(PhysicalPageRegion region,
-                                                            Rectangle rpos,
+@NotNull
+private static List<PhysicalContent> findAllContentsRightOf(@NotNull PhysicalPageRegion region,
+                                                            @NotNull Rectangle rpos,
                                                             float x) {
     final Rectangle search = new Rectangle(x, rpos.getY(), rpos.getWidth(), rpos.getHeight());
     final List<PhysicalContent> everythingRightOf = region.findContentsIntersectingWith(search);
     return everythingRightOf;
 }
 
-private static WhitespaceRectangle guessAColumnFromRegion(PhysicalPageRegion region) {
+@NotNull
+private static WhitespaceRectangle guessAColumnFromRegion(@NotNull PhysicalPageRegion region) {
 
     final Rectangle rpos = region.getPos();
 
@@ -248,8 +252,9 @@ private static WhitespaceRectangle guessAColumnFromRegion(PhysicalPageRegion reg
     return new WhitespaceRectangle(new Rectangle(columnX + 1, rpos.getY(), 1.0f, rpos.getHeight()));
 }
 
-private static List<WhitespaceRectangle> selectCandidateColumnBoundaries(PhysicalPageRegion region,
-                                                                         List<WhitespaceRectangle> whitespaces) {
+@NotNull
+private static List<WhitespaceRectangle> selectCandidateColumnBoundaries(@NotNull PhysicalPageRegion region,
+                                                                         @NotNull List<WhitespaceRectangle> whitespaces) {
     final List<WhitespaceRectangle> columnBoundaries = new ArrayList<WhitespaceRectangle>();
     for (WhitespaceRectangle whitespace : whitespaces) {
         final Rectangle pos = whitespace.getPos();

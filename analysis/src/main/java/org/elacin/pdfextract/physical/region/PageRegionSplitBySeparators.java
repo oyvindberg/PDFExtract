@@ -22,6 +22,7 @@ import org.elacin.pdfextract.content.PhysicalContent;
 import org.elacin.pdfextract.content.PhysicalPageRegion;
 import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.physical.graphics.CategorizedGraphics;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +47,8 @@ private static final Logger log = Logger.getLogger(PageRegionSplitBySeparators.c
  * @param r
  * @param graphics
  */
-static void splitRegionBySeparators(PhysicalPageRegion r, CategorizedGraphics graphics) {
+static void splitRegionBySeparators(@NotNull PhysicalPageRegion r,
+                                    @NotNull CategorizedGraphics graphics) {
     List<GraphicContent> toRemove = new ArrayList<GraphicContent>();
     for (GraphicContent hsep : graphics.getHorizontalSeparators()) {
         if (hsep.getPos().getWidth() < r.getPos().getWidth() * 0.6f) {

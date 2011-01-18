@@ -52,6 +52,7 @@ private static final Logger log = Logger.getLogger(PageRenderer.class);
 
 @NotNull
 private static final Color TRANSPARENT_WHITE = new Color(255, 255, 255, 0);
+@NotNull
 private static final Color DONT_DRAW         = new Color(254, 254, 254, 0);
 
 private final PDFSource    source;
@@ -78,15 +79,15 @@ public PageRenderer(final PDFSource source,
 
 // -------------------------- STATIC METHODS --------------------------
 
-private static void addWhiteSpaceFromRegion(List<WhitespaceRectangle> whitespaces,
-                                            PhysicalPageRegion region) {
+private static void addWhiteSpaceFromRegion(@NotNull List<WhitespaceRectangle> whitespaces,
+                                            @NotNull PhysicalPageRegion region) {
     whitespaces.addAll(region.getWhitespace());
     for (PhysicalPageRegion subRegion : region.getSubregions()) {
         addWhiteSpaceFromRegion(whitespaces, subRegion);
     }
 }
 
-static Color getColorForObject(Object o) {
+static Color getColorForObject(@NotNull Object o) {
     if (o.getClass().equals(WhitespaceRectangle.class)) {
         if (((WhitespaceRectangle) o).getScore() == 1000) {
             return Color.RED;
@@ -223,7 +224,7 @@ private void drawRectangle(@NotNull final HasPosition object) {
     }
 }
 
-private void drawTree(AbstractParentNode parent) {
+private void drawTree(@NotNull AbstractParentNode parent) {
     drawRectangle(parent);
 
     for (Object o : parent.getChildren()) {

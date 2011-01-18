@@ -28,6 +28,7 @@ import org.elacin.pdfextract.physical.graphics.CategorizedGraphics;
 import org.elacin.pdfextract.physical.graphics.GraphicSegmentator;
 import org.elacin.pdfextract.physical.graphics.GraphicSegmentatorImpl;
 import org.elacin.pdfextract.style.Style;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
@@ -45,12 +46,13 @@ import static org.elacin.pdfextract.geom.Sorting.createSmallestFirstQueue;
 public class PageSegmentator {
 // ------------------------------ FIELDS ------------------------------
 
+@NotNull
 public static final  LayoutRecognizer layoutRecognizer = new LayoutRecognizer();
 private static final Logger           log              = Logger.getLogger(PageSegmentator.class);
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-public static void segmentPageRegionWithSubRegions(PhysicalPage page) {
+public static void segmentPageRegionWithSubRegions(@NotNull PhysicalPage page) {
     final PhysicalPageRegion mainRegion = page.getMainRegion();
 
 
@@ -79,7 +81,8 @@ public static void segmentPageRegionWithSubRegions(PhysicalPage page) {
  * @param graphics
  * @param r
  */
-private static void createGraphicRegions(CategorizedGraphics graphics, PhysicalPageRegion r) {
+private static void createGraphicRegions(@NotNull CategorizedGraphics graphics,
+                                         @NotNull PhysicalPageRegion r) {
     PriorityQueue<GraphicContent> queue = createSmallestFirstQueue(graphics.getContainers());
 
     while (!queue.isEmpty()) {
@@ -102,7 +105,8 @@ private static void createGraphicRegions(CategorizedGraphics graphics, PhysicalP
     }
 }
 
-private static void recursiveAnalysis(PhysicalPageRegion region, CategorizedGraphics graphics) {
+private static void recursiveAnalysis(@NotNull PhysicalPageRegion region,
+                                      CategorizedGraphics graphics) {
     PageRegionSplitBySeparators.splitRegionBySeparators(region, graphics);
 
 

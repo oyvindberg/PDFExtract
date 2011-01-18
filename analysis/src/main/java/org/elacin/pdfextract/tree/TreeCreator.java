@@ -40,7 +40,7 @@ private static final Logger log = Logger.getLogger(TreeCreator.class);
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
 @NotNull
-public static PageNode compileLogicalPage(PhysicalPage page) {
+public static PageNode compileLogicalPage(@NotNull PhysicalPage page) {
     /* first create the page node which will hold everything */
     PageNode ret = new PageNode(page.getPageNumber());
 
@@ -65,7 +65,7 @@ private static List<ParagraphNode> createParagraphNodes(PhysicalPageRegion regio
 }
 
 @NotNull
-private static LayoutRegionNode createRegionNode(PhysicalPageRegion region) {
+private static LayoutRegionNode createRegionNode(@NotNull PhysicalPageRegion region) {
     LayoutRegionNode regionNode = new LayoutRegionNode(region.isGraphicalRegion());
 
     List<ParagraphNode> paragraphs = createParagraphNodes(region);
@@ -84,7 +84,7 @@ private static LayoutRegionNode createRegionNode(PhysicalPageRegion region) {
 }
 
 @NotNull
-private static List<LayoutRegionNode> createRegionNodes(PhysicalPage page) {
+private static List<LayoutRegionNode> createRegionNodes(@NotNull PhysicalPage page) {
     List<LayoutRegionNode> ret = new ArrayList<LayoutRegionNode>();
 
     final PhysicalPageRegion mainRegion = page.getMainRegion();

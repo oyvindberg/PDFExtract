@@ -47,11 +47,12 @@ private final PDDocument      doc;
 private final int             startPage;
 private final int             endPage;
 private       DocumentContent contents;
+@NotNull
 public final  File            pdfDocument;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public PDFBoxSource(File pdfDocument, int startPage, int endPage, String password) {
+public PDFBoxSource(@NotNull File pdfDocument, int startPage, int endPage, String password) {
     this.pdfDocument = pdfDocument;
     this.startPage = startPage;
     this.endPage = endPage;
@@ -84,7 +85,7 @@ public DocumentContent readPages() {
     return contents;
 }
 
-@Nullable
+@NotNull
 public RenderedPage renderPage(int pageNum) {
     final PDPage page = (PDPage) doc.getDocumentCatalog().getAllPages().get(pageNum - 1);
 

@@ -1,6 +1,7 @@
 package org.elacin.pdfextract.integration.graphics;
 
 import org.elacin.pdfextract.content.GraphicContent;
+import org.jetbrains.annotations.NotNull;
 
 import java.awt.*;
 import java.awt.geom.AffineTransform;
@@ -22,6 +23,7 @@ void drawImage(Image image, AffineTransform at, Shape clippingPath);
 
 void fill(GeneralPath originalPath, Color color, Shape clippingPath);
 
+@NotNull
 List<GraphicContent> getGraphicContents();
 
 void strokePath(GeneralPath originalPath, Color color, Shape clippingPath);

@@ -16,6 +16,8 @@
 
 package org.elacin.pdfextract;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by IntelliJ IDEA.
  * User: elacin
@@ -46,6 +48,8 @@ public static final boolean VERBOSE_OUTPUT        = false;
 public static final boolean SIMPLE_OUTPUT_ENABLED = true;
 public static final boolean TEI_OUTPUT_ENABLED    = false;
 
+@NotNull
 public static String SIMPLE_OUTPUT_EXTENSION = ".xml";
+@NotNull
 public static String TEI_OUTPUT_EXTENSION    = ".tei.xml";
 }

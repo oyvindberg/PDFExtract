@@ -18,6 +18,7 @@ package org.elacin.pdfextract.content;
 
 import org.elacin.pdfextract.geom.HasPosition;
 import org.elacin.pdfextract.style.Style;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: 29.11.10 Time: 05.22 To change this template use
@@ -26,6 +27,7 @@ import org.elacin.pdfextract.style.Style;
 public interface StyledText extends HasPosition {
 // -------------------------- PUBLIC METHODS --------------------------
 
+@Nullable
 Style getStyle();
 
 String getText();

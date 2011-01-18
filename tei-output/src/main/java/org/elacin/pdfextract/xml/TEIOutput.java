@@ -73,7 +73,7 @@ public void writeTree(@NotNull DocumentNode root, File destination) {
 
 // -------------------------- OTHER METHODS --------------------------
 
-private void addAbstract(ObjectFactory of, Front front) {
+private void addAbstract(@NotNull ObjectFactory of, @NotNull Front front) {
     final Div div = of.createDiv();
     div.setType("abs");
 
@@ -93,7 +93,7 @@ private void addAbstract(ObjectFactory of, Front front) {
     front.getSetsAndProloguesAndEpilogues().add(div);
 }
 
-private void addBack(DocumentNode root, ObjectFactory of, Text text) {
+private void addBack(DocumentNode root, @NotNull ObjectFactory of, @NotNull Text text) {
     final Back back = of.createBack();
 
     /* references goes here */
@@ -101,7 +101,7 @@ private void addBack(DocumentNode root, ObjectFactory of, Text text) {
     text.getIndicesAndSpenAndSpanGrps().add(back);
 }
 
-private void addBody(DocumentNode root, ObjectFactory of, Text text) {
+private void addBody(@NotNull DocumentNode root, @NotNull ObjectFactory of, @NotNull Text text) {
     final Body body = of.createBody();
 
     /* add content here */
@@ -114,14 +114,14 @@ private void addBody(DocumentNode root, ObjectFactory of, Text text) {
     text.getIndicesAndSpenAndSpanGrps().add(body);
 }
 
-private void addFront(DocumentNode root, ObjectFactory of, Text text) {
+private void addFront(DocumentNode root, @NotNull ObjectFactory of, @NotNull Text text) {
     final Front front = of.createFront();
 
     addAbstract(of, front);
     text.getIndicesAndSpenAndSpanGrps().add(front);
 }
 
-private void addHeader(DocumentNode root, ObjectFactory of, TEI tei) {
+private void addHeader(DocumentNode root, @NotNull ObjectFactory of, @NotNull TEI tei) {
     final TeiHeader header = of.createTeiHeader();
     final FileDesc fileDesc = of.createFileDesc();
 

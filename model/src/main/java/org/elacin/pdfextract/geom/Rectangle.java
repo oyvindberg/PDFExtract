@@ -259,6 +259,7 @@ public float getMiddleY() {
     return y + height / 2.0f;
 }
 
+@NotNull
 public Rectangle intersection(@NotNull HasPosition that) {
     final Rectangle pos = that.getPos();
 

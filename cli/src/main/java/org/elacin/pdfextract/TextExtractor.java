@@ -18,7 +18,6 @@ import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.util.FileWalker;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -86,7 +85,7 @@ private static Options getOptions() {
     return options;
 }
 
-@Nullable
+@NotNull
 private static CommandLine parseParameters(final String[] args) {
     Options options = getOptions();
     CommandLineParser parser = new PosixParser();

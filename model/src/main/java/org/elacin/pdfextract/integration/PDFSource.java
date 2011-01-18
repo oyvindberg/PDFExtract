@@ -16,6 +16,8 @@
 
 package org.elacin.pdfextract.integration;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by IntelliJ IDEA.
  * User: elacin
@@ -28,7 +30,9 @@ public interface PDFSource {
 
 void closeSource();
 
+@NotNull
 DocumentContent readPages();
 
+@NotNull
 RenderedPage renderPage(int page);
 }

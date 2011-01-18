@@ -21,6 +21,7 @@ import org.elacin.pdfextract.content.WhitespaceRectangle;
 import org.elacin.pdfextract.geom.MathUtils;
 import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.geom.RectangleCollection;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
@@ -44,7 +45,7 @@ WhitespaceFinder(RectangleCollection region,
 // ------------------------ OVERRIDING METHODS ------------------------
 
 @Override
-protected boolean acceptsRectangle(WhitespaceRectangle newWhitespace) {
+protected boolean acceptsRectangle(@NotNull WhitespaceRectangle newWhitespace) {
     /** find all the surrounding content. make sure this rectangle is not too small.
      * This is an expensive check, which is why it is done here. i think it is still
      * correct. */
@@ -105,7 +106,7 @@ protected boolean acceptsRectangle(WhitespaceRectangle newWhitespace) {
 // -------------------------- OTHER METHODS --------------------------
 
 //@Override
-protected float rectangleQuality(Rectangle r) {
+protected float rectangleQuality(@NotNull Rectangle r) {
     final Rectangle pos = r.getPos();
 
     final float temp = Math.abs(

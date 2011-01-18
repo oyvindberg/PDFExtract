@@ -40,9 +40,12 @@ public class ParagraphSegmentatorWS {
 
 private static final Logger log = Logger.getLogger(ParagraphSegmentatorWS.class);
 
+@NotNull
 final List<List<PhysicalContent>> blockContents = new ArrayList<List<PhysicalContent>>(30);
+@NotNull
 final PhysicalPageRegion region;
 final Rectangle          pos;
+@NotNull
 final ParagraphSegmentator paragraphSegmentator = new ParagraphSegmentator();
 
 @NotNull
@@ -50,7 +53,7 @@ List<PhysicalContent> block = new ArrayList<PhysicalContent>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public ParagraphSegmentatorWS(PhysicalPageRegion region) {
+public ParagraphSegmentatorWS(@NotNull PhysicalPageRegion region) {
     this.region = region;
     pos = region.getPos();
     paragraphSegmentator.setMedianVerticalSpacing(region.getMedianOfVerticalDistances());
@@ -58,7 +61,8 @@ public ParagraphSegmentatorWS(PhysicalPageRegion region) {
 
 // -------------------------- STATIC METHODS --------------------------
 
-private static List<Integer> findLineBoundaries(int[] counts) {
+@NotNull
+private static List<Integer> findLineBoundaries(@NotNull int[] counts) {
     List<Integer> lineBoundaries = new ArrayList<Integer>();
     lineBoundaries.add(0);
     boolean hasFoundText = false;

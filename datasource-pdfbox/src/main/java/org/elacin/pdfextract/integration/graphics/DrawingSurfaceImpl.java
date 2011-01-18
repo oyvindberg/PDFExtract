@@ -255,7 +255,9 @@ private static Rectangle convertRectangle(@NotNull final java.awt.Rectangle boun
 
 // -------------------------- OTHER METHODS --------------------------
 
-private void addVectorPath(GeneralPath originalPath, Color color, Shape clippingPath) {
+private void addVectorPath(@NotNull GeneralPath originalPath,
+                           @NotNull Color color,
+                           Shape clippingPath) {
     if (color.equals(Color.WHITE)) {
         return;
     }

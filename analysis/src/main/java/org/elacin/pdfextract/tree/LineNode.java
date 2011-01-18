@@ -79,6 +79,7 @@ public String getText() {
 
 // -------------------------- PUBLIC METHODS --------------------------
 
+@NotNull
 public Style findDominatingStyle() {
     return TextUtils.findDominatingStyle(getChildren());
 }

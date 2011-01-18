@@ -71,6 +71,7 @@ private final PriorityQueue<QueueEntry> queue;
 
 /* this holds a list of all queue entries which are not yet accepted. Upon finding a new
 * whitespace rectangle, these are added back to the queue. */
+@NotNull
 private final List<QueueEntry> notYetAccepted = new ArrayList<QueueEntry>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -235,7 +236,7 @@ private int getNumberOfWhitespacesFound() {
 /**
  * If none of the obstacles are contained within outerBound, then we found a rectangle
  */
-private boolean isEmptyEnough(QueueEntry current) {
+private boolean isEmptyEnough(@NotNull QueueEntry current) {
     /* accept a small intersection */
     if (current.numObstacles <= 3) {
         final float boundArea = current.bound.area();
@@ -256,6 +257,7 @@ private boolean isEmptyEnough(QueueEntry current) {
  * Creates four rectangles with the remaining space left after splitting the current rectangle
  * around the pivot. Also divides the obstacles among the newly created rectangles
  */
+@Nullable
 private QueueEntry[] splitSearchAreaAround(@NotNull final QueueEntry current,
                                            @NotNull final HasPosition pivot) {
     final Rectangle p = current.bound;

@@ -19,7 +19,6 @@ package org.elacin.pdfextract.content;
 import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Nov 3, 2010 Time: 5:17:33 PM To change this template
@@ -30,7 +29,7 @@ public abstract class AssignablePhysicalContent extends PhysicalContent {
 
 public static final int BLOCK_NOT_ASSIGNED = -1;
 public              int blockNum           = BLOCK_NOT_ASSIGNED;
-@Nullable
+@NotNull
 protected Style style;
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -63,11 +62,12 @@ public void setBlockNum(final int blockNum) {
     this.blockNum = blockNum;
 }
 
+@NotNull
 public Style getStyle() {
     return style;
 }
 
-public void setStyle(final Style style) {
+public void setStyle(@NotNull final Style style) {
     this.style = style;
 }
 

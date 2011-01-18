@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.integration;
 
 import org.elacin.pdfextract.style.Style;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,15 +33,19 @@ import java.util.List;
 public class DocumentContent {
 // ------------------------------ FIELDS ------------------------------
 
+@NotNull
 final List<Style>       styles = new ArrayList<Style>();
+@NotNull
 final List<PageContent> pages  = new ArrayList<PageContent>();
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
+@NotNull
 public List<PageContent> getPages() {
     return pages;
 }
 
+@NotNull
 public List<Style> getStyles() {
     return styles;
 }

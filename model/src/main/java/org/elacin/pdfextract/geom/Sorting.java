@@ -35,20 +35,22 @@ import java.util.PriorityQueue;
 public class Sorting {
 // ------------------------------ FIELDS ------------------------------
 
+@NotNull
 public static final Comparator<HasPosition> sortByLowerY = new Comparator<HasPosition>() {
     public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
         return Float.compare(o1.getPos().getY(), o2.getPos().getY());
     }
 };
 
+@NotNull
 public static final Comparator<HasPosition> sortByHigherX = new Comparator<HasPosition>() {
     public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
         return Float.compare(o2.getPos().getX(), o1.getPos().getX());
     }
 };
 
-public static final Comparator<HasPosition> sortByLowerYThenLowerX = new Comparator<HasPosition>
-        () {
+@NotNull
+public static final Comparator<HasPosition> sortByLowerYThenLowerX = new Comparator<HasPosition>() {
     public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
         final int compare = Float.compare(o1.getPos().getY(), o2.getPos().getY());
         if (compare != 0) {
@@ -58,32 +60,36 @@ public static final Comparator<HasPosition> sortByLowerYThenLowerX = new Compara
     }
 };
 
+@NotNull
 public static final Comparator<HasPosition> sortByLowerX = new Comparator<HasPosition>() {
     public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
         return Float.compare(o1.getPos().getX(), o2.getPos().getX());
     }
 };
 
+@NotNull
 public static final Comparator<HasPosition> sortBySmallestArea = new Comparator<HasPosition>() {
     public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
         return Float.compare(o1.getPos().area(), o2.getPos().area());
     }
 };
 
+@NotNull
 public static final Comparator<Style> sortStylesById = new Comparator<Style>() {
-    public int compare(final Style o1, final Style o2) {
+    public int compare(@NotNull final Style o1, @NotNull final Style o2) {
         return o1.id.compareTo(o2.id);
     }
 };
 
-public static final Comparator<PhysicalText> sortTextByBaseLine = new Comparator<PhysicalText>
-        () {
-    public int compare(final PhysicalText o1, final PhysicalText o2) {
+@NotNull
+public static final Comparator<PhysicalText> sortTextByBaseLine = new Comparator<PhysicalText>() {
+    public int compare(@NotNull final PhysicalText o1, @NotNull final PhysicalText o2) {
         return Float.compare(o1.getBaseLine(), o2.getBaseLine());
     }
 };
+@NotNull
 public static final Comparator<HasPosition>  regionComparator   = new Comparator<HasPosition>() {
-    public int compare(final HasPosition o1, final HasPosition o2) {
+    public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
         if (o1.getPos().getEndX() < o2.getPos().getX()) {
             return -1;
         }

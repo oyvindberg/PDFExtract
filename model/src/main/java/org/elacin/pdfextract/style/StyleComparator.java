@@ -16,6 +16,8 @@
 
 package org.elacin.pdfextract.style;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by IntelliJ IDEA. User: elacin Date: 29.11.10 Time: 03.39 To change this template use
  * File | Settings | File Templates.
@@ -27,7 +29,8 @@ private static final int SUBTLE_SIZE_DIFFERENCE = 2;
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-public static StyleDifference styleCompare(final Style one, final Style two) {
+@NotNull
+public static StyleDifference styleCompare(@NotNull final Style one, @NotNull final Style two) {
     if (one.mathFont != two.mathFont) {
         return StyleDifference.BIG_DIFFERENCE;
     }

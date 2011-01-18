@@ -44,6 +44,7 @@ private static final Logger log = Logger.getLogger(PhysicalPageRegion.class);
 private transient boolean fontInfoFound;
 private transient float   _avgFontSizeX;
 private transient float   _avgFontSizeY;
+@Nullable
 private transient Style   _mostCommonStyle;
 private transient float   _shortestText;
 private transient boolean _posSet = false;
@@ -53,6 +54,7 @@ private transient boolean medianFound;
 private transient int     _medianOfVerticalDistances;
 
 /* the physical page containing this region */
+@NotNull
 private final PhysicalPage page;
 
 @NotNull
@@ -61,6 +63,7 @@ private final List<PhysicalPageRegion> subregions = new ArrayList<PhysicalPageRe
 @NotNull
 private final List<WhitespaceRectangle> whitespace = new ArrayList<WhitespaceRectangle>();
 
+@Nullable
 private GraphicContent containingGraphic;
 ;
 
@@ -107,6 +110,7 @@ public void clearCache() {
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
+@Nullable
 public GraphicContent getContainingGraphic() {
     return containingGraphic;
 }
@@ -132,7 +136,7 @@ public boolean columnBoundaryWouldBeTooNarrow(final float lastBoundary, final fl
     return x - lastBoundary < getMinimumColumnSpacing();
 }
 
-public void extractSubRegionFromBound(Rectangle bound) {
+public void extractSubRegionFromBound(@NotNull Rectangle bound) {
     final List<PhysicalContent> subContents = findContentsIntersectingWith(bound.getPos());
     doExtractSubRegion(subContents, bound, null);
 }
@@ -141,7 +145,7 @@ public void extractSubRegionFromContent(@NotNull final Collection<PhysicalConten
     doExtractSubRegion(subContents, null, null);
 }
 
-public void extractSubRegionFromContentAndWithGraphics(List<PhysicalContent> block,
+public void extractSubRegionFromContentAndWithGraphics(@NotNull List<PhysicalContent> block,
                                                        GraphicContent fakeCoverGraphic) {
     doExtractSubRegion(block, null, fakeCoverGraphic);
 }
@@ -202,6 +206,7 @@ public float getMinimumRowSpacing() {
     //
 }
 
+@Nullable
 public Style getMostCommonStyle() {
     if (!fontInfoFound) {
         findAndSetFontInformation();
@@ -217,7 +222,7 @@ public boolean isGraphicalRegion() {
     return containingGraphic != null;
 }
 
-public void setContainingGraphic(GraphicContent containingGraphic) {
+public void setContainingGraphic(@Nullable GraphicContent containingGraphic) {
     if (this.containingGraphic != null) {
         removeContent(this.containingGraphic);
     }

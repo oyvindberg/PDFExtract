@@ -54,6 +54,7 @@ public class PDFBoxIntegration extends PageDrawer {
 
 private static final Logger log = Logger.getLogger(PDFBoxIntegration.class);
 
+@NotNull
 private static final byte[]  SPACE_BYTES   = {(byte) 32};
 private static final boolean NO_DESCENDERS = true;
 
@@ -67,9 +68,11 @@ public Fonts           fonts;
 /**
  * page state
  */
+@NotNull
 protected final DrawingSurface graphicsDrawer = new DrawingSurfaceImpl();
 
 /* i couldnt find this information anywhere, so calculate it and cache it here */
+@NotNull
 protected Map<PDFont, Boolean> areFontsMonospaced = new HashMap<PDFont, Boolean>();
 
 /* The normalizer is used to remove text ligatures/presentation forms and to correct
@@ -127,6 +130,7 @@ public void fillPath(int windingRule) throws IOException {
     getLinePath().reset();
 }
 
+@NotNull
 @Override
 public Graphics2D getGraphics() {
     throw new RuntimeException("PDFBoxSource does not have Graphics2D");
@@ -458,15 +462,15 @@ public void processDocument() throws IOException {
 
 // -------------------------- OTHER METHODS --------------------------
 
-private void correctPosition(final PDFont fontObj,
+private void correctPosition(@NotNull final PDFont fontObj,
                              final byte[] string,
                              final int i,
-                             final String c,
+                             @NotNull final String c,
                              final float fontSizeText,
                              final float glyphSpaceToTextSpaceFactor,
                              float horizontalScalingText,
                              final int codeLength,
-                             final ETextPosition text) throws IOException { /**
+                             @NotNull final ETextPosition text) throws IOException { /**
  * Provide precise positioning of glyphs.
  *
  * There are several problems right which needs to be worked around:
@@ -563,7 +567,7 @@ private void correctPosition(final PDFont fontObj,
     text.setPos(newPos);
 }
 
-private void filterOutBadFonts(List<ETextPosition> text) {
+private void filterOutBadFonts(@NotNull List<ETextPosition> text) {
     final Map<PDFont, Integer> badCharsForStyle = new HashMap<PDFont, Integer>();
     final Map<PDFont, Integer> numCharsForStyle = new HashMap<PDFont, Integer>();
 
@@ -600,7 +604,7 @@ private void filterOutBadFonts(List<ETextPosition> text) {
     }
 }
 
-private void filterOutControlCodes(List<ETextPosition> text) {
+private void filterOutControlCodes(@NotNull List<ETextPosition> text) {
     for (Iterator<ETextPosition> iterator = text.iterator(); iterator.hasNext();) {
         TextPosition tp = iterator.next();
         if (Character.isISOControl(tp.getCharacter().charAt(0))) {
@@ -656,7 +660,7 @@ private boolean includeText(@NotNull final TextPosition text) {
     return showCharacter;
 }
 
-private boolean isMonoSpacedFont(PDFont fontObj) {
+private boolean isMonoSpacedFont(@NotNull PDFont fontObj) {
     if (areFontsMonospaced.containsKey(fontObj)) {
         return areFontsMonospaced.get(fontObj);
     }

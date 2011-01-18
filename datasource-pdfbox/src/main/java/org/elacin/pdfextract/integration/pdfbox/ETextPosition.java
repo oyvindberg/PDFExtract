@@ -110,7 +110,8 @@ public void setPos(@NotNull final Rectangle pos) {
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-public PhysicalText convertText(final Fonts styles) {
+@NotNull
+public PhysicalText convertText(@NotNull final Fonts styles) {
     //    final String normalizedText = Normalizer.normalize(getCharacter(), Normalizer.Form.NFKD);
     return new PhysicalText(getCharacter(), styles.getStyleForTextPosition(this), pos, baseLine);
 }

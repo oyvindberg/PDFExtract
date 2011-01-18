@@ -112,6 +112,7 @@ public final void addChild(@NotNull final ChildType child) {
 //@NotNull
 //public abstract Comparator<ChildType> getChildComparator();
 
+@NotNull
 public Comparator getChildComparator() {
     return Sorting.regionComparator;
 }

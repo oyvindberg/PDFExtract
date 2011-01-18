@@ -41,6 +41,7 @@ public class Fonts implements Serializable {
 
 private static final Logger log = Logger.getLogger(Fonts.class);
 
+@NotNull
 private static List<String> mathFonts = new ArrayList<String>() {{
     add("CMSY");
     add("CMEX");
@@ -48,12 +49,15 @@ private static List<String> mathFonts = new ArrayList<String>() {{
 }};
 
 
+@NotNull
 final Map<String, Style> styles = new HashMap<String, Style>();
 
+@NotNull
 final Map<PDFont, FontInfo> fontInfoCache = new HashMap<PDFont, FontInfo>();
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
+@NotNull
 public Map<String, Style> getStyles() {
     return styles;
 }
@@ -93,7 +97,7 @@ public Style getStyleForTextPosition(@NotNull TextPosition tp) {
 
 // -------------------------- OTHER METHODS --------------------------
 
-private FontInfo getFontInfo(PDFont pdFont) {
+private FontInfo getFontInfo(@NotNull PDFont pdFont) {
     if (fontInfoCache.containsKey(pdFont)) {
         return fontInfoCache.get(pdFont);
     }

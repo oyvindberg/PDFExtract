@@ -47,6 +47,7 @@ public void setMedianVerticalSpacing(final int medianVerticalSpacing) {
 
 // -------------------------- PUBLIC METHODS --------------------------
 
+@NotNull
 public List<ParagraphNode> segmentParagraphs(@NotNull final List<LineNode> lines) {
     if (medianVerticalSpacing == -1) {
         throw new RuntimeException("set medianVerticalSpacing!");
