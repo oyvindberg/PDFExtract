@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.physical.segmentation.column;
+package org.elacin.pdfextract.physical.column;
 
 import org.elacin.pdfextract.content.PhysicalContent;
 import org.elacin.pdfextract.content.WhitespaceRectangle;

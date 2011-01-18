@@ -22,13 +22,13 @@ import org.elacin.pdfextract.integration.DocumentContent;
 import org.elacin.pdfextract.integration.PDFSource;
 import org.elacin.pdfextract.integration.PageContent;
 import org.elacin.pdfextract.integration.pdfbox.PDFBoxSource;
-import org.elacin.pdfextract.physical.segmentation.TreeCreator;
-import org.elacin.pdfextract.physical.segmentation.region.PageSegmentator;
-import org.elacin.pdfextract.physical.segmentation.word.WordSegmentator;
-import org.elacin.pdfextract.physical.segmentation.word.WordSegmentatorImpl;
+import org.elacin.pdfextract.physical.region.PageSegmentator;
+import org.elacin.pdfextract.physical.word.WordSegmentator;
+import org.elacin.pdfextract.physical.word.WordSegmentatorImpl;
 import org.elacin.pdfextract.renderer.PageRenderer;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.PageNode;
+import org.elacin.pdfextract.tree.TreeCreator;
 import org.elacin.pdfextract.xml.SimpleXMLOutput;
 import org.elacin.pdfextract.xml.TEIOutput;
 

@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package org.elacin.pdfextract.physical.segmentation;
+package org.elacin.pdfextract.tree;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.content.PhysicalPage;
 import org.elacin.pdfextract.content.PhysicalPageRegion;
-import org.elacin.pdfextract.content.WhitespaceRectangle;
-import org.elacin.pdfextract.physical.segmentation.paragraph.ParagraphSegmentatorWS;
-import org.elacin.pdfextract.tree.LayoutRegionNode;
-import org.elacin.pdfextract.tree.PageNode;
-import org.elacin.pdfextract.tree.ParagraphNode;
+import org.elacin.pdfextract.physical.paragraph.ParagraphSegmentatorWS;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,24 +53,10 @@ public static PageNode compileLogicalPage(PhysicalPage page) {
         log.info("LOG00940:Page had " + regions.size() + " regions");
     }
 
-    /* this is all just rendering information */
-    final List<WhitespaceRectangle> whitespaces = new ArrayList<WhitespaceRectangle>();
-    addWhiteSpaceFromRegion(whitespaces, page.getMainRegion());
-    ret.addDebugFeatures(Color.CYAN, page.getAllGraphics());
-    ret.addDebugFeatures(Color.GREEN, whitespaces);
-
     return ret;
 }
 
 // -------------------------- STATIC METHODS --------------------------
-
-private static void addWhiteSpaceFromRegion(List<WhitespaceRectangle> whitespaces,
-                                            PhysicalPageRegion region) {
-    whitespaces.addAll(region.getWhitespace());
-    for (PhysicalPageRegion subRegion : region.getSubregions()) {
-        addWhiteSpaceFromRegion(whitespaces, subRegion);
-    }
-}
 
 @NotNull
 private static List<ParagraphNode> createParagraphNodes(PhysicalPageRegion regionNode) {

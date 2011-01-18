@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.elacin.pdfextract.physical.segmentation.region;
+package org.elacin.pdfextract.physical.region;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.content.GraphicContent;
 import org.elacin.pdfextract.content.PhysicalContent;
 import org.elacin.pdfextract.content.PhysicalPageRegion;
 import org.elacin.pdfextract.geom.Rectangle;
-import org.elacin.pdfextract.physical.segmentation.graphics.CategorizedGraphics;
+import org.elacin.pdfextract.physical.graphics.CategorizedGraphics;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,8 +54,7 @@ static void splitRegionBySeparators(PhysicalPageRegion r, CategorizedGraphics gr
         }
 
         /* search to see if this separator does not intersect with anything*/
-        Rectangle search = new Rectangle(0, hsep.getPos().getY(), r.getWidth(),
-                hsep.getPos().getHeight());
+        Rectangle search = new Rectangle(0, hsep.getPos().getY(), r.getWidth(), hsep.getPos().getHeight());
 
         final List<PhysicalContent> list = r.findContentsIntersectingWith(search);
         if (list.contains(hsep)) {

@@ -83,15 +83,15 @@
         <level value="INFO"/>
     </logger>
 
-    <logger name="org.elacin.org.elacin.pdfextract.physical.segmentation.word">
+    <logger name="org.elacin.org.elacin.pdfextract.physical.word">
         <level value="WARN"/>
     </logger>
 
-    <logger name="org.elacin.org.elacin.pdfextract.physical.segmentation.graphics">
+    <logger name="org.elacin.org.elacin.pdfextract.physical.graphics">
         <level value="INFO"/>
     </logger>
 
-    <logger name="org.elacin.org.elacin.pdfextract.physical.segmentation.paragraph">
+    <logger name="org.elacin.org.elacin.pdfextract.physical.paragraph">
         <level value="INFO"/>
     </logger>
 

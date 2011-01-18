@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.physical.segmentation.word;
+package org.elacin.pdfextract.physical.word;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.content.PhysicalText;
@@ -76,9 +76,9 @@ public List<PhysicalText> segmentWords(@NotNull final List<PhysicalText> texts) 
             currentStyle = text.getStyle();
         }
 
-        final boolean stopGrouping = isOnAnotherLine(baseline, text, maxY)
-                || isTooFarAwayHorizontally(maxX, text)
-                || fontDiffers(currentStyle, text);
+        final boolean stopGrouping =
+                isOnAnotherLine(baseline, text, maxY) || isTooFarAwayHorizontally(maxX, text)
+                        || fontDiffers(currentStyle, text);
 
         if (stopGrouping) {
             if (!line.isEmpty()) {

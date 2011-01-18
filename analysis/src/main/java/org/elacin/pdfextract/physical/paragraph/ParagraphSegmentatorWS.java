@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package org.elacin.pdfextract.physical.segmentation.paragraph;
+package org.elacin.pdfextract.physical.paragraph;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.content.PhysicalContent;
 import org.elacin.pdfextract.content.PhysicalPageRegion;
 import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.geom.Sorting;
-import org.elacin.pdfextract.physical.segmentation.line.LineSegmentator;
+import org.elacin.pdfextract.physical.line.LineSegmentator;
 import org.elacin.pdfextract.tree.LineNode;
 import org.elacin.pdfextract.tree.ParagraphNode;
 import org.jetbrains.annotations.NotNull;

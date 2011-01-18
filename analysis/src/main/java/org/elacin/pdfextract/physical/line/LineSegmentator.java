@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elacin.pdfextract.physical.segmentation.line;
+package org.elacin.pdfextract.physical.line;
 
 import org.elacin.pdfextract.content.PhysicalContent;
 import org.elacin.pdfextract.content.PhysicalPageRegion;
@@ -105,16 +105,12 @@ private LineNode createLineFrom(@NotNull final PhysicalPageRegion region,
                                 @NotNull final Set<PhysicalContent> workingSet) {
     LineNode lineNode = new LineNode();
     for (PhysicalContent content : workingSet) {
-        if (content.isAssignablePhysicalContent() && !content.getAssignable()
-                .isAssignedBlock()) {
+        if (content.isAssignablePhysicalContent() && !content.getAssignable().isAssignedBlock()) {
             if (content.isText()) {
-                lineNode.addChild(createWordNode(content.getPhysicalText(),
-                        region.getPageNumber()));
+                lineNode.addChild(createWordNode(content.getPhysicalText(), region.getPageNumber()));
             } else if (content.isGraphic()) {
                 final Style style = content.getGraphicContent().getStyle();
-                lineNode.addChild(new WordNode(content.getPos(), region.getPageNumber(), style,
-                        style.id,
-                        0.0f));
+                lineNode.addChild(new WordNode(content.getPos(), region.getPageNumber(), style, style.id, 0.0f));
             } else {
                 throw new RuntimeException("asd");
             }

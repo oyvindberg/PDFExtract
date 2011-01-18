@@ -20,9 +20,7 @@ import org.elacin.pdfextract.geom.HasPosition;
 import org.elacin.pdfextract.geom.Sorting;
 import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
-import java.util.*;
-import java.util.List;
+import java.util.Comparator;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Mar 23, 2010 Time: 9:33:52 PM To change this
@@ -32,9 +30,6 @@ public class PageNode extends AbstractParentNode<LayoutRegionNode, DocumentNode>
 // ------------------------------ FIELDS ------------------------------
 
 private final int pageNumber;
-@NotNull
-private final Map<Color, List<HasPosition>> debugFeatures = new HashMap<Color,
-        List<HasPosition>>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -55,21 +50,7 @@ public Comparator<HasPosition> getChildComparator() {
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-@NotNull
-public Map<Color, List<HasPosition>> getDebugFeatures() {
-    return debugFeatures;
-}
-
 public int getPageNumber() {
     return pageNumber;
-}
-
-// -------------------------- PUBLIC METHODS --------------------------
-
-public void addDebugFeatures(final Color color, final List<? extends HasPosition> list) {
-    if (!debugFeatures.containsKey(color)) {
-        debugFeatures.put(color, new ArrayList<HasPosition>());
-    }
-    debugFeatures.get(color).addAll(list);
 }
 }

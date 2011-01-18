@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elacin.pdfextract.physical.segmentation.graphics;
+package org.elacin.pdfextract.physical.graphics;
 
 import org.elacin.pdfextract.content.GraphicContent;
 import org.jetbrains.annotations.NotNull;

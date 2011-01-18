@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.physical.segmentation.column;
+package org.elacin.pdfextract.physical.column;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.content.PhysicalContent;

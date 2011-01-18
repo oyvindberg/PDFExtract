@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elacin.pdfextract.physical.segmentation.region;
+package org.elacin.pdfextract.physical.region;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.content.GraphicContent;
@@ -23,10 +23,10 @@ import org.elacin.pdfextract.content.PhysicalPageRegion;
 import org.elacin.pdfextract.content.WhitespaceRectangle;
 import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.geom.Sorting;
-import org.elacin.pdfextract.physical.segmentation.column.LayoutRecognizer;
-import org.elacin.pdfextract.physical.segmentation.graphics.CategorizedGraphics;
-import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentator;
-import org.elacin.pdfextract.physical.segmentation.graphics.GraphicSegmentatorImpl;
+import org.elacin.pdfextract.physical.column.LayoutRecognizer;
+import org.elacin.pdfextract.physical.graphics.CategorizedGraphics;
+import org.elacin.pdfextract.physical.graphics.GraphicSegmentator;
+import org.elacin.pdfextract.physical.graphics.GraphicSegmentatorImpl;
 import org.elacin.pdfextract.style.Style;
 
 import java.util.Collections;

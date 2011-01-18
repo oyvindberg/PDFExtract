@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elacin.pdfextract.physical.segmentation.paragraph;
+package org.elacin.pdfextract.physical.paragraph;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.style.Style;

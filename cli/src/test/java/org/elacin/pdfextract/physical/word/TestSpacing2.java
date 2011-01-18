@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package org.elacin.pdfextract.physical.segmentation.word;
+package org.elacin.pdfextract.physical.word;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.MDC;
 import org.elacin.pdfextract.content.PhysicalText;
 import org.elacin.pdfextract.geom.Sorting;
 import org.elacin.pdfextract.style.Style;
+import org.elacin.pdfextract.util.FileWalker;
 import org.testng.annotations.Test;
-import org.util.FileWalker;
 
 import java.io.BufferedReader;
 import java.io.File;

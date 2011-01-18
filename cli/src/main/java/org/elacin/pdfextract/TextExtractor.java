@@ -16,9 +16,9 @@ package org.elacin.pdfextract;/*
 
 import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
+import org.elacin.pdfextract.util.FileWalker;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.util.FileWalker;
 
 import java.io.File;
 import java.io.FileNotFoundException;

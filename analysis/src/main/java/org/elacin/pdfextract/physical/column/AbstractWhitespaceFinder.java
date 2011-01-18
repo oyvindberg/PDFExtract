@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.physical.segmentation.column;
+package org.elacin.pdfextract.physical.column;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.content.WhitespaceRectangle;
@@ -141,8 +141,7 @@ private static boolean isNotContainedByAnyObstacle(@NotNull QueueEntry sub) {
 public List<WhitespaceRectangle> findWhitespace() {
     if (foundWhitespace.isEmpty()) {
         /* first add the whole page (all its contents as obstacle)s to the priority queue */
-        queue.add(new QueueEntry(region.getPos(), region.getContents().toArray(new
-                HasPosition[region.getContents().size()]), region.getContents().size()));
+        queue.add(new QueueEntry(region.getPos(), region.getContents().toArray(new HasPosition[region.getContents().size()]), region.getContents().size()));
 
         /* continue looking for whitespace until we have the wanted number or we run out*/
         while (getNumberOfWhitespacesFound() < wantedWhitespaces) {
@@ -333,7 +332,8 @@ private QueueEntry[] splitSearchAreaAround(@NotNull final QueueEntry current,
     }
 
 
-    return new QueueEntry[]{left == null ? null : new QueueEntry(left, leftObstacles, leftIndex),
+    return new QueueEntry[]{
+            left == null ? null : new QueueEntry(left, leftObstacles, leftIndex),
             right == null ? null : new QueueEntry(right, rightObstacles, rightIndex),
             above == null ? null : new QueueEntry(above, aboveObstacles, aboveIndex),
             below == null ? null : new QueueEntry(below, belowObstacles, belowIndex)};

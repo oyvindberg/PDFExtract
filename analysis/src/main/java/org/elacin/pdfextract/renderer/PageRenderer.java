@@ -19,6 +19,8 @@ package org.elacin.pdfextract.renderer;
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.Constants;
 import org.elacin.pdfextract.content.GraphicContent;
+import org.elacin.pdfextract.content.PhysicalPage;
+import org.elacin.pdfextract.content.PhysicalPageRegion;
 import org.elacin.pdfextract.content.WhitespaceRectangle;
 import org.elacin.pdfextract.geom.HasPosition;
 import org.elacin.pdfextract.geom.Rectangle;
@@ -34,8 +36,8 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.elacin.pdfextract.Constants.RENDER_DPI;
 
@@ -52,7 +54,8 @@ private static final Logger log = Logger.getLogger(PageRenderer.class);
 private static final Color TRANSPARENT_WHITE = new Color(255, 255, 255, 0);
 private static final Color DONT_DRAW         = new Color(254, 254, 254, 0);
 
-public final  PDFSource    source;
+private final PDFSource    source;
+private final PhysicalPage physicalPage;
 private final int          resolution;
 private final DocumentNode documentNode;
 
@@ -63,13 +66,25 @@ private float      yScale;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public PageRenderer(final PDFSource source, final DocumentNode documentNode, final int resolution) {
+public PageRenderer(final PDFSource source,
+                    final DocumentNode documentNode,
+                    PhysicalPage physicalPage,
+                    final int resolution) {
     this.source = source;
     this.documentNode = documentNode;
     this.resolution = resolution;
+    this.physicalPage = physicalPage;
 }
 
 // -------------------------- STATIC METHODS --------------------------
+
+private static void addWhiteSpaceFromRegion(List<WhitespaceRectangle> whitespaces,
+                                            PhysicalPageRegion region) {
+    whitespaces.addAll(region.getWhitespace());
+    for (PhysicalPageRegion subRegion : region.getSubregions()) {
+        addWhiteSpaceFromRegion(whitespaces, subRegion);
+    }
+}
 
 static Color getColorForObject(Object o) {
     if (o.getClass().equals(WhitespaceRectangle.class)) {
@@ -154,28 +169,19 @@ public BufferedImage renderToFile(final int pageNum, File outputFile) {
     graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 
-    for (Map.Entry<Color, List<HasPosition>> o : pageNode.getDebugFeatures().entrySet()) {
-        for (HasPosition position : o.getValue()) {
-            if (position instanceof GraphicContent) {
-                final GraphicContent graphicContent = (GraphicContent) position;
-                if (!graphicContent.isBackgroundColor()) {
-                    drawRectangle(position);
-                }
-            }
-        }
+    for (GraphicContent graphic : physicalPage.getAllGraphics()) {
+        drawRectangle(graphic);
     }
-
 
     drawTree(pageNode);
 
-    for (Map.Entry<Color, List<HasPosition>> o : pageNode.getDebugFeatures().entrySet()) {
-        for (HasPosition position : o.getValue()) {
-            if ((position instanceof WhitespaceRectangle)) {
-                drawRectangle(position);
-            }
-        }
-    }
 
+    final List<WhitespaceRectangle> whitespaces = new ArrayList<WhitespaceRectangle>();
+    addWhiteSpaceFromRegion(whitespaces, physicalPage.getMainRegion());
+
+    for (WhitespaceRectangle o : whitespaces) {
+        drawRectangle(o);
+    }
 
     /* write to file */
     try {
@@ -218,9 +224,7 @@ private void drawRectangle(@NotNull final HasPosition object) {
 }
 
 private void drawTree(AbstractParentNode parent) {
-    //    if (!(parent instanceof AbstractParentNode)) {
     drawRectangle(parent);
-    //    }
 
     for (Object o : parent.getChildren()) {
         if (o instanceof AbstractParentNode) {
