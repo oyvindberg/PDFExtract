@@ -14,6 +14,5 @@ public interface GraphicSegmentator {
 // -------------------------- PUBLIC METHODS --------------------------
 
 @NotNull
-CategorizedGraphics segmentGraphicsUsingContentInRegion(List<GraphicContent> graphics,
-                                                        PhysicalPageRegion region);
+CategorizedGraphics categorizeGraphics(List<GraphicContent> graphics, PhysicalPageRegion region);
 }

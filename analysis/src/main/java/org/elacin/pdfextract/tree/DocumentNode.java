@@ -54,7 +54,7 @@ public DocumentNode() {
  */
 @NotNull
 @Override
-public Comparator getChildComparator() {
+public Comparator<PageNode> getChildComparator() {
     return new Comparator<PageNode>() {
         public int compare(@NotNull final PageNode o1, @NotNull final PageNode o2) {
             if (o1.getPage().getPageNumber() < o2.getPage().getPageNumber()) {

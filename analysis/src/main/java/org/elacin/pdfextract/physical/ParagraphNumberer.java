@@ -14,32 +14,55 @@
  * limitations under the License.
  */
 
-package org.elacin.pdfextract.tree;
+package org.elacin.pdfextract.physical;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: 29.11.10 Time: 04.27 To change this template use
+ * Created by IntelliJ IDEA. User: elacin Date: 19.01.11 Time: 00.46 To change this template use
  * File | Settings | File Templates.
  */
-public class LayoutRegionNode extends AbstractParentNode<AbstractParentNode, PageNode> {
+public final class ParagraphNumberer {
 // ------------------------------ FIELDS ------------------------------
 
-private final boolean pictureRegion;
+private int page = 0, region = 0, paragraph = 0;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public LayoutRegionNode(final boolean region) {
-    pictureRegion = region;
+public ParagraphNumberer(final int pageNumber) {
+    setPage(pageNumber);
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
-public boolean isPictureRegion() {
-    return pictureRegion;
+public int getPage() {
+    return page;
 }
 
-//@NotNull
-//@Override
-//public Comparator<AbstractParentNode> getChildComparator() {
-//    return Sorting.regionComparator;
-//}
+// -------------------------- PUBLIC METHODS --------------------------
+
+public int getParagraphId(boolean graphic) {
+    return (region * 1000 + paragraph) * (graphic ? -1 : 1);
+}
+
+public void newPage() {
+    page++;
+    region = 0;
+    paragraph = 0;
+}
+
+public void newParagraph() {
+    paragraph++;
+}
+
+public void newRegion() {
+    region++;
+    paragraph = 0;
+}
+
+// -------------------------- OTHER METHODS --------------------------
+
+private void setPage(final int page) {
+    this.page = page;
+    region = 0;
+    paragraph = 0;
+}
 }

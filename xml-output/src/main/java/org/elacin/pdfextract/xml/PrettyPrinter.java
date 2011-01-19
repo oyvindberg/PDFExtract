@@ -26,11 +26,8 @@ import java.io.StringReader;
 import java.io.StringWriter;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: 16.01.11
- * Time: 23.55
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: 16.01.11 Time: 23.55 To change this template use
+ * File | Settings | File Templates.
  */
 public class PrettyPrinter {
 // -------------------------- PUBLIC STATIC METHODS --------------------------
@@ -48,9 +45,10 @@ private static String prettyFormat(String input, int indent) {
         StreamResult xmlOutput = new StreamResult(stringWriter);
         Transformer transformer = TransformerFactory.newInstance().newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(indent));
+        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount",
+                                      String.valueOf(indent));
         transformer.transform(xmlInput, xmlOutput);
-        return xmlOutput.getWriter().toString();
+        return stringWriter.toString();
     } catch (Exception e) {
         throw new RuntimeException(e);
     }

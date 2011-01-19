@@ -55,7 +55,10 @@ public Rectangle getPos() {
 // ------------------------ CANONICAL METHODS ------------------------
 
 @Override
-public boolean equals(@Nullable final Object o) {
+@SuppressWarnings({"ALL"})
+/* generated */
+public boolean equals(@Nullable final Object o)
+{
     if (this == o) {
         return true;
     }
@@ -140,7 +143,8 @@ public boolean isWhitespace() {
 // -------------------------- OTHER METHODS --------------------------
 
 protected final void setPositionFromContentList(@NotNull final Collection<? extends
-        PhysicalContent> contents) {
+                                                                                  PhysicalContent> contents)
+{
     pos = MathUtils.findBounds(contents);
 }
 }

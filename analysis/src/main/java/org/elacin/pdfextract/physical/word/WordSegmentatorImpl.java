@@ -33,12 +33,6 @@ public class WordSegmentatorImpl implements WordSegmentator {
 
 private static final Logger log = Logger.getLogger(WordSegmentatorImpl.class);
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
-public WordSegmentatorImpl() {
-
-}
-
 // ------------------------ INTERFACE METHODS ------------------------
 
 
@@ -46,8 +40,7 @@ public WordSegmentatorImpl() {
 
 /**
  * This method will convert the text into PhysicalTexts. <p/> To do this, the text is split on
- * whitespaces, character and word distances are approximated, and words are created based on
- * those
+ * whitespaces, character and word distances are approximated, and words are created based on those
  */
 @NotNull
 public List<PhysicalText> segmentWords(@NotNull final List<PhysicalText> texts) {
@@ -76,9 +69,9 @@ public List<PhysicalText> segmentWords(@NotNull final List<PhysicalText> texts) 
             currentStyle = text.getStyle();
         }
 
-        final boolean stopGrouping =
-                isOnAnotherLine(baseline, text, maxY) || isTooFarAwayHorizontally(maxX, text)
-                        || fontDiffers(currentStyle, text);
+        final boolean stopGrouping = isOnAnotherLine(baseline, text, maxY)
+                                             || isTooFarAwayHorizontally(maxX, text)
+                                             || fontDiffers(currentStyle, text);
 
         if (stopGrouping) {
             if (!line.isEmpty()) {
@@ -110,20 +103,13 @@ public List<PhysicalText> segmentWords(@NotNull final List<PhysicalText> texts) 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
 /**
- * The above methods are generally responsible for grouping text according to line and style;
- * this is the one which will actually do the segmentation.
- * <p/>
- * There are two cases to consider for this process:
- * - whitespace already existing: combine characters into words in the obvious way
- * - whitespace must be found:
- * <p/>
- * First approximate the applied intra-word character spacing.
- * <p/>
- * Then, iterate through the characters in the line from left to right:
- * calculate the real distance between a pair of characters
- * normalize that by subtracting the charspacing
- * if that normalized spacing is bigger than fontSize / 15, consider the space a
- * word boundary
+ * The above methods are generally responsible for grouping text according to line and style; this
+ * is the one which will actually do the segmentation. <p/> There are two cases to consider for this
+ * process: - whitespace already existing: combine characters into words in the obvious way -
+ * whitespace must be found: <p/> First approximate the applied intra-word character spacing. <p/>
+ * Then, iterate through the characters in the line from left to right: calculate the real distance
+ * between a pair of characters normalize that by subtracting the charspacing if that normalized
+ * spacing is bigger than fontSize / 15, consider the space a word boundary
  *
  * @param line
  * @return
@@ -133,7 +119,8 @@ public static Collection<PhysicalText> createWordsInLine(@NotNull final List<Phy
     /* keep the characters sorted at all times. note that unfinished words are put back into
     *   this queue, and will this be picked as currentWord below
     * */
-    final Queue<PhysicalText> queue = new PriorityQueue<PhysicalText>(line.size(), Sorting.sortByLowerX);
+    final Queue<PhysicalText> queue = new PriorityQueue<PhysicalText>(line.size(),
+                                                                      Sorting.sortByLowerX);
     queue.addAll(line);
 
     /* this list of words will be returned */
@@ -147,10 +134,10 @@ public static Collection<PhysicalText> createWordsInLine(@NotNull final List<Phy
 
     /* all font sizes are the same. if it is missing just guess 10 */
     final float fontSize;
-    if (line.get(0).getStyle().xSize != 0) {
-        fontSize = (float) line.get(0).getStyle().xSize;
-    } else {
+    if (line.get(0).getStyle().xSize == 0) {
         fontSize = 10.0f;
+    } else {
+        fontSize = (float) line.get(0).getStyle().xSize;
     }
 
     /* this is necessary to keep track of the width of the last character we
@@ -191,10 +178,10 @@ public static Collection<PhysicalText> createWordsInLine(@NotNull final List<Phy
 
             if (log.isDebugEnabled()) {
                 log.debug(currentWord.getText() + "[" + currentWidth + "] " + distance + " "
-                        + nextChar.getText() + "[" + nextChar.getPos().getWidth()
-                        + "]: isWordBoundary=" + isWordBoundary + ", effictive distance:"
-                        + (distance - charSpacing) + ", fontSize:" + (fontSize) + ", charSpacing:"
-                        + charSpacing);
+                                  + nextChar.getText() + "[" + nextChar.getPos().getWidth()
+                                  + "]: isWordBoundary=" + isWordBoundary + ", effictive distance:"
+                                  + (distance - charSpacing) + ", fontSize:" + (fontSize)
+                                  + ", charSpacing:" + charSpacing);
             }
         }
 
@@ -226,24 +213,15 @@ public static Collection<PhysicalText> createWordsInLine(@NotNull final List<Phy
 // -------------------------- STATIC METHODS --------------------------
 
 /**
- * Tries to find an estimate of the character spacing applied to the
- * given line of characters.
- * <p/>
- * The idea is that font kerning and other local adjustments will
- * contribute relatively little to the observed distance between
- * characters, whereas the more general applied character spacing
- * will make up by far the biggest amount of the space.
- * <p/>
- * These local adjustments will contribute in both directions, so
- * in many cases we will be able to get a somewhat good approximation
- * if we average out a semi-random number of the smallest distances.
- * <p/>
- * To put some numbers to this, say we have character distances
- * varying from 3.5 to 9pt. If we iterate through the first n distances,
- * with distances ranging from 3.5 to 4.5pt (the rest being skipped
- * for being too big), the approximation of the character spacing
- * would thus end up around 4.
- * *
+ * Tries to find an estimate of the character spacing applied to the given line of characters. <p/>
+ * The idea is that font kerning and other local adjustments will contribute relatively little to
+ * the observed distance between characters, whereas the more general applied character spacing will
+ * make up by far the biggest amount of the space. <p/> These local adjustments will contribute in
+ * both directions, so in many cases we will be able to get a somewhat good approximation if we
+ * average out a semi-random number of the smallest distances. <p/> To put some numbers to this, say
+ * we have character distances varying from 3.5 to 9pt. If we iterate through the first n distances,
+ * with distances ranging from 3.5 to 4.5pt (the rest being skipped for being too big), the
+ * approximation of the character spacing would thus end up around 4. *
  *
  * @param line list of characters in the line. this must be sorted
  * @return an approximate character spacing
@@ -324,12 +302,14 @@ private static boolean fontDiffers(@NotNull final Style style, @NotNull final Ph
 
 private static boolean isOnAnotherLine(final float baseline,
                                        @NotNull final PhysicalText text,
-                                       final float maxY) {
+                                       final float maxY)
+{
     return (baseline != text.getBaseLine() && text.getBaseLine() > maxY);
 }
 
 private static boolean isTooFarAwayHorizontally(final float endX,
-                                                @NotNull final PhysicalText text) {
+                                                @NotNull final PhysicalText text)
+{
     final float variation = text.getPos().getWidth();
 
     return !isWithinVariance(endX, text.getPos().getX(), variation);

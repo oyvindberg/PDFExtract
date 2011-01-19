@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.elacin.pdfextract.content.GraphicContent;
 import org.elacin.pdfextract.content.PhysicalContent;
 import org.elacin.pdfextract.content.PhysicalPageRegion;
+import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.geom.Sorting;
 import org.elacin.pdfextract.logical.Formulas;
 import org.elacin.pdfextract.style.Style;
@@ -43,9 +44,9 @@ private final float h;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public GraphicSegmentatorImpl(final float w, final float h) {
-    this.w = w;
-    this.h = h;
+public GraphicSegmentatorImpl(final Rectangle dims) {
+    w = dims.getWidth();
+    h = dims.getHeight();
 }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -54,8 +55,9 @@ public GraphicSegmentatorImpl(final float w, final float h) {
 // --------------------- Interface GraphicSegmentator ---------------------
 
 @NotNull
-public CategorizedGraphics segmentGraphicsUsingContentInRegion(@NotNull List<GraphicContent> graphics,
-                                                               @NotNull PhysicalPageRegion region) {
+public CategorizedGraphics categorizeGraphics(@NotNull List<GraphicContent> graphics,
+                                              @NotNull PhysicalPageRegion region)
+{
     CategorizedGraphics ret = new CategorizedGraphics();
 
     categorizeGraphics(ret, region, graphics);
@@ -80,7 +82,8 @@ public CategorizedGraphics segmentGraphicsUsingContentInRegion(@NotNull List<Gra
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
 public static boolean canBeConsideredCharacterInRegion(@NotNull GraphicContent g,
-                                                       @NotNull final PhysicalPageRegion region) {
+                                                       @NotNull final PhysicalPageRegion region)
+{
     float doubleCharArea = region.getAvgFontSizeY() * region.getAvgFontSizeX() * 2.0f;
     return g.getPos().area() < doubleCharArea;
 }
@@ -97,7 +100,8 @@ public static boolean canBeConsideredHorizontalSeparator(@NotNull GraphicContent
 }
 
 public static boolean canBeConsideredMathBarInRegion(@NotNull GraphicContent g,
-                                                     @NotNull final PhysicalPageRegion region) {
+                                                     @NotNull final PhysicalPageRegion region)
+{
     if (!canBeConsideredHorizontalSeparator(g)) {
         return false;
     }
@@ -138,7 +142,8 @@ public static boolean canBeConsideredVerticalSeparator(@NotNull GraphicContent g
 // -------------------------- STATIC METHODS --------------------------
 
 private static boolean graphicContainsTextFromRegion(@NotNull final PhysicalPageRegion region,
-                                                     @NotNull final GraphicContent graphic) {
+                                                     @NotNull final GraphicContent graphic)
+{
     final int limit = 5;
     int found = 0;
     for (PhysicalContent content : region.getContents()) {
@@ -156,7 +161,8 @@ private static boolean graphicContainsTextFromRegion(@NotNull final PhysicalPage
 
 private void categorizeGraphics(@NotNull CategorizedGraphics ret,
                                 @NotNull PhysicalPageRegion region,
-                                @NotNull List<GraphicContent> list) {
+                                @NotNull List<GraphicContent> list)
+{
     for (GraphicContent graphic : list) {
         if (isTooBigGraphic(graphic)) {
             if (log.isInfoEnabled()) {
@@ -197,7 +203,8 @@ private void categorizeGraphics(@NotNull CategorizedGraphics ret,
 
 @NotNull
 private List<GraphicContent> combineHorizontalSeparators(@NotNull CategorizedGraphics ret) {
-    Map<String, List<GraphicContent>> hsepsForXCoordinate = new HashMap<String, List<GraphicContent>>();
+    Map<String, List<GraphicContent>> hsepsForXCoordinate
+            = new HashMap<String, List<GraphicContent>>();
 
     for (int i = 0; i < ret.getHorizontalSeparators().size(); i++) {
         GraphicContent hsep = ret.getHorizontalSeparators().get(i);

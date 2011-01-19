@@ -55,10 +55,10 @@ private static final Color TRANSPARENT_WHITE = new Color(255, 255, 255, 0);
 @NotNull
 private static final Color DONT_DRAW         = new Color(254, 254, 254, 0);
 
-private final PDFSource    source;
-private final PhysicalPage physicalPage;
-private final int          resolution;
-private final DocumentNode documentNode;
+private final PDFSource      source;
+private final PhysicalPage[] physicalPages;
+private final int            resolution;
+private final DocumentNode   documentNode;
 
 
 private Graphics2D graphics;
@@ -69,18 +69,20 @@ private float      yScale;
 
 public PageRenderer(final PDFSource source,
                     final DocumentNode documentNode,
-                    PhysicalPage physicalPage,
-                    final int resolution) {
+                    final int resolution,
+                    final PhysicalPage[] physicalPages)
+{
     this.source = source;
     this.documentNode = documentNode;
     this.resolution = resolution;
-    this.physicalPage = physicalPage;
+    this.physicalPages = physicalPages;
 }
 
 // -------------------------- STATIC METHODS --------------------------
 
 private static void addWhiteSpaceFromRegion(@NotNull List<WhitespaceRectangle> whitespaces,
-                                            @NotNull PhysicalPageRegion region) {
+                                            @NotNull PhysicalPageRegion region)
+{
     whitespaces.addAll(region.getWhitespace());
     for (PhysicalPageRegion subRegion : region.getSubregions()) {
         addWhiteSpaceFromRegion(whitespaces, subRegion);
@@ -99,12 +101,11 @@ static Color getColorForObject(@NotNull Object o) {
         }
     } else if (o.getClass().equals(GraphicContent.class)) {
         return Color.MAGENTA;
-    } else if (o.getClass().equals(LayoutRegionNode.class)) {
-        if (((LayoutRegionNode) o).isPictureRegion()) {
+    } else if (o.getClass().equals(ParagraphNode.class)) {
+        ParagraphNode pn = (ParagraphNode) o;
+        if (pn.isGraphical()) {
             return Color.MAGENTA;
         }
-        return Color.PINK;
-    } else if (o.getClass().equals(ParagraphNode.class)) {
         return Color.YELLOW;
     } else if (o.getClass().equals(LineNode.class)) {
         return Color.BLUE;
@@ -169,19 +170,22 @@ public BufferedImage renderToFile(final int pageNum, File outputFile) {
     graphics = image.createGraphics();
     graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+    /* render graphics and whitespace, both are left in the physical page*/
+    final PhysicalPage physicalPage = physicalPages[pageNum - 1];
+    if (physicalPage != null) {
+        //        for (GraphicContent graphic : physicalPage.getAllGraphics()) {
+        //            drawRectangle(graphic);
+        //        }
 
-    for (GraphicContent graphic : physicalPage.getAllGraphics()) {
-        drawRectangle(graphic);
-    }
-
-    drawTree(pageNode);
+        drawTree(pageNode);
 
 
-    final List<WhitespaceRectangle> whitespaces = new ArrayList<WhitespaceRectangle>();
-    addWhiteSpaceFromRegion(whitespaces, physicalPage.getMainRegion());
+        final List<WhitespaceRectangle> whitespaces = new ArrayList<WhitespaceRectangle>();
+        addWhiteSpaceFromRegion(whitespaces, physicalPage.getMainRegion());
 
-    for (WhitespaceRectangle o : whitespaces) {
-        drawRectangle(o);
+        for (WhitespaceRectangle o : whitespaces) {
+            drawRectangle(o);
+        }
     }
 
     /* write to file */
@@ -192,7 +196,7 @@ public BufferedImage renderToFile(final int pageNum, File outputFile) {
     }
 
     log.info(String.format("LOG00180:Rendered page %d in %d ms", pageNum,
-            System.currentTimeMillis() - t0));
+                           System.currentTimeMillis() - t0));
 
     return image;
 }

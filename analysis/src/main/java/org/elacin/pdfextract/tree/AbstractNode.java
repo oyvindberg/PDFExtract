@@ -24,9 +24,7 @@ import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.EnumSet;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Mar 23, 2010 Time: 7:44:33 AM To change this
@@ -35,10 +33,13 @@ import java.util.Set;
 public abstract class AbstractNode<ParentType extends AbstractParentNode> implements HasPosition {
 // ------------------------------ FIELDS ------------------------------
 
-protected static final Logger log = Logger.getLogger(AbstractNode.class);
-protected Map<Role, String> roles;
-protected ParentType        parent;
-protected DocumentNode      root;
+protected static final Logger        log   = Logger.getLogger(AbstractNode.class);
+@NotNull
+protected final        EnumSet<Role> roles = EnumSet.noneOf(Role.class);
+@Nullable
+protected ParentType   parent;
+@Nullable
+protected DocumentNode root;
 
 /* a cache of current text */
 @Nullable
@@ -50,10 +51,17 @@ protected transient String toStringCache;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
+@Nullable
 public ParentType getParent() {
     return parent;
 }
 
+@NotNull
+public EnumSet<Role> getRoles() {
+    return roles;
+}
+
+@Nullable
 public DocumentNode getRoot() {
     return root;
 }
@@ -64,12 +72,9 @@ public void setRoot(final DocumentNode root) {
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-public void addRole(Role r, String reason) {
+public void addRole(Role r) {
     log.warn(this + " got assigned role " + r);
-    if (roles == null) {
-        roles = new EnumMap<Role, String>(Role.class);
-    }
-    roles.put(r, reason);
+    roles.add(r);
 }
 
 @Nullable
@@ -84,24 +89,12 @@ public PageNode getPage() {
     return null;
 }
 
-@NotNull
-public Set<Role> getRoles() {
-    if (roles == null) {
-        return null;
-    }
-    return roles.keySet();
-}
-
 public abstract Style getStyle();
 
 public abstract String getText();
 
 public boolean hasRole(Role r) {
-    if (roles == null) {
-        return false;
-    }
-
-    return roles.containsKey(r);
+    return roles.contains(r);
 }
 
 // -------------------------- OTHER METHODS --------------------------

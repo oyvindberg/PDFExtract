@@ -44,7 +44,8 @@ public TextExtractor(final List<File> pdfFiles,
                      final File destination,
                      final int startPage,
                      final int endPage,
-                     final String password) {
+                     final String password)
+{
     this.pdfFiles = pdfFiles;
     this.destination = destination;
     this.startPage = startPage;
@@ -80,8 +81,6 @@ private static Options getOptions() {
     options.addOption("p", "password", true, "Password for decryption of document");
     options.addOption("s", "startpage", true, "First page to parse");
     options.addOption("e", "endpage", true, "Last page to parse");
-    options.addOption("r", "render", false, "Render document");
-    options.addOption("v", "verbose", false, "Output verbose xml");
     return options;
 }
 
@@ -103,7 +102,7 @@ private static CommandLine parseParameters(final String[] args) {
 
 private static void usage() {
     new HelpFormatter().printHelp(TextExtractor.class.getSimpleName()
-            + "<PDF file/dir> <XML output file/dir>", getOptions());
+                                          + "<PDF file/dir> <XML output file/dir>", getOptions());
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
@@ -111,7 +110,8 @@ private static void usage() {
 public final void processFiles() {
     for (File pdfFile : pdfFiles) {
         try {
-            DocumentAnalyzer DocumentAnalyzer = new DocumentAnalyzer(pdfFile, destination, password, startPage, endPage);
+            DocumentAnalyzer DocumentAnalyzer = new DocumentAnalyzer(pdfFile, destination, password,
+                                                                     startPage, endPage);
             DocumentAnalyzer.processFile();
         } catch (Exception e) {
             log.error("Error while processing PDF:", e);
@@ -146,16 +146,6 @@ public static void main(String[] args) {
         password = cmd.getOptionValue("password");
     }
 
-    boolean render = false;
-    if (cmd.hasOption("render")) {
-        render = true;
-    }
-
-    boolean verbose = false;
-    if (cmd.hasOption("verbose")) {
-        verbose = true;
-    }
-
 
     List<File> pdfFiles = findAllPdfFilesUnderDirectory(cmd.getArgs()[0]);
 
@@ -176,7 +166,8 @@ public static void main(String[] args) {
         }
     }
 
-    final TextExtractor textExtractor = new TextExtractor(pdfFiles, destination, startPage, endPage, password);
+    final TextExtractor textExtractor = new TextExtractor(pdfFiles, destination, startPage, endPage,
+                                                          password);
     textExtractor.processFiles();
 }
 }

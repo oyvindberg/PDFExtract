@@ -43,7 +43,7 @@ public static boolean isWithinPercent(final float num1, final float num2, final 
     }
 
     return (num1 + num1 / 100.0F * percentage) >= num2
-            && (num1 - num1 / 100.0F * percentage) <= num2;
+                   && (num1 - num1 / 100.0F * percentage) <= num2;
 }
 
 /**
@@ -70,7 +70,6 @@ public static float sqrt(float a) {
 
 @NotNull
 public static Rectangle findBounds(@NotNull final Collection<? extends HasPosition> contents) {
-    final Rectangle newPos;
 
     /* calculate bounds for this region */
     float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
@@ -88,6 +87,7 @@ public static Rectangle findBounds(@NotNull final Collection<? extends HasPositi
         maxY = Math.max(maxY, content.getPos().getEndY());
         counted++;
     }
+    final Rectangle newPos;
     if (counted == 0) {
         newPos = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
     } else {

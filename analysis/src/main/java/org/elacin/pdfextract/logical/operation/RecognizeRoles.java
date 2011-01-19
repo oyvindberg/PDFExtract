@@ -37,10 +37,14 @@ public class RecognizeRoles implements Operation {
 private static final Logger  log                     = Logger.getLogger(RecognizeRoles.class);
 /* these are used to recognize identifiers */
 static final         Pattern id                      = Pattern.compile("(?:X\\d{1,2}|\\w{1,2})");
-static final         Pattern refWithDotPattern       = Pattern.compile(
-        "\\s*(" + id + "\\s*\\.\\s*\\d?).*", Pattern.DOTALL | Pattern.MULTILINE);
-static final         Pattern numInParenthesisPattern = Pattern.compile(
-        "(\\(\\s*" + id + "\\s*\\)).*", Pattern.DOTALL | Pattern.MULTILINE);
+static final         Pattern refWithDotPattern       = Pattern.compile("\\s*(" + id
+                                                                               + "\\s*\\.\\s*\\d?).*",
+                                                                       Pattern.DOTALL
+                                                                               | Pattern.MULTILINE);
+static final         Pattern numInParenthesisPattern = Pattern.compile("(\\(\\s*" + id
+                                                                               + "\\s*\\)).*",
+                                                                       Pattern.DOTALL
+                                                                               | Pattern.MULTILINE);
 @Nullable
 final                Style   breadtext               = null;
 private DocumentNode root;
@@ -97,7 +101,7 @@ void checkForIdentifier(@NotNull final WordNode word) {
     //        }
 
     if (mark != null) {
-        word.addRole(Role.IDENTIFIER, mark.trim());
+        word.addRole(Role.IDENTIFIER);
     }
 }
 
@@ -147,7 +151,7 @@ private void checkForPageNumber(@NotNull final WordNode word) {
             }
         }
         if (isNumber) {
-            word.addRole(Role.PAGENUMBER, word.text);
+            word.addRole(Role.PAGENUMBER);
         }
     }
 }
@@ -156,8 +160,8 @@ private void checkForTopNote(@NotNull final WordNode word) {
     if (word.getPos().getY() < (word.getPage().getPos().getHeight() * 5.0 / 100)) {
         /* then check the font. we either want smaller than breadtext, or same size but different type */
         if (word.getStyle().ySize < breadtext.ySize || (word.getStyle().ySize == breadtext.ySize
-                && !word.getStyle().fontName.equals(breadtext.fontName))) {
-            word.addRole(Role.HEADNOTE, "");
+                                                                && !word.getStyle().fontName.equals(breadtext.fontName))) {
+            word.addRole(Role.HEADNOTE);
         }
     }
 }

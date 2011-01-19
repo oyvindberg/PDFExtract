@@ -18,7 +18,6 @@ package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.geom.MathUtils;
 import org.elacin.pdfextract.geom.Rectangle;
-import org.elacin.pdfextract.geom.Sorting;
 import org.elacin.pdfextract.logical.text.Role;
 import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
@@ -31,7 +30,8 @@ import java.util.*;
  * Created by IntelliJ IDEA. User: elacin Date: Mar 18, 2010 Time: 3:16:53 PM To change this
  * template use File | Settings | File Templates.
  */
-public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentType extends AbstractParentNode> extends AbstractNode<ParentType> {
+public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentType extends AbstractParentNode>
+        extends AbstractNode<ParentType> {
 // ------------------------------ FIELDS ------------------------------
 
 /* a cache of group position */
@@ -80,13 +80,15 @@ public String toString() {
 
 // ------------------------ OVERRIDING METHODS ------------------------
 
+@SuppressWarnings({"unchecked"})
+/* someone explain me how to avoid this  and i would be happy! */
 @NotNull
-public Set<Role> getRoles() {
-    Set<Role> ret = EnumSet.noneOf(Role.class);
+public EnumSet<Role> getRoles() {
+    EnumSet<Role> ret = EnumSet.noneOf(Role.class);
+
     for (ChildType child : children) {
-        if (child.getRoles() != null) {
-            ret.addAll(child.getRoles());
-        }
+        ret.addAll(child.getRoles());
+
     }
     return ret;
 }
@@ -109,13 +111,19 @@ public final void addChild(@NotNull final ChildType child) {
     child.setRoot(getRoot());
 }
 
-//@NotNull
-//public abstract Comparator<ChildType> getChildComparator();
+public final void addChildren(@NotNull final List<ChildType> newChildren) {
+    for (ChildType child : newChildren) {
+        child.invalidateThisAndParents();
+        children.add(child);
+        child.parent = this;
+        child.setRoot(getRoot());
+    }
+    Collections.sort(newChildren, getChildComparator());
+    invalidateThisAndParents();
+}
 
 @NotNull
-public Comparator getChildComparator() {
-    return Sorting.regionComparator;
-}
+public abstract Comparator<ChildType> getChildComparator();
 
 public Style getStyle() {
     /* keep the value from last child*/

@@ -16,8 +16,6 @@
 
 package org.elacin.pdfextract.tree;
 
-import org.elacin.pdfextract.geom.HasPosition;
-import org.elacin.pdfextract.geom.Sorting;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
@@ -26,7 +24,7 @@ import java.util.Comparator;
  * Created by IntelliJ IDEA. User: elacin Date: Mar 23, 2010 Time: 9:33:52 PM To change this
  * template use File | Settings | File Templates.
  */
-public class PageNode extends AbstractParentNode<LayoutRegionNode, DocumentNode> {
+public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
 // ------------------------------ FIELDS ------------------------------
 
 private final int pageNumber;
@@ -44,8 +42,12 @@ public PageNode(int pageNumber) {
  */
 @NotNull
 @Override
-public Comparator<HasPosition> getChildComparator() {
-    return Sorting.regionComparator;
+public Comparator<ParagraphNode> getChildComparator() {
+    return new Comparator<ParagraphNode>() {
+        public int compare(final ParagraphNode o1, final ParagraphNode o2) {
+            return (o1.getSeqNo() < o2.getSeqNo() ? -1 : (o1.getSeqNo() == o2.getSeqNo() ? 0 : 1));
+        }
+    };
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------

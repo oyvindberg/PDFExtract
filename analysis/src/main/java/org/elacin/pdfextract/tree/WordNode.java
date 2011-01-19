@@ -49,7 +49,8 @@ public WordNode(final Rectangle position,
                 final int pageNum,
                 final Style style,
                 final String text,
-                final float charSpacing) {
+                final float charSpacing)
+{
     this.position = position;
     this.pageNum = pageNum;
     this.style = style;
@@ -69,11 +70,13 @@ public Rectangle getPos() {
 // --------------------- Interface StyledText ---------------------
 
 @Override
+@NotNull
 public Style getStyle() {
     return style;
 }
 
 @Override
+@NotNull
 public String getText() {
     return text;
 }
@@ -84,8 +87,8 @@ public String getText() {
 @Override
 public String toString() {
     if (toStringCache == null) {
-        toStringCache = "WordNode{text='" + text + '\'' + ", position=" + position
-                + ", style=" + style + '}';
+        toStringCache = "WordNode{text='" + text + '\'' + ", position=" + position + ", style="
+                                + style + '}';
     }
     return toStringCache;
 }

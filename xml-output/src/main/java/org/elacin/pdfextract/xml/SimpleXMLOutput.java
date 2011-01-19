@@ -34,11 +34,8 @@ import java.util.List;
 import static org.elacin.pdfextract.geom.Sorting.sortStylesById;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: 16.01.11
- * Time: 17.14
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: 16.01.11 Time: 17.14 To change this template use
+ * File | Settings | File Templates.
  */
 public class SimpleXMLOutput implements XMLWriter {
 // ------------------------------ FIELDS ------------------------------
@@ -57,7 +54,7 @@ public void writeTree(@NotNull final DocumentNode root, @NotNull final File outp
     final PrintStream out;
     try {
         out = new PrintStream(new BufferedOutputStream(new FileOutputStream(output, false),
-                8192 * 4), false, "UTF-8");
+                                                       8192 * 4), false, "UTF-8");
     } catch (Exception e) {
         throw new RuntimeException("Could not open output file", e);
     }
@@ -65,7 +62,7 @@ public void writeTree(@NotNull final DocumentNode root, @NotNull final File outp
     StringBuffer sb = new StringBuffer();
     writeDocument(sb, root);
 
-    //    final String result = PrettyPrinter.prettyFormat(sb.toString());
+    final String result = PrettyPrinter.prettyFormat(sb.toString());
     out.print(sb);
     out.close();
 }
@@ -116,16 +113,23 @@ private void writePage(@NotNull StringBuffer out, @NotNull PageNode page) {
     }
     out.append(">\n");
 
-    for (LayoutRegionNode region : page.getChildren()) {
-        writeRegion(out, region);
+    for (ParagraphNode paragraphNode : page.getChildren()) {
+        writeParagraph(out, paragraphNode);
     }
 
     out.append("</page>\n");
 }
 
 private void writeParagraph(@NotNull final StringBuffer out,
-                            @NotNull final ParagraphNode paragraph) {
-    out.append("<paragraph");
+                            @NotNull final ParagraphNode paragraph)
+{
+
+    if (paragraph.isGraphical()) {
+        out.append("<graphic>");
+    } else {
+        out.append("<paragraph>");
+    }
+
 
     writeRectangle(out, paragraph.getPos());
 
@@ -134,7 +138,11 @@ private void writeParagraph(@NotNull final StringBuffer out,
         writeLine(out, line);
     }
 
-    out.append("</paragraph>\n");
+    if (paragraph.isGraphical()) {
+        out.append("</graphic>\n");
+    } else {
+        out.append("</paragraph>\n");
+    }
 }
 
 private void writeRectangle(@NotNull StringBuffer sb, @NotNull Rectangle pos) {
@@ -144,36 +152,6 @@ private void writeRectangle(@NotNull StringBuffer sb, @NotNull Rectangle pos) {
     sb.append(" h=\"").append(String.valueOf(pos.getHeight())).append("\"");
 }
 
-private void writeRegion(@NotNull StringBuffer out, @NotNull LayoutRegionNode region) {
-    if (region.isPictureRegion()) {
-        out.append("<graphic");
-
-        writeRectangle(out, region.getPos());
-        out.append(">");
-
-        out.append(">\n");
-
-        for (AbstractParentNode node : region.getChildren()) {
-            if (node instanceof LayoutRegionNode) {
-                writeRegion(out, (LayoutRegionNode) node);
-            } else if (node instanceof ParagraphNode) {
-                writeParagraph(out, (ParagraphNode) node);
-            }
-        }
-
-        if (region.isPictureRegion()) {
-            out.append("</graphic>\n");
-        }
-    } else {
-        for (AbstractParentNode node : region.getChildren()) {
-            if (node instanceof LayoutRegionNode) {
-                writeRegion(out, (LayoutRegionNode) node);
-            } else if (node instanceof ParagraphNode) {
-                writeParagraph(out, (ParagraphNode) node);
-            }
-        }
-    }
-}
 
 private void writeStyles(@NotNull final StringBuffer out, @NotNull List<Style> styles) {
     out.append("<styles>\n");

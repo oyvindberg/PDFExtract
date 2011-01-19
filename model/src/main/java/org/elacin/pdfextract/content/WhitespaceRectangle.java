@@ -25,7 +25,7 @@ import org.elacin.pdfextract.geom.Rectangle;
 public class WhitespaceRectangle extends PhysicalContent {
 // ------------------------------ FIELDS ------------------------------
 
-public int score = 0;
+public int score;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 

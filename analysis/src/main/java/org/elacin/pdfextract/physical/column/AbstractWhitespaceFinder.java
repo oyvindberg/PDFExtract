@@ -33,7 +33,7 @@ import java.util.PriorityQueue;
  * Created by IntelliJ IDEA. User: elacin Date: Sep 23, 2010 Time: 3:05:06 PM To change this
  * template use File | Settings | File Templates.
  */
-public abstract class AbstractWhitespaceFinder {
+abstract class AbstractWhitespaceFinder {
 // ------------------------------ FIELDS ------------------------------
 
 private static final Logger log = Logger.getLogger(AbstractWhitespaceFinder.class);
@@ -79,7 +79,8 @@ private final List<QueueEntry> notYetAccepted = new ArrayList<QueueEntry>();
 public AbstractWhitespaceFinder(RectangleCollection region,
                                 final int numWantedWhitespaces,
                                 final float minWidth,
-                                final float minHeight) {
+                                final float minHeight)
+{
     this.region = region;
 
     wantedWhitespaces = numWantedWhitespaces;
@@ -117,8 +118,7 @@ private static HasPosition choosePivot(@NotNull QueueEntry entry) {
 }
 
 /**
- * Returns true if subrectangle is completely contained withing one of the obstacles. This
- * happens
+ * Returns true if subrectangle is completely contained withing one of the obstacles. This happens
  * rarely, but a check is necessary
  */
 private static boolean isNotContainedByAnyObstacle(@NotNull QueueEntry sub) {
@@ -133,8 +133,8 @@ private static boolean isNotContainedByAnyObstacle(@NotNull QueueEntry sub) {
 // -------------------------- PUBLIC METHODS --------------------------
 
 /**
- * Finds up to the requested amount of whitespace rectangles based on the contents on the page
- * which has been provided.
+ * Finds up to the requested amount of whitespace rectangles based on the contents on the page which
+ * has been provided.
  *
  * @return whitespace rectangles
  */
@@ -142,7 +142,9 @@ private static boolean isNotContainedByAnyObstacle(@NotNull QueueEntry sub) {
 public List<WhitespaceRectangle> findWhitespace() {
     if (foundWhitespace.isEmpty()) {
         /* first add the whole page (all its contents as obstacle)s to the priority queue */
-        queue.add(new QueueEntry(region.getPos(), region.getContents().toArray(new HasPosition[region.getContents().size()]), region.getContents().size()));
+        queue.add(new QueueEntry(region.getPos(),
+                                 region.getContents().toArray(new HasPosition[region.getContents().size()]),
+                                 region.getContents().size()));
 
         /* continue looking for whitespace until we have the wanted number or we run out*/
         while (getNumberOfWhitespacesFound() < wantedWhitespaces) {
@@ -259,7 +261,8 @@ private boolean isEmptyEnough(@NotNull QueueEntry current) {
  */
 @Nullable
 private QueueEntry[] splitSearchAreaAround(@NotNull final QueueEntry current,
-                                           @NotNull final HasPosition pivot) {
+                                           @NotNull final HasPosition pivot)
+{
     final Rectangle p = current.bound;
     final Rectangle split = pivot.getPos();
 
@@ -334,11 +337,13 @@ private QueueEntry[] splitSearchAreaAround(@NotNull final QueueEntry current,
     }
 
 
-    return new QueueEntry[]{
-            left == null ? null : new QueueEntry(left, leftObstacles, leftIndex),
-            right == null ? null : new QueueEntry(right, rightObstacles, rightIndex),
-            above == null ? null : new QueueEntry(above, aboveObstacles, aboveIndex),
-            below == null ? null : new QueueEntry(below, belowObstacles, belowIndex)};
+    return new QueueEntry[]{left == null ? null : new QueueEntry(left, leftObstacles, leftIndex),
+                            right == null ? null : new QueueEntry(right, rightObstacles,
+                                                                  rightIndex),
+                            above == null ? null : new QueueEntry(above, aboveObstacles,
+                                                                  aboveIndex),
+                            below == null ? null : new QueueEntry(below, belowObstacles,
+                                                                  belowIndex)};
 }
 
 /**
@@ -369,10 +374,8 @@ protected boolean acceptsRectangle(WhitespaceRectangle newWhitespace) {
 
 /**
  * This method provides a personal touch to the algorithm described in the paper which is
- * referenced. Here we will just accept rectangles which are adjacent to either another one which
- * we
- * have already identified, or which are adjacent to the edge of the page. <p/> By assuring that
- * the
+ * referenced. Here we will just accept rectangles which are adjacent to either another one which we
+ * have already identified, or which are adjacent to the edge of the page. <p/> By assuring that the
  * we thus form continous chains of rectangles, the results seem to be much better.
  */
 
@@ -382,9 +385,9 @@ protected boolean isNextToWhitespaceOrEdge(@NotNull final WhitespaceRectangle ne
     final float l = 1.0f;
 
     if (newWhitespace.getPos().getX() <= region.getPos().getX() + l
-            || newWhitespace.getPos().getY() <= region.getPos().getY() + l
-            || newWhitespace.getPos().getEndX() >= region.getPos().getEndX() - l
-            || newWhitespace.getPos().getEndY() >= region.getPos().getEndY() - l) {
+                || newWhitespace.getPos().getY() <= region.getPos().getY() + l
+                || newWhitespace.getPos().getEndX() >= region.getPos().getEndX() - l
+                || newWhitespace.getPos().getEndY() >= region.getPos().getEndY() - l) {
         return true;
     }
 

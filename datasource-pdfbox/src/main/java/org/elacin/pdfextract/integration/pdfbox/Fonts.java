@@ -31,8 +31,7 @@ import java.util.Map;
 import static java.lang.Character.*;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Mar 18, 2010 Time: 2:32:39 PM <p/> <p/> This
- * class
+ * Created by IntelliJ IDEA. User: elacin Date: Mar 18, 2010 Time: 2:32:39 PM <p/> <p/> This class
  * is meant to belong to a document, so that all the styles used in a document will be available
  * here. There is some optimization to avoid excessive object creation.
  */
@@ -42,7 +41,7 @@ public class Fonts implements Serializable {
 private static final Logger log = Logger.getLogger(Fonts.class);
 
 @NotNull
-private static List<String> mathFonts = new ArrayList<String>() {{
+private static final List<String> mathFonts = new ArrayList<String>() {{
     add("CMSY");
     add("CMEX");
     add("CMMI");

@@ -24,14 +24,15 @@ import org.jetbrains.annotations.Nullable;
  * rectangle, with union and intercepts bits stolen from javas Rectangle2D. The problem with just
  * using that class was that is isnt available in an integer version.
  */
+
 public class Rectangle implements HasPosition {
 // ------------------------------ FIELDS ------------------------------
 
 private final float x, y, width, height, endX, endY;
 
 /* caching, we do a lot of comparing */
-private transient boolean hasCalculatedHash = false;
-private transient int     hash              = -1;
+private transient boolean hasCalculatedHash;
+private transient int hash = -1;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -70,6 +71,8 @@ public Rectangle getPos() {
 
 // ------------------------ CANONICAL METHODS ------------------------
 
+@SuppressWarnings({"ALL"})
+/* generated */
 @Override
 public boolean equals(@Nullable final Object o) {
     if (this == o) {
@@ -97,6 +100,8 @@ public boolean equals(@Nullable final Object o) {
     return true;
 }
 
+@SuppressWarnings({"ALL"})
+/* generated */
 @Override
 public int hashCode() {
     if (!hasCalculatedHash) {
@@ -187,7 +192,7 @@ public boolean containedBy(@NotNull Rectangle r) {
  */
 public boolean contains(@NotNull HasPosition r) {
     return endX >= r.getPos().endX && x <= r.getPos().x && endY >= r.getPos().endY
-            && y <= r.getPos().y;
+                   && y <= r.getPos().y;
 }
 
 /**
@@ -248,7 +253,11 @@ public float distance(@NotNull HasPosition that_) {
 @NotNull
 public Rectangle getAdjustedBy(float adjust) {
     return new Rectangle(Math.max(0.1f, x - adjust), Math.max(0.1f, y - adjust), Math.max(0.1f,
-            width + 2 * adjust), Math.max(0.1f, height + 2 * adjust));
+                                                                                          width
+                                                                                                  +
+                                                                                                  2
+                                                                                                          * adjust),
+                         Math.max(0.1f, height + 2 * adjust));
 }
 
 public float getMiddleX() {

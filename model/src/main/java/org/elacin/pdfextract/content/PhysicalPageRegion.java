@@ -30,8 +30,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Nov 8, 2010 Time: 7:44:41 PM To change this
- * template
+ * Created by IntelliJ IDEA. User: elacin Date: Nov 8, 2010 Time: 7:44:41 PM To change this template
  * use File | Settings | File Templates.
  */
 public class PhysicalPageRegion extends RectangleCollection {
@@ -47,7 +46,7 @@ private transient float   _avgFontSizeY;
 @Nullable
 private transient Style   _mostCommonStyle;
 private transient float   _shortestText;
-private transient boolean _posSet = false;
+private transient boolean _posSet;
 
 
 private transient boolean medianFound;
@@ -71,13 +70,15 @@ private GraphicContent containingGraphic;
 
 public PhysicalPageRegion(@NotNull final Collection<? extends PhysicalContent> contents,
                           @Nullable final PhysicalContent parent,
-                          @NotNull PhysicalPage page) {
+                          @NotNull PhysicalPage page)
+{
     super(contents, parent);
     this.page = page;
 }
 
 public PhysicalPageRegion(@NotNull final List<? extends PhysicalContent> contents,
-                          @NotNull PhysicalPage page) {
+                          @NotNull PhysicalPage page)
+{
     this(contents, null, page);
 }
 
@@ -146,15 +147,14 @@ public void extractSubRegionFromContent(@NotNull final Collection<PhysicalConten
 }
 
 public void extractSubRegionFromContentAndWithGraphics(@NotNull List<PhysicalContent> block,
-                                                       GraphicContent fakeCoverGraphic) {
+                                                       GraphicContent fakeCoverGraphic)
+{
     doExtractSubRegion(block, null, fakeCoverGraphic);
 }
 
 /**
- * Returns a subregion with all the contents which is contained by bound. If more than two pieces
- * of
- * content crosses the boundary of bound, it is deemed inappropriate for dividing the page,
- * and an
+ * Returns a subregion with all the contents which is contained by bound. If more than two pieces of
+ * content crosses the boundary of bound, it is deemed inappropriate for dividing the page, and an
  * exception is thrown
  *
  * @return the new region
@@ -163,9 +163,9 @@ public void extractSubRegionFromGraphic(@NotNull final GraphicContent graphic) {
     /* we can allow us to search a bit outside the graphic */
     final Rectangle pos = graphic.getPos();
     final float extra = 2.0f;
-    final Rectangle searchPos = new Rectangle(
-            pos.getX() - extra,
-            pos.getY() - extra, pos.getWidth() + 2 * extra, pos.getHeight() + 2 * extra);
+    final Rectangle searchPos = new Rectangle(pos.getX() - extra, pos.getY() - extra,
+                                              pos.getWidth() + 2 * extra,
+                                              pos.getHeight() + 2 * extra);
 
     final List<PhysicalContent> subContents = findContentsIntersectingWith(searchPos);
     doExtractSubRegion(subContents, graphic, graphic);
@@ -237,11 +237,12 @@ public void setContainingGraphic(@Nullable GraphicContent containingGraphic) {
 
 private void doExtractSubRegion(@NotNull final Collection<PhysicalContent> subContents,
                                 @Nullable final HasPosition bound,
-                                @Nullable final GraphicContent graphic) {
+                                @Nullable final GraphicContent graphic)
+{
     if (subContents.isEmpty()) {
         if (log.isInfoEnabled()) {
             log.info("LOG00960:bound " + bound + " contains no content in " + this + ". wont "
-                    + "extract");
+                             + "extract");
         }
         return;
     }
@@ -249,7 +250,7 @@ private void doExtractSubRegion(@NotNull final Collection<PhysicalContent> subCo
     if (subContents.size() == getContents().size()) {
         if (log.isInfoEnabled()) {
             log.info("LOG00950:bound " + bound + " contains all content in " + this + ". wont "
-                    + "extract");
+                             + "extract");
         }
         return;
     }
@@ -306,12 +307,10 @@ protected void findAndSetFontInformation() {
 }
 
 /**
- * Finds an approximation of the normal vertical line spacing for the region.
- * <p/>
- * This is done by looking at three vertical rays, calculating distances between all the lines
- * intersecting those lines, and then returning the median of all those distances.
- * <p/>
- * minimum value is 2, max is (avgFontSize * 3) -1. -1 if nothing is found;
+ * Finds an approximation of the normal vertical line spacing for the region. <p/> This is done by
+ * looking at three vertical rays, calculating distances between all the lines intersecting those
+ * lines, and then returning the median of all those distances. <p/> minimum value is 2, max is
+ * (avgFontSize * 3) -1. -1 if nothing is found;
  */
 protected int findAndSetMedianOfVerticalDistancesForRegion() {
     final int LIMIT = (int) getAvgFontSizeY() * 3;

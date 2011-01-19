@@ -22,13 +22,12 @@ import org.elacin.pdfextract.integration.DocumentContent;
 import org.elacin.pdfextract.integration.PDFSource;
 import org.elacin.pdfextract.integration.PageContent;
 import org.elacin.pdfextract.integration.pdfbox.PDFBoxSource;
-import org.elacin.pdfextract.physical.region.PageSegmentator;
+import org.elacin.pdfextract.physical.PageSegmentator;
 import org.elacin.pdfextract.physical.word.WordSegmentator;
 import org.elacin.pdfextract.physical.word.WordSegmentatorImpl;
 import org.elacin.pdfextract.renderer.PageRenderer;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.PageNode;
-import org.elacin.pdfextract.tree.TreeCreator;
 import org.elacin.pdfextract.xml.SimpleXMLOutput;
 import org.elacin.pdfextract.xml.TEIOutput;
 import org.jetbrains.annotations.NotNull;
@@ -40,11 +39,8 @@ import java.util.List;
 import static org.elacin.pdfextract.Constants.*;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: 15.01.11
- * Time: 19.55
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: 15.01.11 Time: 19.55 To change this template use
+ * File | Settings | File Templates.
  */
 public class DocumentAnalyzer {
 // ------------------------------ FIELDS ------------------------------
@@ -67,7 +63,8 @@ public DocumentAnalyzer(File pdfFile,
                         File destination,
                         String password,
                         int startPage,
-                        int endPage) {
+                        int endPage)
+{
     this.destination = destination;
     this.pdfFile = pdfFile;
     source = new PDFBoxSource(this.pdfFile, startPage, endPage, password);
@@ -78,7 +75,8 @@ public DocumentAnalyzer(File pdfFile,
 @NotNull
 private static File getOutputFile(@NotNull File destination,
                                   @NotNull File baseFile,
-                                  String extension) {
+                                  String extension)
+{
     final File output;
     if (destination.isDirectory()) {
         output = new File(destination, baseFile.getName().replace(".pdf", extension));
@@ -89,17 +87,22 @@ private static File getOutputFile(@NotNull File destination,
     return output;
 }
 
-static void renderPDF(PDFSource source, @NotNull DocumentNode root, @NotNull File destination) {
+static void renderPDF(PDFSource source,
+                      @NotNull DocumentNode root,
+                      final PhysicalPage[] physicalPages,
+                      @NotNull File destination)
+{
     long t0 = System.currentTimeMillis();
 
-    final PageRenderer renderer = new PageRenderer(source, root, RENDER_RESOLUTION);
+    final PageRenderer renderer = new PageRenderer(source, root, RENDER_RESOLUTION, physicalPages);
 
     for (int i = 0; i < root.getChildren().size(); i++) {
         /* one indexed pages */
         final int pageNum = root.getChildren().get(i).getPageNumber();
 
         /* then open and write to file */
-        final File outputFile = new File(destination.getAbsolutePath().replace("%", String.valueOf(pageNum)));
+        final File outputFile = new File(destination.getAbsolutePath().replace("%",
+                                                                               String.valueOf(pageNum)));
 
         renderer.renderToFile(pageNum, outputFile);
     }
@@ -123,7 +126,11 @@ public void processFile() throws IOException {
 
     root.getStyles().addAll(content.getStyles());
 
-    for (PageContent inputPage : content.getPages()) {
+    PhysicalPage[] physicalPages = new PhysicalPage[content.getPages().size()];
+
+    for (int i = 0; i < content.getPages().size(); i++) {
+        final PageContent inputPage = content.getPages().get(i);
+
         MDC.put("page", inputPage.getPageNum());
 
         if (inputPage.getCharacters().isEmpty()) {
@@ -134,13 +141,13 @@ public void processFile() throws IOException {
         final List<PhysicalText> words = wordSegmentator.segmentWords(inputPage.getCharacters());
 
         /* create a physical page instance */
-        PhysicalPage physicalPage = new PhysicalPage(words, inputPage.getGraphics(), inputPage.getPageNum());
+        PhysicalPage pp = new PhysicalPage(words, inputPage.getGraphics(), inputPage.getPageNum());
+
+        /* save it for rendering */
+        physicalPages[i] = pp;
 
         /* divide the page in smaller sections */
-        PageSegmentator.segmentPageRegionWithSubRegions(physicalPage);
-
-        /* create the tree representation */
-        final PageNode pageNode = TreeCreator.compileLogicalPage(physicalPage);
+        final PageNode pageNode = PageSegmentator.analyzePage(pp);
 
         root.addChild(pageNode);
     }
@@ -149,7 +156,8 @@ public void processFile() throws IOException {
     MDC.remove("page");
 
     if (SIMPLE_OUTPUT_ENABLED) {
-        new SimpleXMLOutput().writeTree(root, getOutputFile(destination, pdfFile, SIMPLE_OUTPUT_EXTENSION));
+        new SimpleXMLOutput().writeTree(root, getOutputFile(destination, pdfFile,
+                                                            SIMPLE_OUTPUT_EXTENSION));
     }
     if (TEI_OUTPUT_ENABLED) {
         new TEIOutput().writeTree(root, getOutputFile(destination, pdfFile, TEI_OUTPUT_EXTENSION));
@@ -160,7 +168,7 @@ public void processFile() throws IOException {
     log.info("Analyzed " + content.getPages().size() + " pages in " + td + "ms");
 
     if (RENDER_ENABLED) {
-        renderPDF(source, root, getOutputFile(destination, pdfFile, ".%.png"));
+        renderPDF(source, root, physicalPages, getOutputFile(destination, pdfFile, ".%.png"));
     }
 
     source.closeSource();

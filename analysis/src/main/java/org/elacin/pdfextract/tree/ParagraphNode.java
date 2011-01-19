@@ -16,10 +16,56 @@
 
 package org.elacin.pdfextract.tree;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Comparator;
+
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Apr 8, 2010 Time: 8:56:45 AM To change this
- * template
+ * Created by IntelliJ IDEA. User: elacin Date: Apr 8, 2010 Time: 8:56:45 AM To change this template
  * use File | Settings | File Templates.
  */
 public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
+// ------------------------------ FIELDS ------------------------------
+
+private final boolean graphical;
+private final int     seqNo;
+
+// --------------------------- CONSTRUCTORS ---------------------------
+
+public ParagraphNode(@NotNull final LineNode child, final boolean graphical, final int seqNo) {
+    super(child);
+    this.graphical = graphical;
+    this.seqNo = seqNo;
+}
+
+public ParagraphNode(final boolean graphical, final int seqNo) {
+    this.graphical = graphical;
+    this.seqNo = seqNo;
+}
+
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+public int getSeqNo() {
+    return seqNo;
+}
+
+public boolean isGraphical() {
+    return graphical;
+}
+
+@NotNull
+@Override
+public Comparator<LineNode> getChildComparator() {
+    return new Comparator<LineNode>() {
+        public int compare(@NotNull final LineNode o1, @NotNull final LineNode o2) {
+            if (o1.getPos().getY() < o2.getPos().getY()) {
+                return -1;
+            } else if (o1.getPos().getY() > o2.getPos().getY()) {
+                return 1;
+            }
+
+            return 0;
+        }
+    };
+}
 }

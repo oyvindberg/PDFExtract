@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.elacin.pdfextract.physical.region;
+package org.elacin.pdfextract.physical;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.content.GraphicContent;
@@ -28,11 +28,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: 09.12.10
- * Time: 23.36
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: 09.12.10 Time: 23.36 To change this template use
+ * File | Settings | File Templates.
  */
 public class PageRegionSplitBySeparators {
 // ------------------------------ FIELDS ------------------------------
@@ -48,7 +45,8 @@ private static final Logger log = Logger.getLogger(PageRegionSplitBySeparators.c
  * @param graphics
  */
 static void splitRegionBySeparators(@NotNull PhysicalPageRegion r,
-                                    @NotNull CategorizedGraphics graphics) {
+                                    @NotNull CategorizedGraphics graphics)
+{
     List<GraphicContent> toRemove = new ArrayList<GraphicContent>();
     for (GraphicContent hsep : graphics.getHorizontalSeparators()) {
         if (hsep.getPos().getWidth() < r.getPos().getWidth() * 0.6f) {
@@ -56,19 +54,20 @@ static void splitRegionBySeparators(@NotNull PhysicalPageRegion r,
         }
 
         /* search to see if this separator does not intersect with anything*/
-        Rectangle search = new Rectangle(0, hsep.getPos().getY(), r.getWidth(), hsep.getPos().getHeight());
+        Rectangle search = new Rectangle(0, hsep.getPos().getY(), r.getWidth(),
+                                         hsep.getPos().getHeight());
 
         final List<PhysicalContent> list = r.findContentsIntersectingWith(search);
         if (list.contains(hsep)) {
             list.remove(hsep);
         }
         if (list.isEmpty()) {
-            Rectangle everythingAboveSep = new Rectangle(r.getPos().getX(), 0.0f,
-                    r.getWidth() + 1, hsep.getPos().getY());
+            Rectangle everythingAboveSep = new Rectangle(r.getPos().getX(), 0.0f, r.getWidth() + 1,
+                                                         hsep.getPos().getY());
 
             if (log.isInfoEnabled()) {
                 log.info("LOG00880:split/hsep: " + hsep + ", extracting area at: "
-                        + everythingAboveSep);
+                                 + everythingAboveSep);
             }
 
             r.addContent(hsep);

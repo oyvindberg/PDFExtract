@@ -23,8 +23,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Comparator;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Apr 8, 2010 Time: 8:29:43 AM To change this
- * template
+ * Created by IntelliJ IDEA. User: elacin Date: Apr 8, 2010 Time: 8:29:43 AM To change this template
  * use File | Settings | File Templates.
  */
 public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
@@ -35,29 +34,9 @@ public LineNode(@NotNull final WordNode child) {
 }
 
 public LineNode() {
-    super();
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
-
-/**
- * Returns a Comparator which compares only X coordinates
- */
-@NotNull
-@Override
-public Comparator getChildComparator() {
-    return new Comparator<WordNode>() {
-        public int compare(@NotNull final WordNode o1, @NotNull final WordNode o2) {
-            if (o1.getPos().getX() < o2.getPos().getX()) {
-                return -1;
-            } else if (o1.getPos().getX() > o2.getPos().getX()) {
-                return 1;
-            }
-
-            return 0;
-        }
-    };
-}
 
 @NotNull
 @Override
@@ -82,6 +61,25 @@ public String getText() {
 @NotNull
 public Style findDominatingStyle() {
     return TextUtils.findDominatingStyle(getChildren());
+}
+
+/**
+ * Returns a Comparator which compares only X coordinates
+ */
+@NotNull
+@Override
+public Comparator<WordNode> getChildComparator() {
+    return new Comparator<WordNode>() {
+        public int compare(@NotNull final WordNode o1, @NotNull final WordNode o2) {
+            if (o1.getPos().getX() < o2.getPos().getX()) {
+                return -1;
+            } else if (o1.getPos().getX() > o2.getPos().getX()) {
+                return 1;
+            }
+
+            return 0;
+        }
+    };
 }
 
 // -------------------------- OTHER METHODS --------------------------

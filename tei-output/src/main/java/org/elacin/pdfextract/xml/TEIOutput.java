@@ -17,8 +17,8 @@ package org.elacin.pdfextract.xml;/*
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.teischema.*;
 import org.elacin.pdfextract.tree.DocumentNode;
-import org.elacin.pdfextract.tree.LayoutRegionNode;
 import org.elacin.pdfextract.tree.PageNode;
+import org.elacin.pdfextract.tree.ParagraphNode;
 import org.jetbrains.annotations.NotNull;
 
 import javax.xml.bind.JAXBContext;
@@ -29,11 +29,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: 14.01.11
- * Time: 17.02
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: 14.01.11 Time: 17.02 To change this template use
+ * File | Settings | File Templates.
  */
 public class TEIOutput implements XMLWriter {
 // ------------------------------ FIELDS ------------------------------
@@ -106,7 +103,7 @@ private void addBody(@NotNull DocumentNode root, @NotNull ObjectFactory of, @Not
 
     /* add content here */
     for (PageNode pageNode : root.getChildren()) {
-        for (LayoutRegionNode regionNode : pageNode.getChildren()) {
+        for (ParagraphNode paragraphNode : pageNode.getChildren()) {
         }
     }
 

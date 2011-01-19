@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.physical.paragraph;
 
 import org.apache.log4j.Logger;
+import org.elacin.pdfextract.physical.ParagraphNumberer;
 import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.style.StyleComparator;
 import org.elacin.pdfextract.tree.LineNode;
@@ -37,7 +38,7 @@ public class ParagraphSegmentator {
 // ------------------------------ FIELDS ------------------------------
 
 private static final Logger log                   = Logger.getLogger(ParagraphSegmentator.class);
-private              float  medianVerticalSpacing = 1.0f;
+private              float  medianVerticalSpacing = -1.0f;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
 
@@ -48,8 +49,10 @@ public void setMedianVerticalSpacing(final int medianVerticalSpacing) {
 // -------------------------- PUBLIC METHODS --------------------------
 
 @NotNull
-public List<ParagraphNode> segmentParagraphs(@NotNull final List<LineNode> lines) {
-    if (medianVerticalSpacing == -1) {
+public List<ParagraphNode> segmentParagraphsByStyleAndDistance(@NotNull final List<LineNode> lines,
+                                                               final ParagraphNumberer numberer)
+{
+    if (medianVerticalSpacing == -1.0f) {
         throw new RuntimeException("set medianVerticalSpacing!");
     }
 
@@ -57,7 +60,8 @@ public List<ParagraphNode> segmentParagraphs(@NotNull final List<LineNode> lines
     /* separate the lines by their dominant style into paragraphs */
 
     if (!lines.isEmpty()) {
-        ParagraphNode currentParagraph = new ParagraphNode();
+        numberer.newParagraph();
+        ParagraphNode currentParagraph = new ParagraphNode(false, numberer.getParagraphId(false));
 
         if (SPLIT_PARAGRAPHS_BY_STYLES) {
             Style currentStyle = null;
@@ -119,13 +123,14 @@ public List<ParagraphNode> segmentParagraphs(@NotNull final List<LineNode> lines
                 if (split) {
                     if (!currentParagraph.getChildren().isEmpty()) {
                         if (log.isInfoEnabled()) {
-                            log.info(String.format("LOG00660:Split/style: y:%s, "
-                                    + "medianVerticalSpacing: %f, distance: %s, style: %s, %s, "
-                                    + "line: %s", line.getPos().getY(), medianVerticalSpacing, distance, currentStyle, lineStyle, line));
+                            log.info(String.format("LOG00660:Split/style: y:%s, medianVerticalSpacing: %f, distance: %s, style: %s, %s, line: %s",
+                                                   line.getPos().getY(), medianVerticalSpacing,
+                                                   distance, currentStyle, lineStyle, line));
                         }
                         ret.add(currentParagraph);
                     }
-                    currentParagraph = new ParagraphNode();
+                    numberer.newParagraph();
+                    currentParagraph = new ParagraphNode(false, numberer.getParagraphId(false));
                     currentStyle = lineStyle;
                 }
 
