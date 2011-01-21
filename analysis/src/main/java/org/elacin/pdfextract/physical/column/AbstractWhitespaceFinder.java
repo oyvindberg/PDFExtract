@@ -127,7 +127,7 @@ public List<WhitespaceRectangle> findWhitespace() {
         /* first add the whole page (all its contents as obstacle)s to the priority queue */
         queue.add(new QueueEntry(region.getPos(),
                                  region.getContents().toArray(new HasPosition[region.getContents().size()]),
-                                 region.getContents().size()));
+                                 region.getContents().size(), 0));
 
         /* continue looking for whitespace until we have the wanted number or we run out*/
         while (getNumberOfWhitespacesFound() < wantedWhitespaces) {
@@ -339,11 +339,12 @@ private QueueEntry[] splitSearchAreaAround(@NotNull final QueueEntry current,
         }
     }
 
+    final int n = getNumberOfWhitespacesFound();
 
-    return new QueueEntry[]{left == null ? null : new QueueEntry(left, leftObs, leftIndex),
-                            right == null ? null : new QueueEntry(right, rightObs, rightIndex),
-                            above == null ? null : new QueueEntry(above, aboveObs, aboveIndex),
-                            below == null ? null : new QueueEntry(below, belowObs, belowIndex)};
+    return new QueueEntry[]{left == null ? null : new QueueEntry(left, leftObs, leftIndex, n),
+                            right == null ? null : new QueueEntry(right, rightObs, rightIndex, n),
+                            above == null ? null : new QueueEntry(above, aboveObs, aboveIndex, n),
+                            below == null ? null : new QueueEntry(below, belowObs, belowIndex, n)};
 }
 
 /**
@@ -366,7 +367,7 @@ private void updateObstacleListForQueueEntry(@NotNull final QueueEntry entry) {
  * This is the quality function by which we sort rectangles to choose the 'best' one first. The
  * current function bases itself on the area of the rectangle, and then heavily prefers high ones
  */
-protected abstract float rectangleQuality(Rectangle r);
+
 
 protected boolean acceptsRectangle(WhitespaceRectangle newWhitespace) {
     return true;
@@ -403,19 +404,23 @@ protected boolean isNextToWhitespaceOrEdge(@NotNull final WhitespaceRectangle ne
 
 // -------------------------- INNER CLASSES --------------------------
 
-private class QueueEntry implements Comparable<QueueEntry> {
+private static class QueueEntry implements Comparable<QueueEntry> {
     final Rectangle     bound;
     final HasPosition[] obstacles;
     final int           numberOfWhitespaceFound;
     int numObstacles;
     private final float quality;
 
-    private QueueEntry(final Rectangle bound, final HasPosition[] obstacles, int numObstacles) {
+    private QueueEntry(final Rectangle bound,
+                       final HasPosition[] obstacles,
+                       int numObstacles,
+                       int numFound)
+    {
         this.bound = bound;
         this.obstacles = obstacles;
         this.numObstacles = numObstacles;
-        numberOfWhitespaceFound = getNumberOfWhitespacesFound();
-        quality = rectangleQuality(bound);
+        numberOfWhitespaceFound = numFound;
+        quality = WhitespaceFinder.rectangleQuality(bound);
     }
 
     public int compareTo(@NotNull final QueueEntry o) {

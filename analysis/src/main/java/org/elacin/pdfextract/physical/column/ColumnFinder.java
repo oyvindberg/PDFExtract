@@ -119,7 +119,8 @@ private static void filter(final PhysicalPageRegion r, final List<WhitespaceRect
     }
     if (log.isDebugEnabled()) {
         log.debug("Removing columns" + toRemove);
-    };
+    }
+    ;
     boundaries.removeAll(toRemove);
 
 }
@@ -194,7 +195,7 @@ private static void adjustColumnHeights(@NotNull PhysicalPageRegion region,
             }
 
         }
-        if (adjusted != null) {
+        if (adjusted != null && !newBoundaries.contains(adjusted)) {
             newBoundaries.add(adjusted);
         }
     }
@@ -234,35 +235,43 @@ private static WhitespaceRectangle adjustColumn(final PhysicalPageRegion region,
                 continue;
             }
 
-            if (possibleBlocker.getPos().getY() >= y || possibleBlocker.getPos().getEndY() <= y) {
+            final Rectangle blockerPos = possibleBlocker.getPos();
+
+            if (blockerPos.getEndY() < y) {
                 continue;
             }
+            if (blockerPos.getY() > y) {
+                break;
+            }
 
-            if (!foundContentRightOfX && possibleBlocker.getPos().getX() > boundaryEndX - 1) {
+            if (!foundContentRightOfX && blockerPos.getX() > boundaryEndX - 1) {
                 foundContentRightOfX = true;
             }
 
             /** if we find something blocking this row, start looking further down*/
 
             /* content will be blocking if it intersects, naturally */
-            if (possibleBlocker.getPos().getX() < boundaryStartX
-                        && !(possibleBlocker instanceof WhitespaceRectangle)) {
+            if (blockerPos.getX() < boundaryStartX) {
                 blocked = true;
                 break;
             }
 
             /* also check if this column boundary would separate two words which otherwise are very close*/
-            final float possibleBlockerMiddleY = possibleBlocker.getPos().getMiddleY();
+            final float possibleBlockerMiddleY = blockerPos.getMiddleY();
             for (PhysicalContent left : closeOnLeft) {
                 if (left instanceof WhitespaceRectangle) {
                     continue;
                 }
-                if (possibleBlockerMiddleY < left.getPos().getY()
-                            || possibleBlockerMiddleY > left.getPos().getEndY()) {
+                final Rectangle leftPos = left.getPos();
+
+                if (possibleBlockerMiddleY < leftPos.getY()) {
                     continue;
                 }
+                if (possibleBlockerMiddleY > leftPos.getEndY() + 30) {
+                    break;
+                }
 
-                if (left.getPos().distance(possibleBlocker) < 6) {
+                if (leftPos.distance(possibleBlocker) < 6) {
                     blocked = true;
                     break;
                 }
