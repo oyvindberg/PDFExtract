@@ -141,7 +141,8 @@ public void processFile() throws IOException {
         final List<PhysicalText> words = wordSegmentator.segmentWords(inputPage.getCharacters());
 
         /* create a physical page instance */
-        PhysicalPage pp = new PhysicalPage(words, inputPage.getGraphics(), inputPage.getPageNum());
+        PhysicalPage pp = new PhysicalPage(words, inputPage.getGraphics(), inputPage.getPageNum(),
+                                           inputPage.getDimensions());
 
         /* save it for rendering */
         physicalPages[i] = pp;

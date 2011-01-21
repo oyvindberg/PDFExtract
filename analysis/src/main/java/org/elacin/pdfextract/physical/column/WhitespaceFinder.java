@@ -16,6 +16,7 @@
 
 package org.elacin.pdfextract.physical.column;
 
+import org.elacin.pdfextract.Constants;
 import org.elacin.pdfextract.content.PhysicalContent;
 import org.elacin.pdfextract.content.WhitespaceRectangle;
 import org.elacin.pdfextract.geom.MathUtils;
@@ -38,7 +39,8 @@ class WhitespaceFinder extends AbstractWhitespaceFinder {
 WhitespaceFinder(RectangleCollection region,
                  final int numWhitespacesToBeFound,
                  final float whitespaceMinWidth,
-                 final float whitespaceMinHeight) {
+                 final float whitespaceMinHeight)
+{
     super(region, numWhitespacesToBeFound, whitespaceMinWidth, whitespaceMinHeight);
 }
 
@@ -46,58 +48,64 @@ WhitespaceFinder(RectangleCollection region,
 
 @Override
 protected boolean acceptsRectangle(@NotNull WhitespaceRectangle newWhitespace) {
-    /** find all the surrounding content. make sure this rectangle is not too small.
-     * This is an expensive check, which is why it is done here. i think it is still
-     * correct. */
-    final List<PhysicalContent> surroundings = region.findSurrounding(newWhitespace, 4);
-    if (!surroundings.isEmpty()) {
-        float averageHeight = 0.0f;
-        int counted = 0;
-        for (PhysicalContent surrounding : surroundings) {
-            if (surrounding.isText()) {
-                averageHeight += surrounding.getPos().getHeight();
-                counted++;
+
+    if (Constants.WHITESPACE_CHECK_LOCAL_HEIGHT) {
+        /** find all the surrounding content. make sure this rectangle is not too small.
+         * This is an expensive check, which is why it is done here. i think it is still
+         * correct. */
+
+        final List<PhysicalContent> surroundings = region.findSurrounding(newWhitespace, 4);
+        if (!surroundings.isEmpty()) {
+            float averageHeight = 0.0f;
+            int counted = 0;
+            for (PhysicalContent surrounding : surroundings) {
+                if (surrounding.isText()) {
+                    averageHeight += surrounding.getPos().getHeight();
+                    counted++;
+                }
+            }
+            if (counted != 0) {
+                averageHeight /= (float) counted;
+
+                if (averageHeight * 1.1f > newWhitespace.getPos().getHeight()) {
+                    return false;
+                }
             }
         }
-        if (counted != 0) {
-            averageHeight /= (float) counted;
+    }
 
-            if (averageHeight * 1.1f > newWhitespace.getPos().getHeight()) {
+
+    if (Constants.WHITESPACE_CHECK_TEXT_BOTH_SIDES) {
+        /** we do not want to accept whitespace rectangles which has only one or two words on each
+         side (0 is fine), as these doesn't affect layout and tend to break up small paragraphs
+         of text unnecessarily
+         */
+
+        /* decrease the size a tiny bit, so we don't include what blocked the rectangle, especially
+   *   above and below*/
+        Rectangle search = newWhitespace.getPos().getAdjustedBy(-1.0f);
+        final float range = 8.0f;
+        final List<PhysicalContent> right = region.searchInDirectionFromOrigin(E, search, range);
+        int rightCount = 0;
+        for (PhysicalContent content : right) {
+            if (content.isText()) {
+                rightCount++;
+            }
+        }
+
+        if (rightCount == 1 || rightCount == 2) {
+            final List<PhysicalContent> left = region.searchInDirectionFromOrigin(W, search, range);
+
+            int leftCount = 0;
+            for (PhysicalContent content : left) {
+                if (content.isText()) {
+                    leftCount++;
+                }
+            }
+
+            if (leftCount == 1 || leftCount == 2) {
                 return false;
             }
-        }
-    }
-
-    /** we do not want to accept whitespace rectangles which has only one or two words on each
-     side (0 is fine), as these doesn't affect layout and tend to break up small paragraphs
-     of text unnecessarily
-     */
-
-    /* decrease the size a tiny bit, so we don't include what blocked the rectangle, especially
-    *   above and below*/
-    Rectangle search = newWhitespace.getPos().getAdjustedBy(-1.0f);
-
-    final float range = 8.0f;
-    final List<PhysicalContent> right = region.searchInDirectionFromOrigin(E, search, range);
-    int rightCount = 0;
-    for (PhysicalContent content : right) {
-        if (content.isText()) {
-            rightCount++;
-        }
-    }
-
-    if (rightCount == 1 || rightCount == 2) {
-        final List<PhysicalContent> left = region.searchInDirectionFromOrigin(W, search, range);
-
-        int leftCount = 0;
-        for (PhysicalContent content : left) {
-            if (content.isText()) {
-                leftCount++;
-            }
-        }
-
-        if (leftCount == 1 || leftCount == 2) {
-            return false;
         }
     }
     return true;
@@ -109,20 +117,42 @@ protected boolean acceptsRectangle(@NotNull WhitespaceRectangle newWhitespace) {
 protected float rectangleQuality(@NotNull Rectangle r) {
     final Rectangle pos = r.getPos();
 
-    final float temp = Math.abs(
-            MathUtils.log(pos.getWidth() / pos.getHeight()) / MathUtils.log(2.0f));
+    final float temp = Math.abs(MathUtils.log(pos.getWidth() / pos.getHeight())
+                                        / MathUtils.log(2.0f));
+
+
+    final float weight;
+    if (Constants.WHITESPACE_PREFER_TALL) {
+        weight = getWeightPreferHigh(temp);
+    } else {
+        weight = getWeight(temp);
+    }
+
+    return MathUtils.sqrt(pos.area() * weight);
+}
+
+private float getWeight(final float temp) {
 
     final float weight;
     if (temp < 1.5f) {
         weight = 0.5f;
-    } else if (temp >= 2 && temp <= 3) {
+    } else if (temp >= 1.5f && temp <= 5) {
         weight = 2.5f;
-    } else if (temp > 3) {
-        weight = 8.0f;
     } else {
-        weight = 0.1f;
+        weight = 1.0f;
     }
+    return weight;
+}
 
-    return MathUtils.sqrt(pos.area() * weight);
+private float getWeightPreferHigh(final float temp) {
+    final float weight;
+    if (temp < 1.5f) {
+        weight = 0.5f;
+    } else if (temp >= 1.5f && temp <= 3) {
+        weight = 2.5f;
+    } else {
+        weight = 8.0f;
+    }
+    return weight;
 }
 }

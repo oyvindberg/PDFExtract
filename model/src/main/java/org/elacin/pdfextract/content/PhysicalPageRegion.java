@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.content;
 
 import org.apache.log4j.Logger;
+import org.elacin.pdfextract.Constants;
 import org.elacin.pdfextract.geom.HasPosition;
 import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.geom.RectangleCollection;
@@ -89,6 +90,10 @@ public PhysicalPageRegion(@NotNull final List<? extends PhysicalContent> content
 
 @Override
 public Rectangle getPos() {
+    if (Constants.WHITESPACE_USE_WHOLE_PAGE && page.getMainRegion() == this) {
+        return page.getPageDimensions();
+    }
+
     if (!_posSet) {
         setPositionFromContentList(getContents());
         if (containingGraphic != null) {
@@ -256,7 +261,12 @@ private void doExtractSubRegion(@NotNull final Collection<PhysicalContent> subCo
     }
 
     final PhysicalPageRegion newRegion = new PhysicalPageRegion(subContents, this, page);
-    newRegion.setContainingGraphic(graphic);
+
+    if (graphic == null) {
+        newRegion.setContainingGraphic(containingGraphic);
+    } else {
+        newRegion.setContainingGraphic(graphic);
+    }
 
     List<PhysicalPageRegion> toMove = new ArrayList<PhysicalPageRegion>();
     for (PhysicalPageRegion subregion : subregions) {

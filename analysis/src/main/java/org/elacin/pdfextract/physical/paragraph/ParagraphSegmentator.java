@@ -79,13 +79,17 @@ public List<ParagraphNode> segmentParagraphsByStyleAndDistance(@NotNull final Li
 
                 final boolean split;
                 switch (StyleComparator.styleCompare(currentStyle, lineStyle)) {
+                    case SPLIT:
+                        split = true;
+                        break;
                     case SAME_STYLE_AND_BIG_TEXT:
-                        split = distance > medianVerticalSpacing * 2.5f;
+                        //                        split = distance > medianVerticalSpacing * 2.5f;
+                        split = false;
                         break;
                     case SAME_STYLE:
                         /** if the styles are similar, only split if there seems to be much space
                          between the two lines */
-                        split = distance > medianVerticalSpacing * 1.3f;
+                        split = distance > medianVerticalSpacing * 1.5f;
                         break;
                     case SUBTLE_DIFFERENCE:
                         /* if there is a word with the same style, treat as same */
@@ -96,11 +100,11 @@ public List<ParagraphNode> segmentParagraphsByStyleAndDistance(@NotNull final Li
                             }
                         }
                         if (found) {
-                            split = distance > medianVerticalSpacing * 1.3f;
+                            split = distance > medianVerticalSpacing * 1.5f;
                         } else {
                             /** if the difference is subtle, do split if there seems to be some space
                              between the two lines */
-                            split = distance > medianVerticalSpacing * 1.02f;
+                            split = distance > medianVerticalSpacing * 1.1f;
                         }
                         break;
                     case BIG_DIFFERENCE:

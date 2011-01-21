@@ -34,7 +34,7 @@ protected Style style;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public AssignablePhysicalContent(final Rectangle position, Style style) {
+public AssignablePhysicalContent(final Rectangle position, @NotNull Style style) {
     super(position);
     this.style = style;
 }
@@ -48,7 +48,7 @@ public AssignablePhysicalContent getAssignable() {
 }
 
 @Override
-public boolean isAssignablePhysicalContent() {
+public boolean isAssignable() {
     return true;
 }
 

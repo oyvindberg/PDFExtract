@@ -19,12 +19,10 @@ package org.elacin.pdfextract;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: 16.01.11
- * Time: 19.57
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: 16.01.11 Time: 19.57 To change this template use
+ * File | Settings | File Templates.
  */
+@SuppressWarnings({"RedundantFieldInitialization"})
 public class Constants {
 // ------------------------------ FIELDS ------------------------------
 
@@ -47,9 +45,23 @@ public static final boolean RENDER_WHITESPACE = true;
 public static final boolean VERBOSE_OUTPUT        = false;
 public static final boolean SIMPLE_OUTPUT_ENABLED = true;
 public static final boolean TEI_OUTPUT_ENABLED    = false;
+public static final boolean ESCAPE_HTML           = false;
 
 @NotNull
-public static String SIMPLE_OUTPUT_EXTENSION = ".xml";
+public static final String SIMPLE_OUTPUT_EXTENSION = ".xml";
 @NotNull
-public static String TEI_OUTPUT_EXTENSION    = ".tei.xml";
+public static final String TEI_OUTPUT_EXTENSION    = ".tei.xml";
+
+
+public static final boolean WHITESPACE_CHECK_LOCAL_HEIGHT        = false;
+public static final boolean WHITESPACE_CHECK_TEXT_BOTH_SIDES     = false;
+public static final boolean WHITESPACE_CHECK_CONNECTED_FROM_EDGE = true;
+public static final boolean WHITESPACE_FLUFFY_EMPTY_CHECK        = true;
+public static final float   WHITESPACE_FLUFFYNESS                = 0.1f;
+public static final boolean WHITESPACE_PREFER_TALL               = false;
+public static final boolean WHITESPACE_USE_WHOLE_PAGE            = false;
+public static final int     WHITESPACE_NUMBER_WANTED             = 40;
+
+/* an artificial limit of the algorithm. */
+public static final int WHITESPACE_MAX_QUEUE_SIZE = 100000;
 }

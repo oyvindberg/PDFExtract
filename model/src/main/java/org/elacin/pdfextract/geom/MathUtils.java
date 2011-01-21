@@ -33,6 +33,34 @@ private MathUtils() {
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
+@NotNull
+public static Rectangle findBounds(@NotNull final Collection<? extends HasPosition> contents) {
+    /* calculate bounds for this region */
+    float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
+    float maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE;
+
+    int counted = 0;
+    for (HasPosition content : contents) {
+        //TODO: this really doesnt belong here
+        if (content instanceof WhitespaceRectangle) {
+            continue;
+        }
+        minX = Math.min(minX, content.getPos().getX());
+        minY = Math.min(minY, content.getPos().getY());
+        maxX = Math.max(maxX, content.getPos().getEndX());
+        maxY = Math.max(maxY, content.getPos().getEndY());
+        counted++;
+    }
+    final Rectangle newPos;
+    if (counted == 0) {
+        newPos = Rectangle.EMPTY_RECTANGLE;
+    } else {
+        newPos = new Rectangle(minX, minY, maxX - minX, maxY - minY);
+    }
+
+    return newPos;
+}
+
 /**
  * Returns true if num2 is within percentage percent of num1
  */
@@ -66,34 +94,5 @@ public static float log(float a) {
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 public static float sqrt(float a) {
     return (float) StrictMath.sqrt((double) a);
-}
-
-@NotNull
-public static Rectangle findBounds(@NotNull final Collection<? extends HasPosition> contents) {
-
-    /* calculate bounds for this region */
-    float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
-    float maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE;
-
-    int counted = 0;
-    for (HasPosition content : contents) {
-        //TODO: this really doesnt belong here
-        if (content instanceof WhitespaceRectangle) {
-            continue;
-        }
-        minX = Math.min(minX, content.getPos().getX());
-        minY = Math.min(minY, content.getPos().getY());
-        maxX = Math.max(maxX, content.getPos().getEndX());
-        maxY = Math.max(maxY, content.getPos().getEndY());
-        counted++;
-    }
-    final Rectangle newPos;
-    if (counted == 0) {
-        newPos = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
-    } else {
-        newPos = new Rectangle(minX, minY, maxX - minX, maxY - minY);
-    }
-
-    return newPos;
 }
 }

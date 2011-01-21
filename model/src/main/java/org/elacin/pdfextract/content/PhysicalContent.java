@@ -89,12 +89,6 @@ public String toString() {
     return sb.toString();
 }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-protected void setPos(final Rectangle pos) {
-    this.pos = pos;
-}
-
 // -------------------------- PUBLIC METHODS --------------------------
 
 @NotNull
@@ -104,7 +98,7 @@ public AssignablePhysicalContent getAssignable() {
 
 @NotNull
 public GraphicContent getGraphicContent() {
-    throw new RuntimeException("not a graphic");
+    throw new RuntimeException(getClass().getSimpleName() + " is not a graphic");
 }
 
 @NotNull
@@ -112,7 +106,7 @@ public PhysicalText getPhysicalText() {
     throw new RuntimeException("not a text");
 }
 
-public boolean isAssignablePhysicalContent() {
+public boolean isAssignable() {
     return false;
 }
 

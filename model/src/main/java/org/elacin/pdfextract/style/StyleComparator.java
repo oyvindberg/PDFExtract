@@ -31,6 +31,10 @@ private static final int SUBTLE_SIZE_DIFFERENCE = 2;
 
 @NotNull
 public static StyleDifference styleCompare(@NotNull final Style one, @NotNull final Style two) {
+
+    if ((one == Style.FORMULA) != (two == Style.FORMULA)) {
+        return StyleDifference.SPLIT;
+    }
     if (one.mathFont != two.mathFont) {
         return StyleDifference.BIG_DIFFERENCE;
     }
@@ -62,7 +66,7 @@ public static StyleDifference styleCompare(@NotNull final Style one, @NotNull fi
         return StyleDifference.SUBTLE_DIFFERENCE;
     }
 
-    if (one.ySize > 18.0f) {
+    if (one.ySize > 13.0f) {
         return StyleDifference.SAME_STYLE_AND_BIG_TEXT;
     }
 

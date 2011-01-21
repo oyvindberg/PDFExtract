@@ -23,7 +23,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
-import static org.elacin.pdfextract.style.Style.GRAPHIC_CHARACTER;
 import static org.elacin.pdfextract.style.Style.GRAPHIC_MATH_BAR;
 
 /**
@@ -69,7 +68,7 @@ public static boolean textSeemsToBeFormula(@NotNull Collection<? extends HasPosi
         }
         StyledText word = (StyledText) content;
 
-        if (word.getStyle().equals(GRAPHIC_MATH_BAR) || word.getStyle().equals(GRAPHIC_CHARACTER)) {
+        if (word.getStyle().equals(GRAPHIC_MATH_BAR)) {
             containedGraphics++;
             continue;
         }

@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.content;
 
 import org.apache.log4j.Logger;
+import org.elacin.pdfextract.geom.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -33,8 +34,7 @@ private static final Logger log = Logger.getLogger(PhysicalPage.class);
 private final int pageNumber;
 
 /**
- * This initially contains everything on the page. after creating the regions,
- * content will be moved
+ * This initially contains everything on the page. after creating the regions, content will be moved
  * from here. ideally this should be quite empty after the analysis.
  */
 @NotNull
@@ -46,13 +46,18 @@ private final PhysicalPageRegion mainRegion;
 @NotNull
 private final List<GraphicContent> allGraphics;
 
+private final Rectangle pageDimensions;
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public PhysicalPage(@NotNull List<? extends PhysicalContent> contents,
                     @NotNull final List<GraphicContent> graphics,
-                    int pageNumber) {
+                    int pageNumber,
+                    final Rectangle pageDimensions)
+{
     this.pageNumber = pageNumber;
     allGraphics = graphics;
+    this.pageDimensions = pageDimensions;
     mainRegion = new PhysicalPageRegion(contents, this);
 }
 
@@ -66,6 +71,10 @@ public List<GraphicContent> getAllGraphics() {
 @NotNull
 public PhysicalPageRegion getMainRegion() {
     return mainRegion;
+}
+
+public Rectangle getPageDimensions() {
+    return pageDimensions;
 }
 
 public int getPageNumber() {

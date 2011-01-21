@@ -50,13 +50,29 @@ public ContentGrouper(@NotNull PhysicalPageRegion region) {
 
 public List<List<PhysicalContent>> findBlocksOfContent() {
 
+    /** if this is contained in a grapic, just output the lines */
+    if (region.isGraphicalRegion()) {
+        for (PhysicalContent content : region.getContents()) {
+            if (content.isGraphic() || content.isText()) {
+                currentBlock.add(content);
+                content.getAssignable().setBlockNum(allBlocks.size());
+            }
+        }
+        allBlocks.add(currentBlock);
+        return allBlocks;
+    }
+
+    /**
+     *  If not, use the whitespace added to the region to determine blocks of text
+     * */
+
     /* follow the trails left between the whitespace and construct blocks of text from that */
     for (float y = pos.getY(); y < pos.getEndY(); y++) {
         final List<PhysicalContent> row = region.findContentAtYIndex(y);
 
         /* iterate through the line to find possible start of blocks */
         for (PhysicalContent contentInRow : row) {
-            if (contentInRow.isText() && !contentInRow.getPhysicalText().isAssignedBlock()) {
+            if (contentInRow.isAssignable() && !contentInRow.getAssignable().isAssignedBlock()) {
                 /* find all connected texts from this*/
                 markEverythingConnectedFrom(contentInRow);
                 allBlocks.add(currentBlock);
@@ -72,24 +88,27 @@ public List<List<PhysicalContent>> findBlocksOfContent() {
 
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent current) {
-    if (!current.isAssignablePhysicalContent()) {
+    if (!current.isAssignable()) {
         return false;
     }
     if (current.getAssignable().isAssignedBlock()) {
         return false;
     }
 
+    if (current.isGraphic() && current.getGraphicContent().isSeparator()) {
+        current.getAssignable().setBlockNum(allBlocks.size());
+        return false;
+    }
+
     current.getAssignable().setBlockNum(allBlocks.size());
     currentBlock.add(current);
 
-    final Rectangle pos = current.getPos();
-
     /* try searching for texts in all directions */
-    for (int y = (int) pos.getY(); y < (int) pos.getEndY(); y++) {
+    for (int y = (int) current.getPos().getY(); y < (int) current.getPos().getEndY(); y++) {
         markBothWaysFromCurrent(current, region.findContentAtYIndex(y));
     }
 
-    for (int x = (int) pos.getX(); x < (int) pos.getEndX(); x++) {
+    for (int x = (int) current.getPos().getX(); x < (int) current.getPos().getEndX(); x++) {
         markBothWaysFromCurrent(current, region.findContentAtXIndex(x));
     }
     return true;

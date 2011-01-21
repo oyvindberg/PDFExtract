@@ -43,7 +43,6 @@ private static final Logger log = Logger.getLogger(LineSegmentator.class);
 
 @NotNull
 public static List<LineNode> createLinesFromBlocks(List<PhysicalContent> block, int pageNum) {
-
     /* compile paragraphs of text based on the assigned block numbers */
     int minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
 
@@ -62,6 +61,9 @@ public static List<LineNode> createLinesFromBlocks(List<PhysicalContent> block, 
 
     int[] counts = new int[blockHeight];
     for (PhysicalContent content : block) {
+        if (!content.isAssignable()) {
+            continue;
+        }
         int contentHeight = (int) content.getPos().getHeight();
         int contentStart = (int) content.getPos().getY();
         int contentWidth = (int) content.getPos().getWidth();
@@ -91,8 +93,11 @@ public static List<LineNode> createLinesFromBlocks(List<PhysicalContent> block, 
             if (contentPos.getY() > start - 1 && contentPos.getEndY() < stop + 1) {
                 content.getAssignable().setBlockNum(1);
 
-                assert content.isText();
-                currentLine.addChild(createWordNode(content.getPhysicalText(), pageNum));
+                if (content.isText()) {
+                    currentLine.addChild(createWordNode(content.getPhysicalText(), pageNum));
+                } else {
+                    currentLine.addChild(createWordNodeFromGraphic(pageNum, content));
+                }
             }
         }
 
@@ -110,6 +115,11 @@ public static WordNode createWordNode(@NotNull final PhysicalText text, int page
     return new WordNode(text.getPos(), pageNumber, text.getStyle(), text.text, text.charSpacing);
 }
 
+public static WordNode createWordNodeFromGraphic(final int pageNum, final PhysicalContent content) {
+    return new WordNode(content.getPos(), pageNum, content.getGraphicContent().getStyle(),
+                        content.getGraphicContent().getStyle().id, -1);
+}
+
 // -------------------------- STATIC METHODS --------------------------
 
 @NotNull
@@ -120,12 +130,12 @@ private static List<Integer> findLineBoundaries(@NotNull int[] counts) {
     for (int i = 0; i < counts.length; i++) {
         if (hasFoundText && counts[i] < 3) {
             boolean isBoundary = true;
-            //            for (int j = i +1; j < i +3 && j < counts.length; j++){
-            //                if (counts[j] != 0){
-            //                    isBoundary = false;
-            //                    break;
-            //                }
-            //            }
+            for (int j = i + 1; j < i + 3 && j < counts.length; j++) {
+                if (counts[j] != 0) {
+                    isBoundary = false;
+                    break;
+                }
+            }
             if (isBoundary) {
                 lineBoundaries.add(i + 1);
                 hasFoundText = false;

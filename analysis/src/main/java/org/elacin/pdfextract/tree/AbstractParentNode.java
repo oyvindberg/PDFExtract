@@ -118,7 +118,7 @@ public final void addChildren(@NotNull final List<ChildType> newChildren) {
         child.parent = this;
         child.setRoot(getRoot());
     }
-    Collections.sort(newChildren, getChildComparator());
+    Collections.sort(children, getChildComparator());
     invalidateThisAndParents();
 }
 

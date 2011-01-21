@@ -24,5 +24,6 @@ public enum StyleDifference {
     SAME_STYLE_AND_BIG_TEXT,
     SAME_STYLE,
     SUBTLE_DIFFERENCE,
-    BIG_DIFFERENCE
+    BIG_DIFFERENCE,
+    SPLIT
 }

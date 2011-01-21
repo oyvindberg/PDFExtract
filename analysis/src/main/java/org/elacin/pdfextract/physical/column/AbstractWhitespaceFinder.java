@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.physical.column;
 
 import org.apache.log4j.Logger;
+import org.elacin.pdfextract.Constants;
 import org.elacin.pdfextract.content.WhitespaceRectangle;
 import org.elacin.pdfextract.geom.FloatPoint;
 import org.elacin.pdfextract.geom.HasPosition;
@@ -29,6 +30,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.PriorityQueue;
 
+import static org.elacin.pdfextract.Constants.*;
+
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Sep 23, 2010 Time: 3:05:06 PM To change this
  * template use File | Settings | File Templates.
@@ -38,12 +41,6 @@ abstract class AbstractWhitespaceFinder {
 
 private static final Logger log = Logger.getLogger(AbstractWhitespaceFinder.class);
 
-/**
- * These are parameters to the algorithm.
- */
-
-/* an artificial limit of the algorithm. */
-private static final int MAX_QUEUE_SIZE = 100000;
 
 /* all the obstacles in the algorithm are found here, and are initially all the
     words on the page */
@@ -55,7 +52,6 @@ private final float minWidth;
 
 /* the number of whitespace we want to find */
 private final int wantedWhitespaces;
-
 
 /**
  * State while working follows below
@@ -86,7 +82,7 @@ public AbstractWhitespaceFinder(RectangleCollection region,
     wantedWhitespaces = numWantedWhitespaces;
     foundWhitespace = new ArrayList<WhitespaceRectangle>(numWantedWhitespaces);
 
-    queue = new PriorityQueue<QueueEntry>(MAX_QUEUE_SIZE);
+    queue = new PriorityQueue<QueueEntry>(WHITESPACE_MAX_QUEUE_SIZE);
 
     this.minWidth = minWidth;
     this.minHeight = minHeight;
@@ -115,19 +111,6 @@ private static HasPosition choosePivot(@NotNull QueueEntry entry) {
         }
     }
     return closestToCentre;
-}
-
-/**
- * Returns true if subrectangle is completely contained withing one of the obstacles. This happens
- * rarely, but a check is necessary
- */
-private static boolean isNotContainedByAnyObstacle(@NotNull QueueEntry sub) {
-    for (int i = 0; i < sub.numObstacles; i++) {
-        if (sub.obstacles[i].getPos().contains(sub.bound)) {
-            return false;
-        }
-    }
-    return true;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
@@ -171,7 +154,7 @@ private WhitespaceRectangle findNextWhitespace() {
 
     while (!queue.isEmpty()) {
         /* Place an upper bound. If we reach this queue size we should already have enough data */
-        if (MAX_QUEUE_SIZE - 4 <= queue.size()) {
+        if (WHITESPACE_MAX_QUEUE_SIZE - 4 <= queue.size()) {
             log.warn("Queue too long");
             return null;
         }
@@ -192,9 +175,10 @@ private WhitespaceRectangle findNextWhitespace() {
         if (isEmptyEnough(current)) {
             final WhitespaceRectangle newWhitespace = new WhitespaceRectangle(current.bound);
 
-            /** if the rectangle is not higher than 25% of the page, check whether it is surrounded
-             * on all sides by text. in that case, drop it */
-            if (!isNextToWhitespaceOrEdge(newWhitespace)) {
+
+            /**  check whether the whitespace is connected to either an edge or an existing
+             * whitespace. if it is not, leave it in the notYetAccepted list for now*/
+            if (WHITESPACE_CHECK_CONNECTED_FROM_EDGE && !isNextToWhitespaceOrEdge(newWhitespace)) {
                 notYetAccepted.add(current);
                 continue;
             }
@@ -239,20 +223,30 @@ private int getNumberOfWhitespacesFound() {
  * If none of the obstacles are contained within outerBound, then we found a rectangle
  */
 private boolean isEmptyEnough(@NotNull QueueEntry current) {
-    /* accept a small intersection */
-    if (current.numObstacles <= 3) {
-        final float boundArea = current.bound.area();
+
+    if (Constants.WHITESPACE_FLUFFY_EMPTY_CHECK) {
+
+        /* accept a small intersection */
+        float intersectSum = 0.0f;
+        final Rectangle bound = current.bound;
+        final float intersectLimit = bound.area() * WHITESPACE_FLUFFYNESS;
 
         for (int i = 0; i < current.numObstacles; i++) {
-            HasPosition obstacle = current.obstacles[i];
-            final float intersect = current.bound.intersection(obstacle.getPos()).area();
-            if (intersect > obstacle.getPos().area() * 0.3f || intersect > boundArea * 0.4f) {
+            final Rectangle obstaclePos = current.obstacles[i].getPos();
+            final float intersectionSize = bound.intersection(obstaclePos).area();
+
+
+            if (intersectionSize > obstaclePos.area() * WHITESPACE_FLUFFYNESS) {
                 return false;
             }
+
+            intersectSum += intersectionSize;
         }
-        return true;
+
+        return intersectSum < intersectLimit;
     }
-    return false;
+
+    return current.numObstacles == 0;
 }
 
 /**
@@ -268,42 +262,42 @@ private QueueEntry[] splitSearchAreaAround(@NotNull final QueueEntry current,
 
     /* Everything inside here was the definitely most expensive parts of the implementation,
     *   so this is quite optimized to avoid too many float point comparisons and needless
-    *   object creations. This cut execution time by 90% :)*/
+    *   object creations. This cut execution time by some 90ish % :)*/
 
     int missingRectangles = wantedWhitespaces - foundWhitespace.size();
 
     Rectangle left = null;
-    HasPosition[] leftObstacles = null;
+    HasPosition[] leftObs = null;
     final float leftWidth = split.getX() - p.getX();
     if (split.getX() > p.getX() && leftWidth > minWidth) {
         left = new Rectangle(p.getX(), p.getY(), leftWidth, p.getHeight());
-        leftObstacles = new HasPosition[current.numObstacles + missingRectangles];
+        leftObs = new HasPosition[current.numObstacles + missingRectangles];
     }
 
     Rectangle above = null;
-    HasPosition[] aboveObstacles = null;
+    HasPosition[] aboveObs = null;
     final float aboveHeight = split.getY() - p.getY();
     if (split.getY() > p.getY() && aboveHeight > minHeight) {
         above = new Rectangle(p.getX(), p.getY(), p.getWidth(), aboveHeight);
-        aboveObstacles = new HasPosition[current.numObstacles + missingRectangles];
+        aboveObs = new HasPosition[current.numObstacles + missingRectangles];
     }
 
 
     Rectangle right = null;
-    HasPosition[] rightObstacles = null;
+    HasPosition[] rightObs = null;
     final float rightWidth = p.getEndX() - split.getEndX();
     if (split.getEndX() < p.getEndX() && rightWidth > minWidth) {
         right = new Rectangle(split.getEndX(), p.getY(), rightWidth, p.getHeight());
-        rightObstacles = new HasPosition[current.numObstacles + missingRectangles];
+        rightObs = new HasPosition[current.numObstacles + missingRectangles];
     }
 
 
     Rectangle below = null;
-    HasPosition[] belowObstacles = null;
+    HasPosition[] belowObs = null;
     final float belowHeight = p.getEndY() - split.getEndY();
     if (split.getEndY() < p.getEndY() && belowHeight > minHeight) {
         below = new Rectangle(p.getX(), split.getEndY(), p.getWidth(), belowHeight);
-        belowObstacles = new HasPosition[current.numObstacles + missingRectangles];
+        belowObs = new HasPosition[current.numObstacles + missingRectangles];
     }
 
 
@@ -323,27 +317,24 @@ private QueueEntry[] splitSearchAreaAround(@NotNull final QueueEntry current,
         }
 
         if (left != null && obstaclePos.getX() < split.getX()) {
-            leftObstacles[leftIndex++] = obstacle;
+            leftObs[leftIndex++] = obstacle;
         }
         if (above != null && obstaclePos.getY() < split.getY()) {
-            aboveObstacles[aboveIndex++] = obstacle;
+            aboveObs[aboveIndex++] = obstacle;
         }
         if (right != null && obstaclePos.getEndX() > split.getEndX()) {
-            rightObstacles[rightIndex++] = obstacle;
+            rightObs[rightIndex++] = obstacle;
         }
         if (below != null && obstaclePos.getEndY() > split.getEndY()) {
-            belowObstacles[belowIndex++] = obstacle;
+            belowObs[belowIndex++] = obstacle;
         }
     }
 
 
-    return new QueueEntry[]{left == null ? null : new QueueEntry(left, leftObstacles, leftIndex),
-                            right == null ? null : new QueueEntry(right, rightObstacles,
-                                                                  rightIndex),
-                            above == null ? null : new QueueEntry(above, aboveObstacles,
-                                                                  aboveIndex),
-                            below == null ? null : new QueueEntry(below, belowObstacles,
-                                                                  belowIndex)};
+    return new QueueEntry[]{left == null ? null : new QueueEntry(left, leftObs, leftIndex),
+                            right == null ? null : new QueueEntry(right, rightObs, rightIndex),
+                            above == null ? null : new QueueEntry(above, aboveObs, aboveIndex),
+                            below == null ? null : new QueueEntry(below, belowObs, belowIndex)};
 }
 
 /**

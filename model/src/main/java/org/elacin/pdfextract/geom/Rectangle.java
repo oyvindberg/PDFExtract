@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
  */
 
 public class Rectangle implements HasPosition {
+public static final Rectangle EMPTY_RECTANGLE = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
 // ------------------------------ FIELDS ------------------------------
 
 private final float x, y, width, height, endX, endY;

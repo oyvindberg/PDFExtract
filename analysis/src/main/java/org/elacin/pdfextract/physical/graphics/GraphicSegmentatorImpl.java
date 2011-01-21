@@ -96,17 +96,25 @@ public static boolean canBeConsideredHorizontalSeparator(@NotNull GraphicContent
         return false;
     }
 
-    return g.getPos().getWidth() / g.getPos().getHeight() > 15.0f;
+    return g.getPos().getWidth() / g.getPos().getHeight() > 10.0f;
 }
+
+/* these are what might be rendered with normal font, so they are in addition to what
+    Formulas.containsMath would find*/
+private static String POSSIBLE_MATH_SYMBOLS = "()-+";
 
 public static boolean canBeConsideredMathBarInRegion(@NotNull GraphicContent g,
                                                      @NotNull final PhysicalPageRegion region)
 {
-    if (!canBeConsideredHorizontalSeparator(g)) {
+    if (g.getPos().getHeight() > 5.0f) {
         return false;
     }
 
-    final List<PhysicalContent> surrounding = region.findSurrounding(g, 15);
+    if (g.getPos().getWidth() / g.getPos().getHeight() < 6.0f) {
+        return false;
+    }
+
+    final List<PhysicalContent> surrounding = region.findSurrounding(g, 10);
     boolean foundOver = false, foundUnder = false, foundMath = false;
 
     for (PhysicalContent content : surrounding) {
@@ -119,6 +127,14 @@ public static boolean canBeConsideredMathBarInRegion(@NotNull GraphicContent g,
         if (content.isText()) {
             if (Formulas.textContainsMath(content.getPhysicalText())) {
                 foundMath = true;
+            } else {
+                final String text = content.getPhysicalText().getText();
+                for (int i = 0; i < text.length(); i++) {
+                    if (POSSIBLE_MATH_SYMBOLS.indexOf(text.charAt(i)) != -1) {
+                        foundMath = true;
+                        break;
+                    }
+                }
             }
         }
         if (foundOver && foundUnder && foundMath) {
@@ -187,10 +203,10 @@ private void categorizeGraphics(@NotNull CategorizedGraphics ret,
             graphic.setCanBeAssigned(true);
             graphic.setStyle(Style.GRAPHIC_VSEP);
             ret.getVerticalSeparators().add(graphic);
-        } else if (canBeConsideredCharacterInRegion(graphic, region)) {
-            graphic.setStyle(Style.GRAPHIC_CHARACTER);
-            graphic.setCanBeAssigned(true);
-            ret.getContents().add(graphic);
+            //        } else if (canBeConsideredCharacterInRegion(graphic, region)) {
+            //            graphic.setStyle(Style.GRAPHIC_CHARACTER);
+            //            graphic.setCanBeAssigned(true);
+            //            ret.getContents().add(graphic);
         } else {
             graphic.setCanBeAssigned(true);
             graphic.setStyle(Style.GRAPHIC_IMAGE);
@@ -267,7 +283,7 @@ private void logGraphics(@NotNull CategorizedGraphics ret) {
     }
 
     for (GraphicContent g : ret.getContents()) {
-        log.debug("LOG00980:considered content: " + g);
+        log.info("LOG00980:considered content: " + g);
     }
 }
 }

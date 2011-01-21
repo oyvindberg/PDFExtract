@@ -45,7 +45,19 @@ public PageNode(int pageNumber) {
 public Comparator<ParagraphNode> getChildComparator() {
     return new Comparator<ParagraphNode>() {
         public int compare(final ParagraphNode o1, final ParagraphNode o2) {
-            return (o1.getSeqNo() < o2.getSeqNo() ? -1 : (o1.getSeqNo() == o2.getSeqNo() ? 0 : 1));
+            final int thisRegion = o1.getSeqNo() / 1000;
+            final int thatRegion = o2.getSeqNo() / 1000;
+
+            if (thisRegion < thatRegion) {
+                return -1;
+            } else if (thisRegion > thatRegion) {
+                return 1;
+            }
+
+            return (o1.getPos().getY() < o2.getPos().getY() ? -1 :
+                            (o1.getSeqNo() == o2.getSeqNo() ? 0 : 1));
+
+            //            return (o1.getSeqNo() < o2.getSeqNo() ? -1 : (o1.getSeqNo() == o2.getSeqNo() ? 0 : 1));
         }
     };
 }

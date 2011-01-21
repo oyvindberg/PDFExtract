@@ -16,6 +16,8 @@
 
 package org.elacin.pdfextract.tree;
 
+import org.elacin.pdfextract.geom.MathUtils;
+import org.elacin.pdfextract.logical.Formulas;
 import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.style.TextUtils;
 import org.jetbrains.annotations.NotNull;
@@ -60,6 +62,11 @@ public String getText() {
 
 @NotNull
 public Style findDominatingStyle() {
+    if (Formulas.textSeemsToBeFormula(getChildren())) {
+        return Style.FORMULA;
+    }
+
+
     return TextUtils.findDominatingStyle(getChildren());
 }
 
@@ -69,15 +76,36 @@ public Style findDominatingStyle() {
 @NotNull
 @Override
 public Comparator<WordNode> getChildComparator() {
+    //    return new Comparator<WordNode>() {
+    //        public int compare(@NotNull final WordNode o1, @NotNull final WordNode o2) {
+    //            if (o1.getPos().getX() < o2.getPos().getX()) {
+    //                return -1;
+    //            } else if (o1.getPos().getX() > o2.getPos().getX()) {
+    //                return 1;
+    //            }
+    //
+    //            return 0;
+    //        }
+    //    };
+
     return new Comparator<WordNode>() {
         public int compare(@NotNull final WordNode o1, @NotNull final WordNode o2) {
-            if (o1.getPos().getX() < o2.getPos().getX()) {
+            if (o1.getPos().getEndY() < o2.getPos().getY()) {
                 return -1;
-            } else if (o1.getPos().getX() > o2.getPos().getX()) {
+            }
+            if (o1.getPos().getY() > o2.getPos().getEndY()) {
                 return 1;
             }
-
-            return 0;
+            if (o1.getPos().getEndX() < o2.getPos().getX()) {
+                return -1;
+            }
+            if (o1.getPos().getX() > o2.getPos().getEndX()) {
+                return 1;
+            }
+            if (!MathUtils.isWithinPercent(o1.getPos().getY(), o2.getPos().getY(), 4)) {
+                return Float.compare(o1.getPos().getY(), o2.getPos().getY());
+            }
+            return Float.compare(o1.getPos().getX(), o2.getPos().getX());
         }
     };
 }

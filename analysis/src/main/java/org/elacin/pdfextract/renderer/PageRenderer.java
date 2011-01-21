@@ -30,6 +30,7 @@ import org.elacin.pdfextract.integration.PageContent;
 import org.elacin.pdfextract.integration.RenderedPage;
 import org.elacin.pdfextract.tree.*;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -93,6 +94,7 @@ static Color getColorForObject(@NotNull Object o) {
     if (o.getClass().equals(WhitespaceRectangle.class)) {
         if (((WhitespaceRectangle) o).getScore() == 1000) {
             return Color.RED;
+            //            return DONT_DRAW;
         }
         if (Constants.RENDER_WHITESPACE) {
             return Color.BLACK;
@@ -106,11 +108,14 @@ static Color getColorForObject(@NotNull Object o) {
         if (pn.isGraphical()) {
             return Color.MAGENTA;
         }
-        return Color.YELLOW;
+        //        return Color.YELLOW;
+        return DONT_DRAW;
     } else if (o.getClass().equals(LineNode.class)) {
-        return Color.BLUE;
+        //        return Color.BLUE;
+        return DONT_DRAW;
     } else if (o.getClass().equals(WordNode.class)) {
         return Color.ORANGE;
+        //       return DONT_DRAW;
     } else {
         return DONT_DRAW;
     }
@@ -170,8 +175,9 @@ public BufferedImage renderToFile(final int pageNum, File outputFile) {
     graphics = image.createGraphics();
     graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
+
     /* render graphics and whitespace, both are left in the physical page*/
-    final PhysicalPage physicalPage = physicalPages[pageNum - 1];
+    final PhysicalPage physicalPage = findPhysicalPage(pageNode);
     if (physicalPage != null) {
         //        for (GraphicContent graphic : physicalPage.getAllGraphics()) {
         //            drawRectangle(graphic);
@@ -199,6 +205,20 @@ public BufferedImage renderToFile(final int pageNum, File outputFile) {
                            System.currentTimeMillis() - t0));
 
     return image;
+}
+
+@Nullable
+private PhysicalPage findPhysicalPage(final PageNode pageNode) {
+    for (PhysicalPage physicalPage : physicalPages) {
+        if (physicalPage == null) {
+            continue;
+        }
+
+        if (physicalPage.getPageNumber() == pageNode.getPageNumber()) {
+            return physicalPage;
+        }
+    }
+    return null;
 }
 
 // -------------------------- OTHER METHODS --------------------------

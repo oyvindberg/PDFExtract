@@ -24,8 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import java.awt.*;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Nov 3, 2010 Time: 4:43:12 PM To change this
- * template
+ * Created by IntelliJ IDEA. User: elacin Date: Nov 3, 2010 Time: 4:43:12 PM To change this template
  * use File | Settings | File Templates.
  */
 public class GraphicContent extends AssignablePhysicalContent {
@@ -39,7 +38,7 @@ private final Color   color;
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public GraphicContent(final Rectangle position, boolean picture, Color color) {
-    super(position, null);
+    super(position, Style.GRAPHIC_IMAGE);
     this.picture = picture;
     this.color = color;
 
@@ -57,7 +56,7 @@ public String toString() {
     sb.append("{canBeAssigned=").append(canBeAssigned);
     sb.append(", picture=").append(picture);
     sb.append(", pos=").append(getPos());
-    sb.append(", color=").append(color);
+    sb.append(", style=").append(getStyle());
     sb.append('}');
     return sb.toString();
 }
@@ -71,7 +70,7 @@ public GraphicContent getGraphicContent() {
 }
 
 @Override
-public boolean isAssignablePhysicalContent() {
+public boolean isAssignable() {
     return canBeAssigned;
 }
 
@@ -135,19 +134,16 @@ public boolean isBackgroundColor() {
     return color.equals(Color.white);
 }
 
-public boolean isCharacter(@NotNull final PhysicalPageRegion region) {
-    return getStyle() != null && getStyle().equals(Style.GRAPHIC_CHARACTER);
-}
 
 /**
  * consider the graphic a separator if the aspect ratio is high
  */
 public boolean isHorizontalSeparator() {
-    return getStyle() != null && getStyle().equals(Style.GRAPHIC_HSEP);
+    return getStyle().equals(Style.GRAPHIC_HSEP);
 }
 
-public boolean isMathBar(final PhysicalPageRegion region) {
-    return getStyle() != null && getStyle().equals(Style.GRAPHIC_MATH_BAR);
+public boolean isMathBar() {
+    return getStyle().equals(Style.GRAPHIC_MATH_BAR);
 }
 
 public boolean isSeparator() {
@@ -158,6 +154,6 @@ public boolean isSeparator() {
  * consider the graphic a separator if the aspect ratio is high
  */
 public boolean isVerticalSeparator() {
-    return getStyle() != null && getStyle().equals(Style.GRAPHIC_VSEP);
+    return getStyle().equals(Style.GRAPHIC_VSEP);
 }
 }

@@ -40,7 +40,7 @@ public int getPage() {
 // -------------------------- PUBLIC METHODS --------------------------
 
 public int getParagraphId(boolean graphic) {
-    return (region * 1000 + paragraph) * (graphic ? -1 : 1);
+    return (region * 1000 + paragraph) + (graphic ? 1000000 : 0);
 }
 
 public void newPage() {
