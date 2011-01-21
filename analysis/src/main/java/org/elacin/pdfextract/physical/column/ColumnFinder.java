@@ -24,6 +24,7 @@ import org.elacin.pdfextract.geom.MathUtils;
 import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.geom.Sorting;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,10 +57,71 @@ public static List<WhitespaceRectangle> extractColumnBoundaries(@NotNull Physica
     /* adjust columns to real height*/
     adjustColumnHeights(region, columnBoundaries);
 
+    filter(region, columnBoundaries);
 
     combineColumnBoundaries(region, columnBoundaries);
 
     return columnBoundaries;
+}
+
+private static String chars = "()[]abcdef123456789o.• ";
+
+private static void filter(final PhysicalPageRegion r, final List<WhitespaceRectangle> boundaries) {
+
+    List<WhitespaceRectangle> toRemove = new ArrayList<WhitespaceRectangle>();
+    Collections.sort(boundaries, Sorting.sortByLowerX);
+    for (int i = boundaries.size() - 1; i >= 0; i--) {
+        final WhitespaceRectangle boundary = boundaries.get(i);
+
+        final float boundaryToTheLeft;
+        if (i == 0) {
+            boundaryToTheLeft = r.getPos().getX();
+        } else {
+            boundaryToTheLeft = boundaries.get(i - 1).getPos().getEndX();
+        }
+        final Rectangle bpos = boundary.getPos();
+        final float searchWidth = bpos.getX() - boundaryToTheLeft;
+
+        if (searchWidth < 0) {
+            toRemove.add(boundary);
+            continue;
+        }
+
+        Rectangle search = new Rectangle(boundaryToTheLeft, bpos.getY(), searchWidth,
+                                         bpos.getHeight());
+
+        final List<PhysicalContent> contentToTheLeft = r.findContentsIntersectingWith(search);
+
+        /* demand a certain amount of words on the left side to split */
+        if (contentToTheLeft.size() < 4) {
+            toRemove.add(boundary);
+            continue;
+        }
+
+        StringBuffer sb = new StringBuffer();
+        for (PhysicalContent content : contentToTheLeft) {
+            if (content.isText()) {
+                sb.append(content.getPhysicalText().getText());
+            }
+        }
+        boolean foundCharsExceptThoseInString = false;
+        for (int j = 0; j < sb.length(); j++) {
+            if (chars.indexOf(sb.charAt(j)) == -1) {
+                foundCharsExceptThoseInString = true;
+                break;
+            }
+        }
+        if (!foundCharsExceptThoseInString) {
+            toRemove.add(boundary);
+            continue;
+        }
+
+    }
+    if (log.isDebugEnabled()) {
+        log.debug("Removing columns" + toRemove);
+    };
+    boundaries.removeAll(toRemove);
+
 }
 
 @NotNull
@@ -96,38 +158,52 @@ private static void adjustColumnHeights(@NotNull PhysicalPageRegion region,
         /* calculate three possible columns, on the left and right side of the rectangle,
             and along the middle
          */
-        final float leftX = bpos.getX();
-        final float leftEndX = Math.min(bpos.getX() + 1.0f, bpos.getEndX());
+        final float ADJUST = 1.0f;
+        final float WIDTH = 1.0f;
+        final float leftX = Math.min(bpos.getX() + ADJUST, bpos.getEndX());
+        final float leftEndX = Math.min(leftX + WIDTH, bpos.getEndX() - ADJUST);
         final WhitespaceRectangle left = adjustColumn(region, rpos, boundary, leftX, leftEndX);
 
-        final float midX = Math.max(bpos.getMiddleX() - 1.0f, bpos.getX());
-        final float midEndX = Math.min(bpos.getMiddleX() + 1.0f, bpos.getEndX());
+        final float midX = bpos.getMiddleX();
+        final float midEndX = Math.min(midX + WIDTH, bpos.getEndX());
         final WhitespaceRectangle middle = adjustColumn(region, rpos, boundary, midX, midEndX);
 
-        final float rightX = Math.max(bpos.getEndX() - 1, bpos.getX());
-        final float rightEndX = Math.min(bpos.getMiddleX() + 1.0f, bpos.getEndX());
+        final float rightEndX = Math.max(bpos.getEndX() - ADJUST, bpos.getX());
+        final float rightX = Math.max(rightEndX - WIDTH, bpos.getX());
         final WhitespaceRectangle right = adjustColumn(region, rpos, boundary, rightX, rightEndX);
 
         /* then choose the tallest */
-        final WhitespaceRectangle adjusted;
-        final float lHeight = left.getPos().getHeight();
-        final float mHeight = middle.getPos().getHeight();
-        final float rHeight = right.getPos().getHeight();
+        final float lHeight = (left == null ? -1.0f : left.getPos().getHeight());
+        final float mHeight = (middle == null ? -1.0f : middle.getPos().getHeight());
+        final float rHeight = (right == null ? -1.0f : right.getPos().getHeight());
+
+        @Nullable final WhitespaceRectangle adjusted;
         if (lHeight > mHeight && lHeight > rHeight) {
             adjusted = left;
         } else if (rHeight > mHeight && rHeight > lHeight) {
             adjusted = right;
         } else {
-            adjusted = middle;
-        }
+            if (middle != null) {
+                adjusted = middle;
+            } else if (right != null) {
+                adjusted = right;
+            } else if (left != null) {
+                adjusted = left;
+            } else {
+                adjusted = null;
+            }
 
-        newBoundaries.add(adjusted);
+        }
+        if (adjusted != null) {
+            newBoundaries.add(adjusted);
+        }
     }
     columnBoundaries.clear();
     columnBoundaries.addAll(newBoundaries);
 
 }
 
+@Nullable
 private static WhitespaceRectangle adjustColumn(final PhysicalPageRegion region,
                                                 final Rectangle rpos,
                                                 final WhitespaceRectangle boundary,
@@ -211,6 +287,9 @@ private static WhitespaceRectangle adjustColumn(final PhysicalPageRegion region,
             }
         }
     }
+    if (!startYFound) {
+        return null;
+    }
 
     final Rectangle adjusted = new Rectangle(boundaryStartX, startY, 1.0f,
                                              lastYWithContentRight - startY);
@@ -288,6 +367,7 @@ private static List<WhitespaceRectangle> selectCandidateColumnBoundaries(@NotNul
 {
     final float LOOKAHEAD = 10.0f;
     final float HALF_LOOKAHEAD = LOOKAHEAD / 2;
+    final Rectangle rpos = region.getPos();
 
     final List<WhitespaceRectangle> columnBoundaries = new ArrayList<WhitespaceRectangle>();
     for (WhitespaceRectangle whitespace : whitespaces) {
@@ -295,9 +375,16 @@ private static List<WhitespaceRectangle> selectCandidateColumnBoundaries(@NotNul
 
         final float posX = pos.getX();
         final float posEndX = pos.getEndX();
-        if (posX == region.getPos().getX() || posEndX == region.getPos().getEndX()) {
+
+
+        if (posX < rpos.getX() + rpos.getWidth() * 0.10f) {
             continue;
         }
+
+        if (posEndX > rpos.getEndX() - rpos.getWidth() * 0.10f) {
+            continue;
+        }
+
 
         if (pos.getHeight() / pos.getWidth() <= 1.5f) {
             continue;
@@ -337,15 +424,15 @@ private static List<WhitespaceRectangle> selectCandidateColumnBoundaries(@NotNul
             }
         }
 
-        if (leftCount == 0 && rightCount < 10) {
+        if (leftCount == 0 && rightCount < 8) {
             continue;
         }
 
-        if (rightCount == 0 && leftCount < 10) {
+        if (rightCount == 0 && leftCount < 8) {
             continue;
         }
 
-        if (leftCount > 3 || rightCount > 3) {
+        if (leftCount >= 3 || rightCount >= 3) {
             columnBoundaries.add(whitespace);
         }
     }

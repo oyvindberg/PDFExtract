@@ -31,11 +31,8 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: 15.01.11
- * Time: 19.57
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: 15.01.11 Time: 19.57 To change this template use
+ * File | Settings | File Templates.
  */
 public class PDFBoxSource implements PDFSource {
 // ------------------------------ FIELDS ------------------------------
@@ -71,17 +68,17 @@ public DocumentContent readPages() {
     }
 
     final long t0 = System.currentTimeMillis();
-    PDFBoxIntegration stripper;
+    PDFBoxIntegration pdfbox;
     try {
-        stripper = new PDFBoxIntegration(doc, startPage, endPage);
-        stripper.processDocument();
+        pdfbox = new PDFBoxIntegration(doc, startPage, endPage);
+        pdfbox.processDocument();
     } catch (IOException e) {
         throw new RuntimeException("Error while reading document", e);
     }
 
     final long td = System.currentTimeMillis() - t0;
     log.info("LOG01190:Read document in " + td + " ms");
-    contents = stripper.getContents();
+    contents = pdfbox.getContents();
     return contents;
 }
 
@@ -116,7 +113,8 @@ public void closeSource() {
 
 @NotNull
 protected static PDDocument openPdfDocument(@NotNull final File pdfFile,
-                                            @Nullable final String password) {
+                                            @Nullable final String password)
+{
     long t0 = System.currentTimeMillis();
     MDC.put("doc", pdfFile.getName());
     log.info("LOG00120:Opening PDF file " + pdfFile + ".");

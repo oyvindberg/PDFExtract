@@ -379,11 +379,11 @@ protected void processTextPosition(@NotNull TextPosition text_) {
     }
 
 
-    if (!includeText(text)) {
-        if (log.isDebugEnabled()) {
-            log.debug("LOG00770: ignoring text " + text.getCharacter()
-                              + " because it seems to be rendered two times");
-        }
+    if (!textAlreadyRenderedAtSamePlace(text)) {
+        //        if (log.isDebugEnabled()) {
+        log.warn("LOG00770: ignoring text " + text.getCharacter()
+                         + " because it seems to be rendered two times");
+        //        }
         return;
     }
 
@@ -627,7 +627,7 @@ private void filterOutControlCodes(@NotNull List<ETextPosition> text) {
     }
 }
 
-private boolean includeText(@NotNull final TextPosition text) {
+private boolean textAlreadyRenderedAtSamePlace(@NotNull final TextPosition text) {
     String c = text.getCharacter();
 
     List<TextPosition> sameTextCharacters = characterListMapping.get(c);
@@ -662,13 +662,13 @@ private boolean includeText(@NotNull final TextPosition text) {
             suppressCharacter = true;
         }
     }
-    boolean showCharacter = false;
+    boolean alreadyThere = true;
 
     if (!suppressCharacter) {
         sameTextCharacters.add(text);
-        showCharacter = true;
+        alreadyThere = false;
     }
-    return showCharacter;
+    return !alreadyThere;
 }
 
 private boolean isMonoSpacedFont(@NotNull PDFont fontObj) {

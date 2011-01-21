@@ -137,7 +137,7 @@ private float getWeight(final float temp) {
     if (temp < 1.5f) {
         weight = 0.5f;
     } else if (temp >= 1.5f && temp <= 5) {
-        weight = 2.5f;
+        weight = 1.5f;
     } else {
         weight = 1.0f;
     }

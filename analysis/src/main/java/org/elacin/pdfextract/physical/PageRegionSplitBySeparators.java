@@ -62,17 +62,21 @@ static void splitRegionBySeparators(@NotNull PhysicalPageRegion r,
             list.remove(hsep);
         }
         if (list.isEmpty()) {
-            Rectangle everythingAboveSep = new Rectangle(r.getPos().getX(), 0.0f, r.getWidth() + 1,
-                                                         hsep.getPos().getY());
+            if (hsep.getPos().getY() > 0) {
+                Rectangle everythingAboveSep = new Rectangle(r.getPos().getX(), 0.0f,
+                                                             r.getWidth() + 1,
+                                                             hsep.getPos().getY());
 
-            if (log.isInfoEnabled()) {
-                log.info("LOG00880:split/hsep: " + hsep + ", extracting area at: "
-                                 + everythingAboveSep);
+                if (log.isInfoEnabled()) {
+                    log.info("LOG00880:split/hsep: " + hsep + ", extracting area at: "
+                                     + everythingAboveSep);
+                }
+
+                r.addContent(hsep);
+                r.extractSubRegionFromBound(everythingAboveSep);
             }
-
-            r.addContent(hsep);
-            r.extractSubRegionFromBound(everythingAboveSep);
             toRemove.add(hsep);
+
         } else {
             /* just add this for now*/
             r.addContent(hsep);

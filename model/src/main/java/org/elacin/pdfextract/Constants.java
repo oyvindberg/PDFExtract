@@ -53,14 +53,16 @@ public static final String SIMPLE_OUTPUT_EXTENSION = ".xml";
 public static final String TEI_OUTPUT_EXTENSION    = ".tei.xml";
 
 
-public static final boolean WHITESPACE_CHECK_LOCAL_HEIGHT        = false;
-public static final boolean WHITESPACE_CHECK_TEXT_BOTH_SIDES     = false;
+public static final boolean WHITESPACE_CHECK_LOCAL_HEIGHT        = true;
+public static final boolean WHITESPACE_CHECK_TEXT_BOTH_SIDES     = true;
 public static final boolean WHITESPACE_CHECK_CONNECTED_FROM_EDGE = true;
 public static final boolean WHITESPACE_FLUFFY_EMPTY_CHECK        = true;
 public static final float   WHITESPACE_FLUFFYNESS                = 0.1f;
 public static final boolean WHITESPACE_PREFER_TALL               = false;
 public static final boolean WHITESPACE_USE_WHOLE_PAGE            = false;
 public static final int     WHITESPACE_NUMBER_WANTED             = 40;
+public static final float   WHITESPACE_OBSTACLE_OVERLAP          = 2.0f;
+
 
 /* an artificial limit of the algorithm. */
 public static final int WHITESPACE_MAX_QUEUE_SIZE = 100000;

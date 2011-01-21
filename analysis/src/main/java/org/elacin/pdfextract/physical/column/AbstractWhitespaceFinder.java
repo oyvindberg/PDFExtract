@@ -307,6 +307,11 @@ private QueueEntry[] splitSearchAreaAround(@NotNull final QueueEntry current,
      */
     int leftIndex = 0, aboveIndex = 0, rightIndex = 0, belowIndex = 0;
 
+    final float adjustedSplitX = split.getX() - WHITESPACE_OBSTACLE_OVERLAP;
+    final float adjustedSplitY = split.getY() - WHITESPACE_OBSTACLE_OVERLAP;
+    final float adjustedSplitEndX = split.getEndX() + WHITESPACE_OBSTACLE_OVERLAP;
+    final float adjustedSplitEndY = split.getEndY() + WHITESPACE_OBSTACLE_OVERLAP;
+
     for (int i = 0; i < current.numObstacles; i++) {
         HasPosition obstacle = current.obstacles[i];
         final Rectangle obstaclePos = obstacle.getPos();
@@ -316,16 +321,20 @@ private QueueEntry[] splitSearchAreaAround(@NotNull final QueueEntry current,
             continue;
         }
 
-        if (left != null && obstaclePos.getX() < split.getX()) {
+
+        if (left != null && obstaclePos.getX() < adjustedSplitX) {
             leftObs[leftIndex++] = obstacle;
         }
-        if (above != null && obstaclePos.getY() < split.getY()) {
+
+        if (above != null && obstaclePos.getY() < adjustedSplitY) {
             aboveObs[aboveIndex++] = obstacle;
         }
-        if (right != null && obstaclePos.getEndX() > split.getEndX()) {
+
+        if (right != null && obstaclePos.getEndX() > adjustedSplitEndX) {
             rightObs[rightIndex++] = obstacle;
         }
-        if (below != null && obstaclePos.getEndY() > split.getEndY()) {
+
+        if (below != null && obstaclePos.getEndY() > adjustedSplitEndY) {
             belowObs[belowIndex++] = obstacle;
         }
     }
@@ -373,7 +382,7 @@ protected boolean acceptsRectangle(WhitespaceRectangle newWhitespace) {
 protected boolean isNextToWhitespaceOrEdge(@NotNull final WhitespaceRectangle newWhitespace) {
     /* accept this rectangle if it is adjacent to the edge of the page */
     //noinspection FloatingPointEquality
-    final float l = 1.0f;
+    final float l = WHITESPACE_OBSTACLE_OVERLAP;
 
     if (newWhitespace.getPos().getX() <= region.getPos().getX() + l
                 || newWhitespace.getPos().getY() <= region.getPos().getY() + l

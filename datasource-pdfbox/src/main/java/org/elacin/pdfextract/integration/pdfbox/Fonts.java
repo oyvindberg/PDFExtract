@@ -28,8 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static java.lang.Character.*;
-
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Mar 18, 2010 Time: 2:32:39 PM <p/> <p/> This class
  * is meant to belong to a document, so that all the styles used in a document will be available
@@ -97,6 +95,8 @@ public Style getStyleForTextPosition(@NotNull TextPosition tp) {
 // -------------------------- OTHER METHODS --------------------------
 
 private FontInfo getFontInfo(@NotNull PDFont pdFont) {
+
+
     if (fontInfoCache.containsKey(pdFont)) {
         return fontInfoCache.get(pdFont);
     }
@@ -121,6 +121,13 @@ private FontInfo getFontInfo(@NotNull PDFont pdFont) {
     boolean italic = font.toLowerCase().contains("italic");
 
 
+    /* ignore information after this */
+    final int idx = font.indexOf(',');
+    if (idx != -1) {
+        font = font.substring(0, idx);
+    }
+
+
     /**
      * Find the plain font name, without any other information
      * Three typical font names can be:
@@ -134,25 +141,25 @@ private FontInfo getFontInfo(@NotNull PDFont pdFont) {
      *  Also stop if we reach an '-' or whitespace, as that is a normal separators
      * */
 
-    boolean foundLowercase = false;
-    int index = -1;
-    for (int i = 0; i < font.length(); i++) {
-        final char ch = font.charAt(i);
-
-        if (!foundLowercase && isLowerCase(ch)) {
-            foundLowercase = true;
-        } else if (foundLowercase && isUpperCase(ch)) {
-            index = i;
-            break;
-        } else if ('-' == ch || isWhitespace(ch)) {
-            index = i;
-            break;
-        }
-    }
-
-    if (index != -1) {
-        font = font.substring(0, index);
-    }
+    //    boolean foundLowercase = false;
+    //    int index = -1;
+    //    for (int i = 0; i < font.length(); i++) {
+    //        final char ch = font.charAt(i);
+    //
+    //        if (!foundLowercase && isLowerCase(ch)) {
+    //            foundLowercase = true;
+    //        } else if (foundLowercase && isUpperCase(ch)) {
+    //            index = i;
+    //            break;
+    //        } else if ('-' == ch || isWhitespace(ch)) {
+    //            index = i;
+    //            break;
+    //        }
+    //    }
+    //
+    //    if (index != -1) {
+    //        font = font.substring(0, index);
+    //    }
 
 
     /* this is latex specific */

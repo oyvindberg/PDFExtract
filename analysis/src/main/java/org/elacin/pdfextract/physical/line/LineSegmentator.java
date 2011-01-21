@@ -37,7 +37,9 @@ import static org.elacin.pdfextract.content.AssignablePhysicalContent.BLOCK_NOT_
 public class LineSegmentator {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger log = Logger.getLogger(LineSegmentator.class);
+public static final  int    LOOKAHEAD = 2;
+public static final  int    LIMIT     = 1;
+private static final Logger log       = Logger.getLogger(LineSegmentator.class);
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
@@ -128,10 +130,10 @@ private static List<Integer> findLineBoundaries(@NotNull int[] counts) {
     lineBoundaries.add(0);
     boolean hasFoundText = false;
     for (int i = 0; i < counts.length; i++) {
-        if (hasFoundText && counts[i] < 3) {
+        if (hasFoundText && counts[i] < LOOKAHEAD) {
             boolean isBoundary = true;
-            for (int j = i + 1; j < i + 3 && j < counts.length; j++) {
-                if (counts[j] != 0) {
+            for (int j = i + 1; j < i + LOOKAHEAD && j < counts.length; j++) {
+                if (counts[j] <= LIMIT) {
                     isBoundary = false;
                     break;
                 }
@@ -140,7 +142,7 @@ private static List<Integer> findLineBoundaries(@NotNull int[] counts) {
                 lineBoundaries.add(i + 1);
                 hasFoundText = false;
             }
-        } else if (counts[i] > 0) {
+        } else if (counts[i] > LIMIT) {
             hasFoundText = true;
         }
     }
