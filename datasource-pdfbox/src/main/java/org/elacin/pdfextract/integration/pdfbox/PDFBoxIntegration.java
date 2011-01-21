@@ -380,10 +380,10 @@ protected void processTextPosition(@NotNull TextPosition text_) {
 
 
     if (!textAlreadyRenderedAtSamePlace(text)) {
-        //        if (log.isDebugEnabled()) {
-        log.warn("LOG00770: ignoring text " + text.getCharacter()
-                         + " because it seems to be rendered two times");
-        //        }
+        if (log.isDebugEnabled()) {
+            log.debug("LOG00770: ignoring text " + text.getCharacter()
+                              + " because it seems to be rendered two times");
+        }
         return;
     }
 

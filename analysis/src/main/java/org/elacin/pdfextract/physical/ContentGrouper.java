@@ -104,10 +104,11 @@ private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent curre
     currentBlock.add(current);
 
     /* try searching for texts in all directions */
+
     for (int y = (int) current.getPos().getY(); y < (int) current.getPos().getEndY(); y++) {
         markBothWaysFromCurrent(current, region.findContentAtYIndex(y));
-    }
 
+    }
     for (int x = (int) current.getPos().getX(); x < (int) current.getPos().getEndX(); x++) {
         markBothWaysFromCurrent(current, region.findContentAtXIndex(x));
     }
@@ -118,12 +119,13 @@ private void markBothWaysFromCurrent(final PhysicalContent current,
                                      @NotNull final List<PhysicalContent> line)
 {
     final int currentIndex = line.indexOf(current);
+    boolean continue_ = true;
 
     /* left/up*/
-    boolean continue_ = true;
     for (int index = currentIndex - 1; index >= 0 && continue_; index--) {
         continue_ &= markEverythingConnectedFrom(line.get(index));
     }
+
     /* right / down */
     continue_ = true;
     for (int index = currentIndex + 1; index < line.size() && continue_; index++) {

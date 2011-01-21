@@ -31,31 +31,33 @@ public class Style implements Serializable {
 // ------------------------------ FIELDS ------------------------------
 
 @NotNull
-public static final Style GRAPHIC_IMAGE     = new Style("Graphical image", -1, -1, "[IMG]", false,
-                                                        false, false);
-@NotNull
-public static final Style GRAPHIC_VSEP      = new Style("Graphical vertical separator", -1, -1,
-                                                        "[VSEP]", false, false, false);
-@NotNull
-public static final Style GRAPHIC_HSEP      = new Style("Graphical horizontal separator", -1, -1,
-                                                        "[HSEP]", false, false, false);
-@NotNull
-public static final Style GRAPHIC_MATH_BAR  = new Style("Graphical math bar", -1, -1, "[BAR]",
+public static final Style GRAPHIC_IMAGE     = new Style("Graphical image", "", -1, -1, "[IMG]",
                                                         false, false, false);
 @NotNull
-public static final Style GRAPHIC_CONTAINER = new Style("Graphical container", -1, -1,
+public static final Style GRAPHIC_VSEP      = new Style("Graphical vertical separator", "", -1, -1,
+                                                        "[VSEP]", false, false, false);
+@NotNull
+public static final Style GRAPHIC_HSEP      = new Style("Graphical horizontal separator", "", -1,
+                                                        -1, "[HSEP]", false, false, false);
+@NotNull
+public static final Style GRAPHIC_MATH_BAR  = new Style("Graphical math bar", "", -1, -1, "[BAR]",
+                                                        false, false, false);
+@NotNull
+public static final Style GRAPHIC_CONTAINER = new Style("Graphical container", "", -1, -1,
                                                         "[CONTAINER]", false, false, false);
 
 @NotNull
-public static final Style FORMULA  = new Style("Formula", -2, -2, "FORMULA", false, false, true);
+public static final Style FORMULA  = new Style("Formula", "", -2, -2, "FORMULA", false, false,
+                                               true);
 @NotNull
-public static       Style NO_STYLE = new Style("No style", -3, -3, "[NOSTYLE]", false, false,
+public static       Style NO_STYLE = new Style("No style", "", -3, -3, "[NOSTYLE]", false, false,
                                                false);
 
 
 public final int xSize, ySize;
 public final String  fontName;
 public final String  id;
+public final String  subType;
 final        boolean italic;
 final        boolean bold;
 final        boolean mathFont;
@@ -66,6 +68,7 @@ private transient String  toStringCache;
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public Style(final String fontName,
+             final String subType,
              final int xSize,
              final int ySize,
              final String id,
@@ -74,6 +77,7 @@ public Style(final String fontName,
              final boolean mathFont)
 {
     this.fontName = fontName;
+    this.subType = subType;
     this.xSize = xSize;
     this.ySize = ySize;
     this.id = id;

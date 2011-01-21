@@ -283,7 +283,7 @@ private void logGraphics(@NotNull CategorizedGraphics ret) {
     }
 
     for (GraphicContent g : ret.getContents()) {
-        log.info("LOG00980:considered content: " + g);
+        log.debug("LOG00980:considered content: " + g);
     }
 }
 }

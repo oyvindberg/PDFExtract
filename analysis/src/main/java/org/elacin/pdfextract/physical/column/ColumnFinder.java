@@ -82,7 +82,7 @@ private static void filter(final PhysicalPageRegion r, final List<WhitespaceRect
         final Rectangle bpos = boundary.getPos();
         final float searchWidth = bpos.getX() - boundaryToTheLeft;
 
-        if (searchWidth < 0) {
+        if (searchWidth <= 0) {
             toRemove.add(boundary);
             continue;
         }

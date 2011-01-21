@@ -18,6 +18,7 @@ package org.elacin.pdfextract.integration.pdfbox;
 
 import org.apache.log4j.Logger;
 import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType3Font;
 import org.apache.pdfbox.util.TextPosition;
 import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
@@ -68,6 +69,7 @@ public Style getStyleForTextPosition(@NotNull TextPosition tp) {
     final FontInfo fi = getFontInfo(tp.getFont());
 
     StringBuffer idBuffer = new StringBuffer(fi.font);
+    idBuffer.append("-").append(fi.subType);
     idBuffer.append("-");
     idBuffer.append(xSize);
     if (fi.italic) {
@@ -82,7 +84,8 @@ public Style getStyleForTextPosition(@NotNull TextPosition tp) {
     final String id = idBuffer.toString();
 
     if (!styles.containsKey(id)) {
-        final Style style = new Style(fi.font, xSize, ySize, id, fi.italic, fi.bold, fi.mathFont);
+        final Style style = new Style(fi.font, fi.subType, xSize, ySize, id, fi.italic, fi.bold,
+                                      fi.mathFont);
         styles.put(id, style);
         if (log.isInfoEnabled()) {
             log.info("LOG00800:New style:" + style);
@@ -109,6 +112,7 @@ private FontInfo getFontInfo(@NotNull PDFont pdFont) {
         font = pdFont.getBaseFont();
     }
 
+
     /* a lot of embedded fonts have names like XCSFS+Times, so remove everything before and
      including '+' */
     final int plusIndex = font.indexOf('+');
@@ -127,6 +131,10 @@ private FontInfo getFontInfo(@NotNull PDFont pdFont) {
         font = font.substring(0, idx);
     }
 
+    /* make a distinction between type3 fonts which usually have no name */
+    if (pdFont instanceof PDType3Font && pdFont.getBaseFont() == null) {
+        font = "Type3[" + Integer.toHexString(pdFont.hashCode()) + "]";
+    }
 
     /**
      * Find the plain font name, without any other information
@@ -141,26 +149,15 @@ private FontInfo getFontInfo(@NotNull PDFont pdFont) {
      *  Also stop if we reach an '-' or whitespace, as that is a normal separators
      * */
 
-    //    boolean foundLowercase = false;
-    //    int index = -1;
-    //    for (int i = 0; i < font.length(); i++) {
-    //        final char ch = font.charAt(i);
-    //
-    //        if (!foundLowercase && isLowerCase(ch)) {
-    //            foundLowercase = true;
-    //        } else if (foundLowercase && isUpperCase(ch)) {
-    //            index = i;
-    //            break;
-    //        } else if ('-' == ch || isWhitespace(ch)) {
-    //            index = i;
-    //            break;
-    //        }
-    //    }
-    //
-    //    if (index != -1) {
-    //        font = font.substring(0, index);
-    //    }
-
+    //LPPMinionUnicode-Italic
+    final String[] fontParts = font.split("[-,]");
+    final String subType;
+    if (fontParts.length > 1) {
+        subType = fontParts[1];
+    } else {
+        subType = "";
+    }
+    font = fontParts[0];
 
     /* this is latex specific */
     if (font.contains("CMBX")) {
@@ -176,6 +173,7 @@ private FontInfo getFontInfo(@NotNull PDFont pdFont) {
 
     final FontInfo fi = new FontInfo();
     fi.font = font;
+    fi.subType = subType;
     fi.bold = bold;
     fi.italic = italic;
     fi.mathFont = mathFont;
@@ -189,5 +187,6 @@ private FontInfo getFontInfo(@NotNull PDFont pdFont) {
 private class FontInfo {
     String  font;
     boolean mathFont, bold, italic;
+    public String subType;
 }
 }

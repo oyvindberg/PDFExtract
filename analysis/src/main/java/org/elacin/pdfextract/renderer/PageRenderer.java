@@ -108,11 +108,11 @@ static Color getColorForObject(@NotNull Object o) {
         if (pn.isGraphical()) {
             return Color.MAGENTA;
         }
-        //        return Color.YELLOW;
-        return DONT_DRAW;
+        return Color.YELLOW;
+        //        return DONT_DRAW;
     } else if (o.getClass().equals(LineNode.class)) {
-        //        return Color.BLUE;
-        return DONT_DRAW;
+        return Color.BLUE;
+        //        return DONT_DRAW;
     } else if (o.getClass().equals(WordNode.class)) {
         return Color.ORANGE;
         //       return DONT_DRAW;
