@@ -18,7 +18,6 @@ package org.elacin.pdfextract.renderer;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.Constants;
-import org.elacin.pdfextract.content.GraphicContent;
 import org.elacin.pdfextract.content.PhysicalPage;
 import org.elacin.pdfextract.content.PhysicalPageRegion;
 import org.elacin.pdfextract.content.WhitespaceRectangle;
@@ -41,6 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.elacin.pdfextract.Constants.RENDER_DPI;
+import static org.elacin.pdfextract.Constants.RENDER_PARAGRAPH_NUMBERS;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Jun 17, 2010 Time: 5:02:09 AM To change this
@@ -65,6 +65,8 @@ private final DocumentNode   documentNode;
 private Graphics2D graphics;
 private float      xScale;
 private float      yScale;
+
+private int paragraphCounter = 1;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -101,21 +103,25 @@ static Color getColorForObject(@NotNull Object o) {
         } else {
             return DONT_DRAW;
         }
-    } else if (o.getClass().equals(GraphicContent.class)) {
-        return Color.MAGENTA;
+
     } else if (o.getClass().equals(ParagraphNode.class)) {
-        ParagraphNode pn = (ParagraphNode) o;
-        if (pn.isGraphical()) {
-            return Color.MAGENTA;
-        }
-        return Color.YELLOW;
-        //        return DONT_DRAW;
+        //        return Color.YELLOW;
+        return DONT_DRAW;
+
+    } else if (o.getClass().equals(GraphicsNode.class)) {
+        return Color.MAGENTA;
+
     } else if (o.getClass().equals(LineNode.class)) {
-        return Color.BLUE;
-        //        return DONT_DRAW;
+        //        return Color.BLUE;
+        return DONT_DRAW;
+
     } else if (o.getClass().equals(WordNode.class)) {
-        return Color.ORANGE;
-        //       return DONT_DRAW;
+        if (Constants.RENDER_REAL_PAGE) {
+            return DONT_DRAW;
+        } else {
+            return Color.ORANGE;
+        }
+
     } else {
         return DONT_DRAW;
     }
@@ -248,15 +254,56 @@ private void drawRectangle(@NotNull final HasPosition object) {
     }
 }
 
-private void drawTree(@NotNull AbstractParentNode parent) {
-    drawRectangle(parent);
+private void drawParagraphNumber(@NotNull ParagraphNode p) {
 
-    for (Object o : parent.getChildren()) {
-        if (o instanceof AbstractParentNode) {
-            drawTree((AbstractParentNode) o);
-        } else {
-            drawRectangle((HasPosition) o);
+
+    graphics.setFont(new Font("TimesRoman", Font.BOLD | Font.ITALIC, 20));
+    final float x = p.getPos().getX() * xScale;
+    final float y = p.getPos().getMiddleY() * yScale;
+
+    graphics.setColor(Color.red.brighter().brighter());
+    graphics.setBackground(Color.red.brighter().brighter());
+    graphics.fillRect((int) x, (int) y - 20, 30, 25);
+
+    graphics.setBackground(Color.black);
+    graphics.setColor(Color.black);
+    graphics.drawString(String.valueOf(paragraphCounter), x, y);
+    paragraphCounter++;
+}
+
+private void drawTree(@NotNull PageNode page) {
+    paragraphCounter = 1;
+
+    for (ParagraphNode paragraphNode : page.getChildren()) {
+
+        for (LineNode lineNode : paragraphNode.getChildren()) {
+
+            for (WordNode wordNode : lineNode.getChildren()) {
+                drawRectangle(wordNode);
+            }
+            drawRectangle(lineNode);
         }
+
+        drawRectangle(paragraphNode);
+
+        for (GraphicsNode graphicsNode : page.getGraphics()) {
+            for (ParagraphNode paragraph : graphicsNode.getChildren()) {
+                for (LineNode lineNode : paragraph.getChildren()) {
+                    for (WordNode wordNode : lineNode.getChildren()) {
+                        drawRectangle(wordNode);
+                    }
+                    drawRectangle(lineNode);
+                }
+                drawRectangle(paragraph);
+            }
+            drawRectangle(graphicsNode);
+        }
+
+        if (RENDER_PARAGRAPH_NUMBERS) {
+            drawParagraphNumber(paragraphNode);
+        }
+
     }
+
 }
 }

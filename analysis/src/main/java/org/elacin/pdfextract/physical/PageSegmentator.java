@@ -28,10 +28,7 @@ import org.elacin.pdfextract.physical.graphics.GraphicSegmentatorImpl;
 import org.elacin.pdfextract.physical.line.LineSegmentator;
 import org.elacin.pdfextract.physical.paragraph.ParagraphSegmentator;
 import org.elacin.pdfextract.style.Style;
-import org.elacin.pdfextract.tree.LineNode;
-import org.elacin.pdfextract.tree.PageNode;
-import org.elacin.pdfextract.tree.ParagraphNode;
-import org.elacin.pdfextract.tree.WordNode;
+import org.elacin.pdfextract.tree.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,6 +64,9 @@ public static PageNode analyzePage(@NotNull PhysicalPage page) {
 
     mainRegion.addContents(categorizedGraphics.getContents());
 
+
+    PageRegionSplitBySpacing.splitOfTopText(mainRegion, 0.1f);
+
     PageRegionSplitBySeparators.splitRegionBySeparators(mainRegion, categorizedGraphics);
 
 
@@ -77,16 +77,15 @@ public static PageNode analyzePage(@NotNull PhysicalPage page) {
     /* This will detect column boundaries and split up all regions */
     recursivelyDivide(mainRegion, categorizedGraphics);
 
+    /* this is to make text ordering work, if it was in the main region it would destroy
+        the sorting */
+    mainRegion.extractAllRemainingContentsIntoSubRegion();
+
 
     /* first create the page node which will hold everything */
     final PageNode ret = new PageNode(page.getPageNumber());
 
-    final List<ParagraphNode> allParagraphs = new ArrayList<ParagraphNode>();
-
-
-    createParagraphsForRegion(mainRegion, numberer, allParagraphs, false);
-
-    ret.addChildren(allParagraphs);
+    createParagraphsForRegion(ret, mainRegion, numberer, false);
 
     if (log.isInfoEnabled()) {
         log.info("LOG00940:Page had " + ret.getChildren().size() + " paragraphs");
@@ -97,21 +96,16 @@ public static PageNode analyzePage(@NotNull PhysicalPage page) {
 
 // -------------------------- STATIC METHODS --------------------------
 
-private static void createParagraphsForRegion(final PhysicalPageRegion region,
+private static void createParagraphsForRegion(final PageNode page,
+                                              final PhysicalPageRegion region,
                                               final ParagraphNumberer numberer,
-                                              final List<ParagraphNode> allParagraphs,
-                                              boolean combineWithFormerParagraph)
+                                              boolean wasContainedInGraphic)
 {
-    if (!combineWithFormerParagraph) {
-        numberer.newRegion();
-    }
+    numberer.newRegion();
+    paragraphSegmentator.setMedianVerticalSpacing(region.getMedianOfVerticalDistances());
 
     final ContentGrouper contentGrouper = new ContentGrouper(region);
     final List<List<PhysicalContent>> blocks = contentGrouper.findBlocksOfContent();
-
-    List<LineNode> allLines = new ArrayList<LineNode>();
-
-    boolean combineSubRegionsWithThis = region.isGraphicalRegion();
 
     for (List<PhysicalContent> block : blocks) {
         /** start by separating all the graphical content in a block.
@@ -126,52 +120,44 @@ private static void createParagraphsForRegion(final PhysicalPageRegion region,
         final List<LineNode> lines = LineSegmentator.createLinesFromBlocks(block,
                                                                            numberer.getPage());
 
-
         /** separate out everything related to graphics in this part of the page into a single
          *   paragraph */
         if (graphicBounds != null) {
+            final GraphicsNode graphical;
 
-            final ParagraphNode graphical;
-            if (!combineWithFormerParagraph) {
-                numberer.newParagraph();
-                graphical = new ParagraphNode(true, numberer.getParagraphId(true));
+            if (wasContainedInGraphic) {
+                graphical = page.getGraphics().get(page.getGraphics().size() - 1);
             } else {
-                graphical = allParagraphs.get(allParagraphs.size() - 1);
+                graphical = new GraphicsNode();
+                page.addGraphics(graphical);
             }
 
+            ParagraphNode paragraph = new ParagraphNode(numberer.getParagraphId(true));
             for (Iterator<LineNode> iterator = lines.iterator(); iterator.hasNext();) {
                 final LineNode line = iterator.next();
                 if (region.isGraphicalRegion() || graphicBounds.intersectsWith(line.getPos())) {
-                    graphical.addChild(line);
+                    paragraph.addChild(line);
                     iterator.remove();
                 }
             }
 
-            if (!combineWithFormerParagraph) {
-                final WordNode img = new WordNode(graphicBounds, numberer.getPage(),
-                                                  Style.GRAPHIC_IMAGE, "[IMG]", -1);
-                graphical.addChild(new LineNode(img));
-                allParagraphs.add(graphical);
-            }
-
+            final WordNode img = new WordNode(graphicBounds, numberer.getPage(),
+                                              Style.GRAPHIC_IMAGE, "[IMG]", -1);
+            paragraph.addChild(new LineNode(img));
+            graphical.addChild(paragraph);
         }
 
-        allLines.addAll(lines);
-    }
 
-    if (!allLines.isEmpty()) {
-        paragraphSegmentator.setMedianVerticalSpacing(region.getMedianOfVerticalDistances());
         /* then add the rest of the paragraphs */
-        allParagraphs.addAll(paragraphSegmentator.segmentParagraphsByStyleAndDistance(allLines,
-                                                                                      numberer));
-    }
+        page.addChildren(paragraphSegmentator.segmentParagraphsByStyleAndDistance(lines, numberer));
 
+    }
 
     final List<PhysicalPageRegion> subregions = region.getSubregions();
     Collections.sort(subregions, Sorting.regionComparator);
 
     for (PhysicalPageRegion subregion : subregions) {
-        createParagraphsForRegion(subregion, numberer, allParagraphs, combineSubRegionsWithThis);
+        createParagraphsForRegion(page, subregion, numberer, region.isGraphicalRegion());
     }
 }
 

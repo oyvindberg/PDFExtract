@@ -61,7 +61,7 @@ public List<ParagraphNode> segmentParagraphsByStyleAndDistance(@NotNull final Li
 
     if (!lines.isEmpty()) {
         numberer.newParagraph();
-        ParagraphNode currentParagraph = new ParagraphNode(false, numberer.getParagraphId(false));
+        ParagraphNode currentParagraph = new ParagraphNode(numberer.getParagraphId(false));
 
         if (SPLIT_PARAGRAPHS_BY_STYLES) {
             Style currentStyle = null;
@@ -134,7 +134,7 @@ public List<ParagraphNode> segmentParagraphsByStyleAndDistance(@NotNull final Li
                         ret.add(currentParagraph);
                     }
                     numberer.newParagraph();
-                    currentParagraph = new ParagraphNode(false, numberer.getParagraphId(false));
+                    currentParagraph = new ParagraphNode(numberer.getParagraphId(false));
                     currentStyle = lineStyle;
                 }
 

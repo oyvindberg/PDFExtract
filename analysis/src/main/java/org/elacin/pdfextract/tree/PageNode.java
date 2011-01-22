@@ -18,7 +18,9 @@ package org.elacin.pdfextract.tree;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Mar 23, 2010 Time: 9:33:52 PM To change this
@@ -29,13 +31,30 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
 
 private final int pageNumber;
 
+
+private final List<GraphicsNode> graphics = new ArrayList<GraphicsNode>();
+
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public PageNode(int pageNumber) {
     this.pageNumber = pageNumber;
 }
 
-// ------------------------ OVERRIDING METHODS ------------------------
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+public List<GraphicsNode> getGraphics() {
+    return graphics;
+}
+
+public int getPageNumber() {
+    return pageNumber;
+}
+
+// -------------------------- PUBLIC METHODS --------------------------
+
+public void addGraphics(GraphicsNode graphicsNode) {
+    graphics.add(graphicsNode);
+}
 
 /**
  * Returns a Comparator which compares coordinates within a page
@@ -60,11 +79,5 @@ public Comparator<ParagraphNode> getChildComparator() {
             //            return (o1.getSeqNo() < o2.getSeqNo() ? -1 : (o1.getSeqNo() == o2.getSeqNo() ? 0 : 1));
         }
     };
-}
-
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-public int getPageNumber() {
-    return pageNumber;
 }
 }

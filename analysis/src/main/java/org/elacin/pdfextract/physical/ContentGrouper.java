@@ -38,8 +38,10 @@ final List<List<PhysicalContent>> allBlocks = new ArrayList<List<PhysicalContent
 List<PhysicalContent> currentBlock = new ArrayList<PhysicalContent>();
 
 @NotNull
-final        PhysicalPageRegion region;
-public final Rectangle          pos;
+final PhysicalPageRegion region;
+
+@NotNull
+public final Rectangle pos;
 
 
 public ContentGrouper(@NotNull PhysicalPageRegion region) {

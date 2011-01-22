@@ -34,11 +34,12 @@ public static final boolean SPLIT_PARAGRAPHS_BY_STYLES = true;
 public static final boolean RECTANGLE_COLLECTION_CACHE_ENABLED = true;
 
 /* rendering */
-public static final boolean RENDER_ENABLED    = true;
-public static final boolean RENDER_REAL_PAGE  = false;
-public static final int     RENDER_RESOLUTION = 150;
-public static final int     RENDER_DPI        = 72;
-public static final boolean RENDER_WHITESPACE = true;
+public static final boolean RENDER_ENABLED           = true;
+public static final boolean RENDER_REAL_PAGE         = true;
+public static final int     RENDER_RESOLUTION        = 100;
+public static final int     RENDER_DPI               = 72;
+public static final boolean RENDER_WHITESPACE        = true;
+public static final boolean RENDER_PARAGRAPH_NUMBERS = true;
 
 /* output */
 
@@ -62,8 +63,11 @@ public static final boolean WHITESPACE_PREFER_TALL               = false;
 public static final boolean WHITESPACE_USE_WHOLE_PAGE            = false;
 public static final int     WHITESPACE_NUMBER_WANTED             = 40;
 public static final float   WHITESPACE_OBSTACLE_OVERLAP          = 2.0f;
-
-
 /* an artificial limit of the algorithm. */
-public static final int WHITESPACE_MAX_QUEUE_SIZE = 100000;
+public static final int     WHITESPACE_MAX_QUEUE_SIZE            = 100000;
+
+/* column finder */
+public static final float MIN_COLUMN_WIDTH = 2.0f;
+
+
 }

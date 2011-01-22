@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Nov 8, 2010 Time: 7:44:41 PM To change this template
@@ -65,7 +66,6 @@ private final List<WhitespaceRectangle> whitespace = new ArrayList<WhitespaceRec
 
 @Nullable
 private GraphicContent containingGraphic;
-;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
@@ -138,8 +138,14 @@ public void addWhitespace(final Collection<WhitespaceRectangle> whitespace) {
     addContents(whitespace);
 }
 
-public boolean columnBoundaryWouldBeTooNarrow(final float lastBoundary, final float x) {
-    return x - lastBoundary < getMinimumColumnSpacing();
+public void extractAllRemainingContentsIntoSubRegion() {
+    List<PhysicalContent> contents = new ArrayList<PhysicalContent>();
+    for (PhysicalContent content : getContents()) {
+        if (!(content instanceof PhysicalPageRegion)) {
+            contents.add(content);
+        }
+    }
+    doExtractSubRegion(contents, null, null);
 }
 
 public void extractSubRegionFromBound(@NotNull Rectangle bound) {
@@ -147,14 +153,8 @@ public void extractSubRegionFromBound(@NotNull Rectangle bound) {
     doExtractSubRegion(subContents, bound, null);
 }
 
-public void extractSubRegionFromContent(@NotNull final Collection<PhysicalContent> subContents) {
-    doExtractSubRegion(subContents, null, null);
-}
-
-public void extractSubRegionFromContentAndWithGraphics(@NotNull List<PhysicalContent> block,
-                                                       GraphicContent fakeCoverGraphic)
-{
-    doExtractSubRegion(block, null, fakeCoverGraphic);
+public void extractSubRegionFromContent(final Set<PhysicalContent> set) {
+    doExtractSubRegion(set, null, null);
 }
 
 /**
@@ -217,10 +217,6 @@ public Style getMostCommonStyle() {
         findAndSetFontInformation();
     }
     return _mostCommonStyle;
-}
-
-public int getPageNumber() {
-    return page.getPageNumber();
 }
 
 public boolean isGraphicalRegion() {

@@ -40,7 +40,9 @@ import static org.elacin.pdfextract.geom.Sorting.sortStylesById;
 public class SimpleXMLOutput implements XMLWriter {
 // ------------------------------ FIELDS ------------------------------
 
-private static final Logger log = Logger.getLogger(SimpleXMLOutput.class);
+private static final Logger log              = Logger.getLogger(SimpleXMLOutput.class);
+private              int    indent           = 0;
+private final        int    indentationWidth = 4;
 
 // ------------------------ INTERFACE METHODS ------------------------
 
@@ -81,9 +83,9 @@ private void writeDocument(@NotNull final StringBuffer out, @NotNull DocumentNod
     out.append("</document>");
 }
 
-private void writeLine(@NotNull final StringBuffer out, @NotNull LineNode line, final int indent) {
-
-    indent(out, indent);
+private void writeLine(@NotNull final StringBuffer out, @NotNull LineNode line) {
+    indent += indentationWidth;
+    indent(out);
     if (line.findDominatingStyle().equals(Style.FORMULA)) {
         out.append("<formula>");
         out.append(getTextForNode(line));
@@ -106,9 +108,10 @@ private void writeLine(@NotNull final StringBuffer out, @NotNull LineNode line, 
             out.append("</line>\n");
         }
     }
+    indent -= indentationWidth;
 }
 
-private void indent(final StringBuffer out, final int indent) {
+private void indent(final StringBuffer out) {
     for (int i = 0; i < indent; i++) {
         out.append(" ");
     }
@@ -126,20 +129,35 @@ private void writePage(@NotNull StringBuffer out, @NotNull PageNode page) {
         writeParagraph(out, paragraphNode);
     }
 
+    for (GraphicsNode graphicsNode : page.getGraphics()) {
+        writeGraphic(out, graphicsNode);
+    }
+
     out.append("</page>\n");
+}
+
+private void writeGraphic(final StringBuffer out, final GraphicsNode graphicsNode) {
+    indent += indentationWidth;
+    indent(out);
+    out.append("<graphics");
+    writeRectangle(out, graphicsNode.getPos());
+
+    out.append(">\n");
+    for (ParagraphNode paragraphNode : graphicsNode.getChildren()) {
+        writeParagraph(out, paragraphNode);
+    }
+
+    indent(out);
+    out.append("</paragraph>\n");
+    indent -= indentationWidth;
 }
 
 private void writeParagraph(@NotNull final StringBuffer out,
                             @NotNull final ParagraphNode paragraph)
 {
-    final int indent;
-    if (paragraph.isGraphical()) {
-        out.append("<graphic");
-        indent = 8;
-    } else {
-        out.append("<paragraph");
-        indent = 4;
-    }
+    indent += indentationWidth;
+    indent(out);
+    out.append("<paragraph");
 
 
     writeRectangle(out, paragraph.getPos());
@@ -147,14 +165,13 @@ private void writeParagraph(@NotNull final StringBuffer out,
     out.append(" seqno=\"").append(paragraph.getSeqNo()).append("\"");
     out.append(">\n");
     for (LineNode line : paragraph.getChildren()) {
-        writeLine(out, line, indent);
+        writeLine(out, line);
     }
 
-    if (paragraph.isGraphical()) {
-        out.append("</graphic>\n");
-    } else {
-        out.append("</paragraph>\n");
-    }
+    indent(out);
+    out.append("</paragraph>\n");
+    indent -= indentationWidth;
+
 }
 
 private void writeRectangle(@NotNull StringBuffer sb, @NotNull Rectangle pos) {

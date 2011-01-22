@@ -27,19 +27,16 @@ import java.util.Comparator;
 public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
 // ------------------------------ FIELDS ------------------------------
 
-private final boolean graphical;
-private final int     seqNo;
+private final int seqNo;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
-public ParagraphNode(@NotNull final LineNode child, final boolean graphical, final int seqNo) {
+public ParagraphNode(@NotNull final LineNode child, final int seqNo) {
     super(child);
-    this.graphical = graphical;
     this.seqNo = seqNo;
 }
 
-public ParagraphNode(final boolean graphical, final int seqNo) {
-    this.graphical = graphical;
+public ParagraphNode(final int seqNo) {
     this.seqNo = seqNo;
 }
 
@@ -49,9 +46,6 @@ public int getSeqNo() {
     return seqNo;
 }
 
-public boolean isGraphical() {
-    return graphical;
-}
 
 @NotNull
 @Override

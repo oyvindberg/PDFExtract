@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import static org.elacin.pdfextract.Constants.MIN_COLUMN_WIDTH;
 import static org.elacin.pdfextract.Constants.WHITESPACE_NUMBER_WANTED;
 import static org.elacin.pdfextract.geom.RectangleCollection.Direction.E;
 import static org.elacin.pdfextract.geom.RectangleCollection.Direction.W;
@@ -116,11 +117,22 @@ private static void filter(final PhysicalPageRegion r, final List<WhitespaceRect
             continue;
         }
 
+        if (boundary.getPos().getX() < r.getPos().getX() + r.getPos().getWidth() * 0.05f) {
+            toRemove.add(boundary);
+            continue;
+        }
+
+        if (boundary.getPos().getEndX() > r.getPos().getEndX() - r.getPos().getWidth() * 0.05f) {
+            toRemove.add(boundary);
+            continue;
+        }
+
+
     }
     if (log.isDebugEnabled()) {
         log.debug("Removing columns" + toRemove);
     }
-    ;
+
     boundaries.removeAll(toRemove);
 
 }
@@ -160,18 +172,17 @@ private static void adjustColumnHeights(@NotNull PhysicalPageRegion region,
             and along the middle
          */
         final float ADJUST = 1.0f;
-        final float WIDTH = 1.0f;
         final float leftX = Math.min(bpos.getX() + ADJUST, bpos.getEndX());
-        final float leftEndX = Math.min(leftX + WIDTH, bpos.getEndX() - ADJUST);
-        final WhitespaceRectangle left = adjustColumn(region, rpos, boundary, leftX, leftEndX);
+        final float leftEndX = Math.min(leftX + MIN_COLUMN_WIDTH, bpos.getEndX() - ADJUST);
+        final WhitespaceRectangle left = adjustColumn(region, boundary, leftX, leftEndX);
 
         final float midX = bpos.getMiddleX();
-        final float midEndX = Math.min(midX + WIDTH, bpos.getEndX());
-        final WhitespaceRectangle middle = adjustColumn(region, rpos, boundary, midX, midEndX);
+        final float midEndX = Math.min(midX + MIN_COLUMN_WIDTH, bpos.getEndX());
+        final WhitespaceRectangle middle = adjustColumn(region, boundary, midX, midEndX);
 
         final float rightEndX = Math.max(bpos.getEndX() - ADJUST, bpos.getX());
-        final float rightX = Math.max(rightEndX - WIDTH, bpos.getX());
-        final WhitespaceRectangle right = adjustColumn(region, rpos, boundary, rightX, rightEndX);
+        final float rightX = Math.max(rightEndX - MIN_COLUMN_WIDTH, bpos.getX());
+        final WhitespaceRectangle right = adjustColumn(region, boundary, rightX, rightEndX);
 
         /* then choose the tallest */
         final float lHeight = (left == null ? -1.0f : left.getPos().getHeight());
@@ -206,78 +217,70 @@ private static void adjustColumnHeights(@NotNull PhysicalPageRegion region,
 
 @Nullable
 private static WhitespaceRectangle adjustColumn(final PhysicalPageRegion region,
-                                                final Rectangle rpos,
                                                 final WhitespaceRectangle boundary,
                                                 final float boundaryStartX,
                                                 final float boundaryEndX)
 {
+
+    final Rectangle rpos = region.getPos();
+
     /* find surrounding content */
-    final List<PhysicalContent> everythingRightOf = findAllContentsRightOf(region, rpos,
-                                                                           boundaryStartX);
+    final List<PhysicalContent> everythingRightOf = findAllContentsRightOf(region, boundaryStartX);
     Collections.sort(everythingRightOf, Sorting.sortByLowerYThenLowerX);
-    final List<PhysicalContent> closeOnLeft = findAllContentsImmediatelyLeftOf(region, rpos,
-                                                                               boundaryStartX);
+
+    final List<PhysicalContent> closeOnLeft = findAllContentsImmediatelyLeftOfX(region,
+                                                                                boundaryStartX);
     Collections.sort(closeOnLeft, Sorting.sortByLowerYThenLowerX);
 
-    float startY = rpos.getY();
-    float lastYWithContentRight = rpos.getEndY();
+
+    float realBoundaryY = rpos.getY();
+    float realBoundaryEndY = rpos.getEndY();
 
     boolean startYFound = false;
     boolean boundaryStarted = false;
     for (int y = (int) rpos.getY(); y <= (int) (rpos.getEndY() + 1); y++) {
+
+        boolean foundContentRightOfX;
+
+        PhysicalContent closestOnRight = getClosestToTheRightAtY(everythingRightOf, y,
+                                                                 boundary.getPos().getEndX());
+
+        if (closestOnRight == null) {
+            continue;
+        } else {
+            foundContentRightOfX = true;
+        }
+
+
+        /** if we find something blocking this row, start looking further down*/
+
+        /* content will be blocking if it intersects, naturally */
         boolean blocked = false;
-        boolean foundContentRightOfX = false;
+        if (closestOnRight.getPos().getX() <= boundaryStartX) {
+            blocked = true;
 
-        for (int j = 0; j < everythingRightOf.size(); j++) {
-            PhysicalContent possibleBlocker = everythingRightOf.get(j);
-
-            if (possibleBlocker instanceof WhitespaceRectangle) {
-                continue;
-            }
-
-            final Rectangle blockerPos = possibleBlocker.getPos();
-
-            if (blockerPos.getEndY() < y) {
-                continue;
-            }
-            if (blockerPos.getY() > y) {
-                break;
-            }
-
-            if (!foundContentRightOfX && blockerPos.getX() > boundaryEndX - 1) {
-                foundContentRightOfX = true;
-            }
-
-            /** if we find something blocking this row, start looking further down*/
-
-            /* content will be blocking if it intersects, naturally */
-            if (blockerPos.getX() < boundaryStartX) {
-                blocked = true;
-                break;
-            }
+        } else {
 
             /* also check if this column boundary would separate two words which otherwise are very close*/
-            final float possibleBlockerMiddleY = blockerPos.getMiddleY();
             for (PhysicalContent left : closeOnLeft) {
+
                 if (left instanceof WhitespaceRectangle) {
                     continue;
                 }
-                final Rectangle leftPos = left.getPos();
 
-                if (possibleBlockerMiddleY < leftPos.getY()) {
+                if (y < left.getPos().getY()) {
                     continue;
                 }
-                if (possibleBlockerMiddleY > leftPos.getEndY() + 30) {
-                    break;
+                if (y > left.getPos().getEndY()) {
+                    continue;
                 }
 
-                if (leftPos.distance(possibleBlocker) < 6) {
+                if (closestOnRight.getPos().getX() - left.getPos().getEndX() < 8.0f) {
                     blocked = true;
                     break;
                 }
             }
         }
-
         if (blocked) {
             if (boundaryStarted) {
                 break;
@@ -286,25 +289,63 @@ private static WhitespaceRectangle adjustColumn(final PhysicalPageRegion region,
         } else {
             if (!startYFound && foundContentRightOfX) {
                 startYFound = true;
-                startY = (float) (y - 1);
+                realBoundaryY = (float) (y - 1);
             }
-            if (!boundaryStarted && y > boundary.getPos().getY()) {
+            if (!boundaryStarted && y > (int) boundary.getPos().getY()) {
                 boundaryStarted = true;
             }
-            if (foundContentRightOfX) {
-                lastYWithContentRight = y;
-            }
+            realBoundaryEndY = y;
         }
     }
     if (!startYFound) {
         return null;
     }
 
-    final Rectangle adjusted = new Rectangle(boundaryStartX, startY, 1.0f,
-                                             lastYWithContentRight - startY);
+    final Rectangle adjusted = new Rectangle(boundaryStartX, realBoundaryY, 1.0f,
+                                             realBoundaryEndY - realBoundaryY);
     final WhitespaceRectangle newBoundary = new WhitespaceRectangle(adjusted);
     newBoundary.setScore(1000);
     return newBoundary;
+}
+
+/**
+ * @param everythingRightOf x sorted list
+ * @param y                 row to look at
+ * @param endX
+ * @return
+ */
+@Nullable
+private static PhysicalContent getClosestToTheRightAtY(final List<PhysicalContent> everythingRightOf,
+                                                       final int y,
+                                                       final float endX)
+{
+    PhysicalContent closest = null;
+    float minDistance = Float.MAX_VALUE;
+
+    for (int j = 0; j < everythingRightOf.size(); j++) {
+        PhysicalContent content = everythingRightOf.get(j);
+
+        if (content instanceof WhitespaceRectangle) {
+            continue;
+        }
+
+        final Rectangle blockerPos = content.getPos();
+
+        if (blockerPos.getEndY() < y) {
+            continue;
+        }
+        if (blockerPos.getY() > y) {
+            break;
+        }
+
+        float distance = blockerPos.getX() - endX;
+        if (distance < minDistance) {
+            minDistance = distance;
+            closest = content;
+        }
+
+    }
+    return closest;
 }
 
 private static void combineColumnBoundaries(@NotNull PhysicalPageRegion region,
@@ -352,21 +393,22 @@ private static void combineColumnBoundaries(@NotNull PhysicalPageRegion region,
 }
 
 @NotNull
-private static List<PhysicalContent> findAllContentsImmediatelyLeftOf(@NotNull PhysicalPageRegion region,
-                                                                      @NotNull Rectangle rpos,
-                                                                      float x)
+private static List<PhysicalContent> findAllContentsImmediatelyLeftOfX(@NotNull PhysicalPageRegion region,
+                                                                       float x)
 {
     final float lookLeft = 10.0f;
+    final Rectangle rpos = region.getPos();
     final Rectangle search = new Rectangle(x - lookLeft, rpos.getY(), lookLeft, rpos.getHeight());
     return region.findContentsIntersectingWith(search);
 }
 
 @NotNull
 private static List<PhysicalContent> findAllContentsRightOf(@NotNull PhysicalPageRegion region,
-                                                            @NotNull Rectangle rpos,
                                                             float x)
 {
-    final Rectangle search = new Rectangle(x, rpos.getY(), rpos.getWidth(), rpos.getHeight());
+
+    final Rectangle search = new Rectangle(x, region.getPos().getY(), region.getPos().getWidth(),
+                                           region.getPos().getHeight());
     return region.findContentsIntersectingWith(search);
 }
 
@@ -384,15 +426,6 @@ private static List<WhitespaceRectangle> selectCandidateColumnBoundaries(@NotNul
 
         final float posX = pos.getX();
         final float posEndX = pos.getEndX();
-
-
-        if (posX < rpos.getX() + rpos.getWidth() * 0.10f) {
-            continue;
-        }
-
-        if (posEndX > rpos.getEndX() - rpos.getWidth() * 0.10f) {
-            continue;
-        }
 
 
         if (pos.getHeight() / pos.getWidth() <= 1.5f) {
