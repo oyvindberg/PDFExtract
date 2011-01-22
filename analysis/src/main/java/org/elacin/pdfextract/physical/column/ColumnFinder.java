@@ -251,6 +251,9 @@ private static WhitespaceRectangle adjustColumn(final PhysicalPageRegion region,
             foundContentRightOfX = true;
         }
 
+        //        if (!foundContentRightOfX && closestOnRight.getPos().getX() > boundaryEndX - 1) {
+        //            foundContentRightOfX = true;
+        //        }
 
         /** if we find something blocking this row, start looking further down*/
 
@@ -275,7 +278,7 @@ private static WhitespaceRectangle adjustColumn(final PhysicalPageRegion region,
                     continue;
                 }
 
-                if (closestOnRight.getPos().getX() - left.getPos().getEndX() < 8.0f) {
+                if (closestOnRight.getPos().getX() - left.getPos().getEndX() < 6.0f) {
                     blocked = true;
                     break;
                 }

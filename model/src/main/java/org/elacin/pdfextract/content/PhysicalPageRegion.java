@@ -95,9 +95,9 @@ public Rectangle getPos() {
     }
 
     if (!_posSet) {
-        setPositionFromContentList(getContents());
+        pos = super.getPos();
         if (containingGraphic != null) {
-            pos = pos.union(containingGraphic);
+            pos = super.getPos().union(containingGraphic);
         }
         _posSet = true;
     }
@@ -122,6 +122,11 @@ public GraphicContent getContainingGraphic() {
 }
 
 @NotNull
+public PhysicalPage getPage() {
+    return page;
+}
+
+@NotNull
 public List<PhysicalPageRegion> getSubregions() {
     return subregions;
 }
@@ -138,14 +143,20 @@ public void addWhitespace(final Collection<WhitespaceRectangle> whitespace) {
     addContents(whitespace);
 }
 
-public void extractAllRemainingContentsIntoSubRegion() {
-    List<PhysicalContent> contents = new ArrayList<PhysicalContent>();
-    for (PhysicalContent content : getContents()) {
-        if (!(content instanceof PhysicalPageRegion)) {
-            contents.add(content);
+public void ensureAllContentInLeafNodes() {
+    if (!subregions.isEmpty()) {
+        Collection<PhysicalContent> contents = new ArrayList<PhysicalContent>();
+        for (PhysicalContent content : getContents()) {
+            if (!(content instanceof PhysicalPageRegion)) {
+                contents.add(content);
+            }
         }
+        doExtractSubRegion(contents, null, null);
     }
-    doExtractSubRegion(contents, null, null);
+
+    for (PhysicalPageRegion subregion : subregions) {
+        subregion.ensureAllContentInLeafNodes();
+    }
 }
 
 public void extractSubRegionFromBound(@NotNull Rectangle bound) {
@@ -256,6 +267,23 @@ private void doExtractSubRegion(@NotNull final Collection<PhysicalContent> subCo
         return;
     }
 
+
+    boolean onlyWhitespace = true;
+    for (PhysicalContent subContent : subContents) {
+        if (!(subContent instanceof WhitespaceRectangle)) {
+            onlyWhitespace = false;
+            break;
+        }
+    }
+    if (onlyWhitespace) {
+        if (log.isInfoEnabled()) {
+            log.info("LOG01330:Tried to extract only whitespace. removing them");
+        }
+        removeContents(subContents);
+        return;
+    }
+
+
     final PhysicalPageRegion newRegion = new PhysicalPageRegion(subContents, this, page);
 
     if (graphic == null) {
@@ -264,21 +292,25 @@ private void doExtractSubRegion(@NotNull final Collection<PhysicalContent> subCo
         newRegion.setContainingGraphic(graphic);
     }
 
+    /* move this regions subregions if they are contained by the new region */
     List<PhysicalPageRegion> toMove = new ArrayList<PhysicalPageRegion>();
-    for (PhysicalPageRegion subregion : subregions) {
-        if (newRegion.getPos().contains(subregion)) {
-            toMove.add(subregion);
+    for (PhysicalContent subContent : subContents) {
+        if (subContent instanceof PhysicalPageRegion) {
+            toMove.add((PhysicalPageRegion) subContent);
         }
     }
-    subregions.removeAll(toMove);
-    newRegion.subregions.addAll(toMove);
+
+    for (PhysicalPageRegion regionToMove : toMove) {
+        assert subregions.remove(regionToMove);
+        assert newRegion.subregions.add(regionToMove);
+    }
+
 
     log.warn("LOG00890:Extracted PPR:" + newRegion + " from " + this);
 
     removeContents(subContents);
 
     addContent(newRegion);
-
     subregions.add(newRegion);
 }
 

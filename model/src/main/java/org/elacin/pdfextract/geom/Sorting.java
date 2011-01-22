@@ -26,11 +26,8 @@ import java.util.List;
 import java.util.PriorityQueue;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: 08.12.10
- * Time: 03.40
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: 08.12.10 Time: 03.40 To change this template use
+ * File | Settings | File Templates.
  */
 public class Sorting {
 // ------------------------------ FIELDS ------------------------------
@@ -90,18 +87,22 @@ public static final Comparator<PhysicalText> sortTextByBaseLine = new Comparator
 @NotNull
 public static final Comparator<HasPosition>  regionComparator   = new Comparator<HasPosition>() {
     public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
-        if (o1.getPos().getEndX() < o2.getPos().getX()) {
-            return -1;
-        }
-        if (o1.getPos().getX() > o2.getPos().getEndX()) {
-            return 1;
-        }
+
         if (o1.getPos().getEndY() < o2.getPos().getY()) {
             return -1;
         }
         if (o1.getPos().getY() > o2.getPos().getEndY()) {
             return 1;
         }
+        //
+        //        if (o1.getPos().getEndX() < o2.getPos().getX()) {
+        //            return -1;
+        //        }
+        //        if (o1.getPos().getX() > o2.getPos().getEndX()) {
+        //            return 1;
+        //        }
+
+
         if (!MathUtils.isWithinPercent(o1.getPos().getY(), o2.getPos().getY(), 4)) {
             return Float.compare(o1.getPos().getY(), o2.getPos().getY());
         }
@@ -113,7 +114,8 @@ public static final Comparator<HasPosition>  regionComparator   = new Comparator
 
 @NotNull
 public static <T extends PhysicalContent> PriorityQueue<T> createSmallestFirstQueue(@NotNull
-                                                                                    final List<T> graphicalRegions) {
+                                                                                    final List<T> graphicalRegions)
+{
     final int capacity = Math.max(1, graphicalRegions.size());
     PriorityQueue<T> queue = new PriorityQueue<T>(capacity, sortBySmallestArea);
     queue.addAll(graphicalRegions);

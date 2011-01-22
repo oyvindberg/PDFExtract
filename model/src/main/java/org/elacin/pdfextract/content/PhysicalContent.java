@@ -139,6 +139,6 @@ public boolean isWhitespace() {
 protected final void setPositionFromContentList(@NotNull final Collection<? extends
                                                                                   PhysicalContent> contents)
 {
-    pos = MathUtils.findBounds(contents);
+    pos = MathUtils.findBoundsExcludingWhitespace(contents);
 }
 }

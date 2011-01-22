@@ -37,6 +37,10 @@ public class GraphicSegmentatorImpl implements GraphicSegmentator {
 
 private static final Logger log = Logger.getLogger(GraphicSegmentatorImpl.class);
 
+/* these are what might be rendered with normal font, so they are in addition to what
+    Formulas.containsMath would find*/
+private static String POSSIBLE_MATH_SYMBOLS = "()-+";
+
 /* we need the pages dimensions here, because the size of regions is calculated based on content.
 *   it should be possible for graphic to cover all the contents if it doesnt cover all the page*/
 private final float w;
@@ -81,13 +85,6 @@ public CategorizedGraphics categorizeGraphics(@NotNull List<GraphicContent> grap
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-public static boolean canBeConsideredCharacterInRegion(@NotNull GraphicContent g,
-                                                       @NotNull final PhysicalPageRegion region)
-{
-    float doubleCharArea = region.getAvgFontSizeY() * region.getAvgFontSizeX() * 2.0f;
-    return g.getPos().area() < doubleCharArea;
-}
-
 /**
  * consider the graphic a separator if the aspect ratio is high
  */
@@ -98,10 +95,6 @@ public static boolean canBeConsideredHorizontalSeparator(@NotNull GraphicContent
 
     return g.getPos().getWidth() / g.getPos().getHeight() > 10.0f;
 }
-
-/* these are what might be rendered with normal font, so they are in addition to what
-    Formulas.containsMath would find*/
-private static String POSSIBLE_MATH_SYMBOLS = "()-+";
 
 public static boolean canBeConsideredMathBarInRegion(@NotNull GraphicContent g,
                                                      @NotNull final PhysicalPageRegion region)
@@ -175,48 +168,6 @@ private static boolean graphicContainsTextFromRegion(@NotNull final PhysicalPage
 
 // -------------------------- OTHER METHODS --------------------------
 
-private void categorizeGraphics(@NotNull CategorizedGraphics ret,
-                                @NotNull PhysicalPageRegion region,
-                                @NotNull List<GraphicContent> list)
-{
-    for (GraphicContent graphic : list) {
-        if (isTooBigGraphic(graphic)) {
-            if (log.isInfoEnabled()) {
-                log.info("LOG00501:considered too big " + graphic);
-            }
-            continue;
-        }
-
-        if (graphicContainsTextFromRegion(region, graphic)) {
-            graphic.setCanBeAssigned(false);
-            graphic.setStyle(Style.GRAPHIC_CONTAINER);
-            ret.getContainers().add(graphic);
-        } else if (canBeConsideredMathBarInRegion(graphic, region)) {
-            graphic.setCanBeAssigned(true);
-            graphic.setStyle(Style.GRAPHIC_MATH_BAR);
-            ret.getContents().add(graphic);
-        } else if (canBeConsideredHorizontalSeparator(graphic)) {
-            graphic.setCanBeAssigned(true);
-            graphic.setStyle(Style.GRAPHIC_HSEP);
-            ret.getHorizontalSeparators().add(graphic);
-        } else if (canBeConsideredVerticalSeparator(graphic)) {
-            graphic.setCanBeAssigned(true);
-            graphic.setStyle(Style.GRAPHIC_VSEP);
-            ret.getVerticalSeparators().add(graphic);
-            //        } else if (canBeConsideredCharacterInRegion(graphic, region)) {
-            //            graphic.setStyle(Style.GRAPHIC_CHARACTER);
-            //            graphic.setCanBeAssigned(true);
-            //            ret.getContents().add(graphic);
-        } else {
-            graphic.setCanBeAssigned(true);
-            graphic.setStyle(Style.GRAPHIC_IMAGE);
-            ret.getContents().add(graphic);
-        }
-
-        ret.getGraphicsToRender().add(graphic);
-    }
-}
-
 @NotNull
 private List<GraphicContent> combineHorizontalSeparators(@NotNull CategorizedGraphics ret) {
     Map<String, List<GraphicContent>> hsepsForXCoordinate
@@ -265,6 +216,48 @@ private List<GraphicContent> combineHorizontalSeparators(@NotNull CategorizedGra
     return combinedGraphics;
 }
 
+private void categorizeGraphics(@NotNull CategorizedGraphics ret,
+                                @NotNull PhysicalPageRegion region,
+                                @NotNull List<GraphicContent> list)
+{
+    for (GraphicContent graphic : list) {
+        if (isTooBigGraphic(graphic)) {
+            if (log.isInfoEnabled()) {
+                log.info("LOG00501:considered too big " + graphic);
+            }
+            continue;
+        }
+
+        if (graphicContainsTextFromRegion(region, graphic)) {
+            graphic.setCanBeAssigned(false);
+            graphic.setStyle(Style.GRAPHIC_CONTAINER);
+            ret.getContainers().add(graphic);
+        } else if (canBeConsideredMathBarInRegion(graphic, region)) {
+            graphic.setCanBeAssigned(true);
+            graphic.setStyle(Style.GRAPHIC_MATH_BAR);
+            ret.getContents().add(graphic);
+        } else if (canBeConsideredHorizontalSeparator(graphic)) {
+            graphic.setCanBeAssigned(true);
+            graphic.setStyle(Style.GRAPHIC_HSEP);
+            ret.getHorizontalSeparators().add(graphic);
+        } else if (canBeConsideredVerticalSeparator(graphic)) {
+            graphic.setCanBeAssigned(true);
+            graphic.setStyle(Style.GRAPHIC_VSEP);
+            ret.getVerticalSeparators().add(graphic);
+            //        } else if (canBeConsideredCharacterInRegion(graphic, region)) {
+            //            graphic.setStyle(Style.GRAPHIC_CHARACTER);
+            //            graphic.setCanBeAssigned(true);
+            //            ret.getContents().add(graphic);
+        } else {
+            graphic.setCanBeAssigned(true);
+            graphic.setStyle(Style.GRAPHIC_IMAGE);
+            ret.getContents().add(graphic);
+        }
+
+        ret.getGraphicsToRender().add(graphic);
+    }
+}
+
 private boolean isTooBigGraphic(@NotNull final PhysicalContent graphic) {
     return graphic.getPos().area() >= (w * h);
 }
@@ -283,7 +276,7 @@ private void logGraphics(@NotNull CategorizedGraphics ret) {
     }
 
     for (GraphicContent g : ret.getContents()) {
-        log.debug("LOG00980:considered content: " + g);
+        log.info("LOG00980:considered content: " + g);
     }
 }
 }

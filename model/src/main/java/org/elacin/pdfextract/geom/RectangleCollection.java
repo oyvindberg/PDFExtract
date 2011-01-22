@@ -18,19 +18,18 @@ package org.elacin.pdfextract.geom;
 
 import org.elacin.pdfextract.content.PhysicalContent;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 import static org.elacin.pdfextract.Constants.RECTANGLE_COLLECTION_CACHE_ENABLED;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Nov 2, 2010 Time: 1:20:36 AM To change this
- * template
+ * Created by IntelliJ IDEA. User: elacin Date: Nov 2, 2010 Time: 1:20:36 AM To change this template
  * use File | Settings | File Templates.
  */
 public class RectangleCollection extends PhysicalContent {
 // ------------------------------ FIELDS ------------------------------
-
 
 @NotNull
 private final List<PhysicalContent> contents;
@@ -38,26 +37,43 @@ private final List<PhysicalContent> contents;
 /* calculating all the intersections while searching is expensive, so keep this cached.
 will be pruned on update */
 @NotNull
-private final Map<Integer, List<PhysicalContent>> yCache = new HashMap<Integer, List<PhysicalContent>>();
+private final Map<Integer, List<PhysicalContent>> yCache
+                                                         = new HashMap<Integer, List<PhysicalContent>>();
 @NotNull
-private final Map<Integer, List<PhysicalContent>> xCache = new HashMap<Integer, List<PhysicalContent>>();
+private final Map<Integer, List<PhysicalContent>> xCache
+                                                         = new HashMap<Integer, List<PhysicalContent>>();
 
-/**
- * if all the contents in this collection is contained within some content (say a figure with
- * text
- * embedded, that will be marked here
- */
+@Nullable
 private final PhysicalContent parent;
+
+
+private transient boolean _posSet;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public RectangleCollection(@NotNull final Collection<? extends PhysicalContent> newContents,
-                           final PhysicalContent parent) {
+                           @Nullable final PhysicalContent parent)
+{
     super(newContents);
     this.parent = parent;
 
     contents = new ArrayList<PhysicalContent>(newContents.size());
     contents.addAll(newContents);
+}
+
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface HasPosition ---------------------
+
+@Override
+public Rectangle getPos() {
+    if (!_posSet) {
+        setPositionFromContentList(getContents());
+        _posSet = true;
+    }
+    return pos;
+
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -90,7 +106,8 @@ public List<PhysicalContent> findContentAtXIndex(float x) {
 
 public List<PhysicalContent> findContentAtXIndex(int x) {
     if (!RECTANGLE_COLLECTION_CACHE_ENABLED || !xCache.containsKey(x)) {
-        final Rectangle searchRectangle = new Rectangle((float) x, getPos().getY(), 1.0f, getPos().getHeight());
+        final Rectangle searchRectangle = new Rectangle((float) x, getPos().getY(), 1.0f,
+                                                        getPos().getHeight());
         final List<PhysicalContent> result = findContentsIntersectingWith(searchRectangle);
         Collections.sort(result, Sorting.sortByLowerY);
 
@@ -106,7 +123,8 @@ public List<PhysicalContent> findContentAtYIndex(float y) {
 
 public List<PhysicalContent> findContentAtYIndex(int y) {
     if (!RECTANGLE_COLLECTION_CACHE_ENABLED || !yCache.containsKey(y)) {
-        final Rectangle searchRectangle = new Rectangle(getPos().getX(), (float) y, getPos().getWidth(), 1.0F);
+        final Rectangle searchRectangle = new Rectangle(getPos().getX(), (float) y,
+                                                        getPos().getWidth(), 1.0F);
         final List<PhysicalContent> result = findContentsIntersectingWith(searchRectangle);
         Collections.sort(result, Sorting.sortByLowerX);
         yCache.put(y, result);
@@ -127,13 +145,14 @@ public List<PhysicalContent> findContentsIntersectingWith(@NotNull final HasPosi
 
 @NotNull
 public List<PhysicalContent> findSurrounding(@NotNull final HasPosition content,
-                                             final int distance) {
+                                             final int distance)
+{
     final Rectangle bound = content.getPos();
 
-    Rectangle searchRectangle = new Rectangle(
-            bound.getX() - (float) distance,
-            bound.getY() - (float) distance,
-            bound.getWidth() + (float) distance, bound.getHeight() + (float) distance);
+    Rectangle searchRectangle = new Rectangle(bound.getX() - (float) distance,
+                                              bound.getY() - (float) distance,
+                                              bound.getWidth() + (float) distance,
+                                              bound.getHeight() + (float) distance);
 
     final List<PhysicalContent> ret = findContentsIntersectingWith(searchRectangle);
 
@@ -169,7 +188,8 @@ public void removeContents(@NotNull Collection<PhysicalContent> listToRemove) {
 @NotNull
 public List<PhysicalContent> searchInDirectionFromOrigin(@NotNull Direction dir,
                                                          @NotNull HasPosition origin,
-                                                         float distance) {
+                                                         float distance)
+{
     final Rectangle pos = origin.getPos();
     final float x = pos.getX() + dir.xDiff * distance;
     final float y = pos.getY() + dir.yDiff * distance;
@@ -190,6 +210,7 @@ public List<PhysicalContent> searchInDirectionFromOrigin(@NotNull Direction dir,
 protected void clearCache() {
     yCache.clear();
     xCache.clear();
+    _posSet = false;
 }
 
 // -------------------------- ENUMERATIONS --------------------------

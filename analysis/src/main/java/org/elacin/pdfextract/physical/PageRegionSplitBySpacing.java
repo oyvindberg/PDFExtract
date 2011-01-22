@@ -18,6 +18,7 @@ package org.elacin.pdfextract.physical;
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.content.PhysicalContent;
 import org.elacin.pdfextract.content.PhysicalPageRegion;
+import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.style.StyleComparator;
 import org.elacin.pdfextract.style.StyleDifference;
@@ -44,6 +45,7 @@ private static final Logger log = Logger.getLogger(PageRegionSplitBySpacing.clas
 @NotNull
 public static void splitOfTopText(@NotNull PhysicalPageRegion r, float fractionToConsider) {
 
+    final Rectangle realDims = r.getPage().getPageDimensions();
 
     final int minimumDistanceToSplit = (int) (Math.max(6.0f, r.getAvgFontSizeY()));
 
@@ -52,10 +54,13 @@ public static void splitOfTopText(@NotNull PhysicalPageRegion r, float fractionT
     Set<PhysicalContent> workingSet = new HashSet<PhysicalContent>();
 
 
-    final float startY = r.getPos().getY();
-    final float endY = startY + r.getPos().getHeight() * fractionToConsider;
+    final float startY = realDims.getY();
+    final float endY = startY + realDims.getHeight() * fractionToConsider;
 
     for (float y = startY; y <= endY; y++) {
+        if (y < r.getPos().getY()) {
+            continue;
+        }
         final List<PhysicalContent> row = r.findContentAtYIndex(y);
 
         workingSet.addAll(row);

@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.elacin.pdfextract.content.*;
 import org.elacin.pdfextract.geom.MathUtils;
 import org.elacin.pdfextract.geom.Rectangle;
+import org.elacin.pdfextract.geom.RectangleCollection;
 import org.elacin.pdfextract.geom.Sorting;
 import org.elacin.pdfextract.physical.column.ColumnFinder;
 import org.elacin.pdfextract.physical.graphics.CategorizedGraphics;
@@ -67,14 +68,12 @@ public static PageNode analyzePage(@NotNull PhysicalPage page) {
 
     mainRegion.addContents(categorizedGraphics.getContents());
 
-
+    /* first separate out what is contained by graphics */
+    extractGraphicalRegions(categorizedGraphics, mainRegion);
+    mainRegion.getPos();
     PageRegionSplitBySpacing.splitOfTopText(mainRegion, 0.1f);
 
     PageRegionSplitBySeparators.splitRegionBySeparators(mainRegion, categorizedGraphics);
-
-
-    /* first separate out what is contained by graphics */
-    extractGraphicalRegions(categorizedGraphics, mainRegion);
 
 
     /* This will detect column boundaries and split up all regions */
@@ -82,7 +81,7 @@ public static PageNode analyzePage(@NotNull PhysicalPage page) {
 
     /* this is to make text ordering work, if it was in the main region it would destroy
         the sorting */
-    mainRegion.extractAllRemainingContentsIntoSubRegion();
+    mainRegion.ensureAllContentInLeafNodes();
 
 
     /* first create the page node which will hold everything */
@@ -108,9 +107,11 @@ private static void createParagraphsForRegion(final PageNode page,
     paragraphSegmentator.setMedianVerticalSpacing(region.getMedianOfVerticalDistances());
 
     final ContentGrouper contentGrouper = new ContentGrouper(region);
-    final List<List<PhysicalContent>> blocks = contentGrouper.findBlocksOfContent();
+    final List<RectangleCollection> blocks = contentGrouper.findBlocksOfContent();
 
-    for (List<PhysicalContent> block : blocks) {
+    Collections.sort(blocks, Sorting.regionComparator);
+
+    for (RectangleCollection block : blocks) {
         /** start by separating all the graphical content in a block.
          *  This is surely an oversimplification, but it think it should work for our
          *  purposes. This very late combination of graphics will be used to grab all text
@@ -205,12 +206,12 @@ private static void extractGraphicalRegions(@NotNull CategorizedGraphics graphic
 }
 
 @Nullable
-private static Rectangle extractBoundOfPlainGraphics(final List<PhysicalContent> block,
+private static Rectangle extractBoundOfPlainGraphics(final RectangleCollection block,
                                                      final GraphicContent containingGraphic)
 {
     List<PhysicalContent> nontextualContent = new ArrayList<PhysicalContent>();
 
-    for (Iterator<PhysicalContent> iterator = block.iterator(); iterator.hasNext();) {
+    for (Iterator<PhysicalContent> iterator = block.getContents().iterator(); iterator.hasNext();) {
         final PhysicalContent content = iterator.next();
 
         if (!content.isGraphic()) {

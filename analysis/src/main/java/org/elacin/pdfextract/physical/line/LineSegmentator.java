@@ -20,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.elacin.pdfextract.content.PhysicalContent;
 import org.elacin.pdfextract.content.PhysicalText;
 import org.elacin.pdfextract.geom.Rectangle;
+import org.elacin.pdfextract.geom.RectangleCollection;
 import org.elacin.pdfextract.geom.Sorting;
 import org.elacin.pdfextract.tree.LineNode;
 import org.elacin.pdfextract.tree.WordNode;
@@ -44,12 +45,12 @@ private static final Logger log       = Logger.getLogger(LineSegmentator.class);
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
 @NotNull
-public static List<LineNode> createLinesFromBlocks(List<PhysicalContent> block, int pageNum) {
+public static List<LineNode> createLinesFromBlocks(RectangleCollection block, int pageNum) {
     /* compile paragraphs of text based on the assigned block numbers */
     int minY = Integer.MAX_VALUE, maxY = Integer.MIN_VALUE;
 
     /* reuse the assignment numbers */
-    for (PhysicalContent content : block) {
+    for (PhysicalContent content : block.getContents()) {
         content.getAssignable().setBlockNum(BLOCK_NOT_ASSIGNED);
         minY = Math.min((int) content.getPos().getY(), minY);
         maxY = Math.max((int) content.getPos().getEndY(), maxY);
@@ -62,7 +63,7 @@ public static List<LineNode> createLinesFromBlocks(List<PhysicalContent> block, 
 
 
     int[] counts = new int[blockHeight];
-    for (PhysicalContent content : block) {
+    for (PhysicalContent content : block.getContents()) {
         if (!content.isAssignable()) {
             continue;
         }
@@ -78,14 +79,14 @@ public static List<LineNode> createLinesFromBlocks(List<PhysicalContent> block, 
 
     List<Integer> lineBoundaries = findLineBoundaries(counts);
 
-    Collections.sort(block, Sorting.sortByLowerY);
+    Collections.sort(block.getContents(), Sorting.sortByLowerY);
 
     LineNode currentLine = new LineNode();
     for (int i = 0; i < lineBoundaries.size() - 1; i++) {
         int start = minY + lineBoundaries.get(i) - 1;
         int stop = minY + lineBoundaries.get(i + 1);
 
-        for (PhysicalContent content : block) {
+        for (PhysicalContent content : block.getContents()) {
             final Rectangle contentPos = content.getPos();
 
             if (content.getAssignable().isAssignedBlock()) {

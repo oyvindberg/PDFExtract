@@ -35,6 +35,17 @@ private MathUtils() {
 
 @NotNull
 public static Rectangle findBounds(@NotNull final Collection<? extends HasPosition> contents) {
+    return findBounds_(contents, true);
+}
+
+@NotNull
+public static Rectangle findBoundsExcludingWhitespace(@NotNull final Collection<? extends HasPosition> contents) {
+    return findBounds_(contents, false);
+}
+
+private static Rectangle findBounds_(final Collection<? extends HasPosition> contents,
+                                     final boolean countWhitespace)
+{
     /* calculate bounds for this region */
     float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
     float maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE;
@@ -42,7 +53,7 @@ public static Rectangle findBounds(@NotNull final Collection<? extends HasPositi
     int counted = 0;
     for (HasPosition content : contents) {
         //TODO: this really doesnt belong here
-        if (content instanceof WhitespaceRectangle) {
+        if (!countWhitespace && content instanceof WhitespaceRectangle) {
             continue;
         }
         minX = Math.min(minX, content.getPos().getX());
@@ -57,7 +68,6 @@ public static Rectangle findBounds(@NotNull final Collection<? extends HasPositi
     } else {
         newPos = new Rectangle(minX, minY, maxX - minX, maxY - minY);
     }
-
     return newPos;
 }
 

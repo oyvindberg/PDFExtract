@@ -35,7 +35,7 @@ public static final boolean RECTANGLE_COLLECTION_CACHE_ENABLED = true;
 
 /* rendering */
 public static final boolean RENDER_ENABLED           = true;
-public static final boolean RENDER_REAL_PAGE         = true;
+public static final boolean RENDER_REAL_PAGE         = false;
 public static final int     RENDER_RESOLUTION        = 100;
 public static final int     RENDER_DPI               = 72;
 public static final boolean RENDER_WHITESPACE        = true;

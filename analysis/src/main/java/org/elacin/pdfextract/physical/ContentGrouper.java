@@ -19,6 +19,7 @@ package org.elacin.pdfextract.physical;
 import org.elacin.pdfextract.content.PhysicalContent;
 import org.elacin.pdfextract.content.PhysicalPageRegion;
 import org.elacin.pdfextract.geom.Rectangle;
+import org.elacin.pdfextract.geom.RectangleCollection;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -32,10 +33,10 @@ public class ContentGrouper {
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
 @NotNull
-final List<List<PhysicalContent>> allBlocks = new ArrayList<List<PhysicalContent>>(30);
+final List<RectangleCollection> allBlocks = new ArrayList<RectangleCollection>(30);
 
 @NotNull
-List<PhysicalContent> currentBlock = new ArrayList<PhysicalContent>();
+RectangleCollection currentBlock = new RectangleCollection(new ArrayList<PhysicalContent>(), null);
 
 @NotNull
 final PhysicalPageRegion region;
@@ -50,13 +51,13 @@ public ContentGrouper(@NotNull PhysicalPageRegion region) {
 }
 
 
-public List<List<PhysicalContent>> findBlocksOfContent() {
+public List<RectangleCollection> findBlocksOfContent() {
 
     /** if this is contained in a grapic, just output the lines */
     if (region.isGraphicalRegion()) {
         for (PhysicalContent content : region.getContents()) {
             if (content.isGraphic() || content.isText()) {
-                currentBlock.add(content);
+                currentBlock.addContent(content);
                 content.getAssignable().setBlockNum(allBlocks.size());
             }
         }
@@ -78,9 +79,12 @@ public List<List<PhysicalContent>> findBlocksOfContent() {
                 /* find all connected texts from this*/
                 markEverythingConnectedFrom(contentInRow);
                 allBlocks.add(currentBlock);
-                currentBlock = new ArrayList<PhysicalContent>(30);
+                currentBlock = new RectangleCollection(new ArrayList<PhysicalContent>(), null);
             }
         }
+    }
+    if (!currentBlock.getContents().isEmpty()) {
+        allBlocks.add(currentBlock);
     }
 
     return allBlocks;
@@ -103,7 +107,7 @@ private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent curre
     }
 
     current.getAssignable().setBlockNum(allBlocks.size());
-    currentBlock.add(current);
+    currentBlock.addContent(current);
 
     /* try searching for texts in all directions */
 

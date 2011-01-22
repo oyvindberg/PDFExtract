@@ -25,6 +25,7 @@ import org.elacin.pdfextract.physical.graphics.CategorizedGraphics;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -49,7 +50,7 @@ static void splitRegionBySeparators(@NotNull PhysicalPageRegion r,
 {
     List<GraphicContent> toRemove = new ArrayList<GraphicContent>();
     for (GraphicContent hsep : graphics.getHorizontalSeparators()) {
-        if (hsep.getPos().getWidth() < r.getPos().getWidth() * 0.6f) {
+        if (hsep.getPos().getWidth() < r.getPos().getWidth() * 0.6f || hsep.getPos().getY() <= 0) {
             continue;
         }
 
@@ -61,20 +62,33 @@ static void splitRegionBySeparators(@NotNull PhysicalPageRegion r,
         if (list.contains(hsep)) {
             list.remove(hsep);
         }
-        if (list.isEmpty()) {
-            if (hsep.getPos().getY() > 0) {
-                Rectangle everythingAboveSep = new Rectangle(r.getPos().getX(), 0.0f,
-                                                             r.getWidth() + 1,
-                                                             hsep.getPos().getY());
-
-                if (log.isInfoEnabled()) {
-                    log.info("LOG00880:split/hsep: " + hsep + ", extracting area at: "
-                                     + everythingAboveSep);
-                }
-
-                r.addContent(hsep);
-                r.extractSubRegionFromBound(everythingAboveSep);
+        for (Iterator<PhysicalContent> iterator = list.iterator(); iterator.hasNext();) {
+            final PhysicalContent content = iterator.next();
+            if (hsep.getPos().contains(content)) {
+                iterator.remove();
             }
+        }
+
+        if (list.isEmpty()) {
+            if (log.isInfoEnabled()) {
+                log.info("LOG00880:split/hsep: splitting " + hsep);
+            }
+
+            Rectangle above = new Rectangle(r.getPos().getX(), 0.0f, r.getWidth() + 1,
+                                            hsep.getPos().getY());
+
+
+            r.extractSubRegionFromBound(above);
+
+
+            Rectangle under = new Rectangle(r.getPos().getX(), hsep.getPos().getY(),
+                                            r.getWidth() + 1,
+                                            r.getPos().getEndY() - hsep.getPos().getY());
+
+
+            r.extractSubRegionFromBound(under);
+
+            //                r.addContent(hsep);
             toRemove.add(hsep);
 
         } else {
