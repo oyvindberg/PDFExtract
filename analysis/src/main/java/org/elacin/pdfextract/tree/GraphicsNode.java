@@ -16,6 +16,7 @@
 
 package org.elacin.pdfextract.tree;
 
+import org.elacin.pdfextract.geom.Rectangle;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Comparator;
@@ -25,6 +26,35 @@ import java.util.Comparator;
  * File | Settings | File Templates.
  */
 public class GraphicsNode extends AbstractParentNode<ParagraphNode, PageNode> {
+// ------------------------------ FIELDS ------------------------------
+
+@NotNull
+private Rectangle graphicsPos;
+
+// --------------------------- CONSTRUCTORS ---------------------------
+
+public GraphicsNode(final Rectangle graphicsPos) {
+    this.graphicsPos = graphicsPos;
+}
+
+// --------------------- GETTER / SETTER METHODS ---------------------
+
+public Rectangle getGraphicsPos() {
+    return graphicsPos;
+}
+
+public void setGraphicsPos(final Rectangle graphicsPos) {
+    this.graphicsPos = graphicsPos;
+}
+
+@NotNull
+@Override
+public Rectangle getPos() {
+    return graphicsPos;
+}
+
+// -------------------------- PUBLIC METHODS --------------------------
+
 @NotNull
 @Override
 public Comparator<ParagraphNode> getChildComparator() {

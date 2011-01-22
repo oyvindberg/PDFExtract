@@ -45,16 +45,6 @@ private static final Logger log = Logger.getLogger(PageRegionSplitBySpacing.clas
 public static void splitOfTopText(@NotNull PhysicalPageRegion r, float fractionToConsider) {
 
 
-    //    /* start of by finding the median of a sample of vertical distances */
-    //    int median = r.getMedianOfVerticalDistances();
-    //
-    //    /* if none was found, return an empty list */
-    //    if (median == -1) {
-    //        return;
-    //    }
-    //    /* increase it a bit */
-    //    median++;
-
     final int minimumDistanceToSplit = (int) (Math.max(6.0f, r.getAvgFontSizeY()));
 
     float lastBoundary = -1000.0f;

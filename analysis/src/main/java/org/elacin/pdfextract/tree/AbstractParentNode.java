@@ -57,7 +57,7 @@ public AbstractParentNode() {
 // --------------------- Interface HasPosition ---------------------
 
 @NotNull
-public final Rectangle getPos() {
+public Rectangle getPos() {
     if (posCache == null) {
         posCache = MathUtils.findBounds(children);
     }

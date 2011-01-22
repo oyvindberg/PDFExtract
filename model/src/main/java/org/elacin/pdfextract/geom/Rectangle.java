@@ -181,7 +181,8 @@ public FloatPoint centre() {
  * @param r The rectangle that might contain this rectangle
  * @return true if the passed rectangle contains this rectangle, false if it does not
  */
-public boolean containedBy(@NotNull Rectangle r) {
+public boolean containedBy(@NotNull HasPosition rectangle) {
+    final Rectangle r = rectangle.getPos();
     return r.endX >= endX && r.x <= x && r.endY >= endY && r.y <= y;
 }
 

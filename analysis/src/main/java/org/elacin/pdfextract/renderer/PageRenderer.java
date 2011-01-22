@@ -254,25 +254,42 @@ private void drawRectangle(@NotNull final HasPosition object) {
     }
 }
 
-private void drawParagraphNumber(@NotNull ParagraphNode p) {
+private void drawParagraphNumber(@NotNull HasPosition p) {
 
 
     graphics.setFont(new Font("TimesRoman", Font.BOLD | Font.ITALIC, 20));
     final float x = p.getPos().getX() * xScale;
-    final float y = p.getPos().getMiddleY() * yScale;
+    final float y = p.getPos().getY() * yScale;
 
     graphics.setColor(Color.red.brighter().brighter());
-    graphics.setBackground(Color.red.brighter().brighter());
-    graphics.fillRect((int) x, (int) y - 20, 30, 25);
+    //    graphics.setBackground(Color.red.brighter().brighter());
+    graphics.fillRect((int) x, (int) y, 30, 25);
 
-    graphics.setBackground(Color.black);
+    //    graphics.setBackground(Color.black);
     graphics.setColor(Color.black);
-    graphics.drawString(String.valueOf(paragraphCounter), x, y);
+    graphics.drawString(String.valueOf(paragraphCounter), x, y + 20);
     paragraphCounter++;
 }
 
 private void drawTree(@NotNull PageNode page) {
     paragraphCounter = 1;
+
+    for (GraphicsNode graphicsNode : page.getGraphics()) {
+        //            for (ParagraphNode paragraph : graphicsNode.getChildren()) {
+        //                for (LineNode lineNode : paragraph.getChildren()) {
+        //                    for (WordNode wordNode : lineNode.getChildren()) {
+        //                        drawRectangle(wordNode);
+        //                    }
+        //                    drawRectangle(lineNode);
+        //                }
+        //                drawRectangle(paragraph);
+        //            }
+
+        drawRectangle(graphicsNode);
+        if (RENDER_PARAGRAPH_NUMBERS) {
+            drawParagraphNumber(graphicsNode);
+        }
+    }
 
     for (ParagraphNode paragraphNode : page.getChildren()) {
 
@@ -285,19 +302,6 @@ private void drawTree(@NotNull PageNode page) {
         }
 
         drawRectangle(paragraphNode);
-
-        for (GraphicsNode graphicsNode : page.getGraphics()) {
-            for (ParagraphNode paragraph : graphicsNode.getChildren()) {
-                for (LineNode lineNode : paragraph.getChildren()) {
-                    for (WordNode wordNode : lineNode.getChildren()) {
-                        drawRectangle(wordNode);
-                    }
-                    drawRectangle(lineNode);
-                }
-                drawRectangle(paragraph);
-            }
-            drawRectangle(graphicsNode);
-        }
 
         if (RENDER_PARAGRAPH_NUMBERS) {
             drawParagraphNumber(paragraphNode);

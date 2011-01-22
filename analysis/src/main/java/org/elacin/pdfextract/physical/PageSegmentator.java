@@ -28,7 +28,10 @@ import org.elacin.pdfextract.physical.graphics.GraphicSegmentatorImpl;
 import org.elacin.pdfextract.physical.line.LineSegmentator;
 import org.elacin.pdfextract.physical.paragraph.ParagraphSegmentator;
 import org.elacin.pdfextract.style.Style;
-import org.elacin.pdfextract.tree.*;
+import org.elacin.pdfextract.tree.GraphicsNode;
+import org.elacin.pdfextract.tree.LineNode;
+import org.elacin.pdfextract.tree.PageNode;
+import org.elacin.pdfextract.tree.ParagraphNode;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -123,16 +126,25 @@ private static void createParagraphsForRegion(final PageNode page,
         /** separate out everything related to graphics in this part of the page into a single
          *   paragraph */
         if (graphicBounds != null) {
-            final GraphicsNode graphical;
+            GraphicsNode graphical = null;
 
             if (wasContainedInGraphic) {
-                graphical = page.getGraphics().get(page.getGraphics().size() - 1);
+                for (GraphicsNode graphicsNode : page.getGraphics()) {
+                    if (graphicBounds.getPos().containedBy(graphicsNode)) {
+                        graphical = graphicsNode;
+                        break;
+                    }
+                }
+                if (graphical == null) {
+                    graphical = page.getGraphics().get(page.getGraphics().size() - 1);
+                    graphical.setGraphicsPos(graphical.getGraphicsPos().union(graphicBounds));
+                }
             } else {
-                graphical = new GraphicsNode();
+                graphical = new GraphicsNode(graphicBounds);
                 page.addGraphics(graphical);
             }
 
-            ParagraphNode paragraph = new ParagraphNode(numberer.getParagraphId(true));
+            ParagraphNode paragraph = new ParagraphNode(numberer.getParagraphId(false));
             for (Iterator<LineNode> iterator = lines.iterator(); iterator.hasNext();) {
                 final LineNode line = iterator.next();
                 if (region.isGraphicalRegion() || graphicBounds.intersectsWith(line.getPos())) {
@@ -141,10 +153,9 @@ private static void createParagraphsForRegion(final PageNode page,
                 }
             }
 
-            final WordNode img = new WordNode(graphicBounds, numberer.getPage(),
-                                              Style.GRAPHIC_IMAGE, "[IMG]", -1);
-            paragraph.addChild(new LineNode(img));
-            graphical.addChild(paragraph);
+            if (!paragraph.getChildren().isEmpty()) {
+                graphical.addChild(paragraph);
+            }
         }
 
 
