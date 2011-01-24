@@ -38,13 +38,17 @@ public PhysicalText(final String text,
                     final float x,
                     final float y,
                     final float width,
-                    final float height, float baseLine) {
+                    final float height,
+                    float baseLine)
+{
     this(text, style, new Rectangle(x, y, width, height), baseLine);
 }
 
 public PhysicalText(final String text,
                     final Style style,
-                    final Rectangle position, float baseLine) {
+                    final Rectangle position,
+                    float baseLine)
+{
     super(position, style);
     this.text = text;
     this.baseLine = baseLine;
@@ -67,7 +71,7 @@ public String toString() {
     sb.append("Text");
     sb.append("{'").append(text).append('\'');
     sb.append(", style=").append(style);
-    sb.append(", pos=").append(pos);
+    sb.append(", pos=").append(getPos());
     sb.append(", charSpacing=").append(charSpacing);
     sb.append('}');
     return sb.toString();
@@ -96,11 +100,11 @@ public float getBaseLine() {
 
 @NotNull
 public PhysicalText combineWith(@NotNull final PhysicalText next) {
-    return new PhysicalText(text + next.text, style, pos.union(next.pos), baseLine);
+    return new PhysicalText(text + next.text, style, getPos().union(next.getPos()), baseLine);
 }
 
 public float getAverageCharacterWidth() {
-    return getPos().getWidth() / (float) text.length();
+    return getPos().width / (float) text.length();
 }
 
 public boolean isSameStyleAs(@NotNull final PhysicalText next) {

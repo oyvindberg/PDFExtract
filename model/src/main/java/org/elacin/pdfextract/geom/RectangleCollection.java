@@ -44,15 +44,12 @@ private final Map<Integer, List<PhysicalContent>> xCache
                                                          = new HashMap<Integer, List<PhysicalContent>>();
 
 @Nullable
-private final PhysicalContent parent;
-
-
-private transient boolean _posSet;
+private final RectangleCollection parent;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public RectangleCollection(@NotNull final Collection<? extends PhysicalContent> newContents,
-                           @Nullable final PhysicalContent parent)
+                           @Nullable final RectangleCollection parent)
 {
     super(newContents);
     this.parent = parent;
@@ -66,14 +63,8 @@ public RectangleCollection(@NotNull final Collection<? extends PhysicalContent> 
 
 // --------------------- Interface HasPosition ---------------------
 
-@Override
-public Rectangle getPos() {
-    if (!_posSet) {
-        setPositionFromContentList(getContents());
-        _posSet = true;
-    }
-    return pos;
-
+public void calculatePos() {
+    setPos(MathUtils.findBoundsExcludingWhitespace(contents));
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -83,7 +74,8 @@ public List<PhysicalContent> getContents() {
     return contents;
 }
 
-public PhysicalContent getParent() {
+@Nullable
+public RectangleCollection getParent() {
     return parent;
 }
 
@@ -106,8 +98,10 @@ public List<PhysicalContent> findContentAtXIndex(float x) {
 
 public List<PhysicalContent> findContentAtXIndex(int x) {
     if (!RECTANGLE_COLLECTION_CACHE_ENABLED || !xCache.containsKey(x)) {
-        final Rectangle searchRectangle = new Rectangle((float) x, getPos().getY(), 1.0f,
-                                                        getPos().getHeight());
+        final Rectangle searchRectangle = new Rectangle((float) x,
+                                                        getPos().y,
+                                                        1.0f,
+                                                        getPos().height);
         final List<PhysicalContent> result = findContentsIntersectingWith(searchRectangle);
         Collections.sort(result, Sorting.sortByLowerY);
 
@@ -123,8 +117,10 @@ public List<PhysicalContent> findContentAtYIndex(float y) {
 
 public List<PhysicalContent> findContentAtYIndex(int y) {
     if (!RECTANGLE_COLLECTION_CACHE_ENABLED || !yCache.containsKey(y)) {
-        final Rectangle searchRectangle = new Rectangle(getPos().getX(), (float) y,
-                                                        getPos().getWidth(), 1.0F);
+        final Rectangle searchRectangle = new Rectangle(getPos().x,
+                                                        (float) y,
+                                                        getPos().width,
+                                                        1.0F);
         final List<PhysicalContent> result = findContentsIntersectingWith(searchRectangle);
         Collections.sort(result, Sorting.sortByLowerX);
         yCache.put(y, result);
@@ -149,10 +145,10 @@ public List<PhysicalContent> findSurrounding(@NotNull final HasPosition content,
 {
     final Rectangle bound = content.getPos();
 
-    Rectangle searchRectangle = new Rectangle(bound.getX() - (float) distance,
-                                              bound.getY() - (float) distance,
-                                              bound.getWidth() + (float) distance,
-                                              bound.getHeight() + (float) distance);
+    Rectangle searchRectangle = new Rectangle(bound.x - (float) distance,
+                                              bound.y - (float) distance,
+                                              bound.width + (float) distance,
+                                              bound.height + (float) distance);
 
     final List<PhysicalContent> ret = findContentsIntersectingWith(searchRectangle);
 
@@ -164,11 +160,11 @@ public List<PhysicalContent> findSurrounding(@NotNull final HasPosition content,
 }
 
 public float getHeight() {
-    return getPos().getHeight();
+    return getPos().height;
 }
 
 public float getWidth() {
-    return getPos().getWidth();
+    return getPos().width;
 }
 
 public void removeContent(PhysicalContent toRemove) {
@@ -176,13 +172,11 @@ public void removeContent(PhysicalContent toRemove) {
         throw new RuntimeException("Region " + this + ": Could not remove " + toRemove);
     }
     clearCache();
-    setPositionFromContentList(contents);
 }
 
 public void removeContents(@NotNull Collection<PhysicalContent> listToRemove) {
     contents.removeAll(listToRemove);
     clearCache();
-    setPositionFromContentList(contents);
 }
 
 @NotNull
@@ -191,10 +185,10 @@ public List<PhysicalContent> searchInDirectionFromOrigin(@NotNull Direction dir,
                                                          float distance)
 {
     final Rectangle pos = origin.getPos();
-    final float x = pos.getX() + dir.xDiff * distance;
-    final float y = pos.getY() + dir.yDiff * distance;
+    final float x = pos.x + dir.xDiff * distance;
+    final float y = pos.y + dir.yDiff * distance;
 
-    final Rectangle search = new Rectangle(x, y, pos.getWidth(), pos.getHeight());
+    final Rectangle search = new Rectangle(x, y, pos.width, pos.height);
 
     final List<PhysicalContent> ret = findContentsIntersectingWith(search);
 
@@ -210,7 +204,7 @@ public List<PhysicalContent> searchInDirectionFromOrigin(@NotNull Direction dir,
 protected void clearCache() {
     yCache.clear();
     xCache.clear();
-    _posSet = false;
+    invalidatePos();
 }
 
 // -------------------------- ENUMERATIONS --------------------------

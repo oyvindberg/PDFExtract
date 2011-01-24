@@ -33,11 +33,8 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: 15.01.11
- * Time: 21.38
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: 15.01.11 Time: 21.38 To change this template use
+ * File | Settings | File Templates.
  */
 public class DrawingSurfaceImpl implements DrawingSurface {
 // ------------------------------ FIELDS ------------------------------
@@ -45,8 +42,8 @@ public class DrawingSurfaceImpl implements DrawingSurface {
 private static final Logger log = Logger.getLogger(DrawingSurfaceImpl.class);
 
 /**
- * These lists will hold the contents while we are drawing it. This is grouped based on
- * physical properties only
+ * These lists will hold the contents while we are drawing it. This is grouped based on physical
+ * properties only
  */
 @NotNull
 final List<GeneralPath>    figurePaths = new ArrayList<GeneralPath>();
@@ -70,7 +67,8 @@ public void clearSurface() {
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 public void drawImage(@NotNull final Image image,
                       @NotNull final AffineTransform at,
-                      @NotNull final Shape clippingPath) {
+                      @NotNull final Shape clippingPath)
+{
     /* transform the coordinates by using the affinetransform. */
     Point2D upperLeft = at.transform(new Point2D.Float(0.0F, 0.0F), null);
 
@@ -108,7 +106,8 @@ public void drawImage(@NotNull final Image image,
 
 public void fill(@NotNull final GeneralPath originalPath,
                  @NotNull final Color color,
-                 Shape currentClippingPath) {
+                 Shape currentClippingPath)
+{
     addVectorPath(originalPath, color, currentClippingPath);
 }
 
@@ -121,7 +120,8 @@ public List<GraphicContent> getGraphicContents() {
 
     for (GeneralPath figurePath : figurePaths) {
         try {
-            final org.elacin.pdfextract.geom.Rectangle pos = convertRectangle(figurePath.getBounds());
+            final org.elacin.pdfextract.geom.Rectangle pos
+                    = convertRectangle(figurePath.getBounds());
             final GraphicContent newFigure = new GraphicContent(pos, false, Color.BLACK);
 
             /* some times bounding boxes around text might be drawn twice, in white and in another colour
@@ -139,7 +139,7 @@ public List<GraphicContent> getGraphicContents() {
             log.warn("LOG00580:Error while filling path " + figurePath + ": ", e);
         }
     }
-
+    combineGraphics(combined);
 
     if (pictures.isEmpty()) {
         if (log.isDebugEnabled()) {
@@ -155,7 +155,8 @@ public List<GraphicContent> getGraphicContents() {
 
 public void strokePath(@NotNull final GeneralPath originalPath,
                        @NotNull final Color color,
-                       Shape currentClippingPath) {
+                       Shape currentClippingPath)
+{
     addVectorPath(originalPath, color, currentClippingPath);
 }
 
@@ -192,20 +193,20 @@ private static void combineGraphics(@NotNull final List<GraphicContent> list) {
         *   to see if its possible to combine */
 
         for (int j = i + 1; j < list.size(); j++) {
-            float minX = current.getPos().getX();
-            float minY = current.getPos().getY();
-            float maxX = current.getPos().getEndX();
-            float maxY = current.getPos().getEndY();
+            float minX = current.getPos().x;
+            float minY = current.getPos().y;
+            float maxX = current.getPos().endX;
+            float maxY = current.getPos().endY;
 
             Color c = current.getColor();
 
             final int firstCombinable = j;
             /* since we sorted the elements there might be several in a row - combine them all*/
             while (j < list.size() && current.canBeCombinedWith(list.get(j))) {
-                minX = Math.min(minX, list.get(j).getPos().getX());
-                minY = Math.min(minY, list.get(j).getPos().getY());
-                maxX = Math.max(maxX, list.get(j).getPos().getEndX());
-                maxY = Math.max(maxY, list.get(j).getPos().getEndY());
+                minX = Math.min(minX, list.get(j).getPos().x);
+                minY = Math.min(minY, list.get(j).getPos().y);
+                maxX = Math.max(maxX, list.get(j).getPos().endX);
+                maxY = Math.max(maxY, list.get(j).getPos().endY);
                 if (!Color.WHITE.equals(c)) {
                     c = list.get(j).getColor();
                 }
@@ -234,8 +235,9 @@ private static void combineGraphics(@NotNull final List<GraphicContent> list) {
                 list.remove(i);
 
                 /* then add the new graphic */
-                list.add(new GraphicContent(new Rectangle(minX, minY,
-                        maxX - minX, maxY - minY), current.isPicture(), c));
+                list.add(new GraphicContent(new Rectangle(minX, minY, maxX - minX, maxY - minY),
+                                            current.isPicture(),
+                                            c));
                 i = -1; // start over
                 break;
             }
@@ -243,21 +245,24 @@ private static void combineGraphics(@NotNull final List<GraphicContent> list) {
     }
 
     if (log.isInfoEnabled() && originalSize != list.size()) {
-        log.info("LOG01310:Combined " + originalSize + " graphical elements into " + list.size()
-                + " in " + (System.currentTimeMillis() - t0) + "ms");
+        log.info("LOG01310:Combined " + originalSize + " graphical elements into " + list.size() + " in " + (System.currentTimeMillis() - t0) + "ms");
     }
 }
 
 @NotNull
 private static Rectangle convertRectangle(@NotNull final java.awt.Rectangle bounds) {
-    return new Rectangle((float) bounds.x, (float) bounds.y, (float) bounds.width, (float) bounds.height);
+    return new Rectangle((float) bounds.x,
+                         (float) bounds.y,
+                         (float) bounds.width,
+                         (float) bounds.height);
 }
 
 // -------------------------- OTHER METHODS --------------------------
 
 private void addVectorPath(@NotNull GeneralPath originalPath,
                            @NotNull Color color,
-                           Shape clippingPath) {
+                           Shape clippingPath)
+{
     if (color.equals(Color.WHITE)) {
         return;
     }

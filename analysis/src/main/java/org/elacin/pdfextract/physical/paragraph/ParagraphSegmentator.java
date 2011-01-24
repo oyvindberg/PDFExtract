@@ -75,7 +75,7 @@ public List<ParagraphNode> segmentParagraphsByStyleAndDistance(@NotNull final Li
                     lastLine = line;
                 }
 
-                final float distance = line.getPos().getY() - lastLine.getPos().getEndY();
+                final float distance = line.getPos().y - lastLine.getPos().endY;
 
                 final boolean split;
                 switch (StyleComparator.styleCompare(currentStyle, lineStyle)) {
@@ -126,10 +126,14 @@ public List<ParagraphNode> segmentParagraphsByStyleAndDistance(@NotNull final Li
 
                 if (split) {
                     if (!currentParagraph.getChildren().isEmpty()) {
-                        if (log.isInfoEnabled()) {
-                            log.info(String.format("LOG00660:Split/style: y:%s, medianVerticalSpacing: %f, distance: %s, style: %s, %s, line: %s",
-                                                   line.getPos().getY(), medianVerticalSpacing,
-                                                   distance, currentStyle, lineStyle, line));
+                        if (log.isDebugEnabled()) {
+                            log.debug(String.format("LOG00660:Split/style: y:%s, " + "medianVerticalSpacing: %f, distance: %s, style: %s, %s, line: %s",
+                                                    line.getPos().y,
+                                                    medianVerticalSpacing,
+                                                    distance,
+                                                    currentStyle,
+                                                    lineStyle,
+                                                    line));
                         }
                         ret.add(currentParagraph);
                     }

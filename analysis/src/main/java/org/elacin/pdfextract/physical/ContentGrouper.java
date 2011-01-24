@@ -82,7 +82,7 @@ public List<RectangleCollection> findBlocksOfContent() {
      * */
 
     /* follow the trails left between the whitespace and construct blocks of text from that */
-    for (float y = rpos.getY(); y < rpos.getEndY(); y++) {
+    for (float y = rpos.y; y < rpos.endY; y++) {
         final List<PhysicalContent> row = region.findContentAtYIndex(y);
 
         /* iterate through the line to find possible start of blocks */
@@ -108,7 +108,7 @@ private void createBlocksForFormulas() {
 
     float minX = Float.MAX_VALUE;
     float endY = Float.MIN_VALUE;
-    for (float y = rpos.getY(); y < rpos.getEndY(); y++) {
+    for (float y = rpos.y; y < rpos.endY; y++) {
         final List<PhysicalContent> row = region.findContentAtYIndex(y);
 
 
@@ -125,13 +125,13 @@ private void createBlocksForFormulas() {
 
         for (PhysicalContent content : row) {
             if (content.isAssignable() && !workingSet.contains(content)) {
-                minX = Math.min(content.getPos().getX(), minX);
-                endY = Math.max(content.getPos().getEndY(), endY);
+                minX = Math.min(content.getPos().x, minX);
+                endY = Math.max(content.getPos().endY, endY);
                 workingSet.add(content);
             }
         }
         /* only detect indented formulas */
-        if (minX < region.getPos().getX() + 20) {
+        if (minX < region.getPos().x + 20) {
             skip = true;
             hasSkipped = true;
             continue;
@@ -145,7 +145,7 @@ private void createBlocksForFormulas() {
                 for (PhysicalContent content : row) {
                     if (content.isAssignable() && !workingSet.contains(content)) {
                         workingSet.add(content);
-                        endY = Math.max(content.getPos().getEndY(), endY);
+                        endY = Math.max(content.getPos().endY, endY);
                     }
 
                 }
@@ -163,7 +163,7 @@ private void createBlocksForFormulas() {
             }
 
             /* if there was no non-formula text inbetween, combine this with the last block */
-            if (!hasSkipped) {
+            if (!hasSkipped && !allBlocks.isEmpty()) {
                 allBlocks.get(allBlocks.size() - 1).addContents(currentBlock.getContents());
             } else {
                 allBlocks.add(currentBlock);
@@ -216,18 +216,18 @@ private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent curre
 
     /* try searching for texts in all directions */
 
-    int startY = 1 + (int) Math.max(rpos.getY(), current.getPos().getY());
-    int endY = -1 + (int) Math.min(rpos.getEndY(), current.getPos().getEndY());
+    int startY = (int) Math.max(rpos.y, current.getPos().y);
+    int endY = (int) Math.min(rpos.endY, current.getPos().endY);
 
-    for (int y = startY + 1; y < endY; y += 2) {
+    for (int y = startY + 1; y < endY; y++) {
         markBothWaysFromCurrent(current, region.findContentAtYIndex(y));
 
     }
 
-    int startX = 1 + (int) Math.max(rpos.getX(), current.getPos().getX());
-    int endX = -1 + (int) Math.min(rpos.getEndX(), current.getPos().getEndX());
+    int startX = 1 + (int) Math.max(rpos.x, current.getPos().x);
+    int endX = -1 + (int) Math.min(rpos.endX, current.getPos().endX);
 
-    for (int x = startX; x < endX - 1; x += 2) {
+    for (int x = startX; x < endX - 1; x++) {
         markBothWaysFromCurrent(current, region.findContentAtXIndex(x));
     }
     return true;

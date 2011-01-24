@@ -39,6 +39,17 @@ private static final Logger log = Logger.getLogger(PageRegionSplitBySeparators.c
 
 // -------------------------- STATIC METHODS --------------------------
 
+static void splitRegionAtY(final PhysicalPageRegion r, final float splitAt) {
+    Rectangle rpos = r.getPos();
+
+    Rectangle above = new Rectangle(rpos.x, 0.0f, rpos.width + 1, splitAt);
+    r.extractSubRegionFromBound(above, false);
+
+    Rectangle under = new Rectangle(rpos.x, splitAt, rpos.width + 1, rpos.endY - splitAt);
+    r.extractSubRegionFromBound(under, false);
+
+}
+
 /**
  * Divide the region r by horizontal and vertical separators
  *
@@ -50,13 +61,14 @@ static void splitRegionBySeparators(@NotNull PhysicalPageRegion r,
 {
     List<GraphicContent> toRemove = new ArrayList<GraphicContent>();
     for (GraphicContent hsep : graphics.getHorizontalSeparators()) {
-        if (hsep.getPos().getWidth() < r.getPos().getWidth() * 0.6f || hsep.getPos().getY() <= 0) {
+        float splitAt = hsep.getPos().y;
+
+        if (hsep.getPos().width < r.getPos().width * 0.6f || splitAt <= 0 || splitAt >= r.getPos().endY) {
             continue;
         }
 
         /* search to see if this separator does not intersect with anything*/
-        Rectangle search = new Rectangle(0, hsep.getPos().getY(), r.getWidth(),
-                                         hsep.getPos().getHeight());
+        Rectangle search = new Rectangle(0, splitAt, r.getWidth(), hsep.getPos().height);
 
         final List<PhysicalContent> list = r.findContentsIntersectingWith(search);
         if (list.contains(hsep)) {
@@ -64,7 +76,7 @@ static void splitRegionBySeparators(@NotNull PhysicalPageRegion r,
         }
         for (Iterator<PhysicalContent> iterator = list.iterator(); iterator.hasNext();) {
             final PhysicalContent content = iterator.next();
-            if (hsep.getPos().contains(content)) {
+            if (hsep.getPos().contains(content.getPos())) {
                 iterator.remove();
             }
         }
@@ -74,23 +86,10 @@ static void splitRegionBySeparators(@NotNull PhysicalPageRegion r,
                 log.info("LOG00880:split/hsep: splitting " + hsep);
             }
 
-            Rectangle above = new Rectangle(r.getPos().getX(), 0.0f, r.getWidth() + 1,
-                                            hsep.getPos().getY());
-
-
-            r.extractSubRegionFromBound(above);
-
-
-            Rectangle under = new Rectangle(r.getPos().getX(), hsep.getPos().getY(),
-                                            r.getWidth() + 1,
-                                            r.getPos().getEndY() - hsep.getPos().getY());
-
-
-            r.extractSubRegionFromBound(under);
+            splitRegionAtY(r, splitAt);
 
             //                r.addContent(hsep);
             toRemove.add(hsep);
-
         } else {
             /* just add this for now*/
             r.addContent(hsep);

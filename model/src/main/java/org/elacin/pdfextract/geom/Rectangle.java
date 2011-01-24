@@ -25,11 +25,11 @@ import org.jetbrains.annotations.Nullable;
  * using that class was that is isnt available in an integer version.
  */
 
-public class Rectangle implements HasPosition {
-public static final Rectangle EMPTY_RECTANGLE = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
+public final class Rectangle extends HasPositionAbstract {
 // ------------------------------ FIELDS ------------------------------
 
-private final float x, y, width, height, endX, endY;
+public static final Rectangle EMPTY_RECTANGLE = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
+public final float x, y, width, height, endX, endY;
 
 /* caching, we do a lot of comparing */
 private transient boolean hasCalculatedHash;
@@ -51,13 +51,7 @@ public Rectangle(final float x, final float y, final float width, final float he
     if (width <= 0.0f) {
         throw new IllegalArgumentException("width must be positive " + this);
     }
-    //	if (x < 0.0f) {
-    //		throw new IllegalArgumentException("x can not be negative");
-    //	}
-    //	if (y < 0.0f) {
-    //	if (y < 0.0f) {
-    //		throw new IllegalArgumentException("y can not be negative");
-    //	}
+    setPos(this);
 }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -65,9 +59,8 @@ public Rectangle(final float x, final float y, final float width, final float he
 
 // --------------------- Interface HasPosition ---------------------
 
-@NotNull
-public Rectangle getPos() {
-    return this;
+public void calculatePos() {
+    assert false;
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
@@ -130,32 +123,6 @@ public String toString() {
     return sb.toString();
 }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
-
-public float getEndX() {
-    return endX;
-}
-
-public float getEndY() {
-    return endY;
-}
-
-public float getHeight() {
-    return height;
-}
-
-public float getWidth() {
-    return width;
-}
-
-public float getX() {
-    return x;
-}
-
-public float getY() {
-    return y;
-}
-
 // -------------------------- PUBLIC METHODS --------------------------
 
 /**
@@ -181,8 +148,7 @@ public FloatPoint centre() {
  * @param r The rectangle that might contain this rectangle
  * @return true if the passed rectangle contains this rectangle, false if it does not
  */
-public boolean containedBy(@NotNull HasPosition rectangle) {
-    final Rectangle r = rectangle.getPos();
+public boolean containedBy(@NotNull Rectangle r) {
     return r.endX >= endX && r.x <= x && r.endY >= endY && r.y <= y;
 }
 
@@ -192,9 +158,8 @@ public boolean containedBy(@NotNull HasPosition rectangle) {
  * @param r The rectangle that might be contained by this rectangle
  * @return true if this rectangle contains the passed rectangle, false if it does not
  */
-public boolean contains(@NotNull HasPosition r) {
-    return endX >= r.getPos().endX && x <= r.getPos().x && endY >= r.getPos().endY
-                   && y <= r.getPos().y;
+public boolean contains(@NotNull Rectangle r) {
+    return endX >= r.endX && x <= r.x && endY >= r.endY && y <= r.y;
 }
 
 /**
@@ -231,8 +196,8 @@ public float distance(@NotNull final FloatPoint p) {
  * @param that another rectangle
  * @return the distance
  */
-public float distance(@NotNull HasPosition that_) {
-    final Rectangle that = that_.getPos();
+public float distance(@NotNull Rectangle that) {
+
     if (intersectsWith(that)) {
         return 0.0f;
     }
@@ -254,11 +219,9 @@ public float distance(@NotNull HasPosition that_) {
 
 @NotNull
 public Rectangle getAdjustedBy(float adjust) {
-    return new Rectangle(Math.max(0.1f, x - adjust), Math.max(0.1f, y - adjust), Math.max(0.1f,
-                                                                                          width
-                                                                                                  +
-                                                                                                  2
-                                                                                                          * adjust),
+    return new Rectangle(Math.max(0.1f, x - adjust),
+                         Math.max(0.1f, y - adjust),
+                         Math.max(0.1f, width + 2 * adjust),
                          Math.max(0.1f, height + 2 * adjust));
 }
 
@@ -270,20 +233,29 @@ public float getMiddleY() {
     return y + height / 2.0f;
 }
 
-@NotNull
-public Rectangle intersection(@NotNull HasPosition that) {
-    final Rectangle pos = that.getPos();
+public float getVerticalDistanceTo(@NotNull Rectangle that) {
+    if (that.endY < y) {
+        return y - that.endY;
+    }
+    if (that.y > endY) {
+        return endY - that.y;
+    }
 
-    float maxX = Math.max(endX, pos.endX);
-    float maxY = Math.max(endY, pos.endY);
-    float minX = Math.min(x, pos.x);
-    float minY = Math.min(y, pos.y);
+    return 0.0f;
+}
+
+@NotNull
+public Rectangle intersection(@NotNull Rectangle that) {
+
+    float maxX = Math.max(endX, that.endX);
+    float maxY = Math.max(endY, that.endY);
+    float minX = Math.min(x, that.x);
+    float minY = Math.min(y, that.y);
 
     return new Rectangle(minX, minY, maxX - minX, maxY - minY);
 }
 
-public boolean intersectsExclusiveWith(@NotNull HasPosition other) {
-    final Rectangle that = other.getPos();
+public boolean intersectsExclusiveWith(@NotNull Rectangle that) {
 
     if (isEmpty()) {
         return false;
@@ -301,8 +273,7 @@ public boolean intersectsExclusiveWith(@NotNull HasPosition other) {
     return that.endY >= y;
 }
 
-public boolean intersectsWith(@NotNull HasPosition other) {
-    final Rectangle that = other.getPos();
+public boolean intersectsWith(@NotNull Rectangle that) {
 
     if (isEmpty()) {
         return false;
@@ -331,13 +302,12 @@ public final boolean isEmpty() {
  * I stole this code from java.awt.geom.Rectange2D, im sure the details make sense :)
  */
 @NotNull
-public Rectangle union(@NotNull HasPosition that) {
-    Rectangle other = that.getPos();
+public Rectangle union(@NotNull Rectangle that) {
 
-    float x1 = Math.min(x, other.x);
-    float y1 = Math.min(y, other.y);
-    float x2 = Math.max(endX, other.endX);
-    float y2 = Math.max(endY, other.endY);
+    float x1 = Math.min(x, that.x);
+    float y1 = Math.min(y, that.y);
+    float x2 = Math.max(endX, that.endX);
+    float y2 = Math.max(endY, that.endY);
     if (x2 < x1) {
         float t = x1;
         x1 = x2;
@@ -350,18 +320,4 @@ public Rectangle union(@NotNull HasPosition that) {
     }
     return new Rectangle(x1, y1, x2 - x1, y2 - y1);
 }
-
-public float getVerticalDistanceTo(@NotNull HasPosition that) {
-    if (that.getPos().endY < y) {
-        return y - that.getPos().endY;
-    }
-    if (that.getPos().y > endY) {
-        return endY - that.getPos().y;
-    }
-
-    return 0.0f;
-
-}
-
-
 }

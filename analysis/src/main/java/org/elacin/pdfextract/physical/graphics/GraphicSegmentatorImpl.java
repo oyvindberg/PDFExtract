@@ -49,8 +49,8 @@ private final float h;
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public GraphicSegmentatorImpl(final Rectangle dims) {
-    w = dims.getWidth();
-    h = dims.getHeight();
+    w = dims.width;
+    h = dims.height;
 }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -89,21 +89,21 @@ public CategorizedGraphics categorizeGraphics(@NotNull List<GraphicContent> grap
  * consider the graphic a separator if the aspect ratio is high
  */
 public static boolean canBeConsideredHorizontalSeparator(@NotNull GraphicContent g) {
-    if (g.getPos().getHeight() > 15.0f) {
+    if (g.getPos().height > 15.0f) {
         return false;
     }
 
-    return g.getPos().getWidth() / g.getPos().getHeight() > 10.0f;
+    return g.getPos().width / g.getPos().height > 10.0f;
 }
 
 public static boolean canBeConsideredMathBarInRegion(@NotNull GraphicContent g,
                                                      @NotNull final PhysicalPageRegion region)
 {
-    if (g.getPos().getHeight() > 5.0f) {
+    if (g.getPos().height > 5.0f) {
         return false;
     }
 
-    if (g.getPos().getWidth() / g.getPos().getHeight() < 6.0f) {
+    if (g.getPos().width / g.getPos().height < 6.0f) {
         return false;
     }
 
@@ -111,10 +111,10 @@ public static boolean canBeConsideredMathBarInRegion(@NotNull GraphicContent g,
     boolean foundOver = false, foundUnder = false, foundMath = false;
 
     for (PhysicalContent content : surrounding) {
-        if (content.getPos().getY() < g.getPos().getEndY()) {
+        if (content.getPos().y < g.getPos().endY) {
             foundUnder = true;
         }
-        if (content.getPos().getEndY() > g.getPos().getY()) {
+        if (content.getPos().endY > g.getPos().y) {
             foundOver = true;
         }
         if (content.isText()) {
@@ -141,11 +141,11 @@ public static boolean canBeConsideredMathBarInRegion(@NotNull GraphicContent g,
  * consider the graphic a separator if the aspect ratio is high
  */
 public static boolean canBeConsideredVerticalSeparator(@NotNull GraphicContent g) {
-    if (g.getPos().getWidth() > 15.0f) {
+    if (g.getPos().width > 15.0f) {
         return false;
     }
 
-    return g.getPos().getHeight() / g.getPos().getWidth() > 15.0f;
+    return g.getPos().height / g.getPos().width > 15.0f;
 }
 
 // -------------------------- STATIC METHODS --------------------------
@@ -176,8 +176,8 @@ private List<GraphicContent> combineHorizontalSeparators(@NotNull CategorizedGra
     for (int i = 0; i < ret.getHorizontalSeparators().size(); i++) {
         GraphicContent hsep = ret.getHorizontalSeparators().get(i);
 
-        int x = (int) hsep.getPos().getX();
-        int w = (int) hsep.getPos().getWidth();
+        int x = (int) hsep.getPos().x;
+        int w = (int) hsep.getPos().width;
         String combineString = String.valueOf(x) + hsep.getColor() + w;
 
         if (!hsepsForXCoordinate.containsKey(combineString)) {

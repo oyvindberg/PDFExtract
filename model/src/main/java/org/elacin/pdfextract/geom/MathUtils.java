@@ -56,10 +56,10 @@ private static Rectangle findBounds_(final Collection<? extends HasPosition> con
         if (!countWhitespace && content instanceof WhitespaceRectangle) {
             continue;
         }
-        minX = Math.min(minX, content.getPos().getX());
-        minY = Math.min(minY, content.getPos().getY());
-        maxX = Math.max(maxX, content.getPos().getEndX());
-        maxY = Math.max(maxY, content.getPos().getEndY());
+        minX = Math.min(minX, content.getPos().x);
+        minY = Math.min(minY, content.getPos().y);
+        maxX = Math.max(maxX, content.getPos().endX);
+        maxY = Math.max(maxY, content.getPos().endY);
         counted++;
     }
     final Rectangle newPos;
@@ -80,8 +80,7 @@ public static boolean isWithinPercent(final float num1, final float num2, final 
         return true;
     }
 
-    return (num1 + num1 / 100.0F * percentage) >= num2
-                   && (num1 - num1 / 100.0F * percentage) <= num2;
+    return (num1 + num1 / 100.0F * percentage) >= num2 && (num1 - num1 / 100.0F * percentage) <= num2;
 }
 
 /**

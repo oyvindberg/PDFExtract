@@ -51,6 +51,7 @@ public WordNode(final Rectangle position,
                 final String text,
                 final float charSpacing)
 {
+    setPos(position);
     this.position = position;
     this.pageNum = pageNum;
     this.style = style;
@@ -63,8 +64,8 @@ public WordNode(final Rectangle position,
 
 // --------------------- Interface HasPosition ---------------------
 
-public Rectangle getPos() {
-    return position;
+public void calculatePos() {
+    assert false;
 }
 
 // --------------------- Interface StyledText ---------------------
@@ -87,8 +88,8 @@ public String getText() {
 @Override
 public String toString() {
     if (toStringCache == null) {
-        toStringCache = "WordNode{text='" + text + '\'' + ", position=" + position + ", style="
-                                + style + '}';
+        toStringCache
+                = "WordNode{text='" + text + '\'' + ", position=" + position + ", style=" + style + '}';
     }
     return toStringCache;
 }
@@ -106,7 +107,7 @@ public int getPageNum() {
 // -------------------------- PUBLIC METHODS --------------------------
 
 public boolean isPartOfSameWordAs(@NotNull final WordNode nextNode) {
-    float distance = nextNode.position.getX() - position.getEndX();
+    float distance = nextNode.position.x - position.endX;
     return distance <= charSpacing;// * 1.01f;
 }
 

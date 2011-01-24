@@ -18,7 +18,7 @@ package org.elacin.pdfextract.tree;
 
 
 import org.apache.log4j.Logger;
-import org.elacin.pdfextract.geom.HasPosition;
+import org.elacin.pdfextract.geom.HasPositionAbstract;
 import org.elacin.pdfextract.logical.text.Role;
 import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
@@ -30,7 +30,8 @@ import java.util.EnumSet;
  * Created by IntelliJ IDEA. User: elacin Date: Mar 23, 2010 Time: 7:44:33 AM To change this
  * template use File | Settings | File Templates.
  */
-public abstract class AbstractNode<ParentType extends AbstractParentNode> implements HasPosition {
+public abstract class AbstractNode<ParentType extends AbstractParentNode>
+        extends HasPositionAbstract {
 // ------------------------------ FIELDS ------------------------------
 
 protected static final Logger        log   = Logger.getLogger(AbstractNode.class);

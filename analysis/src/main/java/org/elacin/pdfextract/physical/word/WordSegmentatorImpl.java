@@ -65,13 +65,15 @@ public List<PhysicalText> segmentWords(@NotNull final List<PhysicalText> texts) 
         /* if this is the first text in a line */
         if (line.isEmpty()) {
             baseline = text.getBaseLine();
-            maxX = text.getPos().getEndX();
+            maxX = text.getPos().endX;
             currentStyle = text.getStyle();
         }
 
-        final boolean stopGrouping = isOnAnotherLine(baseline, text, maxY)
-                                             || isTooFarAwayHorizontally(maxX, text)
-                                             || fontDiffers(currentStyle, text);
+        final boolean stopGrouping = isOnAnotherLine(baseline,
+                                                     text,
+                                                     maxY) || isTooFarAwayHorizontally(maxX,
+                                                                                       text) || fontDiffers(currentStyle,
+                                                                                                            text);
 
         if (stopGrouping) {
             if (!line.isEmpty()) {
@@ -79,14 +81,14 @@ public List<PhysicalText> segmentWords(@NotNull final List<PhysicalText> texts) 
                 line.clear();
             }
             baseline = text.getBaseLine();
-            maxY = text.getPos().getEndY();
+            maxY = text.getPos().endY;
             currentStyle = text.getStyle();
         }
 
         /* then add the current text to start next line */
         line.add(text);
-        maxY = Math.max(maxY, text.getPos().getEndX());
-        maxX = text.getPos().getEndX();
+        maxY = Math.max(maxY, text.getPos().endX);
+        maxX = text.getPos().endX;
     }
 
     if (!line.isEmpty()) {
@@ -143,7 +145,7 @@ public static Collection<PhysicalText> createWordsInLine(@NotNull final List<Phy
     /* this is necessary to keep track of the width of the last character we
      *  combined into a a word, else it would disappear when combining
      * */
-    float currentWidth = queue.peek().getPos().getWidth();
+    float currentWidth = queue.peek().getPos().width;
 
     if (log.isDebugEnabled()) {
         printLine(line);
@@ -177,11 +179,7 @@ public static Collection<PhysicalText> createWordsInLine(@NotNull final List<Phy
             isWordBoundary = distance - charSpacing > (fontSize / 8.0f) + charSpacing * 0.5;
 
             if (log.isDebugEnabled()) {
-                log.debug(currentWord.getText() + "[" + currentWidth + "] " + distance + " "
-                                  + nextChar.getText() + "[" + nextChar.getPos().getWidth()
-                                  + "]: isWordBoundary=" + isWordBoundary + ", effictive distance:"
-                                  + (distance - charSpacing) + ", fontSize:" + (fontSize)
-                                  + ", charSpacing:" + charSpacing);
+                log.debug(currentWord.getText() + "[" + currentWidth + "] " + distance + " " + nextChar.getText() + "[" + nextChar.getPos().width + "]: isWordBoundary=" + isWordBoundary + ", effictive distance:" + (distance - charSpacing) + ", fontSize:" + (fontSize) + ", charSpacing:" + charSpacing);
             }
         }
 
@@ -198,7 +196,7 @@ public static Collection<PhysicalText> createWordsInLine(@NotNull final List<Phy
             queue.add(combinedWord);
         }
 
-        currentWidth = nextChar.getPos().getWidth();
+        currentWidth = nextChar.getPos().width;
     }
 
     for (PhysicalText text : segmentedWords) {
@@ -310,9 +308,9 @@ private static boolean isOnAnotherLine(final float baseline,
 private static boolean isTooFarAwayHorizontally(final float endX,
                                                 @NotNull final PhysicalText text)
 {
-    final float variation = text.getPos().getWidth();
+    final float variation = text.getPos().width;
 
-    return !isWithinVariance(endX, text.getPos().getX(), variation);
+    return !isWithinVariance(endX, text.getPos().x, variation);
 }
 
 private static void printLine(@NotNull List<PhysicalText> physicalTexts) {

@@ -16,8 +16,7 @@
 
 package org.elacin.pdfextract.content;
 
-import org.elacin.pdfextract.geom.HasPosition;
-import org.elacin.pdfextract.geom.MathUtils;
+import org.elacin.pdfextract.geom.HasPositionAbstract;
 import org.elacin.pdfextract.geom.Rectangle;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -28,19 +27,14 @@ import java.util.Collection;
  * Created by IntelliJ IDEA. User: elacin Date: Nov 3, 2010 Time: 4:37:52 AM To change this template
  * use File | Settings | File Templates.
  */
-public abstract class PhysicalContent implements HasPosition {
-// ------------------------------ FIELDS ------------------------------
-
-protected Rectangle pos;
-
+public abstract class PhysicalContent extends HasPositionAbstract {
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public PhysicalContent(final Rectangle pos) {
-    this.pos = pos;
+    setPos(pos);
 }
 
-public PhysicalContent(@NotNull final Collection<? extends PhysicalContent> contents) {
-    setPositionFromContentList(contents);
+protected PhysicalContent(@NotNull final Collection<? extends PhysicalContent> contents) {
 }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -48,8 +42,8 @@ public PhysicalContent(@NotNull final Collection<? extends PhysicalContent> cont
 
 // --------------------- Interface HasPosition ---------------------
 
-public Rectangle getPos() {
-    return pos;
+public void calculatePos() {
+    assert false;
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
@@ -68,7 +62,7 @@ public boolean equals(@Nullable final Object o)
 
     final PhysicalContent content = (PhysicalContent) o;
 
-    if (!pos.equals(content.pos)) {
+    if (!getPos().equals(content.getPos())) {
         return false;
     }
 
@@ -77,14 +71,14 @@ public boolean equals(@Nullable final Object o)
 
 @Override
 public int hashCode() {
-    return pos.hashCode();
+    return getPos().hashCode();
 }
 
 @Override
 public String toString() {
     final StringBuilder sb = new StringBuilder();
     sb.append(getClass().getSimpleName());
-    sb.append("{position=").append(pos);
+    sb.append("{position=").append(getPos());
     sb.append('}');
     return sb.toString();
 }
@@ -132,13 +126,5 @@ public boolean isText() {
 
 public boolean isWhitespace() {
     return false;
-}
-
-// -------------------------- OTHER METHODS --------------------------
-
-protected final void setPositionFromContentList(@NotNull final Collection<? extends
-                                                                                  PhysicalContent> contents)
-{
-    pos = MathUtils.findBoundsExcludingWhitespace(contents);
 }
 }

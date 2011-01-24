@@ -53,8 +53,19 @@ public ETextPosition(final PDPage page,
                      final PDFont currentFont,
                      final float fontSizeValue,
                      final int fontSizeInPt,
-                     final float ws) {
-    super(page, textPositionSt, textPositionEnd, maxFontH, individualWidths, spaceWidth, string, currentFont, fontSizeValue, fontSizeInPt, ws);
+                     final float ws)
+{
+    super(page,
+          textPositionSt,
+          textPositionEnd,
+          maxFontH,
+          individualWidths,
+          spaceWidth,
+          string,
+          currentFont,
+          fontSizeValue,
+          fontSizeInPt,
+          ws);
 
     float x = getXDirAdj();
     float y = getYDirAdj();
@@ -70,14 +81,22 @@ public ETextPosition(final PDPage page,
         h *= 1.5;
 
         if (log.isDebugEnabled()) {
-            log.debug(String.format("LOG00630:Guessing height of text %s at (%s,%s). height = %f", string, x, y, h));
+            log.debug(String.format("LOG00630:Guessing height of text %s at (%s,%s). height = %f",
+                                    string,
+                                    x,
+                                    y,
+                                    h));
         }
     }
 
     if (w <= 0.0f) {
         w = getHeight() / 2.0f;
         if (log.isDebugEnabled()) {
-            log.debug(String.format("LOG00630:Guessing width of text %s at (%s,%s). height = %f", string, x, y, w));
+            log.debug(String.format("LOG00630:Guessing width of text %s at (%s,%s). height = %f",
+                                    string,
+                                    x,
+                                    y,
+                                    w));
         }
     }
 
@@ -92,6 +111,14 @@ public ETextPosition(final PDPage page,
 @NotNull
 public Rectangle getPos() {
     return pos;
+}
+
+public void calculatePos() {
+    assert false;
+}
+
+public void invalidatePos() {
+    assert false;
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------

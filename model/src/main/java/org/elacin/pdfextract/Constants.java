@@ -32,8 +32,8 @@ public static final boolean SPLIT_PARAGRAPHS_BY_STYLES = true;
 public static final boolean RECTANGLE_COLLECTION_CACHE_ENABLED = true;
 
 /* rendering */
-public static final boolean RENDER_ENABLED    = true;
-public static final boolean RENDER_REAL_PAGE  = false;
+public static final boolean RENDER_ENABLED    = false;
+public static final boolean RENDER_REAL_PAGE  = true;
 public static final int     RENDER_RESOLUTION = 100;
 public static final int     RENDER_DPI        = 72;
 
@@ -42,10 +42,10 @@ public static final boolean RENDER_WHITESPACE        = true;
 public static final boolean RENDER_COLUMNS           = true;
 public static final boolean RENDER_COLUMN_CANDIDATES = false;
 
-public static final boolean RENDER_PARAGRAPHS        = true;
+public static final boolean RENDER_PARAGRAPHS        = false;
 public static final boolean RENDER_PARAGRAPH_NUMBERS = true;
 public static final boolean RENDER_GRAPHIC_NODES     = true;
-public static final boolean RENDER_LINE_NODES        = true;
+public static final boolean RENDER_LINE_NODES        = false;
 public static final boolean RENDER_PAGE_REGIONS      = false;
 
 /* xmls output */
@@ -59,7 +59,7 @@ public static final String  TEI_OUTPUT_EXTENSION    = ".tei.xml";
 
 /* whitespace cover algorithm */
 public static final boolean WHITESPACE_CHECK_LOCAL_HEIGHT        = true;
-public static final boolean WHITESPACE_CHECK_TEXT_BOTH_SIDES     = false;
+public static final boolean WHITESPACE_CHECK_TEXT_BOTH_SIDES     = true;
 public static final boolean WHITESPACE_CHECK_CONNECTED_FROM_EDGE = true;
 public static final boolean WHITESPACE_FUZZY_EMPTY_CHECK         = true;
 public static final float   WHITESPACE_FUZZINESS                 = 0.15f;

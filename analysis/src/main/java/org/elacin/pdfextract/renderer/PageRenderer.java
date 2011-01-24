@@ -109,15 +109,19 @@ private void drawRegionAndWhitespace(@NotNull PhysicalPageRegion region, final i
         Stroke oldStroke = graphics.getStroke();
 
         final float dash1[] = {(float) (1 + 3 * nesting)};
-        final BasicStroke dashed = new BasicStroke(3.0f, BasicStroke.CAP_BUTT,
-                                                   BasicStroke.JOIN_MITER, 10.0f, dash1, 0.0f);
+        final BasicStroke dashed = new BasicStroke(3.0f,
+                                                   BasicStroke.CAP_BUTT,
+                                                   BasicStroke.JOIN_MITER,
+                                                   10.0f,
+                                                   dash1,
+                                                   0.0f);
 
         graphics.setStroke(dashed);
         graphics.setColor(color);
-        final int x = (int) ((float) pos.getX() * xScale);
-        final int width = (int) ((float) pos.getWidth() * xScale);
-        int y = (int) ((float) pos.getY() * yScale);
-        final int height = (int) ((float) pos.getHeight() * yScale);
+        final int x = (int) ((float) pos.x * xScale);
+        final int width = (int) ((float) pos.width * xScale);
+        int y = (int) ((float) pos.y * yScale);
+        final int height = (int) ((float) pos.height * yScale);
 
         RoundRectangle2D.Double r = new RoundRectangle2D.Double(x, y, width, height, 20.0, 20.0);
         graphics.draw(r);
@@ -203,8 +207,8 @@ public BufferedImage renderToFile(final int pageNum, File outputFile) {
 
         float scaling = resolution / (float) RENDER_DPI;
 
-        int widthPx = Math.round(dims.getWidth() * scaling);
-        int heightPx = Math.round(dims.getHeight() * scaling);
+        int widthPx = Math.round(dims.width * scaling);
+        int heightPx = Math.round(dims.height * scaling);
 
         BufferedImage ret = new BufferedImage(widthPx, heightPx, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = (Graphics2D) ret.getGraphics();
@@ -249,7 +253,8 @@ public BufferedImage renderToFile(final int pageNum, File outputFile) {
         log.warn("Error while writing rendered image to file", e);
     }
 
-    log.info(String.format("LOG00180:Rendered page %d in %d ms", pageNum,
+    log.info(String.format("LOG00180:Rendered page %d in %d ms",
+                           pageNum,
                            System.currentTimeMillis() - t0));
 
     return image;
@@ -284,10 +289,10 @@ private void drawRectangle(@NotNull final HasPosition object) {
     }
 
     graphics.setColor(color);
-    final int x = (int) ((float) pos.getX() * xScale);
-    final int width = (int) ((float) pos.getWidth() * xScale);
-    int y = (int) ((float) pos.getY() * yScale);
-    final int height = (int) ((float) pos.getHeight() * yScale);
+    final int x = (int) ((float) pos.x * xScale);
+    final int width = (int) ((float) pos.width * xScale);
+    int y = (int) ((float) pos.y * yScale);
+    final int height = (int) ((float) pos.height * yScale);
 
     graphics.drawRect(x, y, width, height);
     if (true) {
@@ -300,8 +305,8 @@ private void drawParagraphNumber(@NotNull HasPosition p) {
 
 
     graphics.setFont(new Font("TimesRoman", Font.BOLD | Font.ITALIC, 20));
-    final float x = p.getPos().getX() * xScale;
-    final float y = p.getPos().getY() * yScale;
+    final float x = p.getPos().x * xScale;
+    final float y = p.getPos().y * yScale;
 
     graphics.setColor(Color.red.brighter().brighter());
     //    graphics.setBackground(Color.red.brighter().brighter());
@@ -328,9 +333,9 @@ private void drawTree(@NotNull PageNode page) {
         //            }
 
         drawRectangle(graphicsNode);
-        if (RENDER_PARAGRAPH_NUMBERS) {
-            drawParagraphNumber(graphicsNode);
-        }
+        //        if (RENDER_PARAGRAPH_NUMBERS) {
+        //            drawParagraphNumber(graphicsNode);
+        //        }
     }
 
     for (ParagraphNode paragraphNode : page.getChildren()) {

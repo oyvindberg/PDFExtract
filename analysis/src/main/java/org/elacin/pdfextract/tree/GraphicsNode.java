@@ -33,7 +33,15 @@ private Rectangle graphicsPos;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
+
+@Override
+public void calculatePos() {
+    super.calculatePos();
+    setPos(getPos().union(graphicsPos));
+}
+
 public GraphicsNode(final Rectangle graphicsPos) {
+    setPos(graphicsPos);
     this.graphicsPos = graphicsPos;
 }
 
@@ -45,12 +53,6 @@ public Rectangle getGraphicsPos() {
 
 public void setGraphicsPos(final Rectangle graphicsPos) {
     this.graphicsPos = graphicsPos;
-}
-
-@NotNull
-@Override
-public Rectangle getPos() {
-    return graphicsPos;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
@@ -69,8 +71,7 @@ public Comparator<ParagraphNode> getChildComparator() {
                 return 1;
             }
 
-            return (o1.getPos().getY() < o2.getPos().getY() ? -1 :
-                            (o1.getSeqNo() == o2.getSeqNo() ? 0 : 1));
+            return (o1.getPos().y < o2.getPos().y ? -1 : (o1.getSeqNo() == o2.getSeqNo() ? 0 : 1));
         }
     };
 }

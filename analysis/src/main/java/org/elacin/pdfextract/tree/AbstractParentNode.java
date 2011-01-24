@@ -17,11 +17,9 @@
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.geom.MathUtils;
-import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.logical.text.Role;
 import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.*;
@@ -33,10 +31,6 @@ import java.util.*;
 public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentType extends AbstractParentNode>
         extends AbstractNode<ParentType> {
 // ------------------------------ FIELDS ------------------------------
-
-/* a cache of group position */
-@Nullable
-protected Rectangle posCache;
 
 /* children nodes */
 @NotNull
@@ -56,13 +50,11 @@ public AbstractParentNode() {
 
 // --------------------- Interface HasPosition ---------------------
 
-@NotNull
-public Rectangle getPos() {
-    if (posCache == null) {
-        posCache = MathUtils.findBounds(children);
-    }
-    return posCache;
+
+public void calculatePos() {
+    setPos(MathUtils.findBounds(children));
 }
+
 
 // ------------------------ CANONICAL METHODS ------------------------
 
@@ -150,7 +142,7 @@ public String getText() {
 // -------------------------- OTHER METHODS --------------------------
 
 protected void invalidateThisAndParents() {
-    posCache = null;
+    invalidatePos();
     textCache = null;
     toStringCache = null;
 
@@ -169,15 +161,15 @@ protected class StandardNodeComparator implements Comparator<ChildType>, Seriali
     private static final long serialVersionUID = 3903290320365277004L;
 
     public int compare(@NotNull final ChildType o1, @NotNull final ChildType o2) {
-        if (o1.getPos().getY() < o2.getPos().getY()) {
+        if (o1.getPos().y < o2.getPos().y) {
             return -1;
-        } else if (o1.getPos().getY() > o2.getPos().getY()) {
+        } else if (o1.getPos().y > o2.getPos().y) {
             return 1;
         }
 
-        if (o1.getPos().getX() < o2.getPos().getX()) {
+        if (o1.getPos().x < o2.getPos().x) {
             return -1;
-        } else if (o1.getPos().getX() > o2.getPos().getX()) {
+        } else if (o1.getPos().x > o2.getPos().x) {
             return 1;
         }
 

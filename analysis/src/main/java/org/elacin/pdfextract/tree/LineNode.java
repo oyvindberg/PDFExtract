@@ -80,9 +80,9 @@ public Comparator<WordNode> getChildComparator() {
     if (findDominatingStyle().equals(Style.FORMULA)) {
         return new Comparator<WordNode>() {
             public int compare(@NotNull final WordNode o1, @NotNull final WordNode o2) {
-                if (o1.getPos().getX() < o2.getPos().getX()) {
+                if (o1.getPos().x < o2.getPos().x) {
                     return -1;
-                } else if (o1.getPos().getX() > o2.getPos().getX()) {
+                } else if (o1.getPos().x > o2.getPos().x) {
                     return 1;
                 }
 
@@ -93,22 +93,22 @@ public Comparator<WordNode> getChildComparator() {
 
     return new Comparator<WordNode>() {
         public int compare(@NotNull final WordNode o1, @NotNull final WordNode o2) {
-            if (o1.getPos().getEndY() < o2.getPos().getY()) {
+            if (o1.getPos().endY < o2.getPos().y) {
                 return -1;
             }
-            if (o1.getPos().getY() > o2.getPos().getEndY()) {
+            if (o1.getPos().y > o2.getPos().endY) {
                 return 1;
             }
-            if (o1.getPos().getEndX() < o2.getPos().getX()) {
+            if (o1.getPos().endX < o2.getPos().x) {
                 return -1;
             }
-            if (o1.getPos().getX() > o2.getPos().getEndX()) {
+            if (o1.getPos().x > o2.getPos().endX) {
                 return 1;
             }
-            if (!MathUtils.isWithinPercent(o1.getPos().getY(), o2.getPos().getY(), 4)) {
-                return Float.compare(o1.getPos().getY(), o2.getPos().getY());
+            if (!MathUtils.isWithinPercent(o1.getPos().y, o2.getPos().y, 4)) {
+                return Float.compare(o1.getPos().y, o2.getPos().y);
             }
-            return Float.compare(o1.getPos().getX(), o2.getPos().getX());
+            return Float.compare(o1.getPos().x, o2.getPos().x);
         }
     };
 }
@@ -120,7 +120,7 @@ private boolean isIndented() {
         return false;
     }
 
-    final float paragraphX = getParent().getPos().getX();
-    return getPos().getX() > paragraphX + 5.0f;//(float) findDominatingStyle().xSize * 2.0f;
+    final float paragraphX = getParent().getPos().x;
+    return getPos().x > paragraphX + 5.0f;//(float) findDominatingStyle().xSize * 2.0f;
 }
 }

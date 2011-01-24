@@ -70,7 +70,7 @@ private GraphicContent containingGraphic;
 // --------------------------- CONSTRUCTORS ---------------------------
 
 public PhysicalPageRegion(@NotNull final Collection<? extends PhysicalContent> contents,
-                          @Nullable final PhysicalContent parent,
+                          @Nullable final PhysicalPageRegion parent,
                           @NotNull PhysicalPage page)
 {
     super(contents, parent);
@@ -89,19 +89,15 @@ public PhysicalPageRegion(@NotNull final List<? extends PhysicalContent> content
 // --------------------- Interface HasPosition ---------------------
 
 @Override
-public Rectangle getPos() {
+public void calculatePos() {
     if (Constants.WHITESPACE_USE_WHOLE_PAGE && page.getMainRegion() == this) {
-        return page.getPageDimensions();
+        setPos(page.getPageDimensions());
     }
+    super.calculatePos();
 
-    if (!_posSet) {
-        pos = super.getPos();
-        if (containingGraphic != null) {
-            pos = super.getPos().union(containingGraphic);
-        }
-        _posSet = true;
+    if (isGraphicalRegion()) {
+        setPos(getPos().union(containingGraphic.getPos()));
     }
-    return pos;
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
@@ -151,21 +147,22 @@ public void ensureAllContentInLeafNodes() {
                 contents.add(content);
             }
         }
-        doExtractSubRegion(contents, null, null);
+        doExtractSubRegion(contents, null, null, true);
+
     }
 
-    for (PhysicalPageRegion subregion : subregions) {
-        subregion.ensureAllContentInLeafNodes();
+    for (int i = 0, subregionsSize = subregions.size(); i < subregionsSize; i++) {
+        subregions.get(i).ensureAllContentInLeafNodes();
     }
 }
 
-public void extractSubRegionFromBound(@NotNull Rectangle bound) {
+public boolean extractSubRegionFromBound(@NotNull Rectangle bound, boolean addToParent) {
     final List<PhysicalContent> subContents = findContentsIntersectingWith(bound.getPos());
-    doExtractSubRegion(subContents, bound, null);
+    return doExtractSubRegion(subContents, bound, null, addToParent);
 }
 
-public void extractSubRegionFromContent(final Set<PhysicalContent> set) {
-    doExtractSubRegion(set, null, null);
+public boolean extractSubRegionFromContent(final Set<PhysicalContent> set, boolean addToParent) {
+    return doExtractSubRegion(set, null, null, addToParent);
 }
 
 /**
@@ -175,16 +172,19 @@ public void extractSubRegionFromContent(final Set<PhysicalContent> set) {
  *
  * @return the new region
  */
-public void extractSubRegionFromGraphic(@NotNull final GraphicContent graphic) {
+public void extractSubRegionFromGraphic(@NotNull final GraphicContent graphic,
+                                        boolean addToParent)
+{
     /* we can allow us to search a bit outside the graphic */
     final Rectangle pos = graphic.getPos();
     final float extra = 2.0f;
-    final Rectangle searchPos = new Rectangle(pos.getX() - extra, pos.getY() - extra,
-                                              pos.getWidth() + 2 * extra,
-                                              pos.getHeight() + 2 * extra);
+    final Rectangle searchPos = new Rectangle(pos.x - extra,
+                                              pos.y - extra,
+                                              pos.width + 2 * extra,
+                                              pos.height + 2 * extra);
 
     final List<PhysicalContent> subContents = findContentsIntersectingWith(searchPos);
-    doExtractSubRegion(subContents, graphic, graphic);
+    doExtractSubRegion(subContents, graphic, graphic, addToParent);
 }
 
 public float getAvgFontSizeX() {
@@ -247,24 +247,23 @@ public void setContainingGraphic(@Nullable GraphicContent containingGraphic) {
 
 // -------------------------- OTHER METHODS --------------------------
 
-private void doExtractSubRegion(@NotNull final Collection<PhysicalContent> subContents,
-                                @Nullable final HasPosition bound,
-                                @Nullable final GraphicContent graphic)
+private boolean doExtractSubRegion(@NotNull final Collection<PhysicalContent> subContents,
+                                   @Nullable final HasPosition bound,
+                                   @Nullable final GraphicContent graphic,
+                                   boolean addToParent)
 {
     if (subContents.isEmpty()) {
         if (log.isInfoEnabled()) {
-            log.info("LOG00960:bound " + bound + " contains no content in " + this + ". wont "
-                             + "extract");
+            log.info("LOG00960:bound " + bound + " contains no content in " + this + ". wont " + "extract");
         }
-        return;
+        return false;
     }
 
     if (subContents.size() == getContents().size()) {
         if (log.isInfoEnabled()) {
-            log.info("LOG00950:bound " + bound + " contains all content in " + this + ". wont "
-                             + "extract");
+            log.info("LOG00950:bound " + bound + " contains all content in " + this + ". wont " + "extract");
         }
-        return;
+        return false;
     }
 
     /** whitespace rectangles might be important for layout both in this region and in the one
@@ -285,7 +284,7 @@ private void doExtractSubRegion(@NotNull final Collection<PhysicalContent> subCo
         if (log.isInfoEnabled()) {
             log.info("LOG01330:Tried to extract only whitespace. ignoring");
         }
-        return;
+        return false;
     }
 
 
@@ -305,16 +304,23 @@ private void doExtractSubRegion(@NotNull final Collection<PhysicalContent> subCo
         }
     }
 
-    subregions.removeAll(toMove);
-    newRegion.subregions.addAll(toMove);
+    for (PhysicalPageRegion subRegionToMove : toMove) {
+        subregions.remove(subRegionToMove);
+        newRegion.subregions.add(subRegionToMove);
+    }
 
     log.warn("LOG00890:Extracted PPR:" + newRegion + " from " + this);
 
     removeContents(subContents);
     addContents(saveWhitespace);
-    addContent(newRegion);
 
-    subregions.add(newRegion);
+
+    if (addToParent && getParent() != null && getParent() instanceof PhysicalPageRegion) {
+        ((PhysicalPageRegion) getParent()).addSubRegion(newRegion);
+    } else {
+        addSubRegion(newRegion);
+    }
+    return true;
 }
 
 /* find average font sizes, and most used style for the region */
@@ -330,7 +336,7 @@ protected void findAndSetFontInformation() {
             xFontSizeSum += (float) (style.xSize * length);
             yFontSizeSum += (float) (style.ySize * length);
             numCharsFound += length;
-            shortestText = Math.min(shortestText, content.getPos().getHeight());
+            shortestText = Math.min(shortestText, content.getPos().height);
         }
     }
     if (numCharsFound == 0) {
@@ -357,14 +363,14 @@ protected int findAndSetMedianOfVerticalDistancesForRegion() {
     final int LIMIT = (int) getAvgFontSizeY() * 3;
 
     int[] distanceCount = new int[LIMIT];
-    for (float x = getPos().getX(); x <= getPos().getEndX(); x += getPos().getWidth() / 3) {
+    for (float x = getPos().x; x <= getPos().endX; x += getPos().width / 3) {
         final List<PhysicalContent> column = findContentAtXIndex(x);
         for (int i = 1; i < column.size(); i++) {
             final PhysicalContent current = column.get(i - 1);
             final PhysicalContent below = column.get(i);
 
             /* increase count for this distance (rounded down to an int) */
-            final int d = (int) (below.getPos().getY() - current.getPos().getEndY());
+            final int d = (int) (below.getPos().y - current.getPos().endY);
             if (d > 0 && d < LIMIT) {
                 distanceCount[d]++;
             }
@@ -385,6 +391,16 @@ protected int findAndSetMedianOfVerticalDistancesForRegion() {
     medianFound = true;
 
     return _medianOfVerticalDistances;
+}
+
+public void addSubRegion(final PhysicalPageRegion newSub) {
+    addContent(newSub);
+    subregions.add(newSub);
+}
+
+public void removeSubRegion(final PhysicalPageRegion newSub) {
+    removeContent(newSub);
+    subregions.remove(newSub);
 }
 }
 

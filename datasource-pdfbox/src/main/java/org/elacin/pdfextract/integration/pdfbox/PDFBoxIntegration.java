@@ -156,8 +156,8 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
          */
 
     final float fontSizeText = getGraphicsState().getTextState().getFontSize();
-    final float horizontalScalingText =
-            getGraphicsState().getTextState().getHorizontalScalingPercent() / 100f;
+    final float horizontalScalingText
+            = getGraphicsState().getTextState().getHorizontalScalingPercent() / 100f;
     //float verticalScalingText = horizontalScaling;//not sure if this is right but what else to
     // do???
     final float riseText = getGraphicsState().getTextState().getRise();
@@ -245,12 +245,13 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
         float characterHorizontalDisplacementText = (fontWidth / glyphSpaceToTextSpaceFactor);
 
         maxVerticalDisplacementText = Math.max(maxVerticalDisplacementText,
-                                               font.getFontHeight(string, i, codeLength)
-                                                       / glyphSpaceToTextSpaceFactor);
+                                               font.getFontHeight(string,
+                                                                  i,
+                                                                  codeLength) / glyphSpaceToTextSpaceFactor);
 
         if (maxVerticalDisplacementText <= 0.0f) {
-            maxVerticalDisplacementText = font.getFontBoundingBox().getHeight()
-                                                  / glyphSpaceToTextSpaceFactor;
+            maxVerticalDisplacementText
+                    = font.getFontBoundingBox().getHeight() / glyphSpaceToTextSpaceFactor;
         }
         /**
          PDF Spec - 5.5.2 Word Spacing
@@ -286,8 +287,8 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
         float adjustment = 0.0F;
         // TODO : tx should be set for horizontal text and ty for vertical text
         // which seems to be specified in the font (not the direction in the matrix).
-        float tx = ((characterHorizontalDisplacementText - adjustment / glyphSpaceToTextSpaceFactor)
-                            * fontSizeText) * horizontalScalingText;
+        float tx
+                = ((characterHorizontalDisplacementText - adjustment / glyphSpaceToTextSpaceFactor) * fontSizeText) * horizontalScalingText;
 
         Matrix td = new Matrix();
         td.setValue(2, 0, tx);
@@ -313,21 +314,32 @@ public void processEncodedText(@NotNull byte[] string) throws IOException {
 
         Matrix textMatrixEndDisp = glyphMatrixEndDisp;
 
-        float totalVerticalDisplacementDisp = maxVerticalDisplacementText * fontSizeText
-                                                      * yScaleDisp;
+        float totalVerticalDisplacementDisp
+                = maxVerticalDisplacementText * fontSizeText * yScaleDisp;
 
 
         try {
-            final ETextPosition text = new ETextPosition(page, textMatrixStDisp, textMatrixEndDisp,
+            final ETextPosition text = new ETextPosition(page,
+                                                         textMatrixStDisp,
+                                                         textMatrixEndDisp,
                                                          totalVerticalDisplacementDisp,
-                                                         new float[]{widthText}, spaceWidthDisp,
-                                                         characterBuffer.toString(), font,
-                                                         fontSizeText, (int) (fontSizeText
-                                                                                      * getTextMatrix().getXScale()),
+                                                         new float[]{widthText},
+                                                         spaceWidthDisp,
+                                                         characterBuffer.toString(),
+                                                         font,
+                                                         fontSizeText,
+                                                         (int) (fontSizeText * getTextMatrix().getXScale()),
                                                          wordSpacingDisp);
 
-            correctPosition(font, string, i, c, fontSizeText, glyphSpaceToTextSpaceFactor,
-                            horizontalScalingText, codeLength, text);
+            correctPosition(font,
+                            string,
+                            i,
+                            c,
+                            fontSizeText,
+                            glyphSpaceToTextSpaceFactor,
+                            horizontalScalingText,
+                            codeLength,
+                            text);
 
             processTextPosition(text);
         } catch (Exception e) {
@@ -366,14 +378,13 @@ protected void processTextPosition(@NotNull TextPosition text_) {
         return;
     }
 
-    java.awt.Rectangle javapos = new java.awt.Rectangle((int) text.getPos().getX(),
-                                                        (int) text.getPos().getY(),
-                                                        (int) text.getPos().getWidth(),
-                                                        (int) text.getPos().getHeight());
+    java.awt.Rectangle javapos = new java.awt.Rectangle((int) text.getPos().x,
+                                                        (int) text.getPos().y,
+                                                        (int) text.getPos().width,
+                                                        (int) text.getPos().height);
     if (!getGraphicsState().getCurrentClippingPath().intersects(javapos)) {
         if (log.isDebugEnabled()) {
-            log.debug("LOG01090:Dropping text \"" + text.getCharacter() + "\" because it "
-                              + "was outside clipping path");
+            log.debug("LOG01090:Dropping text \"" + text.getCharacter() + "\" because it " + "was outside clipping path");
         }
         return;
     }
@@ -381,16 +392,14 @@ protected void processTextPosition(@NotNull TextPosition text_) {
 
     if (!textAlreadyRenderedAtSamePlace(text)) {
         if (log.isDebugEnabled()) {
-            log.debug("LOG00770: ignoring text " + text.getCharacter()
-                              + " because it seems to be rendered two times");
+            log.debug("LOG00770: ignoring text " + text.getCharacter() + " because it seems to be rendered two times");
         }
         return;
     }
 
     if (!MathUtils.isWithinPercent(text.getDir(), rotation, 1)) {
         if (log.isDebugEnabled()) {
-            log.debug("LOG00560: ignoring textposition " + text.getCharacter() + "because it has "
-                              + "wrong rotation. TODO :)");
+            log.debug("LOG00560: ignoring textposition " + text.getCharacter() + "because it has " + "wrong rotation. TODO :)");
         }
         return;
     }
@@ -514,27 +523,25 @@ private void correctPosition(@NotNull final PDFont fontObj,
     adjust *= getTextMatrix().getXScale();
 
     final Rectangle newPos;
-    if (character != null && fontBB != null && character.getHeight() > 0.0f
-                && fontBB.getHeight() > 0.0f) {
+    if (character != null && fontBB != null && character.getHeight() > 0.0f && fontBB.getHeight() > 0.0f) {
         /* remove the upper and lower bounds filtered away by character */
         final float spaceUnderChar = Math.min(fontBB.getLowerLeftY(), character.getLowerLeftY());
         final float spaceOverChar = fontBB.getUpperRightY() - character.getUpperRightY();
 
         final float fontHeight = fontBB.getHeight();
 
-        final float beforeRoomForGlyph = pos.getEndY() - adjust * Math.max(fontHeight,
-                                                                           pos.getHeight());
+        final float beforeRoomForGlyph = pos.endY - adjust * Math.max(fontHeight, pos.height);
 
         /* calculate the upper left corner of the rendered glyph */
         float yStart = beforeRoomForGlyph;
         yStart += adjust * spaceOverChar;
         yStart -= adjust * spaceUnderChar;
-        yStart -= pos.getHeight();
+        yStart -= pos.height;
 
         /* determine start X coordinate. */
         final float x;
         if (isMonoSpacedFont(fontObj)) {
-            x = pos.getX();
+            x = pos.x;
         } else {
             float leftOfText = text.getX() - (adjust * fontBB.getLowerLeftX());
             x = leftOfText + adjust * character.getLowerLeftX();
@@ -542,7 +549,7 @@ private void correctPosition(@NotNull final PDFont fontObj,
 
         /* It was much easier to write the word segmentation code with full font width,
         *   so lets keep that. I havent seen this causing any problems */
-        float w = pos.getWidth();
+        float w = pos.width;
 
         /* Line segmentation code was obviously much easier by not having any descenders which
         *   can even overlap into the following line. Math symbols need to stay full length*/
@@ -558,9 +565,9 @@ private void correctPosition(@NotNull final PDFont fontObj,
     } else {
         /* here we have a lot less information, so keep most of what was calculated. Just offset
         *   the Y coordinate*/
-        float h = pos.getHeight();
-        float w = pos.getWidth();
-        float startY = pos.getY() - h * 0.8f;
+        float h = pos.height;
+        float w = pos.width;
+        float startY = pos.y - h * 0.8f;
 
         if (fontObj instanceof PDType3Font) {
             /* type 3 fonts typically have almost no information
@@ -569,12 +576,12 @@ private void correctPosition(@NotNull final PDFont fontObj,
             startY += h; /* this is a _very_ quick and dirty hack */
         }
 
-        newPos = new Rectangle(pos.getX(), startY, w, h);
+        newPos = new Rectangle(pos.x, startY, w, h);
     }
     if (log.isTraceEnabled()) {
         log.trace("LOG00730:Text " + c + ", " + "pos from " + pos + " to " + newPos);
     }
-    text.setBaseLine(pos.getY());
+    text.setBaseLine(pos.y);
     text.setPos(newPos);
 }
 
@@ -601,9 +608,7 @@ private void filterOutBadFonts(@NotNull List<ETextPosition> text) {
         int totalChars = pdFontIntegerEntry.getValue();
         if (badChars > totalChars * 0.10f) {
             ignoredFonts.add(pdFontIntegerEntry.getKey());
-            log.warn("LOG01060:Ignoring all content using font "
-                             + pdFontIntegerEntry.getKey().getBaseFont() + " as it "
-                             + "seems to be missing UTF-8 conversion information");
+            log.warn("LOG01060:Ignoring all content using font " + pdFontIntegerEntry.getKey().getBaseFont() + " as it " + "seems to be missing UTF-8 conversion information");
         }
     }
 
@@ -657,8 +662,11 @@ private boolean textAlreadyRenderedAtSamePlace(@NotNull final TextPosition text)
         float charX = other.getX();
         float charY = other.getY();
 
-        if (otherChar != null && MathUtils.isWithinVariance(charX, text.getX(), tolerance)
-                    && MathUtils.isWithinVariance(charY, text.getY(), tolerance)) {
+        if (otherChar != null && MathUtils.isWithinVariance(charX,
+                                                            text.getX(),
+                                                            tolerance) && MathUtils.isWithinVariance(charY,
+                                                                                                     text.getY(),
+                                                                                                     tolerance)) {
             suppressCharacter = true;
         }
     }
@@ -737,11 +745,15 @@ protected void processPage(@NotNull PDPage page, COSStream content) throws IOExc
         }
 
         final PDRectangle mediaBox = page.findMediaBox();
-        Rectangle dimensions = new Rectangle(mediaBox.getLowerLeftX(), mediaBox.getLowerLeftY(),
-                                             mediaBox.getWidth(), mediaBox.getHeight());
+        Rectangle dimensions = new Rectangle(mediaBox.getLowerLeftX(),
+                                             mediaBox.getLowerLeftY(),
+                                             mediaBox.getWidth(),
+                                             mediaBox.getHeight());
 
-        PageContent thisPage = new PageContent(texts, graphicsDrawer.getGraphicContents(),
-                                               currentPageNo, dimensions);
+        PageContent thisPage = new PageContent(texts,
+                                               graphicsDrawer.getGraphicContents(),
+                                               currentPageNo,
+                                               dimensions);
         docContent.addPage(thisPage);
 
         MDC.remove("page");

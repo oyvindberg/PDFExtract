@@ -52,8 +52,8 @@ public static List<LineNode> createLinesFromBlocks(RectangleCollection block, in
     /* reuse the assignment numbers */
     for (PhysicalContent content : block.getContents()) {
         content.getAssignable().setBlockNum(BLOCK_NOT_ASSIGNED);
-        minY = Math.min((int) content.getPos().getY(), minY);
-        maxY = Math.max((int) content.getPos().getEndY(), maxY);
+        minY = Math.min((int) content.getPos().y, minY);
+        maxY = Math.max((int) content.getPos().endY, maxY);
     }
     maxY++; //account for rounding
     final int blockHeight = maxY - minY;
@@ -67,9 +67,9 @@ public static List<LineNode> createLinesFromBlocks(RectangleCollection block, in
         if (!content.isAssignable()) {
             continue;
         }
-        int contentHeight = (int) content.getPos().getHeight();
-        int contentStart = (int) content.getPos().getY();
-        int contentWidth = (int) content.getPos().getWidth();
+        int contentHeight = (int) content.getPos().height;
+        int contentStart = (int) content.getPos().y;
+        int contentWidth = (int) content.getPos().width;
 
         for (int contentY = 0; contentY < contentHeight; contentY++) {
             counts[contentStart + contentY - minY] += contentWidth;
@@ -93,7 +93,7 @@ public static List<LineNode> createLinesFromBlocks(RectangleCollection block, in
                 continue;
             }
 
-            if (contentPos.getY() > start - 1 && contentPos.getEndY() < stop + 1) {
+            if (contentPos.y > start - 1 && contentPos.endY < stop + 1) {
                 content.getAssignable().setBlockNum(1);
 
                 if (content.isText()) {
@@ -131,16 +131,21 @@ private static void combineLines(final List<LineNode> lines) {
             continue;
         }
 
-        if (currentLine.getPos().getHeight() > 0.7f * lastLine.getPos().getHeight()) {
+        if (!currentLine.getStyle().equals(lastLine.getStyle())) {
             continue;
         }
 
-        if (lastLine.getPos().getVerticalDistanceTo(currentLine) > 2) {
+        if (currentLine.getPos().height > 0.7f * lastLine.getPos().height) {
             continue;
         }
-        if (log.isInfoEnabled()) {
-            log.info("LOG01360:Combining line " + currentLine);
-        };
+
+        if (lastLine.getPos().getVerticalDistanceTo(currentLine.getPos()) > 2) {
+            continue;
+        }
+        if (log.isDebugEnabled()) {
+            log.debug("LOG01360:Combining line " + currentLine);
+        }
+        ;
         lastLine.addChildren(currentLine.getChildren());
         lines.remove(currentLine);
         i--;
@@ -153,8 +158,11 @@ public static WordNode createWordNode(@NotNull final PhysicalText text, int page
 }
 
 public static WordNode createWordNodeFromGraphic(final int pageNum, final PhysicalContent content) {
-    return new WordNode(content.getPos(), pageNum, content.getGraphicContent().getStyle(),
-                        content.getGraphicContent().getStyle().id, -1);
+    return new WordNode(content.getPos(),
+                        pageNum,
+                        content.getGraphicContent().getStyle(),
+                        content.getGraphicContent().getStyle().id,
+                        -1);
 }
 
 // -------------------------- STATIC METHODS --------------------------

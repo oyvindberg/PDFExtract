@@ -52,9 +52,9 @@ public int getSeqNo() {
 public Comparator<LineNode> getChildComparator() {
     return new Comparator<LineNode>() {
         public int compare(@NotNull final LineNode o1, @NotNull final LineNode o2) {
-            if (o1.getPos().getY() < o2.getPos().getY()) {
+            if (o1.getPos().y < o2.getPos().y) {
                 return -1;
-            } else if (o1.getPos().getY() > o2.getPos().getY()) {
+            } else if (o1.getPos().y > o2.getPos().y) {
                 return 1;
             }
 

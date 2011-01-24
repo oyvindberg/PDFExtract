@@ -175,10 +175,10 @@ private void writeParagraph(@NotNull final StringBuffer out,
 }
 
 private void writeRectangle(@NotNull StringBuffer sb, @NotNull Rectangle pos) {
-    sb.append(" x=\"").append(String.valueOf(pos.getX())).append("\"");
-    sb.append(" y=\"").append(String.valueOf(pos.getY())).append("\"");
-    sb.append(" w=\"").append(String.valueOf(pos.getWidth())).append("\"");
-    sb.append(" h=\"").append(String.valueOf(pos.getHeight())).append("\"");
+    sb.append(" x=\"").append(String.valueOf(pos.x)).append("\"");
+    sb.append(" y=\"").append(String.valueOf(pos.y)).append("\"");
+    sb.append(" w=\"").append(String.valueOf(pos.width)).append("\"");
+    sb.append(" h=\"").append(String.valueOf(pos.height)).append("\"");
 }
 
 
