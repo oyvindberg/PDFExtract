@@ -33,14 +33,12 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
-import static org.elacin.pdfextract.Constants.RENDER_DPI;
-import static org.elacin.pdfextract.Constants.RENDER_PARAGRAPH_NUMBERS;
+import static org.elacin.pdfextract.Constants.*;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Jun 17, 2010 Time: 5:02:09 AM To change this
@@ -83,48 +81,95 @@ public PageRenderer(final PDFSource source,
 
 // -------------------------- STATIC METHODS --------------------------
 
-private static void addWhiteSpaceFromRegion(@NotNull List<WhitespaceRectangle> whitespaces,
-                                            @NotNull PhysicalPageRegion region)
-{
-    whitespaces.addAll(region.getWhitespace());
+private void drawRegionAndWhitespace(@NotNull PhysicalPageRegion region, final int nesting) {
+    for (WhitespaceRectangle o : region.getWhitespace()) {
+        drawRectangle(o);
+    }
+
+    if (Constants.RENDER_PAGE_REGIONS) {
+        Rectangle pos = region.getPos();
+        final Color color;// = Color.DARK_GRAY;
+        switch (nesting) {
+            case 0:
+                color = Color.BLACK;
+                break;
+            case 1:
+                color = Color.BLUE;
+                break;
+            case 2:
+                color = Color.RED;
+                break;
+            case 3:
+                color = Color.MAGENTA;
+                break;
+            default:
+                color = Color.GREEN;
+        }
+
+        Stroke oldStroke = graphics.getStroke();
+
+        final float dash1[] = {(float) (1 + 3 * nesting)};
+        final BasicStroke dashed = new BasicStroke(3.0f, BasicStroke.CAP_BUTT,
+                                                   BasicStroke.JOIN_MITER, 10.0f, dash1, 0.0f);
+
+        graphics.setStroke(dashed);
+        graphics.setColor(color);
+        final int x = (int) ((float) pos.getX() * xScale);
+        final int width = (int) ((float) pos.getWidth() * xScale);
+        int y = (int) ((float) pos.getY() * yScale);
+        final int height = (int) ((float) pos.getHeight() * yScale);
+
+        RoundRectangle2D.Double r = new RoundRectangle2D.Double(x, y, width, height, 20.0, 20.0);
+        graphics.draw(r);
+
+        graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 40));
+        graphics.fill(r);
+
+        graphics.setStroke(oldStroke);
+    }
+
     for (PhysicalPageRegion subRegion : region.getSubregions()) {
-        addWhiteSpaceFromRegion(whitespaces, subRegion);
+        drawRegionAndWhitespace(subRegion, nesting + 1);
     }
 }
 
 static Color getColorForObject(@NotNull Object o) {
+
     if (o.getClass().equals(WhitespaceRectangle.class)) {
-        if (((WhitespaceRectangle) o).getScore() == 1000) {
+        WhitespaceRectangle w = (WhitespaceRectangle) o;
+        if (w.getScore() == 1000) {
+            if (RENDER_COLUMNS) {
+                return Color.RED;
+            }
+        } else if (w.getScore() == 500 && RENDER_COLUMN_CANDIDATES) {
             return Color.RED;
-            //            return DONT_DRAW;
-        }
-        if (Constants.RENDER_WHITESPACE) {
+        } else if (Constants.RENDER_WHITESPACE) {
             return Color.BLACK;
-        } else {
-            return DONT_DRAW;
         }
-
-    } else if (o.getClass().equals(ParagraphNode.class)) {
-        //        return Color.YELLOW;
-        return DONT_DRAW;
-
-    } else if (o.getClass().equals(GraphicsNode.class)) {
-        return Color.MAGENTA;
-
-    } else if (o.getClass().equals(LineNode.class)) {
-        //        return Color.BLUE;
-        return DONT_DRAW;
-
-    } else if (o.getClass().equals(WordNode.class)) {
-        if (Constants.RENDER_REAL_PAGE) {
-            return DONT_DRAW;
-        } else {
-            return Color.ORANGE;
-        }
-
-    } else {
-        return DONT_DRAW;
     }
+
+    if (RENDER_PARAGRAPHS && o.getClass().equals(ParagraphNode.class)) {
+        return Color.YELLOW;
+    }
+
+    if (RENDER_GRAPHIC_NODES && o.getClass().equals(GraphicsNode.class)) {
+        return Color.MAGENTA;
+    }
+
+    if (RENDER_LINE_NODES && o.getClass().equals(LineNode.class)) {
+        return Color.BLUE;
+    }
+
+    if (!RENDER_REAL_PAGE && o.getClass().equals(WordNode.class)) {
+        return Color.ORANGE;
+    }
+
+    if (RENDER_PAGE_REGIONS && o.getClass().equals(PhysicalPageRegion.class)) {
+        return Color.RED;
+    }
+
+    return DONT_DRAW;
+
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
@@ -140,7 +185,7 @@ public BufferedImage renderToFile(final int pageNum, File outputFile) {
 
     /* first have PDFBox draw the pdf to a BufferedImage */
     final BufferedImage image;
-    if (Constants.RENDER_REAL_PAGE) {
+    if (RENDER_REAL_PAGE) {
         final RenderedPage renderedPage = source.renderPage(pageNum);
         image = renderedPage.getRendering();
         xScale = renderedPage.getXScale();
@@ -192,12 +237,9 @@ public BufferedImage renderToFile(final int pageNum, File outputFile) {
         drawTree(pageNode);
 
 
-        final List<WhitespaceRectangle> whitespaces = new ArrayList<WhitespaceRectangle>();
-        addWhiteSpaceFromRegion(whitespaces, physicalPage.getMainRegion());
+        drawRegionAndWhitespace(physicalPage.getMainRegion(), 0);
 
-        for (WhitespaceRectangle o : whitespaces) {
-            drawRectangle(o);
-        }
+
     }
 
     /* write to file */

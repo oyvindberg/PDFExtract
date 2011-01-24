@@ -148,7 +148,7 @@ private void writeGraphic(final StringBuffer out, final GraphicsNode graphicsNod
     }
 
     indent(out);
-    out.append("</paragraph>\n");
+    out.append("</graphic>\n");
     indent -= indentationWidth;
 }
 

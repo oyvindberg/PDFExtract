@@ -17,6 +17,7 @@
 package org.elacin.pdfextract.physical;
 
 import org.apache.log4j.Logger;
+import org.elacin.pdfextract.Constants;
 import org.elacin.pdfextract.content.*;
 import org.elacin.pdfextract.geom.MathUtils;
 import org.elacin.pdfextract.geom.Rectangle;
@@ -39,6 +40,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static org.elacin.pdfextract.geom.Sorting.createSmallestFirstQueue;
+import static org.elacin.pdfextract.logical.Formulas.textSeemsToBeFormula;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: 09.12.10 Time: 23.24 To change this template use
@@ -51,8 +53,6 @@ public class PageSegmentator {
 private static final Logger               log                  = Logger.getLogger(PageSegmentator.class);
 private static final ParagraphSegmentator paragraphSegmentator = new ParagraphSegmentator();
 
-
-private int regionNumber = 0, blockNumber = 0;
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
@@ -70,7 +70,7 @@ public static PageNode analyzePage(@NotNull PhysicalPage page) {
 
     /* first separate out what is contained by graphics */
     extractGraphicalRegions(categorizedGraphics, mainRegion);
-    mainRegion.getPos();
+
     PageRegionSplitBySpacing.splitOfTopText(mainRegion, 0.1f);
 
     PageRegionSplitBySeparators.splitRegionBySeparators(mainRegion, categorizedGraphics);
@@ -87,6 +87,10 @@ public static PageNode analyzePage(@NotNull PhysicalPage page) {
     /* first create the page node which will hold everything */
     final PageNode ret = new PageNode(page.getPageNumber());
 
+    StringBuffer sb = new StringBuffer();
+    printRegions(sb, mainRegion, 0);
+    System.out.println(sb);
+
     createParagraphsForRegion(ret, mainRegion, numberer, false);
 
     if (log.isInfoEnabled()) {
@@ -94,6 +98,25 @@ public static PageNode analyzePage(@NotNull PhysicalPage page) {
     }
 
     return ret;
+}
+
+private static void printRegions(final StringBuffer sb,
+                                 final PhysicalPageRegion region,
+                                 final int indent)
+{
+
+    for (int i = 0; i < indent; i++) {
+        sb.append(" ");
+    }
+    sb.append("region ").append(region.getPos());
+    if (region.isGraphicalRegion()) {
+        sb.append(" graphical ");
+    }
+    sb.append("\n");
+
+    for (PhysicalPageRegion sub : region.getSubregions()) {
+        printRegions(sb, sub, indent + 4);
+    }
 }
 
 // -------------------------- STATIC METHODS --------------------------
@@ -110,6 +133,9 @@ private static void createParagraphsForRegion(final PageNode page,
     final List<RectangleCollection> blocks = contentGrouper.findBlocksOfContent();
 
     Collections.sort(blocks, Sorting.regionComparator);
+
+    //    combineReallySmallBlocks(blocks);
+
 
     for (RectangleCollection block : blocks) {
         /** start by separating all the graphical content in a block.
@@ -170,6 +196,48 @@ private static void createParagraphsForRegion(final PageNode page,
 
     for (PhysicalPageRegion subregion : subregions) {
         createParagraphsForRegion(page, subregion, numberer, region.isGraphicalRegion());
+    }
+}
+
+private static void combineReallySmallBlocks(final List<RectangleCollection> blocks) {
+    for (int i = 0; i < blocks.size() - 1; i++) {
+        final RectangleCollection current = blocks.get(i);
+        final RectangleCollection after = blocks.get(i + 1);
+
+        if (after.getContents().size() > 3) {
+            continue;
+        }
+
+        float afterMiddleY = after.getPos().getMiddleY();
+        if (afterMiddleY > current.getPos().getEndY()) {
+            continue;
+        }
+
+        if (afterMiddleY < current.getPos().getY()) {
+            continue;
+        }
+
+        /* since 'current' might be many lines, pick out the one roughly corresponding to
+            'after' and see if it probably is a formula */
+
+        List<PhysicalText> sameLineAsAfter = new ArrayList<PhysicalText>();
+        for (PhysicalContent content : current.getContents()) {
+            if (content.isText() && content.getPos().getEndY() > afterMiddleY
+                        && content.getPos().getY() < afterMiddleY) {
+                sameLineAsAfter.add(content.getPhysicalText());
+            }
+        }
+
+        if (textSeemsToBeFormula(sameLineAsAfter)) {
+            current.addContents(after.getContents());
+            blocks.remove(after);
+            if (log.isInfoEnabled()) {
+                String afterString = after.getContents().get(0).getPhysicalText().getText();
+                log.info("LOG01350:Combining " + afterString + " with rest of contents on line");
+            };
+            i--;
+
+        }
     }
 }
 
@@ -250,6 +318,10 @@ private static void recursivelyDivide(@NotNull PhysicalPageRegion region,
 
     final List<WhitespaceRectangle> whitespaces = ColumnFinder.findWhitespace(region);
     region.addWhitespace(whitespaces);
+
+    if (!Constants.COLUMNS_ENABLE_COLUMN_DETECTION) {
+        return;
+    }
 
     final List<WhitespaceRectangle> columnBoundaries = ColumnFinder.extractColumnBoundaries(region,
                                                                                             whitespaces);

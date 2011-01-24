@@ -217,7 +217,7 @@ public float getMinimumRowSpacing() {
         findAndSetFontInformation();
     }
 
-    return getMedianOfVerticalDistances();//* 0.8f;
+    return (float) getMedianOfVerticalDistances();//* 0.8f;
     //    return _shortestText * 1.2f;
     //
 }
@@ -267,19 +267,24 @@ private void doExtractSubRegion(@NotNull final Collection<PhysicalContent> subCo
         return;
     }
 
-
+    /** whitespace rectangles might be important for layout both in this region and in the one
+     * which will be extracted, so leave them in both
+     */
     boolean onlyWhitespace = true;
+    List<WhitespaceRectangle> saveWhitespace = new ArrayList<WhitespaceRectangle>();
     for (PhysicalContent subContent : subContents) {
-        if (!(subContent instanceof WhitespaceRectangle)) {
+        if (subContent instanceof WhitespaceRectangle) {
+            saveWhitespace.add((WhitespaceRectangle) subContent);
+        } else {
             onlyWhitespace = false;
-            break;
         }
     }
+
+    /* dont bother to create a region for only whitespace */
     if (onlyWhitespace) {
         if (log.isInfoEnabled()) {
-            log.info("LOG01330:Tried to extract only whitespace. removing them");
+            log.info("LOG01330:Tried to extract only whitespace. ignoring");
         }
-        removeContents(subContents);
         return;
     }
 
@@ -300,17 +305,15 @@ private void doExtractSubRegion(@NotNull final Collection<PhysicalContent> subCo
         }
     }
 
-    for (PhysicalPageRegion regionToMove : toMove) {
-        assert subregions.remove(regionToMove);
-        assert newRegion.subregions.add(regionToMove);
-    }
-
+    subregions.removeAll(toMove);
+    newRegion.subregions.addAll(toMove);
 
     log.warn("LOG00890:Extracted PPR:" + newRegion + " from " + this);
 
     removeContents(subContents);
-
+    addContents(saveWhitespace);
     addContent(newRegion);
+
     subregions.add(newRegion);
 }
 

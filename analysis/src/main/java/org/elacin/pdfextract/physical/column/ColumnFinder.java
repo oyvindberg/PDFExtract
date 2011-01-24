@@ -31,7 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import static org.elacin.pdfextract.Constants.MIN_COLUMN_WIDTH;
+import static org.elacin.pdfextract.Constants.COLUMNS_MIN_COLUMN_WIDTH;
 import static org.elacin.pdfextract.Constants.WHITESPACE_NUMBER_WANTED;
 import static org.elacin.pdfextract.geom.RectangleCollection.Direction.E;
 import static org.elacin.pdfextract.geom.RectangleCollection.Direction.W;
@@ -73,6 +73,11 @@ private static void filter(final PhysicalPageRegion r, final List<WhitespaceRect
     Collections.sort(boundaries, Sorting.sortByLowerX);
     for (int i = boundaries.size() - 1; i >= 0; i--) {
         final WhitespaceRectangle boundary = boundaries.get(i);
+
+        if (boundary.getPos().getHeight() < r.getPos().getHeight() * 0.15f) {
+            toRemove.add(boundary);
+            continue;
+        }
 
         final float boundaryToTheLeft;
         if (i == 0) {
@@ -162,7 +167,6 @@ public static List<WhitespaceRectangle> findWhitespace(@NotNull final PhysicalPa
 private static void adjustColumnHeights(@NotNull PhysicalPageRegion region,
                                         @NotNull List<WhitespaceRectangle> columnBoundaries)
 {
-    final Rectangle rpos = region.getPos();
     final Collection<WhitespaceRectangle> newBoundaries = new ArrayList<WhitespaceRectangle>();
 
     for (final WhitespaceRectangle boundary : columnBoundaries) {
@@ -173,15 +177,15 @@ private static void adjustColumnHeights(@NotNull PhysicalPageRegion region,
          */
         final float ADJUST = 1.0f;
         final float leftX = Math.min(bpos.getX() + ADJUST, bpos.getEndX());
-        final float leftEndX = Math.min(leftX + MIN_COLUMN_WIDTH, bpos.getEndX() - ADJUST);
+        final float leftEndX = Math.min(leftX + COLUMNS_MIN_COLUMN_WIDTH, bpos.getEndX() - ADJUST);
         final WhitespaceRectangle left = adjustColumn(region, boundary, leftX, leftEndX);
 
         final float midX = bpos.getMiddleX();
-        final float midEndX = Math.min(midX + MIN_COLUMN_WIDTH, bpos.getEndX());
+        final float midEndX = Math.min(midX + COLUMNS_MIN_COLUMN_WIDTH, bpos.getEndX());
         final WhitespaceRectangle middle = adjustColumn(region, boundary, midX, midEndX);
 
         final float rightEndX = Math.max(bpos.getEndX() - ADJUST, bpos.getX());
-        final float rightX = Math.max(rightEndX - MIN_COLUMN_WIDTH, bpos.getX());
+        final float rightX = Math.max(rightEndX - COLUMNS_MIN_COLUMN_WIDTH, bpos.getX());
         final WhitespaceRectangle right = adjustColumn(region, boundary, rightX, rightEndX);
 
         /* then choose the tallest */
@@ -304,7 +308,7 @@ private static WhitespaceRectangle adjustColumn(final PhysicalPageRegion region,
         return null;
     }
 
-    final Rectangle adjusted = new Rectangle(boundaryStartX, realBoundaryY, 1.0f,
+    final Rectangle adjusted = new Rectangle(boundaryStartX, realBoundaryY + 2, 1.0f,
                                              realBoundaryEndY - realBoundaryY);
     final WhitespaceRectangle newBoundary = new WhitespaceRectangle(adjusted);
     newBoundary.setScore(1000);
@@ -421,7 +425,6 @@ private static List<WhitespaceRectangle> selectCandidateColumnBoundaries(@NotNul
 {
     final float LOOKAHEAD = 10.0f;
     final float HALF_LOOKAHEAD = LOOKAHEAD / 2;
-    final Rectangle rpos = region.getPos();
 
     final List<WhitespaceRectangle> columnBoundaries = new ArrayList<WhitespaceRectangle>();
     for (WhitespaceRectangle whitespace : whitespaces) {
@@ -479,6 +482,7 @@ private static List<WhitespaceRectangle> selectCandidateColumnBoundaries(@NotNul
 
         if (leftCount >= 3 || rightCount >= 3) {
             columnBoundaries.add(whitespace);
+            whitespace.setScore(500);
         }
     }
     return columnBoundaries;

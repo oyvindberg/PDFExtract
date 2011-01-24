@@ -18,6 +18,7 @@ package org.elacin.pdfextract.physical.column;
 
 import org.elacin.pdfextract.Constants;
 import org.elacin.pdfextract.content.PhysicalContent;
+import org.elacin.pdfextract.content.PhysicalPageRegion;
 import org.elacin.pdfextract.content.WhitespaceRectangle;
 import org.elacin.pdfextract.geom.MathUtils;
 import org.elacin.pdfextract.geom.Rectangle;
@@ -26,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+import static org.elacin.pdfextract.Constants.WHITESPACE_FUZZINESS;
+import static org.elacin.pdfextract.Constants.WHITESPACE_OBSTACLE_OVERLAP;
 import static org.elacin.pdfextract.geom.RectangleCollection.Direction.E;
 import static org.elacin.pdfextract.geom.RectangleCollection.Direction.W;
 
@@ -53,7 +56,7 @@ protected boolean acceptsRectangle(@NotNull WhitespaceRectangle newWhitespace) {
          * This is an expensive check, which is why it is done here. i think it is still
          * correct. */
 
-        final List<PhysicalContent> surroundings = region.findSurrounding(newWhitespace, 4);
+        final List<PhysicalContent> surroundings = region.findSurrounding(newWhitespace, 8);
         if (!surroundings.isEmpty()) {
             float averageHeight = 0.0f;
             int counted = 0;
@@ -66,7 +69,10 @@ protected boolean acceptsRectangle(@NotNull WhitespaceRectangle newWhitespace) {
             if (counted != 0) {
                 averageHeight /= (float) counted;
 
-                if (averageHeight * 1.1f > newWhitespace.getPos().getHeight()) {
+                float u = Math.max(((PhysicalPageRegion) region).getMinimumRowSpacing(),
+                                   averageHeight);
+                final float v = (WHITESPACE_OBSTACLE_OVERLAP + 1f * u) * (1 + WHITESPACE_FUZZINESS);
+                if (v > newWhitespace.getPos().getHeight()) {
                     return false;
                 }
             }
@@ -116,40 +122,18 @@ private static float getWeight(final float temp) {
     final float weight;
     if (temp < 1.5f) {
         weight = 0.5f;
-    } else if (temp >= 1.5f /*&& temp <= 5*/) {
+    } else {
         weight = 1.5f;
-    } else {
-        weight = 1.0f;
     }
     return weight;
 }
 
-private static float getWeightPreferHigh(final float temp) {
-    final float weight;
-    if (temp < 1.5f) {
-        weight = 0.5f;
-    } else if (temp >= 1.5f && temp <= 3) {
-        weight = 2.5f;
-    } else {
-        weight = 8.0f;
-    }
-    return weight;
-}
-
-//@Override
 protected static float rectangleQuality(@NotNull Rectangle r) {
+    //    return r.area() * (1 + r.getHeight() * 0.25f /*/ 2.0f*/);
     final Rectangle pos = r.getPos();
 
-    final float temp = Math.abs(MathUtils.log(pos.getWidth() / pos.getHeight())
-                                        / MathUtils.log(2.0f));
-
-
-    final float weight;
-    if (Constants.WHITESPACE_PREFER_TALL) {
-        weight = getWeightPreferHigh(temp);
-    } else {
-        weight = getWeight(temp);
-    }
+    final float weight = getWeight(Math.abs(MathUtils.log(pos.getWidth() / pos.getHeight())
+                                                    / MathUtils.log(2.0f)));
 
     return MathUtils.sqrt(pos.area() * weight);
 }

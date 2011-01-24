@@ -76,17 +76,20 @@ public Style findDominatingStyle() {
 @NotNull
 @Override
 public Comparator<WordNode> getChildComparator() {
-    //    return new Comparator<WordNode>() {
-    //        public int compare(@NotNull final WordNode o1, @NotNull final WordNode o2) {
-    //            if (o1.getPos().getX() < o2.getPos().getX()) {
-    //                return -1;
-    //            } else if (o1.getPos().getX() > o2.getPos().getX()) {
-    //                return 1;
-    //            }
-    //
-    //            return 0;
-    //        }
-    //    };
+
+    if (findDominatingStyle().equals(Style.FORMULA)) {
+        return new Comparator<WordNode>() {
+            public int compare(@NotNull final WordNode o1, @NotNull final WordNode o2) {
+                if (o1.getPos().getX() < o2.getPos().getX()) {
+                    return -1;
+                } else if (o1.getPos().getX() > o2.getPos().getX()) {
+                    return 1;
+                }
+
+                return 0;
+            }
+        };
+    }
 
     return new Comparator<WordNode>() {
         public int compare(@NotNull final WordNode o1, @NotNull final WordNode o2) {

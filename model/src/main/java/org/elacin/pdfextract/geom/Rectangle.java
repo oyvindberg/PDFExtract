@@ -351,5 +351,17 @@ public Rectangle union(@NotNull HasPosition that) {
     return new Rectangle(x1, y1, x2 - x1, y2 - y1);
 }
 
+public float getVerticalDistanceTo(@NotNull HasPosition that) {
+    if (that.getPos().endY < y) {
+        return y - that.getPos().endY;
+    }
+    if (that.getPos().y > endY) {
+        return endY - that.getPos().y;
+    }
+
+    return 0.0f;
+
+}
+
 
 }

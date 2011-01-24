@@ -75,7 +75,7 @@
         <appender-ref ref="console"/>
     </logger>
 
-    <logger name="org.elacin.org.elacin.pdfextract.tree">
+    <logger name="org.elacin.pdfextract.tree">
         <level value="WARN"/>
     </logger>
 
@@ -83,28 +83,28 @@
         <level value="INFO"/>
     </logger>
 
-    <logger name="org.elacin.org.elacin.pdfextract.physical.word">
+    <logger name="org.elacin.pdfextract.physical.word">
         <level value="WARN"/>
     </logger>
 
-    <logger name="org.elacin.org.elacin.pdfextract.physical.graphics">
+    <logger name="org.elacin.pdfextract.physical.graphics">
+        <level value="WARN"/>
+    </logger>
+
+    <logger name="org.elacin.pdfextract.physical.paragraph">
         <level value="INFO"/>
     </logger>
 
-    <logger name="org.elacin.org.elacin.pdfextract.physical.paragraph">
+    <logger name="org.elacin.pdfextract.physical">
         <level value="INFO"/>
     </logger>
 
-    <logger name="org.elacin.org.elacin.pdfextract.physical">
-        <level value="INFO"/>
-    </logger>
-
-    <logger name="org.elacin.org.elacin.pdfextract.style">
+    <logger name="org.elacin.pdfextract.style">
         <level value="INFO"/>
     </logger>
 
     <logger name="org.apache.pdfbox" additivity="false">
-        <level value="ERROR"/>
+        <level value="WARN"/>
         <appender-ref ref="pdfbox"/>
         <appender-ref ref="console"/>
     </logger>

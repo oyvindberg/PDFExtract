@@ -16,8 +16,6 @@
 
 package org.elacin.pdfextract;
 
-import org.jetbrains.annotations.NotNull;
-
 /**
  * Created by IntelliJ IDEA. User: elacin Date: 16.01.11 Time: 19.57 To change this template use
  * File | Settings | File Templates.
@@ -34,40 +32,46 @@ public static final boolean SPLIT_PARAGRAPHS_BY_STYLES = true;
 public static final boolean RECTANGLE_COLLECTION_CACHE_ENABLED = true;
 
 /* rendering */
-public static final boolean RENDER_ENABLED           = true;
-public static final boolean RENDER_REAL_PAGE         = false;
-public static final int     RENDER_RESOLUTION        = 100;
-public static final int     RENDER_DPI               = 72;
+public static final boolean RENDER_ENABLED    = true;
+public static final boolean RENDER_REAL_PAGE  = false;
+public static final int     RENDER_RESOLUTION = 100;
+public static final int     RENDER_DPI        = 72;
+
+/* what to render */
 public static final boolean RENDER_WHITESPACE        = true;
+public static final boolean RENDER_COLUMNS           = true;
+public static final boolean RENDER_COLUMN_CANDIDATES = false;
+
+public static final boolean RENDER_PARAGRAPHS        = true;
 public static final boolean RENDER_PARAGRAPH_NUMBERS = true;
+public static final boolean RENDER_GRAPHIC_NODES     = true;
+public static final boolean RENDER_LINE_NODES        = true;
+public static final boolean RENDER_PAGE_REGIONS      = false;
 
-/* output */
-
-public static final boolean VERBOSE_OUTPUT        = false;
-public static final boolean SIMPLE_OUTPUT_ENABLED = true;
-public static final boolean TEI_OUTPUT_ENABLED    = false;
-public static final boolean ESCAPE_HTML           = false;
-
-@NotNull
-public static final String SIMPLE_OUTPUT_EXTENSION = ".xml";
-@NotNull
-public static final String TEI_OUTPUT_EXTENSION    = ".tei.xml";
+/* xmls output */
+public static final boolean VERBOSE_OUTPUT          = false;
+public static final boolean SIMPLE_OUTPUT_ENABLED   = true;
+public static final boolean TEI_OUTPUT_ENABLED      = false;
+public static final boolean ESCAPE_HTML             = false;
+public static final String  SIMPLE_OUTPUT_EXTENSION = ".xml";
+public static final String  TEI_OUTPUT_EXTENSION    = ".tei.xml";
 
 
+/* whitespace cover algorithm */
 public static final boolean WHITESPACE_CHECK_LOCAL_HEIGHT        = true;
-public static final boolean WHITESPACE_CHECK_TEXT_BOTH_SIDES     = true;
+public static final boolean WHITESPACE_CHECK_TEXT_BOTH_SIDES     = false;
 public static final boolean WHITESPACE_CHECK_CONNECTED_FROM_EDGE = true;
-public static final boolean WHITESPACE_FLUFFY_EMPTY_CHECK        = true;
-public static final float   WHITESPACE_FLUFFYNESS                = 0.1f;
-public static final boolean WHITESPACE_PREFER_TALL               = false;
+public static final boolean WHITESPACE_FUZZY_EMPTY_CHECK         = true;
+public static final float   WHITESPACE_FUZZINESS                 = 0.15f;
 public static final boolean WHITESPACE_USE_WHOLE_PAGE            = false;
 public static final int     WHITESPACE_NUMBER_WANTED             = 40;
-public static final float   WHITESPACE_OBSTACLE_OVERLAP          = 2.0f;
+public static final float   WHITESPACE_OBSTACLE_OVERLAP          = 1.5f;
+//public static final float   WHITESPACE_OBSTACLE_OVERLAP          = 0.3f;
 /* an artificial limit of the algorithm. */
 public static final int     WHITESPACE_MAX_QUEUE_SIZE            = 100000;
 
 /* column finder */
-public static final float MIN_COLUMN_WIDTH = 2.0f;
-
+public static final float   COLUMNS_MIN_COLUMN_WIDTH        = 2.0f;
+public static final boolean COLUMNS_ENABLE_COLUMN_DETECTION = true;
 
 }

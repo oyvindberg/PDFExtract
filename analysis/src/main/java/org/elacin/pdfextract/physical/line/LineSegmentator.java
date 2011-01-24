@@ -110,7 +110,41 @@ public static List<LineNode> createLinesFromBlocks(RectangleCollection block, in
         }
     }
 
+    combineLines(lines);
+
+
     return lines;
+}
+
+/**
+ * Some times very small punctuation like full stops and commas seems to be left on a line on their
+ * own. work around that here
+ *
+ * @param lines
+ */
+private static void combineLines(final List<LineNode> lines) {
+    for (int i = 1; i < lines.size(); i++) {
+        final LineNode lastLine = lines.get(i - 1);
+        final LineNode currentLine = lines.get(i);
+
+        if (currentLine.getChildren().size() >= 4) {
+            continue;
+        }
+
+        if (currentLine.getPos().getHeight() > 0.7f * lastLine.getPos().getHeight()) {
+            continue;
+        }
+
+        if (lastLine.getPos().getVerticalDistanceTo(currentLine) > 2) {
+            continue;
+        }
+        if (log.isInfoEnabled()) {
+            log.info("LOG01360:Combining line " + currentLine);
+        };
+        lastLine.addChildren(currentLine.getChildren());
+        lines.remove(currentLine);
+        i--;
+    }
 }
 
 @NotNull
