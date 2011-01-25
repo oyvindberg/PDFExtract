@@ -32,9 +32,6 @@ import java.util.List;
 
 import static org.elacin.pdfextract.content.AssignablePhysicalContent.BLOCK_NOT_ASSIGNED;
 
-/**
- * This code is not used now, but its kept around because it might be useful
- */
 public class LineSegmentator {
 // ------------------------------ FIELDS ------------------------------
 
