@@ -33,16 +33,20 @@ private Rectangle graphicsPos;
 
 // --------------------------- CONSTRUCTORS ---------------------------
 
+public GraphicsNode(final Rectangle graphicsPos) {
+    setPos(graphicsPos);
+    this.graphicsPos = graphicsPos;
+}
+
+// ------------------------ INTERFACE METHODS ------------------------
+
+
+// --------------------- Interface HasPosition ---------------------
 
 @Override
 public void calculatePos() {
     super.calculatePos();
     setPos(getPos().union(graphicsPos));
-}
-
-public GraphicsNode(final Rectangle graphicsPos) {
-    setPos(graphicsPos);
-    this.graphicsPos = graphicsPos;
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------

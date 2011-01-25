@@ -55,8 +55,6 @@ public static boolean splitOfTopTextOfPage(@NotNull PhysicalPage page, float fra
 
 @NotNull
 public static boolean splitRegionHorizontally(@NotNull PhysicalPageRegion region) {
-
-
     final int minimumDistanceToSplit = 20;
 
     return tryHorizontalSplit(region, region.getPos(), 1.0f, minimumDistanceToSplit);
@@ -124,7 +122,11 @@ private static boolean tryHorizontalSplit(final PhysicalPageRegion r,
                 log.info(String.format("LOG00530:split/hor at y=%s for %s ", y, activeRegion));
             }
 
-            PageRegionSplitBySeparators.splitRegionAtY(activeRegion, y);
+            boolean success = PageRegionSplitBySeparators.splitRegionAtY(activeRegion, y);
+
+            if (!success) {
+                break;
+            }
 
             PhysicalPageRegion lowerNewSubRegion
                     = activeRegion.getSubregions().get(activeRegion.getSubregions().size() - 1);

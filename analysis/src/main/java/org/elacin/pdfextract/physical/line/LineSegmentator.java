@@ -116,6 +116,21 @@ public static List<LineNode> createLinesFromBlocks(RectangleCollection block, in
     return lines;
 }
 
+@NotNull
+public static WordNode createWordNode(@NotNull final PhysicalText text, int pageNumber) {
+    return new WordNode(text.getPos(), pageNumber, text.getStyle(), text.text, text.charSpacing);
+}
+
+public static WordNode createWordNodeFromGraphic(final int pageNum, final PhysicalContent content) {
+    return new WordNode(content.getPos(),
+                        pageNum,
+                        content.getGraphicContent().getStyle(),
+                        content.getGraphicContent().getStyle().id,
+                        -1);
+}
+
+// -------------------------- STATIC METHODS --------------------------
+
 /**
  * Some times very small punctuation like full stops and commas seems to be left on a line on their
  * own. work around that here
@@ -151,21 +166,6 @@ private static void combineLines(final List<LineNode> lines) {
         i--;
     }
 }
-
-@NotNull
-public static WordNode createWordNode(@NotNull final PhysicalText text, int pageNumber) {
-    return new WordNode(text.getPos(), pageNumber, text.getStyle(), text.text, text.charSpacing);
-}
-
-public static WordNode createWordNodeFromGraphic(final int pageNum, final PhysicalContent content) {
-    return new WordNode(content.getPos(),
-                        pageNum,
-                        content.getGraphicContent().getStyle(),
-                        content.getGraphicContent().getStyle().id,
-                        -1);
-}
-
-// -------------------------- STATIC METHODS --------------------------
 
 @NotNull
 private static List<Integer> findLineBoundaries(@NotNull int[] counts) {

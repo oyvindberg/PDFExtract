@@ -39,15 +39,17 @@ private static final Logger log = Logger.getLogger(PageRegionSplitBySeparators.c
 
 // -------------------------- STATIC METHODS --------------------------
 
-static void splitRegionAtY(final PhysicalPageRegion r, final float splitAt) {
+static boolean splitRegionAtY(final PhysicalPageRegion r, final float splitAt) {
     Rectangle rpos = r.getPos();
 
+    boolean ret = true;
     Rectangle above = new Rectangle(rpos.x, 0.0f, rpos.width + 1, splitAt);
-    r.extractSubRegionFromBound(above, false);
+    ret &= r.extractSubRegionFromBound(above, false);
 
     Rectangle under = new Rectangle(rpos.x, splitAt, rpos.width + 1, rpos.endY - splitAt);
-    r.extractSubRegionFromBound(under, false);
+    ret &= r.extractSubRegionFromBound(under, false);
 
+    return ret;
 }
 
 /**

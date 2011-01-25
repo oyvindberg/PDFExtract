@@ -50,11 +50,9 @@ public AbstractParentNode() {
 
 // --------------------- Interface HasPosition ---------------------
 
-
 public void calculatePos() {
     setPos(MathUtils.findBounds(children));
 }
-
 
 // ------------------------ CANONICAL METHODS ------------------------
 
@@ -80,7 +78,6 @@ public EnumSet<Role> getRoles() {
 
     for (ChildType child : children) {
         ret.addAll(child.getRoles());
-
     }
     return ret;
 }

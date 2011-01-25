@@ -119,6 +119,34 @@ private static HasPosition choosePivot(@NotNull QueueEntry entry) {
 }
 
 /**
+ * If none of the obstacles are contained within outerBound, then we found a rectangle
+ */
+private static boolean isEmptyEnough(QueueEntry whitespaceCandidate) {
+    if (Constants.WHITESPACE_FUZZY_EMPTY_CHECK && whitespaceCandidate.numObstacles != 0) {
+        /* accept a small intersection */
+        float intersectSum = 0.0f;
+        float whitespaceArea = whitespaceCandidate.bound.area();
+        final float intersectLimit = whitespaceArea * WHITESPACE_FUZZINESS;
+
+        for (int i = 0; i < whitespaceCandidate.numObstacles; i++) {
+            final Rectangle obstaclePos = whitespaceCandidate.obstacles[i].getPos();
+            final float intersectSize = whitespaceCandidate.bound.intersection(obstaclePos).area();
+
+            final float smallestArea = Math.min(obstaclePos.area(), whitespaceArea);
+            if (intersectSize > smallestArea * WHITESPACE_FUZZINESS) {
+                return false;
+            }
+
+            intersectSum += intersectSize;
+        }
+
+        return intersectSum < intersectLimit;
+    }
+
+    return whitespaceCandidate.numObstacles == 0;
+}
+
+/**
  * This is the quality function by which we sort rectangles to choose the 'best' one first. The
  * current function bases itself on the area of the rectangle, and then prefers high ones
  */
@@ -145,6 +173,7 @@ public List<WhitespaceRectangle> findWhitespace() {
 
         /* continue looking for whitespace until we have the wanted number or we run out*/
         while (foundWhitespaceCount < wantedWhitespaces) {
+
             final WhitespaceRectangle newRectangle = findNextWhitespace();
 
             /* if no further rectangles exist, stop looking */
@@ -252,7 +281,6 @@ private WhitespaceRectangle findNextWhitespace() {
 private QueueEntry[] splitSearchAreaAround(@NotNull final QueueEntry current,
                                            @NotNull final HasPosition pivot)
 {
-    final Rectangle p = current.bound;
 
     /* Everything inside here was the definitely most expensive parts of the implementation,
     *   so this is quite optimized to avoid too many float point comparisons and needless
@@ -268,35 +296,35 @@ private QueueEntry[] splitSearchAreaAround(@NotNull final QueueEntry current,
 
     Rectangle left = null;
     HasPosition[] leftObs = null;
-    final float leftWidth = splitX - p.x;
-    if (splitX > p.x && leftWidth > minWidth) {
-        left = new Rectangle(p.x, p.y, leftWidth, p.height);
+    final float leftWidth = splitX - current.bound.x;
+    if (splitX > current.bound.x && leftWidth > minWidth) {
+        left = new Rectangle(current.bound.x, current.bound.y, leftWidth, current.bound.height);
         leftObs = new HasPosition[current.numObstacles + missingRectangles];
     }
 
     Rectangle above = null;
     HasPosition[] aboveObs = null;
-    final float aboveHeight = splitY - p.y;
-    if (splitY > p.y && aboveHeight > minHeight) {
-        above = new Rectangle(p.x, p.y, p.width, aboveHeight);
+    final float aboveHeight = splitY - current.bound.y;
+    if (splitY > current.bound.y && aboveHeight > minHeight) {
+        above = new Rectangle(current.bound.x, current.bound.y, current.bound.width, aboveHeight);
         aboveObs = new HasPosition[current.numObstacles + missingRectangles];
     }
 
 
     Rectangle right = null;
     HasPosition[] rightObs = null;
-    final float rightWidth = p.endX - splitEndX;
-    if (splitEndX < p.endX && rightWidth > minWidth) {
-        right = new Rectangle(splitEndX, p.y, rightWidth, p.height);
+    final float rightWidth = current.bound.endX - splitEndX;
+    if (splitEndX < current.bound.endX && rightWidth > minWidth) {
+        right = new Rectangle(splitEndX, current.bound.y, rightWidth, current.bound.height);
         rightObs = new HasPosition[current.numObstacles + missingRectangles];
     }
 
 
     Rectangle below = null;
     HasPosition[] belowObs = null;
-    final float belowHeight = p.endY - splitEndY;
-    if (splitEndY < p.endY && belowHeight > minHeight) {
-        below = new Rectangle(p.x, splitEndY, p.width, belowHeight);
+    final float belowHeight = current.bound.endY - splitEndY;
+    if (splitEndY < current.bound.endY && belowHeight > minHeight) {
+        below = new Rectangle(current.bound.x, splitEndY, current.bound.width, belowHeight);
         belowObs = new HasPosition[current.numObstacles + missingRectangles];
     }
 
@@ -321,7 +349,6 @@ private QueueEntry[] splitSearchAreaAround(@NotNull final QueueEntry current,
             continue;
         }
 
-
         if (left != null && obstaclePos.x < adjustedSplitX) {
             leftObs[leftIndex++] = obstacle;
         }
@@ -345,57 +372,6 @@ private QueueEntry[] splitSearchAreaAround(@NotNull final QueueEntry current,
                             right == null ? null : new QueueEntry(right, rightObs, rightIndex, n),
                             above == null ? null : new QueueEntry(above, aboveObs, aboveIndex, n),
                             below == null ? null : new QueueEntry(below, belowObs, belowIndex, n)};
-}
-
-private boolean isWhitespaceTooShortForSurroundingText(final WhitespaceRectangle newWhitespace) {
-    final List<PhysicalContent> surroundings = region.findSurrounding(newWhitespace, 8);
-    if (!surroundings.isEmpty()) {
-        float averageHeight = 0.0f;
-        int counted = 0;
-        for (PhysicalContent surrounding : surroundings) {
-            if (surrounding.isText()) {
-                averageHeight += surrounding.getPos().height;
-                counted++;
-            }
-        }
-        if (counted != 0) {
-            averageHeight /= (float) counted;
-
-            float u = Math.max(((PhysicalPageRegion) region).getMinimumRowSpacing(), averageHeight);
-            final float v = (WHITESPACE_OBSTACLE_OVERLAP + 1f * u) * (1 + WHITESPACE_FUZZINESS);
-            if (v > newWhitespace.getPos().height) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-/**
- * If none of the obstacles are contained within outerBound, then we found a rectangle
- */
-private boolean isEmptyEnough(@NotNull QueueEntry current) {
-    if (Constants.WHITESPACE_FUZZY_EMPTY_CHECK) {
-        /* accept a small intersection */
-        float intersectSum = 0.0f;
-        final Rectangle bound = current.bound;
-        final float intersectLimit = bound.area() * WHITESPACE_FUZZINESS;
-
-        for (int i = 0; i < current.numObstacles; i++) {
-            final Rectangle obstaclePos = current.obstacles[i].getPos();
-            final float intersectionSize = bound.intersection(obstaclePos).area();
-
-            if (intersectionSize > obstaclePos.area() * WHITESPACE_FUZZINESS) {
-                return false;
-            }
-
-            intersectSum += intersectionSize;
-        }
-
-        return intersectSum < intersectLimit;
-    }
-
-    return current.numObstacles == 0;
 }
 
 private boolean isWhitespaceNeedlesslySeparatingText(final WhitespaceRectangle newWhitespace) {
@@ -432,6 +408,30 @@ private boolean isWhitespaceNeedlesslySeparatingText(final WhitespaceRectangle n
     return false;
 }
 
+private boolean isWhitespaceTooShortForSurroundingText(final WhitespaceRectangle newWhitespace) {
+    final List<PhysicalContent> surroundings = region.findSurrounding(newWhitespace, 8);
+    if (!surroundings.isEmpty()) {
+        float averageHeight = 0.0f;
+        int counted = 0;
+        for (PhysicalContent surrounding : surroundings) {
+            if (surrounding.isText()) {
+                averageHeight += surrounding.getPos().height;
+                counted++;
+            }
+        }
+        if (counted != 0) {
+            averageHeight /= (float) counted;
+
+            float u = Math.max(((PhysicalPageRegion) region).getMinimumRowSpacing(), averageHeight);
+            final float v = (WHITESPACE_OBSTACLE_OVERLAP + 1f * u) * (1 + WHITESPACE_FUZZINESS);
+            if (v > newWhitespace.getPos().height) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 /**
  * Checks if some of the newly added whitespace rectangles, that is those discovered after this
  * queue entry was added to the queue, overlaps with the area of this queue entry, and if so adds
@@ -441,7 +441,6 @@ private void updateObstacleListForQueueEntry(@NotNull final QueueEntry entry) {
     int numNewestObstaclesToCheck = foundWhitespaceCount - entry.numberOfWhitespaceFound;
 
     for (int i = 0; i < numNewestObstaclesToCheck; i++) {
-        //        final HasPosition obstacle = foundWhitespace.get(foundWhitespace.size() - 1 - i);
         final HasPosition obstacle = foundWhitespace[foundWhitespaceCount - 1 - i];
         if (entry.bound.intersectsExclusiveWith(obstacle.getPos())) {
             entry.addObstacle(obstacle);
@@ -457,7 +456,7 @@ private void updateObstacleListForQueueEntry(@NotNull final QueueEntry entry) {
  * we thus form continous chains of rectangles, the results seem to be much better.
  */
 
-protected boolean isNextToWhitespaceOrEdge(@NotNull final WhitespaceRectangle newWhitespace) {
+private final boolean isNextToWhitespaceOrEdge(@NotNull final WhitespaceRectangle newWhitespace) {
     /* accept this rectangle if it is adjacent to the edge of the page */
     //noinspection FloatingPointEquality
     final float l = WHITESPACE_OBSTACLE_OVERLAP;
@@ -470,37 +469,6 @@ protected boolean isNextToWhitespaceOrEdge(@NotNull final WhitespaceRectangle ne
     for (int i = 0; i < foundWhitespaceCount; i++) {
         final WhitespaceRectangle existing = foundWhitespace[i];
         if (newWhitespace.getPos().distance(existing.getPos()) < 0.01f) {
-            return true;
-        }
-    }
-
-    return false;
-}
-
-protected boolean isNextToWhitespaceOrEdge2(final WhitespaceRectangle newWhitespace) {
-    /* accept this rectangle if it is adjacent to the edge of the page */
-    //noinspection FloatingPointEquality
-    final float l = WHITESPACE_OBSTACLE_OVERLAP;
-
-    Rectangle wPos = newWhitespace.getPos();
-    Rectangle rpos = region.getPos();
-    if (wPos.x <= rpos.x + l || wPos.y <= rpos.y + l || wPos.endX >= rpos.endX - l || wPos.endY >= rpos.endY - l) {
-        return true;
-    }
-    /* also accept if it borders one of the already identified whitespaces */
-    for (int i = 0; i < foundWhitespaceCount; i++) {
-        final WhitespaceRectangle existing = foundWhitespace[i];
-        Rectangle existingPos = existing.getPos();
-        if (wPos.x == existingPos.endX) {
-            return true;
-        }
-        if (wPos.y == existingPos.endY) {
-            return true;
-        }
-        if (wPos.endX == existingPos.x) {
-            return true;
-        }
-        if (wPos.endY == existingPos.y) {
             return true;
         }
     }
@@ -531,36 +499,6 @@ private static class QueueEntry implements Comparable<QueueEntry> {
 
     public final int compareTo(final QueueEntry other) {
         return Float.compare(other.quality, quality);
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("QueueEntry");
-        sb.append("{area=").append(bound.area());
-        sb.append(", bound=").append(bound);
-        sb.append(", obstacles=").append(numObstacles);
-        sb.append('}');
-        return sb.toString();
-    }
-
-    @Override
-    public boolean equals(@Nullable final Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        final QueueEntry that = (QueueEntry) o;
-
-        return !(bound != null ? !bound.equals(that.bound) : that.bound != null);
-    }
-
-    @Override
-    public int hashCode() {
-        return bound != null ? bound.hashCode() : 0;
     }
 
     public void addObstacle(HasPosition obstacle) {

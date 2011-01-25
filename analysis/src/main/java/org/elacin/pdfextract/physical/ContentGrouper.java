@@ -35,10 +35,12 @@ import java.util.Set;
  * File | Settings | File Templates.
  */
 public class ContentGrouper {
+// ------------------------------ FIELDS ------------------------------
+
 private static final Logger log = Logger.getLogger(ContentGrouper.class);
 
-// -------------------------- PUBLIC STATIC METHODS --------------------------
-
+@NotNull
+public final Rectangle rpos;
 @NotNull
 final List<RectangleCollection> allBlocks = new ArrayList<RectangleCollection>(30);
 
@@ -48,18 +50,16 @@ RectangleCollection currentBlock = new RectangleCollection(new ArrayList<Physica
 @NotNull
 final PhysicalPageRegion region;
 
-@NotNull
-public final Rectangle rpos;
-
+// --------------------------- CONSTRUCTORS ---------------------------
 
 public ContentGrouper(@NotNull PhysicalPageRegion region) {
     this.region = region;
     rpos = region.getPos();
 }
 
+// -------------------------- PUBLIC METHODS --------------------------
 
 public List<RectangleCollection> findBlocksOfContent() {
-
     /** if this is contained in a grapic, just output the lines */
     if (region.isGraphicalRegion()) {
         for (PhysicalContent content : region.getContents()) {
@@ -102,6 +102,48 @@ public List<RectangleCollection> findBlocksOfContent() {
     return allBlocks;
 }
 
+// -------------------------- OTHER METHODS --------------------------
+
+@SuppressWarnings({"NumericCastThatLosesPrecision"})
+private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent current) {
+    if (!current.isAssignable()) {
+        return false;
+    }
+    if (current.getAssignable().isAssignedBlock()) {
+        return false;
+    }
+
+    if (current.isGraphic() && current.getGraphicContent().isSeparator()) {
+        //        current.getAssignable().setBlockNum(allBlocks.size());
+        return false;
+    }
+
+    current.getAssignable().setBlockNum(allBlocks.size());
+    currentBlock.addContent(current);
+
+    if (current.isGraphic()) {
+        return false;
+    }
+
+
+    /* try searching for texts in all directions */
+
+    int startY = (int) Math.max(rpos.y, current.getPos().y);
+    int endY = (int) Math.min(rpos.endY, current.getPos().endY);
+
+    for (int y = startY + 1; y < endY; y++) {
+        markBothWaysFromCurrent(current, region.findContentAtYIndex(y));
+    }
+
+    int startX = 1 + (int) Math.max(rpos.x, current.getPos().x);
+    int endX = -1 + (int) Math.min(rpos.endX, current.getPos().endX);
+
+    for (int x = startX; x < endX - 1; x++) {
+        markBothWaysFromCurrent(current, region.findContentAtXIndex(x));
+    }
+    return true;
+}
+
 private void createBlocksForFormulas() {
     Set<PhysicalContent> workingSet = new HashSet<PhysicalContent>();
     boolean skip = false, hasSkipped = false;
@@ -140,14 +182,12 @@ private void createBlocksForFormulas() {
         /* if we found a formula, do hungry block combining of all continous content until
         *   we find a line which is not */
         if (Formulas.textSeemsToBeFormula(workingSet)) {
-
             while (y <= endY + 1) {
                 for (PhysicalContent content : row) {
                     if (content.isAssignable() && !workingSet.contains(content)) {
                         workingSet.add(content);
                         endY = Math.max(content.getPos().endY, endY);
                     }
-
                 }
                 y++;
                 row.clear();
@@ -159,7 +199,6 @@ private void createBlocksForFormulas() {
                     content.getAssignable().setBlockNum(allBlocks.size());
                     currentBlock.addContent(content);
                 }
-
             }
 
             /* if there was no non-formula text inbetween, combine this with the last block */
@@ -178,61 +217,6 @@ private void createBlocksForFormulas() {
     }
 }
 
-private void printLastBlock() {
-    StringBuffer sb = new StringBuffer();
-    List<PhysicalContent> list = allBlocks.get(allBlocks.size() - 1).getContents();
-    for (PhysicalContent content : list) {
-        if (content.isText()) {
-            sb.append(content.getPhysicalText().getText());
-        }
-    }
-
-    log.info("LOG01370:Created block" + sb);
-}
-
-// -------------------------- OTHER METHODS --------------------------
-
-@SuppressWarnings({"NumericCastThatLosesPrecision"})
-private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent current) {
-    if (!current.isAssignable()) {
-        return false;
-    }
-    if (current.getAssignable().isAssignedBlock()) {
-        return false;
-    }
-
-    if (current.isGraphic() && current.getGraphicContent().isSeparator()) {
-        //        current.getAssignable().setBlockNum(allBlocks.size());
-        return false;
-    }
-
-    current.getAssignable().setBlockNum(allBlocks.size());
-    currentBlock.addContent(current);
-
-    if (current.isGraphic()) {
-        return false;
-    }
-
-
-    /* try searching for texts in all directions */
-
-    int startY = (int) Math.max(rpos.y, current.getPos().y);
-    int endY = (int) Math.min(rpos.endY, current.getPos().endY);
-
-    for (int y = startY + 1; y < endY; y++) {
-        markBothWaysFromCurrent(current, region.findContentAtYIndex(y));
-
-    }
-
-    int startX = 1 + (int) Math.max(rpos.x, current.getPos().x);
-    int endX = -1 + (int) Math.min(rpos.endX, current.getPos().endX);
-
-    for (int x = startX; x < endX - 1; x++) {
-        markBothWaysFromCurrent(current, region.findContentAtXIndex(x));
-    }
-    return true;
-}
-
 private void markBothWaysFromCurrent(final PhysicalContent current,
                                      @NotNull final List<PhysicalContent> line)
 {
@@ -249,5 +233,17 @@ private void markBothWaysFromCurrent(final PhysicalContent current,
     for (int index = currentIndex + 1; index < line.size() && continue_; index++) {
         continue_ &= markEverythingConnectedFrom(line.get(index));
     }
+}
+
+private void printLastBlock() {
+    StringBuffer sb = new StringBuffer();
+    List<PhysicalContent> list = allBlocks.get(allBlocks.size() - 1).getContents();
+    for (PhysicalContent content : list) {
+        if (content.isText()) {
+            sb.append(content.getPhysicalText().getText());
+        }
+    }
+
+    log.info("LOG01370:Created block" + sb);
 }
 }

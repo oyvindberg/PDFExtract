@@ -76,7 +76,6 @@ public Style findDominatingStyle() {
 @NotNull
 @Override
 public Comparator<WordNode> getChildComparator() {
-
     if (findDominatingStyle().equals(Style.FORMULA)) {
         return new Comparator<WordNode>() {
             public int compare(@NotNull final WordNode o1, @NotNull final WordNode o2) {

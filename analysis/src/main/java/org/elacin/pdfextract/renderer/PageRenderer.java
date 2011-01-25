@@ -81,64 +81,7 @@ public PageRenderer(final PDFSource source,
 
 // -------------------------- STATIC METHODS --------------------------
 
-private void drawRegionAndWhitespace(@NotNull PhysicalPageRegion region, final int nesting) {
-    for (WhitespaceRectangle o : region.getWhitespace()) {
-        drawRectangle(o);
-    }
-
-    if (Constants.RENDER_PAGE_REGIONS) {
-        Rectangle pos = region.getPos();
-        final Color color;// = Color.DARK_GRAY;
-        switch (nesting) {
-            case 0:
-                color = Color.BLACK;
-                break;
-            case 1:
-                color = Color.BLUE;
-                break;
-            case 2:
-                color = Color.RED;
-                break;
-            case 3:
-                color = Color.MAGENTA;
-                break;
-            default:
-                color = Color.GREEN;
-        }
-
-        Stroke oldStroke = graphics.getStroke();
-
-        final float dash1[] = {(float) (1 + 3 * nesting)};
-        final BasicStroke dashed = new BasicStroke(3.0f,
-                                                   BasicStroke.CAP_BUTT,
-                                                   BasicStroke.JOIN_MITER,
-                                                   10.0f,
-                                                   dash1,
-                                                   0.0f);
-
-        graphics.setStroke(dashed);
-        graphics.setColor(color);
-        final int x = (int) ((float) pos.x * xScale);
-        final int width = (int) ((float) pos.width * xScale);
-        int y = (int) ((float) pos.y * yScale);
-        final int height = (int) ((float) pos.height * yScale);
-
-        RoundRectangle2D.Double r = new RoundRectangle2D.Double(x, y, width, height, 20.0, 20.0);
-        graphics.draw(r);
-
-        graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 40));
-        graphics.fill(r);
-
-        graphics.setStroke(oldStroke);
-    }
-
-    for (PhysicalPageRegion subRegion : region.getSubregions()) {
-        drawRegionAndWhitespace(subRegion, nesting + 1);
-    }
-}
-
 static Color getColorForObject(@NotNull Object o) {
-
     if (o.getClass().equals(WhitespaceRectangle.class)) {
         WhitespaceRectangle w = (WhitespaceRectangle) o;
         if (w.getScore() == 1000) {
@@ -173,7 +116,6 @@ static Color getColorForObject(@NotNull Object o) {
     }
 
     return DONT_DRAW;
-
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
@@ -242,8 +184,6 @@ public BufferedImage renderToFile(final int pageNum, File outputFile) {
 
 
         drawRegionAndWhitespace(physicalPage.getMainRegion(), 0);
-
-
     }
 
     /* write to file */
@@ -260,6 +200,8 @@ public BufferedImage renderToFile(final int pageNum, File outputFile) {
     return image;
 }
 
+// -------------------------- OTHER METHODS --------------------------
+
 @Nullable
 private PhysicalPage findPhysicalPage(final PageNode pageNode) {
     for (PhysicalPage physicalPage : physicalPages) {
@@ -273,8 +215,6 @@ private PhysicalPage findPhysicalPage(final PageNode pageNode) {
     }
     return null;
 }
-
-// -------------------------- OTHER METHODS --------------------------
 
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 private void drawRectangle(@NotNull final HasPosition object) {
@@ -302,8 +242,6 @@ private void drawRectangle(@NotNull final HasPosition object) {
 }
 
 private void drawParagraphNumber(@NotNull HasPosition p) {
-
-
     graphics.setFont(new Font("TimesRoman", Font.BOLD | Font.ITALIC, 20));
     final float x = p.getPos().x * xScale;
     final float y = p.getPos().y * yScale;
@@ -316,6 +254,62 @@ private void drawParagraphNumber(@NotNull HasPosition p) {
     graphics.setColor(Color.black);
     graphics.drawString(String.valueOf(paragraphCounter), x, y + 20);
     paragraphCounter++;
+}
+
+private void drawRegionAndWhitespace(@NotNull PhysicalPageRegion region, final int nesting) {
+    for (WhitespaceRectangle o : region.getWhitespace()) {
+        drawRectangle(o);
+    }
+
+    if (Constants.RENDER_PAGE_REGIONS) {
+        Rectangle pos = region.getPos();
+        final Color color;// = Color.DARK_GRAY;
+        switch (nesting) {
+            case 0:
+                color = Color.BLACK;
+                break;
+            case 1:
+                color = Color.BLUE;
+                break;
+            case 2:
+                color = Color.RED;
+                break;
+            case 3:
+                color = Color.MAGENTA;
+                break;
+            default:
+                color = Color.GREEN;
+        }
+
+        Stroke oldStroke = graphics.getStroke();
+
+        final float dash1[] = {(float) (1 + 3 * nesting)};
+        final BasicStroke dashed = new BasicStroke(3.0f,
+                                                   BasicStroke.CAP_BUTT,
+                                                   BasicStroke.JOIN_MITER,
+                                                   10.0f,
+                                                   dash1,
+                                                   0.0f);
+
+        graphics.setStroke(dashed);
+        graphics.setColor(color);
+        final int x = (int) ((float) pos.x * xScale);
+        final int width = (int) ((float) pos.width * xScale);
+        int y = (int) ((float) pos.y * yScale);
+        final int height = (int) ((float) pos.height * yScale);
+
+        RoundRectangle2D.Double r = new RoundRectangle2D.Double(x, y, width, height, 20.0, 20.0);
+        graphics.draw(r);
+
+        graphics.setColor(new Color(color.getRed(), color.getGreen(), color.getBlue(), 40));
+        graphics.fill(r);
+
+        graphics.setStroke(oldStroke);
+    }
+
+    for (PhysicalPageRegion subRegion : region.getSubregions()) {
+        drawRegionAndWhitespace(subRegion, nesting + 1);
+    }
 }
 
 private void drawTree(@NotNull PageNode page) {
@@ -339,9 +333,7 @@ private void drawTree(@NotNull PageNode page) {
     }
 
     for (ParagraphNode paragraphNode : page.getChildren()) {
-
         for (LineNode lineNode : paragraphNode.getChildren()) {
-
             for (WordNode wordNode : lineNode.getChildren()) {
                 drawRectangle(wordNode);
             }
@@ -353,8 +345,6 @@ private void drawTree(@NotNull PageNode page) {
         if (RENDER_PARAGRAPH_NUMBERS) {
             drawParagraphNumber(paragraphNode);
         }
-
     }
-
 }
 }

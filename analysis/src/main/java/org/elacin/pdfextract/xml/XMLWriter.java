@@ -22,12 +22,11 @@ import org.jetbrains.annotations.NotNull;
 import java.io.File;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: 16.01.11
- * Time: 23.41
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: 16.01.11 Time: 23.41 To change this template use
+ * File | Settings | File Templates.
  */
 public interface XMLWriter {
+// -------------------------- PUBLIC METHODS --------------------------
+
 void writeTree(@NotNull DocumentNode root, @NotNull File output);
 }

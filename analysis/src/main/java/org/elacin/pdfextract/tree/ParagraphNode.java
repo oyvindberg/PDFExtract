@@ -46,6 +46,7 @@ public int getSeqNo() {
     return seqNo;
 }
 
+// -------------------------- PUBLIC METHODS --------------------------
 
 @NotNull
 @Override

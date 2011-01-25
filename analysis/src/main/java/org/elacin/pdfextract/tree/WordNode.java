@@ -70,16 +70,17 @@ public void calculatePos() {
 
 // --------------------- Interface StyledText ---------------------
 
-@Override
-@NotNull
-public Style getStyle() {
-    return style;
-}
 
 @Override
 @NotNull
 public String getText() {
     return text;
+}
+
+@Override
+@NotNull
+public Style getStyle() {
+    return style;
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
