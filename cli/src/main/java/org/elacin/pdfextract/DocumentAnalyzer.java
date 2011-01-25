@@ -34,6 +34,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import static org.elacin.pdfextract.Constants.*;
@@ -101,8 +104,14 @@ static void renderPDF(PDFSource source,
         final int pageNum = root.getChildren().get(i).getPageNumber();
 
         /* then open and write to file */
-        final File outputFile = new File(destination.getAbsolutePath().replace("%",
-                                                                               String.valueOf(pageNum)));
+        String path = destination.getAbsolutePath();
+
+        path = path.replace("%p", String.valueOf(pageNum));
+
+        DateFormat dateFormat = new SimpleDateFormat("MMddHHmm");
+        path = path.replace("%d", dateFormat.format(new Date()));
+
+        final File outputFile = new File(path);
 
         renderer.renderToFile(pageNum, outputFile);
     }
@@ -141,7 +150,9 @@ public void processFile() throws IOException {
         final List<PhysicalText> words = wordSegmentator.segmentWords(inputPage.getCharacters());
 
         /* create a physical page instance */
-        PhysicalPage pp = new PhysicalPage(words, inputPage.getGraphics(), inputPage.getPageNum(),
+        PhysicalPage pp = new PhysicalPage(words,
+                                           inputPage.getGraphics(),
+                                           inputPage.getPageNum(),
                                            inputPage.getDimensions());
 
         /* save it for rendering */
@@ -157,8 +168,10 @@ public void processFile() throws IOException {
     MDC.remove("page");
 
     if (SIMPLE_OUTPUT_ENABLED) {
-        new SimpleXMLOutput().writeTree(root, getOutputFile(destination, pdfFile,
-                                                            SIMPLE_OUTPUT_EXTENSION));
+        new SimpleXMLOutput().writeTree(root,
+                                        getOutputFile(destination,
+                                                      pdfFile,
+                                                      SIMPLE_OUTPUT_EXTENSION));
     }
     if (TEI_OUTPUT_ENABLED) {
         new TEIOutput().writeTree(root, getOutputFile(destination, pdfFile, TEI_OUTPUT_EXTENSION));
@@ -169,7 +182,7 @@ public void processFile() throws IOException {
     log.info("Analyzed " + content.getPages().size() + " pages in " + td + "ms");
 
     if (RENDER_ENABLED) {
-        renderPDF(source, root, physicalPages, getOutputFile(destination, pdfFile, ".%.png"));
+        renderPDF(source, root, physicalPages, getOutputFile(destination, pdfFile, ".%d.%p.png"));
     }
 
     source.closeSource();

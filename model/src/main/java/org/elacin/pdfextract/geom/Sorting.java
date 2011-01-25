@@ -20,6 +20,7 @@ import org.elacin.pdfextract.content.PhysicalContent;
 import org.elacin.pdfextract.content.PhysicalText;
 import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Comparator;
 import java.util.List;
@@ -34,7 +35,13 @@ public class Sorting {
 
 @NotNull
 public static final Comparator<HasPosition> sortByLowerY = new Comparator<HasPosition>() {
-    public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
+    public int compare(@Nullable final HasPosition o1, @Nullable final HasPosition o2) {
+        if (o1 == null) {
+            return 1;
+        }
+        if (o2 == null) {
+            return -1;
+        }
         return Float.compare(o1.getPos().y, o2.getPos().y);
     }
 };
