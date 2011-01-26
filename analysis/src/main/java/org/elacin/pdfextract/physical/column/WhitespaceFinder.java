@@ -265,14 +265,17 @@ final boolean isNextToWhitespaceOrEdge(final WhitespaceRectangle newWhitespace) 
     //noinspection FloatingPointEquality
     final float l = WHITESPACE_OBSTACLE_OVERLAP;
 
-    if (newWhitespace.getPos().x <= region.getPos().x + l || newWhitespace.getPos().y <= region.getPos().y + l || newWhitespace.getPos().endX >= region.getPos().endX - l || newWhitespace.getPos().endY >= region.getPos().endY - l) {
+    Rectangle wPos = newWhitespace.getPos();
+    Rectangle rPos = region.getPos();
+    if (wPos.x <= rPos.x + l || wPos.y <= rPos.y + l || wPos.endX >= rPos.endX - l || wPos.endY >= rPos.endY - l) {
+
         return true;
     }
 
     /* also accept if it borders one of the already identified whitespaces */
     for (int i = 0; i < foundWhitespaceCount; i++) {
         final WhitespaceRectangle existing = foundWhitespace[i];
-        if (newWhitespace.getPos().distance(existing.getPos()) < 0.01f) {
+        if (wPos.distance(existing.getPos()) < 0.01f) {
             return true;
         }
     }
