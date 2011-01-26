@@ -66,7 +66,7 @@ public static final float   WHITESPACE_FUZZINESS                 = 0.2f;
 public static final boolean WHITESPACE_USE_WHOLE_PAGE            = false;
 public static final int     WHITESPACE_NUMBER_WANTED             = 50;
 public static final float   WHITESPACE_OBSTACLE_OVERLAP          = 1.5f;
-//public static final float   WHITESPACE_OBSTACLE_OVERLAP          = 0.3f;
+//public static final float   WHITESPACE_OBSTACLE_OVERLAP          = 0.0f;
 /* an artificial limit of the algorithm. */
 public static final int     WHITESPACE_MAX_QUEUE_SIZE            = 100000;
 

@@ -157,7 +157,7 @@ private static void combineLines(final List<LineNode> lines) {
         if (log.isDebugEnabled()) {
             log.debug("LOG01360:Combining line " + currentLine);
         }
-        ;
+
         lastLine.addChildren(currentLine.getChildren());
         lines.remove(currentLine);
         i--;

@@ -264,13 +264,13 @@ public boolean intersectsAdmittingOverlap(@NotNull Rectangle that, final float o
     if (that.endX < x + overlap) {
         return false;
     }
-    if (that.x >= endX - overlap) {
+    if (that.x > endX - overlap) {
         return false;
     }
-    if (that.y >= endY - overlap) {
+    if (that.y > endY - overlap) {
         return false;
     }
-    return that.endY >= y + overlap;
+    return that.endY > y + overlap;
 }
 
 public boolean intersectsWith(@NotNull Rectangle that) {
