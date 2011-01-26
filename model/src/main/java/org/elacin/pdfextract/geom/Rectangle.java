@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  *    limitations under the License.
  */
 
+
 package org.elacin.pdfextract.geom;
 
 import org.jetbrains.annotations.NotNull;
@@ -24,20 +25,19 @@ import org.jetbrains.annotations.Nullable;
  * rectangle, with union and intercepts bits stolen from javas Rectangle2D. The problem with just
  * using that class was that is isnt available in an integer version.
  */
-
 public final class Rectangle extends HasPositionAbstract {
-// ------------------------------ FIELDS ------------------------------
 
+// ------------------------------ FIELDS ------------------------------
 public static final Rectangle EMPTY_RECTANGLE = new Rectangle(0.1f, 0.1f, 0.1f, 0.1f);
-public final float x, y, width, height, endX, endY;
+private transient   int       hash            = -1;
 
 /* caching, we do a lot of comparing */
 private transient boolean hasCalculatedHash;
-private transient int hash = -1;
+public final      float   x, y, width, height, endX, endY;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
 public Rectangle(final float x, final float y, final float width, final float height) {
+
     this.height = height;
     this.width = width;
     this.x = x;
@@ -48,31 +48,32 @@ public Rectangle(final float x, final float y, final float width, final float he
     if (height <= 0.0f) {
         throw new IllegalArgumentException("height must be positive: " + this);
     }
+
     if (width <= 0.0f) {
         throw new IllegalArgumentException("width must be positive " + this);
     }
+
     setPos(this);
 }
 
 // ------------------------ INTERFACE METHODS ------------------------
-
-
 // --------------------- Interface HasPosition ---------------------
-
 public void calculatePos() {
     assert false;
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
-
 @SuppressWarnings({"ALL"})
+
 /* generated */
 @Override
 public boolean equals(@Nullable final Object o) {
+
     if (this == o) {
         return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+
+    if ((o == null) || (getClass() != o.getClass())) {
         return false;
     }
 
@@ -81,12 +82,15 @@ public boolean equals(@Nullable final Object o) {
     if (Float.compare(rectangle.height, height) != 0) {
         return false;
     }
+
     if (Float.compare(rectangle.width, width) != 0) {
         return false;
     }
+
     if (Float.compare(rectangle.x, x) != 0) {
         return false;
     }
+
     if (Float.compare(rectangle.y, y) != 0) {
         return false;
     }
@@ -95,23 +99,37 @@ public boolean equals(@Nullable final Object o) {
 }
 
 @SuppressWarnings({"ALL"})
+
 /* generated */
 @Override
 public int hashCode() {
+
     if (!hasCalculatedHash) {
-        int result = (x != +0.0f ? Float.floatToIntBits(x) : 0);
-        result = 31 * result + (y != +0.0f ? Float.floatToIntBits(y) : 0);
-        result = 31 * result + (width != +0.0f ? Float.floatToIntBits(width) : 0);
-        result = 31 * result + (height != +0.0f ? Float.floatToIntBits(height) : 0);
+        int result = ((x != +0.0f)
+                              ? Float.floatToIntBits(x)
+                              : 0);
+
+        result = 31 * result + ((y != +0.0f)
+                                        ? Float.floatToIntBits(y)
+                                        : 0);
+        result = 31 * result + ((width != +0.0f)
+                                        ? Float.floatToIntBits(width)
+                                        : 0);
+        result = 31 * result + ((height != +0.0f)
+                                        ? Float.floatToIntBits(height)
+                                        : 0);
         hash = result;
         hasCalculatedHash = true;
     }
+
     return hash;
 }
 
 @Override
 public String toString() {
+
     final StringBuilder sb = new StringBuilder();
+
     sb.append("pos{");
     sb.append(" x=").append(x);
     sb.append(", y=").append(y);
@@ -120,6 +138,7 @@ public String toString() {
     sb.append(", endX=").append(x + width);
     sb.append(", endY=").append(y + height);
     sb.append('}');
+
     return sb.toString();
 }
 
@@ -149,7 +168,7 @@ public FloatPoint centre() {
  * @return true if the passed rectangle contains this rectangle, false if it does not
  */
 public boolean containedBy(@NotNull Rectangle r) {
-    return r.endX >= endX && r.x <= x && r.endY >= endY && r.y <= y;
+    return (r.endX >= endX) && (r.x <= x) && (r.endY >= endY) && (r.y <= y);
 }
 
 /**
@@ -159,26 +178,27 @@ public boolean containedBy(@NotNull Rectangle r) {
  * @return true if this rectangle contains the passed rectangle, false if it does not
  */
 public boolean contains(@NotNull Rectangle r) {
-    return endX >= r.endX && x <= r.x && endY >= r.endY && y <= r.y;
+    return (endX >= r.endX) && (x <= r.x) && (endY >= r.endY) && (y <= r.y);
 }
 
 /**
- * Return the distance between this rectangle and the passed point. If the rectangle contains the
- * point, the distance is zero.
+ * Return the distance between this rectangle and the passed point. If the rectangle contains
+ * the point, the distance is zero.
  *
  * @param p Point to find the distance to
  * @return distance beween this rectangle and the passed point.
  */
 public float distance(@NotNull final FloatPoint p) {
+
     float temp = x - p.x;
+
     if (temp < 0.0F) {
         temp = p.x - endX;
     }
 
-
     float distanceSquared = Math.max(0.0F, temp * temp);
-
     float temp2 = (y - p.y);
+
     if (temp2 < 0.0F) {
         temp2 = p.y - endY;
     }
@@ -201,6 +221,7 @@ public float distance(@NotNull Rectangle that) {
     if (intersectsWith(that)) {
         return 0.0f;
     }
+
     float distance = 0.0f;
 
     if (x > that.endX) {
@@ -208,6 +229,7 @@ public float distance(@NotNull Rectangle that) {
     } else if (that.x > endX) {
         distance += (that.x - endX) * (that.x - endX);
     }
+
     if (y > that.endY) {
         distance += (y - that.endY) * (y - that.endY);
     } else if (that.y > endY) {
@@ -219,10 +241,10 @@ public float distance(@NotNull Rectangle that) {
 
 @NotNull
 public Rectangle getAdjustedBy(float adjust) {
-    return new Rectangle(Math.max(0.1f, x - adjust),
-                         Math.max(0.1f, y - adjust),
-                         Math.max(0.1f, width + 2 * adjust),
-                         Math.max(0.1f, height + 2 * adjust));
+
+    return new Rectangle(Math.max(0.1f, x - adjust), Math.max(0.1f, y - adjust),
+                         Math.max(0.1f, width + 2 * adjust), Math.max(0.1f, height + 2 * adjust)
+    );
 }
 
 public float getMiddleX() {
@@ -234,9 +256,11 @@ public float getMiddleY() {
 }
 
 public float getVerticalDistanceTo(@NotNull Rectangle that) {
+
     if (that.endY < y) {
         return y - that.endY;
     }
+
     if (that.y > endY) {
         return endY - that.y;
     }
@@ -264,12 +288,15 @@ public boolean intersectsAdmittingOverlap(@NotNull Rectangle that, final float o
     if (that.endX < x + overlap) {
         return false;
     }
+
     if (that.x > endX - overlap) {
         return false;
     }
+
     if (that.y > endY - overlap) {
         return false;
     }
+
     return that.endY > y + overlap;
 }
 
@@ -282,12 +309,15 @@ public boolean intersectsWith(@NotNull Rectangle that) {
     if (that.endX < x) {
         return false;
     }
+
     if (that.x > endX) {
         return false;
     }
+
     if (that.y > endY) {
         return false;
     }
+
     return that.endY > y;
 }
 
@@ -308,16 +338,21 @@ public Rectangle union(@NotNull Rectangle that) {
     float y1 = Math.min(y, that.y);
     float x2 = Math.max(endX, that.endX);
     float y2 = Math.max(endY, that.endY);
+
     if (x2 < x1) {
         float t = x1;
+
         x1 = x2;
         x2 = t;
     }
+
     if (y2 < y1) {
         float t = y1;
+
         y1 = y2;
         y2 = t;
     }
+
     return new Rectangle(x1, y1, x2 - x1, y2 - y1);
 }
 }

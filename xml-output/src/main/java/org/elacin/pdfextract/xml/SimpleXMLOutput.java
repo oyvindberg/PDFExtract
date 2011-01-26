@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package org.elacin.pdfextract.xml;
 
 import org.apache.log4j.Logger;
@@ -38,61 +39,68 @@ import static org.elacin.pdfextract.geom.Sorting.sortStylesById;
  * File | Settings | File Templates.
  */
 public class SimpleXMLOutput implements XMLWriter {
-// ------------------------------ FIELDS ------------------------------
 
+// ------------------------------ FIELDS ------------------------------
 private static final Logger log              = Logger.getLogger(SimpleXMLOutput.class);
 private              int    indent           = 0;
 private final        int    indentationWidth = 4;
 
 // ------------------------ INTERFACE METHODS ------------------------
-
-
 // --------------------- Interface XMLWriter ---------------------
-
 public void writeTree(@NotNull final DocumentNode root, @NotNull final File output) {
+
     /* write to file */
     log.info("LOG00110:Opening " + output + " for output");
 
     final PrintStream out;
+
     try {
         out = new PrintStream(new BufferedOutputStream(new FileOutputStream(output, false),
-                                                       8192 * 4), false, "UTF-8");
+                                                       8192 * 4
+        ), false, "UTF-8"
+        );
     } catch (Exception e) {
         throw new RuntimeException("Could not open output file", e);
     }
 
     StringBuffer sb = new StringBuffer();
+
     writeDocument(sb, root);
 
-    //    final String result = PrettyPrinter.prettyFormat(sb.toString());
+    // final String result = PrettyPrinter.prettyFormat(sb.toString());
     final String result = sb.toString();
+
     out.print(result);
     out.close();
 }
 
 // -------------------------- OTHER METHODS --------------------------
-
 private void writeDocument(@NotNull final StringBuffer out, @NotNull DocumentNode root) {
-    out.append("<document>\n");
 
+    out.append("<document>\n");
     writeStyles(out, root.getStyles());
 
     for (PageNode node : root.getChildren()) {
         writePage(out, node);
     }
+
     out.append("</document>");
 }
 
 private void writeLine(@NotNull final StringBuffer out, @NotNull LineNode line) {
+
     indent += indentationWidth;
     indent(out);
+
     if (line.findDominatingStyle().equals(Style.FORMULA)) {
         out.append("<formula>");
         out.append(getTextForNode(line));
         out.append("</formula>\n");
     } else {
         out.append("<line");
-        out.append(" styleRef=\"").append(String.valueOf(line.findDominatingStyle().id)).append("\"");
+        out.append(" styleRef=\"").append(String.valueOf(line.findDominatingStyle().id)).append(
+                                                                                                       "\""
+        );
 
         if (Constants.VERBOSE_OUTPUT) {
             writeRectangle(out, line.getPos());
@@ -101,6 +109,7 @@ private void writeLine(@NotNull final StringBuffer out, @NotNull LineNode line) 
             for (WordNode word : line.getChildren()) {
                 writeWord(out, word);
             }
+
             out.append("</line>\n");
         } else {
             out.append(">");
@@ -108,21 +117,26 @@ private void writeLine(@NotNull final StringBuffer out, @NotNull LineNode line) 
             out.append("</line>\n");
         }
     }
+
     indent -= indentationWidth;
 }
 
 private void indent(final StringBuffer out) {
+
     for (int i = 0; i < indent; i++) {
         out.append(" ");
     }
 }
 
 private void writePage(@NotNull StringBuffer out, @NotNull PageNode page) {
+
     out.append("<page");
     out.append(" num=\"").append(Integer.toString(page.getPageNumber())).append("\"");
+
     if (Constants.VERBOSE_OUTPUT) {
         writeRectangle(out, page.getPos());
     }
+
     out.append(">\n");
 
     for (ParagraphNode paragraphNode : page.getChildren()) {
@@ -137,12 +151,13 @@ private void writePage(@NotNull StringBuffer out, @NotNull PageNode page) {
 }
 
 private void writeGraphic(final StringBuffer out, final GraphicsNode graphicsNode) {
+
     indent += indentationWidth;
     indent(out);
     out.append("<graphics");
     writeRectangle(out, graphicsNode.getPos());
-
     out.append(">\n");
+
     for (ParagraphNode paragraphNode : graphicsNode.getChildren()) {
         writeParagraph(out, paragraphNode);
     }
@@ -155,15 +170,14 @@ private void writeGraphic(final StringBuffer out, final GraphicsNode graphicsNod
 private void writeParagraph(@NotNull final StringBuffer out,
                             @NotNull final ParagraphNode paragraph)
 {
+
     indent += indentationWidth;
     indent(out);
     out.append("<paragraph");
-
-
     writeRectangle(out, paragraph.getPos());
-
     out.append(" seqno=\"").append(paragraph.getSeqNo()).append("\"");
     out.append(">\n");
+
     for (LineNode line : paragraph.getChildren()) {
         writeLine(out, line);
     }
@@ -171,43 +185,49 @@ private void writeParagraph(@NotNull final StringBuffer out,
     indent(out);
     out.append("</paragraph>\n");
     indent -= indentationWidth;
-
 }
 
 private void writeRectangle(@NotNull StringBuffer sb, @NotNull Rectangle pos) {
+
     sb.append(" x=\"").append(String.valueOf(pos.x)).append("\"");
     sb.append(" y=\"").append(String.valueOf(pos.y)).append("\"");
     sb.append(" w=\"").append(String.valueOf(pos.width)).append("\"");
     sb.append(" h=\"").append(String.valueOf(pos.height)).append("\"");
 }
 
-
 private void writeStyles(@NotNull final StringBuffer out, @NotNull List<Style> styles) {
+
     out.append("<styles>\n");
 
     /* output the styles sorted by id */
-
     Collections.sort(styles, sortStylesById);
+
     for (Style style : styles) {
         out.append("<style");
         out.append(" id=\"").append(String.valueOf(style.id)).append("\"");
         out.append(" font=\"").append(style.fontName).append("\"");
         out.append(" size=\"").append(String.valueOf(style.xSize)).append("\"");
+
         if (style.isItalic()) {
             out.append(" italic=\"true\"");
         }
+
         if (style.isMathFont()) {
             out.append(" math=\"true\"");
         }
+
         if (style.isBold()) {
             out.append(" bold=\"true\"");
         }
+
         out.append("/>\n");
     }
+
     out.append("</styles>\n");
 }
 
 private void writeWord(@NotNull final StringBuffer out, @NotNull WordNode word) {
+
     out.append("<word");
     out.append(" value=\"").append(getTextForNode(word)).append("\"");
     out.append(" styleRef=\"").append(String.valueOf(word.getStyle().id)).append("\" ");
@@ -216,9 +236,11 @@ private void writeWord(@NotNull final StringBuffer out, @NotNull WordNode word) 
 }
 
 private String getTextForNode(final AbstractNode text) {
+
     if (Constants.ESCAPE_HTML) {
         return escapeHtml(text.getText());
     }
+
     return text.getText();
 }
 }

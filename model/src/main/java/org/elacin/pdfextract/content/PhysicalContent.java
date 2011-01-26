@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
 
 package org.elacin.pdfextract.content;
 
@@ -28,35 +29,33 @@ import java.util.Collection;
  * use File | Settings | File Templates.
  */
 public abstract class PhysicalContent extends HasPositionAbstract {
-// --------------------------- CONSTRUCTORS ---------------------------
 
+protected PhysicalContent(@NotNull final Collection<? extends PhysicalContent> contents) {}
+
+// --------------------------- CONSTRUCTORS ---------------------------
 public PhysicalContent(final Rectangle pos) {
     setPos(pos);
 }
 
-protected PhysicalContent(@NotNull final Collection<? extends PhysicalContent> contents) {
-}
-
 // ------------------------ INTERFACE METHODS ------------------------
-
-
 // --------------------- Interface HasPosition ---------------------
-
 public void calculatePos() {
     assert false;
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
-
 @Override
 @SuppressWarnings({"ALL"})
+
 /* generated */
 public boolean equals(@Nullable final Object o)
 {
+
     if (this == o) {
         return true;
     }
-    if (o == null || getClass() != o.getClass()) {
+
+    if ((o == null) || (getClass() != o.getClass())) {
         return false;
     }
 
@@ -76,15 +75,17 @@ public int hashCode() {
 
 @Override
 public String toString() {
+
     final StringBuilder sb = new StringBuilder();
+
     sb.append(getClass().getSimpleName());
     sb.append("{position=").append(getPos());
     sb.append('}');
+
     return sb.toString();
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
-
 @NotNull
 public AssignablePhysicalContent getAssignable() {
     throw new RuntimeException("not an AssignablePhysicalContent");

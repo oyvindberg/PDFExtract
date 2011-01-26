@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  *    limitations under the License.
  */
 
+
 package org.elacin.pdfextract.content;
 
 import org.elacin.pdfextract.geom.Rectangle;
@@ -25,60 +26,50 @@ import org.jetbrains.annotations.NotNull;
  * template use File | Settings | File Templates.
  */
 public class PhysicalText extends AssignablePhysicalContent implements StyledText {
+
+private final float baseLine;
+
 // ------------------------------ FIELDS ------------------------------
+public       float  charSpacing;
+public final String text;
 
-public        float  charSpacing;
-public final  String text;
-private final float  baseLine;
+public PhysicalText(final String text, final Style style, final Rectangle position, float baseLine) {
 
-// --------------------------- CONSTRUCTORS ---------------------------
-
-public PhysicalText(final String text,
-                    final Style style,
-                    final float x,
-                    final float y,
-                    final float width,
-                    final float height,
-                    float baseLine)
-{
-    this(text, style, new Rectangle(x, y, width, height), baseLine);
-}
-
-public PhysicalText(final String text,
-                    final Style style,
-                    final Rectangle position,
-                    float baseLine)
-{
     super(position, style);
     this.text = text;
     this.baseLine = baseLine;
 }
 
+// --------------------------- CONSTRUCTORS ---------------------------
+public PhysicalText(final String text, final Style style, final float x, final float y,
+                    final float width, final float height, float baseLine)
+{
+    this(text, style, new Rectangle(x, y, width, height), baseLine);
+}
+
 // ------------------------ INTERFACE METHODS ------------------------
-
-
 // --------------------- Interface StyledText ---------------------
-
 public String getText() {
     return text;
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
-
 @Override
 public String toString() {
+
     final StringBuilder sb = new StringBuilder();
+
     sb.append("Text");
     sb.append("{'").append(text).append('\'');
     sb.append(", style=").append(style);
     sb.append(", pos=").append(getPos());
     sb.append(", charSpacing=").append(charSpacing);
     sb.append('}');
+
     return sb.toString();
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
-
 @NotNull
 @Override
 public PhysicalText getPhysicalText() {
@@ -91,13 +82,11 @@ public boolean isText() {
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-
 public float getBaseLine() {
     return baseLine;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
-
 @NotNull
 public PhysicalText combineWith(@NotNull final PhysicalText next) {
     return new PhysicalText(text + next.text, style, getPos().union(next.getPos()), baseLine);

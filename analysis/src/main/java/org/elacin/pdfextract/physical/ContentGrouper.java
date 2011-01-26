@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 
 package org.elacin.pdfextract.physical;
 
@@ -35,31 +36,30 @@ import java.util.Set;
  * File | Settings | File Templates.
  */
 public class ContentGrouper {
+
 // ------------------------------ FIELDS ------------------------------
-
-private static final Logger log = Logger.getLogger(ContentGrouper.class);
-
+private static final Logger                    log       = Logger.getLogger(ContentGrouper.class);
 @NotNull
-public final Rectangle rpos;
+final                List<RectangleCollection> allBlocks = new ArrayList<RectangleCollection>(30);
 @NotNull
-final List<RectangleCollection> allBlocks = new ArrayList<RectangleCollection>(30);
-
+RectangleCollection currentBlock = new RectangleCollection(
+                                                                  new ArrayList<PhysicalContent>(), null
+);
 @NotNull
-RectangleCollection currentBlock = new RectangleCollection(new ArrayList<PhysicalContent>(), null);
-
+final        PhysicalPageRegion region;
 @NotNull
-final PhysicalPageRegion region;
+public final Rectangle          rpos;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
 public ContentGrouper(@NotNull PhysicalPageRegion region) {
+
     this.region = region;
     rpos = region.getPos();
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
-
 public List<RectangleCollection> findBlocksOfContent() {
+
     /** if this is contained in a grapic, just output the lines */
     if (region.isGraphicalRegion()) {
         for (PhysicalContent content : region.getContents()) {
@@ -68,18 +68,18 @@ public List<RectangleCollection> findBlocksOfContent() {
                 content.getAssignable().setBlockNum(allBlocks.size());
             }
         }
+
         allBlocks.add(currentBlock);
+
         return allBlocks;
     }
 
-    /** do a preliminary formula block combining*/
-
+    /** do a preliminary formula block combining */
     createBlocksForFormulas();
-
 
     /**
      *  If not, use the whitespace added to the region to determine blocks of text
-     * */
+     */
 
     /* follow the trails left between the whitespace and construct blocks of text from that */
     for (float y = rpos.y; y < rpos.endY; y++) {
@@ -88,13 +88,15 @@ public List<RectangleCollection> findBlocksOfContent() {
         /* iterate through the line to find possible start of blocks */
         for (PhysicalContent contentInRow : row) {
             if (contentInRow.isAssignable() && !contentInRow.getAssignable().isAssignedBlock()) {
-                /* find all connected texts from this*/
+
+                /* find all connected texts from this */
                 markEverythingConnectedFrom(contentInRow);
                 allBlocks.add(currentBlock);
                 currentBlock = new RectangleCollection(new ArrayList<PhysicalContent>(), null);
             }
         }
     }
+
     if (!currentBlock.getContents().isEmpty()) {
         allBlocks.add(currentBlock);
     }
@@ -103,18 +105,20 @@ public List<RectangleCollection> findBlocksOfContent() {
 }
 
 // -------------------------- OTHER METHODS --------------------------
-
 @SuppressWarnings({"NumericCastThatLosesPrecision"})
 private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent current) {
+
     if (!current.isAssignable()) {
         return false;
     }
+
     if (current.getAssignable().isAssignedBlock()) {
         return false;
     }
 
     if (current.isGraphic() && current.getGraphicContent().isSeparator()) {
-        //        current.getAssignable().setBlockNum(allBlocks.size());
+
+        // current.getAssignable().setBlockNum(allBlocks.size());
         return false;
     }
 
@@ -125,9 +129,7 @@ private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent curre
         return false;
     }
 
-
     /* try searching for texts in all directions */
-
     int startY = (int) Math.max(rpos.y, current.getPos().y);
     int endY = (int) Math.min(rpos.endY, current.getPos().endY);
 
@@ -141,29 +143,32 @@ private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent curre
     for (int x = startX; x < endX - 1; x++) {
         markBothWaysFromCurrent(current, region.findContentAtXIndex(x));
     }
+
     return true;
 }
 
 private void createBlocksForFormulas() {
-    Set<PhysicalContent> workingSet = new HashSet<PhysicalContent>();
-    boolean skip = false, hasSkipped = false;
 
+    Set<PhysicalContent> workingSet = new HashSet<PhysicalContent>();
+    boolean skip = false,
+            hasSkipped = false;
     float minX = Float.MAX_VALUE;
     float endY = Float.MIN_VALUE;
+
     for (float y = rpos.y; y < rpos.endY; y++) {
         final List<PhysicalContent> row = region.findContentAtYIndex(y);
-
 
         if (!TextUtils.listContainsStyledText(row)) {
             workingSet.clear();
             skip = false;
             minX = Float.MAX_VALUE;
-            continue;
-        }
-        if (skip) {
+
             continue;
         }
 
+        if (skip) {
+            continue;
+        }
 
         for (PhysicalContent content : row) {
             if (content.isAssignable() && !workingSet.contains(content)) {
@@ -172,15 +177,19 @@ private void createBlocksForFormulas() {
                 workingSet.add(content);
             }
         }
+
         /* only detect indented formulas */
         if (minX < region.getPos().x + 20) {
             skip = true;
             hasSkipped = true;
+
             continue;
         }
 
-        /* if we found a formula, do hungry block combining of all continous content until
-        *   we find a line which is not */
+        /*
+        *  if we found a formula, do hungry block combining of all continous content until
+        *   we find a line which is not
+        */
         if (Formulas.textSeemsToBeFormula(workingSet)) {
             while (y <= endY + 1) {
                 for (PhysicalContent content : row) {
@@ -189,6 +198,7 @@ private void createBlocksForFormulas() {
                         endY = Math.max(content.getPos().endY, endY);
                     }
                 }
+
                 y++;
                 row.clear();
                 row.addAll(region.findContentAtYIndex(y));
@@ -207,12 +217,14 @@ private void createBlocksForFormulas() {
             } else {
                 allBlocks.add(currentBlock);
             }
+
             printLastBlock();
             currentBlock = new RectangleCollection(new ArrayList<PhysicalContent>(), null);
             hasSkipped = false;
         } else {
-            //            skip = true;
-            //            hasSkipped = true;
+
+            // skip = true;
+            // hasSkipped = true;
         }
     }
 }
@@ -220,24 +232,28 @@ private void createBlocksForFormulas() {
 private void markBothWaysFromCurrent(final PhysicalContent current,
                                      @NotNull final List<PhysicalContent> line)
 {
+
     final int currentIndex = line.indexOf(current);
     boolean continue_ = true;
 
-    /* left/up*/
-    for (int index = currentIndex - 1; index >= 0 && continue_; index--) {
+    /* left/up */
+    for (int index = currentIndex - 1; (index >= 0) && continue_; index--) {
         continue_ &= markEverythingConnectedFrom(line.get(index));
     }
 
     /* right / down */
     continue_ = true;
-    for (int index = currentIndex + 1; index < line.size() && continue_; index++) {
+
+    for (int index = currentIndex + 1; (index < line.size()) && continue_; index++) {
         continue_ &= markEverythingConnectedFrom(line.get(index));
     }
 }
 
 private void printLastBlock() {
+
     StringBuffer sb = new StringBuffer();
     List<PhysicalContent> list = allBlocks.get(allBlocks.size() - 1).getContents();
+
     for (PhysicalContent content : list) {
         if (content.isText()) {
             sb.append(content.getPhysicalText().getText());

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.tree;
 
+package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
@@ -30,8 +30,8 @@ import java.util.List;
  * template use File | Settings | File Templates.
  */
 public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
-// ------------------------------ FIELDS ------------------------------
 
+// ------------------------------ FIELDS ------------------------------
 @NotNull
 public final List<WordNode> words = new ArrayList<WordNode>();
 
@@ -42,13 +42,11 @@ public final List<WordNode> words = new ArrayList<WordNode>();
 protected final List<Style> styles = new ArrayList<Style>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
 public DocumentNode() {
     setRoot(this);
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-
 @NotNull
 public List<Style> getStyles() {
     return styles;
@@ -62,8 +60,11 @@ public List<Style> getStyles() {
 @NotNull
 @Override
 public Comparator<PageNode> getChildComparator() {
+
     return new Comparator<PageNode>() {
+
         public int compare(@NotNull final PageNode o1, @NotNull final PageNode o2) {
+
             if (o1.getPage().getPageNumber() < o2.getPage().getPageNumber()) {
                 return -1;
             } else if (o1.getPage().getPageNumber() > o2.getPage().getPageNumber()) {
@@ -77,11 +78,13 @@ public Comparator<PageNode> getChildComparator() {
 
 @Nullable
 public PageNode getPageNumber(final int pageNumber) {
+
     for (PageNode pageNode : getChildren()) {
         if (pageNode.getPageNumber() == pageNumber) {
             return pageNode;
         }
     }
+
     return null;
 }
 }

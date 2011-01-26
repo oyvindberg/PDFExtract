@@ -11,8 +11,7 @@ import java.util.List;
  * File | Settings | File Templates.
  */
 public interface GraphicSegmentator {
-// -------------------------- PUBLIC METHODS --------------------------
 
-@NotNull
-CategorizedGraphics categorizeGraphics(List<GraphicContent> graphics, PhysicalPageRegion region);
+// -------------------------- PUBLIC METHODS --------------------------
+@NotNull CategorizedGraphics categorizeGraphics(List<GraphicContent> graphics, PhysicalPageRegion region);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 
 package org.elacin.pdfextract.logical;
 
@@ -30,18 +31,21 @@ import static org.elacin.pdfextract.style.Style.GRAPHIC_MATH_BAR;
  * File | Settings | File Templates.
  */
 public class Formulas {
-// -------------------------- PUBLIC STATIC METHODS --------------------------
 
+// -------------------------- PUBLIC STATIC METHODS --------------------------
 public static boolean stringContainsMath(@NotNull final String text1) {
+
     for (int i = 0; i < text1.length(); i++) {
         if (Character.getType(text1.codePointAt(i)) == Character.MATH_SYMBOL) {
             return true;
         }
     }
+
     return false;
 }
 
 public static boolean textContainsMath(@NotNull StyledText text) {
+
     if (text.getStyle().isMathFont()) {
         return true;
     }
@@ -50,26 +54,29 @@ public static boolean textContainsMath(@NotNull StyledText text) {
 }
 
 public static boolean textSeemsToBeFormula(@NotNull Collection<? extends HasPosition> contents) {
+
     if (contents.size() < 4) {
         return false;
     }
+
     if (!TextUtils.listContainsStyledText(contents)) {
         return false;
     }
 
-
     int looksLikeMath = 0;
     int wordCount = 0;
-
     int containedGraphics = 0;
+
     for (HasPosition content : contents) {
         if (!(content instanceof StyledText)) {
             continue;
         }
+
         StyledText word = (StyledText) content;
 
         if (word.getStyle().equals(GRAPHIC_MATH_BAR)) {
             containedGraphics++;
+
             continue;
         }
 
@@ -78,11 +85,13 @@ public static boolean textSeemsToBeFormula(@NotNull Collection<? extends HasPosi
         /* first check whether the whole word seems to be formatted in a math font */
         if (word.getStyle().isMathFont()) {
             looksLikeMath += 3 * word.getText().length();
+
             continue;
         }
 
         for (int i = 0; i < word.getText().length(); i++) {
             final char c = word.getText().charAt(i);
+
             if (Character.getType(c) == (int) Character.MATH_SYMBOL) {
                 looksLikeMath += 5;
             } else if (Character.isDigit(c)) {

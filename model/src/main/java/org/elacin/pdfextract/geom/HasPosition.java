@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package org.elacin.pdfextract.geom;
 
 import org.jetbrains.annotations.NotNull;
@@ -25,8 +26,8 @@ import java.io.Serializable;
  * File | Settings | File Templates.
  */
 public interface HasPosition extends Serializable {
-@NotNull
-Rectangle getPos();
+
+@NotNull Rectangle getPos();
 
 void calculatePos();
 

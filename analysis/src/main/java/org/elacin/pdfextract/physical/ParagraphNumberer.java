@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package org.elacin.pdfextract.physical;
 
 /**
@@ -21,29 +22,32 @@ package org.elacin.pdfextract.physical;
  * File | Settings | File Templates.
  */
 public final class ParagraphNumberer {
-// ------------------------------ FIELDS ------------------------------
 
-private int page = 0, region = 0, paragraph = 0;
+// ------------------------------ FIELDS ------------------------------
+private int page  = 0,
+        region    = 0,
+        paragraph = 0;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
 public ParagraphNumberer(final int pageNumber) {
     setPage(pageNumber);
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-
 public int getPage() {
     return page;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
-
 public int getParagraphId(boolean graphic) {
-    return (region * 1000 + paragraph) + (graphic ? 1000000 : 0);
+
+    return (region * 1000 + paragraph) + (graphic
+                                                  ? 1000000
+                                                  : 0);
 }
 
 public void newPage() {
+
     page++;
     region = 0;
     paragraph = 0;
@@ -54,13 +58,14 @@ public void newParagraph() {
 }
 
 public void newRegion() {
+
     region++;
     paragraph = 0;
 }
 
 // -------------------------- OTHER METHODS --------------------------
-
 private void setPage(final int page) {
+
     this.page = page;
     region = 0;
     paragraph = 0;

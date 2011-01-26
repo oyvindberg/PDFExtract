@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  *    limitations under the License.
  */
 
+
 package org.elacin.pdfextract.content;
 
 import org.elacin.pdfextract.geom.Rectangle;
@@ -23,25 +24,22 @@ import org.elacin.pdfextract.geom.Rectangle;
  * use File | Settings | File Templates.
  */
 public class WhitespaceRectangle extends PhysicalContent {
-// ------------------------------ FIELDS ------------------------------
 
+// ------------------------------ FIELDS ------------------------------
 public int score;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
 public WhitespaceRectangle(final Rectangle bound) {
     super(bound);
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
-
 @Override
 public boolean isWhitespace() {
     return true;
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-
 public int getScore() {
     return score;
 }

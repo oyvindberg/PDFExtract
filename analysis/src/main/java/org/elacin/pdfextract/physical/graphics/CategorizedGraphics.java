@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package org.elacin.pdfextract.physical.graphics;
 
 import org.elacin.pdfextract.content.GraphicContent;
@@ -23,13 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: 15.01.11
- * Time: 21.57
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: 15.01.11 Time: 21.57 To change this template use
+ * File | Settings | File Templates.
  */
 public class CategorizedGraphics {
+
 // ------------------------------ FIELDS ------------------------------
 
 /* these graphics are considered content */
@@ -46,13 +45,12 @@ private final List<GraphicContent> verticalSeparators   = new ArrayList<GraphicC
 @NotNull
 private final List<GraphicContent> horizontalSeparators = new ArrayList<GraphicContent>();
 
-/* This contains all the segmented pictures (except those which has been dropped for being too
-big), and is only here for rendering purposes. */
+/*     This contains all the segmented pictures (except those which has been dropped for being too
+    big), and is only here for rendering purposes. */
 @NotNull
 private final List<GraphicContent> graphicsToRender = new ArrayList<GraphicContent>();
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-
 @NotNull
 public List<GraphicContent> getContainers() {
     return containers;

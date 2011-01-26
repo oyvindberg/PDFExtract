@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  *    limitations under the License.
  */
 
+
 package org.elacin.pdfextract.content;
 
 import org.elacin.pdfextract.geom.Rectangle;
@@ -25,22 +26,21 @@ import org.jetbrains.annotations.NotNull;
  * use File | Settings | File Templates.
  */
 public abstract class AssignablePhysicalContent extends PhysicalContent {
-// ------------------------------ FIELDS ------------------------------
 
+// ------------------------------ FIELDS ------------------------------
 public static final int BLOCK_NOT_ASSIGNED = -1;
 public              int blockNum           = BLOCK_NOT_ASSIGNED;
 @NotNull
 protected Style style;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
 public AssignablePhysicalContent(final Rectangle position, @NotNull Style style) {
+
     super(position);
     this.style = style;
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
-
 @NotNull
 @Override
 public AssignablePhysicalContent getAssignable() {
@@ -53,7 +53,6 @@ public boolean isAssignable() {
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-
 public int getBlockNum() {
     return blockNum;
 }
@@ -72,7 +71,6 @@ public void setStyle(@NotNull final Style style) {
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
-
 public boolean isAssignedBlock() {
     return blockNum != BLOCK_NOT_ASSIGNED;
 }

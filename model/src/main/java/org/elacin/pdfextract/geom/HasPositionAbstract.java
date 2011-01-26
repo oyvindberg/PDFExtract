@@ -7,26 +7,25 @@ import org.jetbrains.annotations.Nullable;
  * template use File | Settings | File Templates.
  */
 public abstract class HasPositionAbstract implements HasPosition {
-// ------------------------------ FIELDS ------------------------------
 
+// ------------------------------ FIELDS ------------------------------
 @Nullable
 private Rectangle pos;
 
-// --------------------------- CONSTRUCTORS ---------------------------
+protected HasPositionAbstract() {}
 
+// --------------------------- CONSTRUCTORS ---------------------------
 protected HasPositionAbstract(final Rectangle pos) {
     this.pos = pos;
 }
 
-protected HasPositionAbstract() {
-}
-
 // --------------------- GETTER / SETTER METHODS ---------------------
-
 public final Rectangle getPos() {
+
     if (pos == null) {
         calculatePos();
     }
+
     return pos;
 }
 
@@ -35,7 +34,6 @@ protected void setPos(@Nullable final Rectangle pos) {
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
-
 public final void invalidatePos() {
     pos = null;
 }

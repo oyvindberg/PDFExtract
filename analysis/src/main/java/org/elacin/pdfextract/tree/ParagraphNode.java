@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  *    limitations under the License.
  */
 
+
 package org.elacin.pdfextract.tree;
 
 import org.jetbrains.annotations.NotNull;
@@ -25,34 +26,35 @@ import java.util.Comparator;
  * use File | Settings | File Templates.
  */
 public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
-// ------------------------------ FIELDS ------------------------------
 
+// ------------------------------ FIELDS ------------------------------
 private final int seqNo;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
-public ParagraphNode(@NotNull final LineNode child, final int seqNo) {
-    super(child);
-    this.seqNo = seqNo;
-}
-
 public ParagraphNode(final int seqNo) {
     this.seqNo = seqNo;
 }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
+public ParagraphNode(@NotNull final LineNode child, final int seqNo) {
 
+    super(child);
+    this.seqNo = seqNo;
+}
+
+// --------------------- GETTER / SETTER METHODS ---------------------
 public int getSeqNo() {
     return seqNo;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
-
 @NotNull
 @Override
 public Comparator<LineNode> getChildComparator() {
+
     return new Comparator<LineNode>() {
+
         public int compare(@NotNull final LineNode o1, @NotNull final LineNode o2) {
+
             if (o1.getPos().y < o2.getPos().y) {
                 return -1;
             } else if (o1.getPos().y > o2.getPos().y) {

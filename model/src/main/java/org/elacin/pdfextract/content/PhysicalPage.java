@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  *    limitations under the License.
  */
 
+
 package org.elacin.pdfextract.content;
 
 import org.apache.log4j.Logger;
@@ -22,23 +23,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-
 public class PhysicalPage {
+
 // ------------------------------ FIELDS ------------------------------
-
 private static final Logger log = Logger.getLogger(PhysicalPage.class);
-
-/**
- * The physical page number (ie the sequence encountered in the document)
- */
-private final int pageNumber;
-
-/**
- * This initially contains everything on the page. after creating the regions, content will be moved
- * from here. ideally this should be quite empty after the analysis.
- */
-@NotNull
-private final PhysicalPageRegion mainRegion;
 
 /**
  * Contains all the graphics on the page
@@ -46,15 +34,25 @@ private final PhysicalPageRegion mainRegion;
 @NotNull
 private final List<GraphicContent> allGraphics;
 
-private final Rectangle pageDimensions;
+/**
+ * This initially contains everything on the page. after creating the regions, content will be
+ * moved from here. ideally this should be quite empty after the analysis.
+ */
+@NotNull
+private final PhysicalPageRegion mainRegion;
+private final Rectangle          pageDimensions;
+
+/**
+ * The physical page number (ie the sequence encountered in the document)
+ */
+private final int pageNumber;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
 public PhysicalPage(@NotNull List<? extends PhysicalContent> contents,
-                    @NotNull final List<GraphicContent> graphics,
-                    int pageNumber,
+                    @NotNull final List<GraphicContent> graphics, int pageNumber,
                     final Rectangle pageDimensions)
 {
+
     this.pageNumber = pageNumber;
     allGraphics = graphics;
     this.pageDimensions = pageDimensions;
@@ -62,7 +60,6 @@ public PhysicalPage(@NotNull List<? extends PhysicalContent> contents,
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-
 @NotNull
 public List<GraphicContent> getAllGraphics() {
     return allGraphics;

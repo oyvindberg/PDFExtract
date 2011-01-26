@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package org.elacin.pdfextract.style;
 
 import org.jetbrains.annotations.NotNull;
@@ -23,19 +24,19 @@ import org.jetbrains.annotations.NotNull;
  * File | Settings | File Templates.
  */
 public class StyleComparator {
-// ------------------------------ FIELDS ------------------------------
 
+// ------------------------------ FIELDS ------------------------------
 private static final int SUBTLE_SIZE_DIFFERENCE = 1;
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
-
 @NotNull
 public static StyleDifference styleCompare(@NotNull final Style one, @NotNull final Style two) {
 
-    //noinspection ObjectEquality
+    // noinspection ObjectEquality
     if ((one == Style.FORMULA) != (two == Style.FORMULA)) {
         return StyleDifference.SPLIT;
     }
+
     if (one.mathFont != two.mathFont) {
         return StyleDifference.BIG_DIFFERENCE;
     }
@@ -59,18 +60,17 @@ public static StyleDifference styleCompare(@NotNull final Style one, @NotNull fi
     final int xDiff = Math.abs(one.ySize - two.ySize);
     final int yDiff = Math.abs(one.ySize - two.ySize);
 
-    if (xDiff == SUBTLE_SIZE_DIFFERENCE || yDiff == SUBTLE_SIZE_DIFFERENCE) {
+    if ((xDiff == SUBTLE_SIZE_DIFFERENCE) || (yDiff == SUBTLE_SIZE_DIFFERENCE)) {
         return StyleDifference.SUBTLE_DIFFERENCE;
     }
 
-    if (xDiff > SUBTLE_SIZE_DIFFERENCE || yDiff > SUBTLE_SIZE_DIFFERENCE) {
+    if ((xDiff > SUBTLE_SIZE_DIFFERENCE) || (yDiff > SUBTLE_SIZE_DIFFERENCE)) {
         return StyleDifference.BIG_DIFFERENCE;
     }
 
     if (one.ySize > 13.0f) {
         return StyleDifference.SAME_STYLE_AND_BIG_TEXT;
     }
-
 
     return StyleDifference.SAME_STYLE;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  *    limitations under the License.
  */
 
-package org.elacin.pdfextract.tree;
 
+package org.elacin.pdfextract.tree;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.geom.HasPositionAbstract;
@@ -30,10 +30,9 @@ import java.util.EnumSet;
  * Created by IntelliJ IDEA. User: elacin Date: Mar 23, 2010 Time: 7:44:33 AM To change this
  * template use File | Settings | File Templates.
  */
-public abstract class AbstractNode<ParentType extends AbstractParentNode>
-        extends HasPositionAbstract {
-// ------------------------------ FIELDS ------------------------------
+public abstract class AbstractNode<ParentType extends AbstractParentNode> extends HasPositionAbstract {
 
+// ------------------------------ FIELDS ------------------------------
 protected static final Logger        log   = Logger.getLogger(AbstractNode.class);
 @NotNull
 protected final        EnumSet<Role> roles = EnumSet.noneOf(Role.class);
@@ -51,7 +50,6 @@ protected String textCache;
 protected transient String toStringCache;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-
 @Nullable
 public ParentType getParent() {
     return parent;
@@ -72,21 +70,25 @@ public void setRoot(final DocumentNode root) {
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
-
 public void addRole(Role r) {
+
     log.warn(this + " got assigned role " + r);
     roles.add(r);
 }
 
 @Nullable
 public PageNode getPage() {
+
     AbstractNode current = this;
+
     while (current != null) {
         if (current instanceof PageNode) {
             return (PageNode) current;
         }
+
         current = current.parent;
     }
+
     return null;
 }
 
@@ -99,6 +101,5 @@ public boolean hasRole(Role r) {
 }
 
 // -------------------------- OTHER METHODS --------------------------
-
 protected abstract void invalidateThisAndParents();
 }

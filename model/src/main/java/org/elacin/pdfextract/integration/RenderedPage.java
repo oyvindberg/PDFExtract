@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,39 +14,35 @@
  * limitations under the License.
  */
 
+
 package org.elacin.pdfextract.integration;
 
 import java.awt.image.BufferedImage;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: 16.01.11
- * Time: 20.47
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: 16.01.11 Time: 20.47 To change this template use
+ * File | Settings | File Templates.
  */
 public class RenderedPage {
-// ------------------------------ FIELDS ------------------------------
 
+// ------------------------------ FIELDS ------------------------------
 final BufferedImage rendering;
 final float         xScale, yScale;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
 public RenderedPage(BufferedImage rendering, float xScale, float yScale) {
+
     this.yScale = yScale;
     this.rendering = rendering;
     this.xScale = xScale;
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-
 public BufferedImage getRendering() {
     return rendering;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
-
 public float getXScale() {
     return xScale;
 }

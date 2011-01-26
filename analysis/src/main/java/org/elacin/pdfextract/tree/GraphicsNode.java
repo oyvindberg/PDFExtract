@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.geom.Rectangle;
@@ -26,31 +27,28 @@ import java.util.Comparator;
  * File | Settings | File Templates.
  */
 public class GraphicsNode extends AbstractParentNode<ParagraphNode, PageNode> {
-// ------------------------------ FIELDS ------------------------------
 
+// ------------------------------ FIELDS ------------------------------
 @NotNull
 private Rectangle graphicsPos;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
 public GraphicsNode(final Rectangle graphicsPos) {
+
     setPos(graphicsPos);
     this.graphicsPos = graphicsPos;
 }
 
 // ------------------------ INTERFACE METHODS ------------------------
-
-
 // --------------------- Interface HasPosition ---------------------
-
 @Override
 public void calculatePos() {
+
     super.calculatePos();
     setPos(getPos().union(graphicsPos));
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-
 public Rectangle getGraphicsPos() {
     return graphicsPos;
 }
@@ -60,12 +58,14 @@ public void setGraphicsPos(final Rectangle graphicsPos) {
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
-
 @NotNull
 @Override
 public Comparator<ParagraphNode> getChildComparator() {
+
     return new Comparator<ParagraphNode>() {
+
         public int compare(final ParagraphNode o1, final ParagraphNode o2) {
+
             final int thisRegion = o1.getSeqNo() / 1000;
             final int thatRegion = o2.getSeqNo() / 1000;
 
@@ -75,7 +75,19 @@ public Comparator<ParagraphNode> getChildComparator() {
                 return 1;
             }
 
-            return (o1.getPos().y < o2.getPos().y ? -1 : (o1.getSeqNo() == o2.getSeqNo() ? 0 : 1));
+            if (o1.getSeqNo() == o2.getSeqNo()) {
+                if (o1.getPos().y < o2.getPos().y) {
+                    return -1;
+                } else {
+                    return 0;
+                }
+            } else {
+                if (o1.getPos().y < o2.getPos().y) {
+                    return -1;
+                } else {
+                    return 1;
+                }
+            }
         }
     };
 }

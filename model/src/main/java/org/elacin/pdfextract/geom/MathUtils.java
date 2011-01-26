@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  *    limitations under the License.
  */
 
+
 package org.elacin.pdfextract.geom;
 
 import org.elacin.pdfextract.content.WhitespaceRectangle;
@@ -26,48 +27,56 @@ import java.util.Collection;
  * use File | Settings | File Templates.
  */
 public final class MathUtils {
-// --------------------------- CONSTRUCTORS ---------------------------
 
-private MathUtils() {
-}
+// --------------------------- CONSTRUCTORS ---------------------------
+private MathUtils() {}
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
-
 @NotNull
 public static Rectangle findBounds(@NotNull final Collection<? extends HasPosition> contents) {
     return findBounds_(contents, true);
 }
 
 @NotNull
-public static Rectangle findBoundsExcludingWhitespace(@NotNull final Collection<? extends HasPosition> contents) {
+public static Rectangle findBoundsExcludingWhitespace(
+                                                             @NotNull final Collection<? extends HasPosition> contents)
+{
     return findBounds_(contents, false);
 }
 
 private static Rectangle findBounds_(final Collection<? extends HasPosition> contents,
                                      final boolean countWhitespace)
 {
-    /* calculate bounds for this region */
-    float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE;
-    float maxX = Float.MIN_VALUE, maxY = Float.MIN_VALUE;
 
+    /* calculate bounds for this region */
+    float minX = Float.MAX_VALUE,
+            minY = Float.MAX_VALUE;
+    float maxX = Float.MIN_VALUE,
+            maxY = Float.MIN_VALUE;
     int counted = 0;
+
     for (HasPosition content : contents) {
-        //TODO: this really doesnt belong here
-        if (!countWhitespace && content instanceof WhitespaceRectangle) {
+
+        // TODO: this really doesnt belong here
+        if (!countWhitespace && (content instanceof WhitespaceRectangle)) {
             continue;
         }
+
         minX = Math.min(minX, content.getPos().x);
         minY = Math.min(minY, content.getPos().y);
         maxX = Math.max(maxX, content.getPos().endX);
         maxY = Math.max(maxY, content.getPos().endY);
         counted++;
     }
+
     final Rectangle newPos;
+
     if (counted == 0) {
         newPos = Rectangle.EMPTY_RECTANGLE;
     } else {
         newPos = new Rectangle(minX, minY, maxX - minX, maxY - minY);
     }
+
     return newPos;
 }
 
@@ -75,19 +84,22 @@ private static Rectangle findBounds_(final Collection<? extends HasPosition> con
  * Returns true if num2 is within percentage percent of num1
  */
 public static boolean isWithinPercent(final float num1, final float num2, final float percentage) {
-    //noinspection FloatingPointEquality
+
+    // noinspection FloatingPointEquality
     if (num1 == num2) {
         return true;
     }
 
-    return (num1 + num1 / 100.0F * percentage) >= num2 && (num1 - num1 / 100.0F * percentage) <= num2;
+    return (num1 + num1 / 100.0F * percentage) >= num2
+           && (num1 - num1 / 100.0F * percentage) <= num2;
 }
 
 /**
- * Returns true if num2 is within num ± i
+ * Returns true if num2 is within num ? i
  */
 public static boolean isWithinVariance(final float num1, final float num2, final float variance) {
-    //noinspection FloatingPointEquality
+
+    // noinspection FloatingPointEquality
     if (num1 == num2) {
         return true;
     }

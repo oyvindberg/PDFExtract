@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  *    limitations under the License.
  */
 
+
 package org.elacin.pdfextract.physical.word;
 
 import org.elacin.pdfextract.content.PhysicalText;
@@ -26,8 +27,7 @@ import java.util.List;
  * use File | Settings | File Templates.
  */
 public interface WordSegmentator {
-// -------------------------- PUBLIC METHODS --------------------------
 
-@NotNull
-List<PhysicalText> segmentWords(List<PhysicalText> text);
+// -------------------------- PUBLIC METHODS --------------------------
+@NotNull List<PhysicalText> segmentWords(List<PhysicalText> text);
 }

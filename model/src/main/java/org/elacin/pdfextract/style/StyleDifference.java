@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package org.elacin.pdfextract.style;
 
 /**
@@ -21,9 +22,5 @@ package org.elacin.pdfextract.style;
  * File | Settings | File Templates.
  */
 public enum StyleDifference {
-    SAME_STYLE_AND_BIG_TEXT,
-    SAME_STYLE,
-    SUBTLE_DIFFERENCE,
-    BIG_DIFFERENCE,
-    SPLIT
+    SAME_STYLE_AND_BIG_TEXT, SAME_STYLE, SUBTLE_DIFFERENCE, BIG_DIFFERENCE, SPLIT
 }

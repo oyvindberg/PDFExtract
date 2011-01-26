@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
+
 package org.elacin.pdfextract.integration;
 
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: 15.01.11
- * Time: 19.32
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: 15.01.11 Time: 19.32 To change this template use
+ * File | Settings | File Templates.
  */
 public interface PDFSource {
-// -------------------------- PUBLIC METHODS --------------------------
 
+// -------------------------- PUBLIC METHODS --------------------------
 void closeSource();
 
-@NotNull
-DocumentContent readPages();
+@NotNull DocumentContent readPages();
 
-@NotNull
-RenderedPage renderPage(int page);
+@NotNull RenderedPage renderPage(int page);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package org.elacin.pdfextract.integration;
 
 import org.elacin.pdfextract.style.Style;
@@ -24,22 +25,18 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Created by IntelliJ IDEA.
- * User: elacin
- * Date: 15.01.11
- * Time: 20.37
- * To change this template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: 15.01.11 Time: 20.37 To change this template use
+ * File | Settings | File Templates.
  */
 public class DocumentContent {
-// ------------------------------ FIELDS ------------------------------
 
+// ------------------------------ FIELDS ------------------------------
 @NotNull
 final List<Style>       styles = new ArrayList<Style>();
 @NotNull
 final List<PageContent> pages  = new ArrayList<PageContent>();
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-
 @NotNull
 public List<PageContent> getPages() {
     return pages;
@@ -51,7 +48,6 @@ public List<Style> getStyles() {
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
-
 public void addPage(PageContent page) {
     pages.add(page);
 }

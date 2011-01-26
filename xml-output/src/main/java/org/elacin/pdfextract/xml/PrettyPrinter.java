@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+
 package org.elacin.pdfextract.xml;
 
 import javax.xml.transform.OutputKeys;
@@ -30,24 +31,27 @@ import java.io.StringWriter;
  * File | Settings | File Templates.
  */
 public class PrettyPrinter {
-// -------------------------- PUBLIC STATIC METHODS --------------------------
 
+// -------------------------- PUBLIC STATIC METHODS --------------------------
 public static String prettyFormat(String input) {
     return prettyFormat(input, 4);
 }
 
 // -------------------------- STATIC METHODS --------------------------
-
 private static String prettyFormat(String input, int indent) {
+
     try {
         Source xmlInput = new StreamSource(new StringReader(input));
         StringWriter stringWriter = new StringWriter();
         StreamResult xmlOutput = new StreamResult(stringWriter);
         Transformer transformer = TransformerFactory.newInstance().newTransformer();
+
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount",
-                                      String.valueOf(indent));
+                                      String.valueOf(indent)
+        );
         transformer.transform(xmlInput, xmlOutput);
+
         return stringWriter.toString();
     } catch (Exception e) {
         throw new RuntimeException(e);

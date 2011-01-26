@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
 
 package org.elacin.pdfextract.tree;
 
@@ -28,8 +29,9 @@ import java.util.*;
  * Created by IntelliJ IDEA. User: elacin Date: Mar 18, 2010 Time: 3:16:53 PM To change this
  * template use File | Settings | File Templates.
  */
-public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentType extends AbstractParentNode>
-        extends AbstractNode<ParentType> {
+public abstract class AbstractParentNode<ChildType extends AbstractNode,
+                                                ParentType extends AbstractParentNode> extends AbstractNode<ParentType> {
+
 // ------------------------------ FIELDS ------------------------------
 
 /* children nodes */
@@ -37,30 +39,26 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode, ParentT
 private final List<ChildType> children = new ArrayList<ChildType>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
+public AbstractParentNode() {}
 
 public AbstractParentNode(@NotNull final ChildType child) {
     addChild(child);
 }
 
-public AbstractParentNode() {
-}
-
 // ------------------------ INTERFACE METHODS ------------------------
-
-
 // --------------------- Interface HasPosition ---------------------
-
 public void calculatePos() {
     setPos(MathUtils.findBounds(children));
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
-
 @NotNull
 @Override
 public String toString() {
+
     if (toStringCache == null) {
         final StringBuilder sb = new StringBuilder();
+
         sb.append(getText());
         toStringCache = sb.toString();
     }
@@ -69,29 +67,30 @@ public String toString() {
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
-
 @SuppressWarnings({"unchecked"})
+
 /* someone explain me how to avoid this  and i would be happy! */
 @NotNull
 public EnumSet<Role> getRoles() {
+
     EnumSet<Role> ret = EnumSet.noneOf(Role.class);
 
     for (ChildType child : children) {
         ret.addAll(child.getRoles());
     }
+
     return ret;
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-
 @NotNull
 public List<ChildType> getChildren() {
     return children;
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
-
 public final void addChild(@NotNull final ChildType child) {
+
     child.invalidateThisAndParents();
     children.add(child);
     child.parent = this;
@@ -101,12 +100,14 @@ public final void addChild(@NotNull final ChildType child) {
 }
 
 public final void addChildren(@NotNull final List<ChildType> newChildren) {
+
     for (ChildType child : newChildren) {
         child.invalidateThisAndParents();
         children.add(child);
         child.parent = this;
         child.setRoot(getRoot());
     }
+
     Collections.sort(children, getChildComparator());
     invalidateThisAndParents();
 }
@@ -115,13 +116,15 @@ public final void addChildren(@NotNull final List<ChildType> newChildren) {
 public abstract Comparator<ChildType> getChildComparator();
 
 public Style getStyle() {
-    /* keep the value from last child*/
+
+    /* keep the value from last child */
     return children.get(children.size() - 1).getStyle();
 }
 
 @NotNull
 @Override
 public String getText() {
+
     if (textCache == null) {
         StringBuilder sb = new StringBuilder();
 
@@ -130,6 +133,7 @@ public String getText() {
                 sb.append(child.getText());
             }
         }
+
         textCache = sb.toString();
     }
 
@@ -137,8 +141,8 @@ public String getText() {
 }
 
 // -------------------------- OTHER METHODS --------------------------
-
 protected void invalidateThisAndParents() {
+
     invalidatePos();
     textCache = null;
     toStringCache = null;
@@ -155,9 +159,11 @@ protected void invalidateThisAndParents() {
  * number here
  */
 protected class StandardNodeComparator implements Comparator<ChildType>, Serializable {
+
     private static final long serialVersionUID = 3903290320365277004L;
 
     public int compare(@NotNull final ChildType o1, @NotNull final ChildType o2) {
+
         if (o1.getPos().y < o2.getPos().y) {
             return -1;
         } else if (o1.getPos().y > o2.getPos().y) {

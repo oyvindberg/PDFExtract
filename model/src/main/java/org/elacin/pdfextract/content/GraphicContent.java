@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
 
 package org.elacin.pdfextract.content;
 
@@ -28,16 +29,16 @@ import java.awt.*;
  * use File | Settings | File Templates.
  */
 public class GraphicContent extends AssignablePhysicalContent {
-// ------------------------------ FIELDS ------------------------------
 
+// ------------------------------ FIELDS ------------------------------
 private static final Logger log = Logger.getLogger(GraphicContent.class);
-private final boolean picture;
 private       boolean canBeAssigned;
 private final Color   color;
+private final boolean picture;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-
 public GraphicContent(final Rectangle position, boolean picture, Color color) {
+
     super(position, Style.GRAPHIC_IMAGE);
     this.picture = picture;
     this.color = color;
@@ -48,21 +49,22 @@ public GraphicContent(final Rectangle position, boolean picture, Color color) {
 }
 
 // ------------------------ CANONICAL METHODS ------------------------
-
 @Override
 public String toString() {
+
     final StringBuilder sb = new StringBuilder();
+
     sb.append("GraphicContent");
     sb.append("{canBeAssigned=").append(canBeAssigned);
     sb.append(", picture=").append(picture);
     sb.append(", pos=").append(getPos());
     sb.append(", style=").append(getStyle());
     sb.append('}');
+
     return sb.toString();
 }
 
 // ------------------------ OVERRIDING METHODS ------------------------
-
 @NotNull
 @Override
 public GraphicContent getGraphicContent() {
@@ -95,7 +97,6 @@ public boolean isPicture() {
 }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-
 public Color getColor() {
     return color;
 }
@@ -105,8 +106,8 @@ public void setCanBeAssigned(final boolean canBeAssigned) {
 }
 
 // -------------------------- PUBLIC METHODS --------------------------
-
 public boolean canBeCombinedWith(@NotNull final GraphicContent other) {
+
     if (this == other) {
         return false;
     }
@@ -120,7 +121,9 @@ public boolean canBeCombinedWith(@NotNull final GraphicContent other) {
 
 @NotNull
 public GraphicContent combineWith(@NotNull final GraphicContent other) {
+
     Color combinedColor;
+
     if (isBackgroundColor()) {
         combinedColor = other.color;
     } else {
@@ -133,7 +136,6 @@ public GraphicContent combineWith(@NotNull final GraphicContent other) {
 public boolean isBackgroundColor() {
     return color.equals(Color.white);
 }
-
 
 /**
  * consider the graphic a separator if the aspect ratio is high

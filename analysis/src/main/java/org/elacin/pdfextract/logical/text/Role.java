@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
  *    limitations under the License.
  */
 
+
 package org.elacin.pdfextract.logical.text;
 
 /**
@@ -21,16 +22,6 @@ package org.elacin.pdfextract.logical.text;
  * template use File | Settings | File Templates.
  */
 public enum Role {
-    MAINTITLE,
-    SECTION,
-    SUBSECTION,
-    FOOTNOTE,
-    HEADNOTE,
-    PAGENUMBER,
-    EMPHASIS,
-    NORMAL,
-    UNKNOWN,
-    INDEXNUMBER,
-    TITLE,
-    IDENTIFIER;
+    MAINTITLE, SECTION, SUBSECTION, FOOTNOTE, HEADNOTE, PAGENUMBER, EMPHASIS, NORMAL, UNKNOWN,
+    INDEXNUMBER, TITLE, IDENTIFIER;
 }
