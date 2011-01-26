@@ -32,7 +32,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.elacin.pdfextract.Constants.COLUMNS_MIN_COLUMN_WIDTH;
-import static org.elacin.pdfextract.Constants.WHITESPACE_NUMBER_WANTED;
 import static org.elacin.pdfextract.geom.RectangleCollection.Direction.E;
 import static org.elacin.pdfextract.geom.RectangleCollection.Direction.W;
 
@@ -65,30 +64,6 @@ public static List<WhitespaceRectangle> extractColumnBoundaries(@NotNull Physica
     combineColumnBoundaries(region, columnBoundaries);
 
     return columnBoundaries;
-}
-
-@NotNull
-public static List<WhitespaceRectangle> findWhitespace(@NotNull final PhysicalPageRegion region) {
-    final long t0 = System.currentTimeMillis();
-
-    //    final int numWhitespaces = Math.max(30, Math.min(45, region.getContents().size() / 8));
-    final int numWhitespaces = WHITESPACE_NUMBER_WANTED;
-
-    WhitespaceFinder finder = new WhitespaceFinder(region,
-                                                   numWhitespaces,
-                                                   region.getMinimumColumnSpacing(),
-                                                   region.getMinimumRowSpacing());
-
-    final List<WhitespaceRectangle> ret = finder.findWhitespace();
-
-    final long time = System.currentTimeMillis() - t0;
-    log.warn(String.format("LOG00380:%d of %d whitespaces for %s in %d ms",
-                           ret.size(),
-                           numWhitespaces,
-                           region,
-                           time));
-
-    return ret;
 }
 
 // -------------------------- STATIC METHODS --------------------------
@@ -332,7 +307,6 @@ private static void filter(final PhysicalPageRegion r, final List<WhitespaceRect
             if (chars.indexOf(sb.charAt(j)) == -1) {
                 charsFound++;
             }
-
         }
 
         if (sb.length() < 20 && charsFound < 10) {

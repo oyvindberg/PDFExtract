@@ -23,6 +23,7 @@ import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.geom.RectangleCollection;
 import org.elacin.pdfextract.geom.Sorting;
 import org.elacin.pdfextract.physical.column.ColumnFinder;
+import org.elacin.pdfextract.physical.column.WhitespaceFinder;
 import org.elacin.pdfextract.physical.graphics.CategorizedGraphics;
 import org.elacin.pdfextract.physical.graphics.GraphicSegmentator;
 import org.elacin.pdfextract.physical.graphics.GraphicSegmentatorImpl;
@@ -292,7 +293,7 @@ private static void printRegions(final StringBuffer sb,
 private static void recursivelyDivide(@NotNull PhysicalPageRegion region,
                                       CategorizedGraphics graphics)
 {
-    final List<WhitespaceRectangle> whitespaces = ColumnFinder.findWhitespace(region);
+    final List<WhitespaceRectangle> whitespaces = WhitespaceFinder.findWhitespace(region);
     region.addWhitespace(whitespaces);
 
     if (!COLUMNS_ENABLE_COLUMN_DETECTION) {
