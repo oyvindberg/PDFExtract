@@ -9,32 +9,32 @@ import org.jetbrains.annotations.Nullable;
 public abstract class HasPositionAbstract implements HasPosition {
 
 // ------------------------------ FIELDS ------------------------------
-@Nullable
-private Rectangle pos;
+    @Nullable
+    private Rectangle pos;
 
-protected HasPositionAbstract() {}
+    protected HasPositionAbstract() {}
 
 // --------------------------- CONSTRUCTORS ---------------------------
-protected HasPositionAbstract(final Rectangle pos) {
-    this.pos = pos;
-}
-
-// --------------------- GETTER / SETTER METHODS ---------------------
-public final Rectangle getPos() {
-
-    if (pos == null) {
-        calculatePos();
+    protected HasPositionAbstract(final Rectangle pos) {
+        this.pos = pos;
     }
 
-    return pos;
-}
+// --------------------- GETTER / SETTER METHODS ---------------------
+    public final Rectangle getPos() {
 
-protected void setPos(@Nullable final Rectangle pos) {
-    this.pos = pos;
-}
+        if (pos == null) {
+            calculatePos();
+        }
+
+        return pos;
+    }
+
+    protected void setPos(@Nullable final Rectangle pos) {
+        this.pos = pos;
+    }
 
 // -------------------------- PUBLIC METHODS --------------------------
-public final void invalidatePos() {
-    pos = null;
-}
+    public final void invalidatePos() {
+        pos = null;
+    }
 }

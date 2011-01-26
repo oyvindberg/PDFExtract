@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.physical.paragraph;
 
 import org.apache.log4j.Logger;
@@ -38,59 +39,58 @@ import static org.elacin.pdfextract.Constants.SPLIT_PARAGRAPHS_BY_STYLES;
 public class ParagraphSegmentator {
 
 // ------------------------------ FIELDS ------------------------------
-private static final Logger log                   = Logger.getLogger(ParagraphSegmentator.class);
-private              float  medianVerticalSpacing = -1.0f;
+    private static final Logger log                   = Logger.getLogger(ParagraphSegmentator.class);
+    private float               medianVerticalSpacing = -1.0f;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-public void setMedianVerticalSpacing(final int medianVerticalSpacing) {
-    this.medianVerticalSpacing = medianVerticalSpacing;
-}
-
-// -------------------------- PUBLIC METHODS --------------------------
-@NotNull
-public List<ParagraphNode> segmentParagraphsByStyleAndDistance(@NotNull final List<LineNode> lines,
-                                                               final ParagraphNumberer numberer)
-{
-
-    if (medianVerticalSpacing == -1.0f) {
-        throw new RuntimeException("set medianVerticalSpacing!");
+    public void setMedianVerticalSpacing(final int medianVerticalSpacing) {
+        this.medianVerticalSpacing = medianVerticalSpacing;
     }
 
-    List<ParagraphNode> ret = new ArrayList<ParagraphNode>();
+// -------------------------- PUBLIC METHODS --------------------------
+    @NotNull
+    public List<ParagraphNode> segmentParagraphsByStyleAndDistance(@NotNull final List<LineNode> lines,
+            final ParagraphNumberer numberer) {
 
-    /* separate the lines by their dominant style into paragraphs */
-    if (!lines.isEmpty()) {
-        numberer.newParagraph();
+        if (medianVerticalSpacing == -1.0f) {
+            throw new RuntimeException("set medianVerticalSpacing!");
+        }
 
-        ParagraphNode currentParagraph = new ParagraphNode(numberer.getParagraphId(false));
+        List<ParagraphNode> ret = new ArrayList<ParagraphNode>();
 
-        if (SPLIT_PARAGRAPHS_BY_STYLES) {
-            Style currentStyle = null;
-            LineNode lastLine = null;
+        /* separate the lines by their dominant style into paragraphs */
+        if (!lines.isEmpty()) {
+            numberer.newParagraph();
 
-            for (LineNode line : lines) {
-                final Style lineStyle = line.findDominatingStyle();
+            ParagraphNode currentParagraph = new ParagraphNode(numberer.getParagraphId(false));
 
-                if (currentStyle == null) {
-                    currentStyle = lineStyle;
-                    lastLine = line;
-                }
+            if (SPLIT_PARAGRAPHS_BY_STYLES) {
+                Style    currentStyle = null;
+                LineNode lastLine     = null;
 
-                final float distance = line.getPos().y - lastLine.getPos().endY;
-                final boolean split;
+                for (LineNode line : lines) {
+                    final Style lineStyle = line.findDominatingStyle();
 
-                switch (StyleComparator.styleCompare(currentStyle, lineStyle)) {
-                    case SPLIT:
+                    if (currentStyle == null) {
+                        currentStyle = lineStyle;
+                        lastLine     = line;
+                    }
+
+                    final float   distance = line.getPos().y - lastLine.getPos().endY;
+                    final boolean split;
+
+                    switch (StyleComparator.styleCompare(currentStyle, lineStyle)) {
+                    case SPLIT :
                         split = true;
 
                         break;
-                    case SAME_STYLE_AND_BIG_TEXT:
+                    case SAME_STYLE_AND_BIG_TEXT :
 
                         // split = distance > medianVerticalSpacing * 2.5f;
                         split = false;
 
                         break;
-                    case SAME_STYLE:
+                    case SAME_STYLE :
 
                         /**
                          * if the styles are similar, only split if there seems to be much space
@@ -99,7 +99,7 @@ public List<ParagraphNode> segmentParagraphsByStyleAndDistance(@NotNull final Li
                         split = distance > medianVerticalSpacing * 1.5f;
 
                         break;
-                    case SUBTLE_DIFFERENCE:
+                    case SUBTLE_DIFFERENCE :
 
                         /* if there is a word with the same style, treat as same */
                         boolean found = false;
@@ -122,7 +122,7 @@ public List<ParagraphNode> segmentParagraphsByStyleAndDistance(@NotNull final Li
                         }
 
                         break;
-                    case BIG_DIFFERENCE:
+                    case BIG_DIFFERENCE :
                         found = false;
 
                         for (WordNode word : line.getChildren()) {
@@ -138,45 +138,43 @@ public List<ParagraphNode> segmentParagraphsByStyleAndDistance(@NotNull final Li
                         }
 
                         break;
-                    default:
+                    default :
                         throw new RuntimeException("made compiler happy :)");
-                }
-
-                if (split) {
-                    if (!currentParagraph.getChildren().isEmpty()) {
-                        if (log.isDebugEnabled()) {
-                            log.debug(
-                                             String.format(
-                                                                  "LOG00660:Split/style: y:%s, "
-                                                                  + "medianVerticalSpacing: %f, distance: %s, style: %s, %s, line: %s", line
-                                                                                                                                                .getPos().y, medianVerticalSpacing, distance, currentStyle,
-                                                                  lineStyle, line
-                                             )
-                            );
-                        }
-
-                        ret.add(currentParagraph);
                     }
 
-                    numberer.newParagraph();
-                    currentParagraph = new ParagraphNode(numberer.getParagraphId(false));
-                    currentStyle = lineStyle;
+                    if (split) {
+                        if (!currentParagraph.getChildren().isEmpty()) {
+                            if (log.isDebugEnabled()) {
+                                log.debug(
+                                    String.format(
+                                        "LOG00660:Split/style: y:%s, "
+                                        + "medianVerticalSpacing: %f, distance: %s, style: %s, %s, line: %s", line
+                                            .getPos().y, medianVerticalSpacing, distance, currentStyle,
+                                                         lineStyle, line));
+                            }
+
+                            ret.add(currentParagraph);
+                        }
+
+                        numberer.newParagraph();
+                        currentParagraph = new ParagraphNode(numberer.getParagraphId(false));
+                        currentStyle     = lineStyle;
+                    }
+
+                    currentParagraph.addChild(line);
+                    lastLine = line;
                 }
-
-                currentParagraph.addChild(line);
-                lastLine = line;
+            } else {
+                for (LineNode line : lines) {
+                    currentParagraph.addChild(line);
+                }
             }
-        } else {
-            for (LineNode line : lines) {
-                currentParagraph.addChild(line);
+
+            if (!currentParagraph.getChildren().isEmpty()) {
+                ret.add(currentParagraph);
             }
         }
 
-        if (!currentParagraph.getChildren().isEmpty()) {
-            ret.add(currentParagraph);
-        }
+        return ret;
     }
-
-    return ret;
-}
 }

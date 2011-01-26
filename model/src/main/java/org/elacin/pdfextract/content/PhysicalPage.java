@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.content;
 
 import org.apache.log4j.Logger;
@@ -26,55 +27,54 @@ import java.util.List;
 public class PhysicalPage {
 
 // ------------------------------ FIELDS ------------------------------
-private static final Logger log = Logger.getLogger(PhysicalPage.class);
+    private static final Logger log = Logger.getLogger(PhysicalPage.class);
 
-/**
- * Contains all the graphics on the page
- */
-@NotNull
-private final List<GraphicContent> allGraphics;
+    /**
+     * Contains all the graphics on the page
+     */
+    @NotNull
+    private final List<GraphicContent> allGraphics;
 
-/**
- * This initially contains everything on the page. after creating the regions, content will be
- * moved from here. ideally this should be quite empty after the analysis.
- */
-@NotNull
-private final PhysicalPageRegion mainRegion;
-private final Rectangle          pageDimensions;
+    /**
+     * This initially contains everything on the page. after creating the regions, content will be
+     * moved from here. ideally this should be quite empty after the analysis.
+     */
+    @NotNull
+    private final PhysicalPageRegion mainRegion;
+    private final Rectangle          pageDimensions;
 
-/**
- * The physical page number (ie the sequence encountered in the document)
- */
-private final int pageNumber;
+    /**
+     * The physical page number (ie the sequence encountered in the document)
+     */
+    private final int pageNumber;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-public PhysicalPage(@NotNull List<? extends PhysicalContent> contents,
-                    @NotNull final List<GraphicContent> graphics, int pageNumber,
-                    final Rectangle pageDimensions)
-{
+    public PhysicalPage(@NotNull List<? extends PhysicalContent> contents,
+                        @NotNull final List<GraphicContent> graphics, int pageNumber,
+                        final Rectangle pageDimensions) {
 
-    this.pageNumber = pageNumber;
-    allGraphics = graphics;
-    this.pageDimensions = pageDimensions;
-    mainRegion = new PhysicalPageRegion(contents, this);
-}
+        this.pageNumber     = pageNumber;
+        allGraphics         = graphics;
+        this.pageDimensions = pageDimensions;
+        mainRegion          = new PhysicalPageRegion(contents, this);
+    }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-@NotNull
-public List<GraphicContent> getAllGraphics() {
-    return allGraphics;
-}
+    @NotNull
+    public List<GraphicContent> getAllGraphics() {
+        return allGraphics;
+    }
 
-@NotNull
-public PhysicalPageRegion getMainRegion() {
-    return mainRegion;
-}
+    @NotNull
+    public PhysicalPageRegion getMainRegion() {
+        return mainRegion;
+    }
 
-public Rectangle getPageDimensions() {
-    return pageDimensions;
-}
+    public Rectangle getPageDimensions() {
+        return pageDimensions;
+    }
 
-public int getPageNumber() {
-    return pageNumber;
-}
+    public int getPageNumber() {
+        return pageNumber;
+    }
 }

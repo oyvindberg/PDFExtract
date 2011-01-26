@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.integration;
 
 import org.elacin.pdfextract.style.Style;
@@ -31,28 +32,28 @@ import java.util.List;
 public class DocumentContent {
 
 // ------------------------------ FIELDS ------------------------------
-@NotNull
-final List<Style>       styles = new ArrayList<Style>();
-@NotNull
-final List<PageContent> pages  = new ArrayList<PageContent>();
+    @NotNull
+    final List<Style>       styles = new ArrayList<Style>();
+    @NotNull
+    final List<PageContent> pages  = new ArrayList<PageContent>();
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-@NotNull
-public List<PageContent> getPages() {
-    return pages;
-}
+    @NotNull
+    public List<PageContent> getPages() {
+        return pages;
+    }
 
-@NotNull
-public List<Style> getStyles() {
-    return styles;
-}
+    @NotNull
+    public List<Style> getStyles() {
+        return styles;
+    }
 
 // -------------------------- PUBLIC METHODS --------------------------
-public void addPage(PageContent page) {
-    pages.add(page);
-}
+    public void addPage(PageContent page) {
+        pages.add(page);
+    }
 
-public void setStyles(Collection<Style> newStyles) {
-    styles.addAll(newStyles);
-}
+    public void setStyles(Collection<Style> newStyles) {
+        styles.addAll(newStyles);
+    }
 }

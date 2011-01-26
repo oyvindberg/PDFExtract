@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.tree;
 
 import org.jetbrains.annotations.NotNull;
@@ -30,56 +31,56 @@ import java.util.List;
 public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
 
 // ------------------------------ FIELDS ------------------------------
-private final List<GraphicsNode> graphics = new ArrayList<GraphicsNode>();
-private final int pageNumber;
+    private final List<GraphicsNode> graphics = new ArrayList<GraphicsNode>();
+    private final int                pageNumber;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-public PageNode(int pageNumber) {
-    this.pageNumber = pageNumber;
-}
+    public PageNode(int pageNumber) {
+        this.pageNumber = pageNumber;
+    }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-public List<GraphicsNode> getGraphics() {
-    return graphics;
-}
+    public List<GraphicsNode> getGraphics() {
+        return graphics;
+    }
 
-public int getPageNumber() {
-    return pageNumber;
-}
+    public int getPageNumber() {
+        return pageNumber;
+    }
 
 // -------------------------- PUBLIC METHODS --------------------------
-public void addGraphics(GraphicsNode graphicsNode) {
-    graphics.add(graphicsNode);
-}
+    public void addGraphics(GraphicsNode graphicsNode) {
+        graphics.add(graphicsNode);
+    }
 
-/**
- * Returns a Comparator which compares coordinates within a page
- */
-@NotNull
-@Override
-public Comparator<ParagraphNode> getChildComparator() {
+    /**
+     * Returns a Comparator which compares coordinates within a page
+     */
+    @NotNull
+    @Override
+    public Comparator<ParagraphNode> getChildComparator() {
 
-    return new Comparator<ParagraphNode>() {
+        return new Comparator<ParagraphNode>() {
 
-        public int compare(final ParagraphNode o1, final ParagraphNode o2) {
+            public int compare(final ParagraphNode o1, final ParagraphNode o2) {
 
-            // final int thisRegion = o1.getSeqNo() / 1000;
-            // final int thatRegion = o2.getSeqNo() / 1000;
-            //
-            // if (thisRegion < thatRegion) {
-            // return -1;
-            // } else if (thisRegion > thatRegion) {
-            // return 1;
-            // }
-            //
-            // return (o1.getPos().getY() < o2.getPos().getY() ? -1 :
-            // (o1.getSeqNo() == o2.getSeqNo() ? 0 : 1));
-            return ((o1.getSeqNo() < o2.getSeqNo())
-                            ? -1
-                            : ((o1.getSeqNo() == o2.getSeqNo())
-                                       ? 0
-                                       : 1));
-        }
-    };
-}
+                // final int thisRegion = o1.getSeqNo() / 1000;
+                // final int thatRegion = o2.getSeqNo() / 1000;
+                //
+                // if (thisRegion < thatRegion) {
+                // return -1;
+                // } else if (thisRegion > thatRegion) {
+                // return 1;
+                // }
+                //
+                // return (o1.getPos().getY() < o2.getPos().getY() ? -1 :
+                // (o1.getSeqNo() == o2.getSeqNo() ? 0 : 1));
+                return ((o1.getSeqNo() < o2.getSeqNo())
+                        ? -1
+                        : ((o1.getSeqNo() == o2.getSeqNo())
+                           ? 0
+                           : 1));
+            }
+        };
+    }
 }

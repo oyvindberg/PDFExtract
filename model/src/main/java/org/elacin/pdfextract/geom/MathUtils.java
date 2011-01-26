@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.geom;
 
 import org.elacin.pdfextract.content.WhitespaceRectangle;
@@ -29,91 +30,89 @@ import java.util.Collection;
 public final class MathUtils {
 
 // --------------------------- CONSTRUCTORS ---------------------------
-private MathUtils() {}
+    private MathUtils() {}
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
-@NotNull
-public static Rectangle findBounds(@NotNull final Collection<? extends HasPosition> contents) {
-    return findBounds_(contents, true);
-}
+    @NotNull
+    public static Rectangle findBounds(@NotNull final Collection<? extends HasPosition> contents) {
+        return findBounds_(contents, true);
+    }
 
-@NotNull
-public static Rectangle findBoundsExcludingWhitespace(
-                                                             @NotNull final Collection<? extends HasPosition> contents)
-{
-    return findBounds_(contents, false);
-}
+    @NotNull
+    public static Rectangle findBoundsExcludingWhitespace(
+            @NotNull final Collection<? extends HasPosition> contents) {
+        return findBounds_(contents, false);
+    }
 
-private static Rectangle findBounds_(final Collection<? extends HasPosition> contents,
-                                     final boolean countWhitespace)
-{
+    private static Rectangle findBounds_(final Collection<? extends HasPosition> contents,
+            final boolean countWhitespace) {
 
-    /* calculate bounds for this region */
-    float minX = Float.MAX_VALUE,
-            minY = Float.MAX_VALUE;
-    float maxX = Float.MIN_VALUE,
-            maxY = Float.MIN_VALUE;
-    int counted = 0;
+        /* calculate bounds for this region */
+        float minX    = Float.MAX_VALUE,
+              minY    = Float.MAX_VALUE;
+        float maxX    = Float.MIN_VALUE,
+              maxY    = Float.MIN_VALUE;
+        int   counted = 0;
 
-    for (HasPosition content : contents) {
+        for (HasPosition content : contents) {
 
-        // TODO: this really doesnt belong here
-        if (!countWhitespace && (content instanceof WhitespaceRectangle)) {
-            continue;
+            // TODO: this really doesnt belong here
+            if (!countWhitespace && (content instanceof WhitespaceRectangle)) {
+                continue;
+            }
+
+            minX = Math.min(minX, content.getPos().x);
+            minY = Math.min(minY, content.getPos().y);
+            maxX = Math.max(maxX, content.getPos().endX);
+            maxY = Math.max(maxY, content.getPos().endY);
+            counted++;
         }
 
-        minX = Math.min(minX, content.getPos().x);
-        minY = Math.min(minY, content.getPos().y);
-        maxX = Math.max(maxX, content.getPos().endX);
-        maxY = Math.max(maxY, content.getPos().endY);
-        counted++;
+        final Rectangle newPos;
+
+        if (counted == 0) {
+            newPos = Rectangle.EMPTY_RECTANGLE;
+        } else {
+            newPos = new Rectangle(minX, minY, maxX - minX, maxY - minY);
+        }
+
+        return newPos;
     }
 
-    final Rectangle newPos;
+    /**
+     * Returns true if num2 is within percentage percent of num1
+     */
+    public static boolean isWithinPercent(final float num1, final float num2, final float percentage) {
 
-    if (counted == 0) {
-        newPos = Rectangle.EMPTY_RECTANGLE;
-    } else {
-        newPos = new Rectangle(minX, minY, maxX - minX, maxY - minY);
+        // noinspection FloatingPointEquality
+        if (num1 == num2) {
+            return true;
+        }
+
+        return (num1 + num1 / 100.0F * percentage) >= num2
+               && (num1 - num1 / 100.0F * percentage) <= num2;
     }
 
-    return newPos;
-}
+    /**
+     * Returns true if num2 is within num ? i
+     */
+    public static boolean isWithinVariance(final float num1, final float num2, final float variance) {
 
-/**
- * Returns true if num2 is within percentage percent of num1
- */
-public static boolean isWithinPercent(final float num1, final float num2, final float percentage) {
+        // noinspection FloatingPointEquality
+        if (num1 == num2) {
+            return true;
+        }
 
-    // noinspection FloatingPointEquality
-    if (num1 == num2) {
-        return true;
+        return (num1 - variance) <= num2 && (num1 + variance) >= num2;
     }
 
-    return (num1 + num1 / 100.0F * percentage) >= num2
-           && (num1 - num1 / 100.0F * percentage) <= num2;
-}
-
-/**
- * Returns true if num2 is within num ? i
- */
-public static boolean isWithinVariance(final float num1, final float num2, final float variance) {
-
-    // noinspection FloatingPointEquality
-    if (num1 == num2) {
-        return true;
+    @SuppressWarnings({ "NumericCastThatLosesPrecision" })
+    public static float log(float a) {
+        return (float) StrictMath.log((double) a);
     }
 
-    return (num1 - variance) <= num2 && (num1 + variance) >= num2;
-}
-
-@SuppressWarnings({"NumericCastThatLosesPrecision"})
-public static float log(float a) {
-    return (float) StrictMath.log((double) a);
-}
-
-@SuppressWarnings({"NumericCastThatLosesPrecision"})
-public static float sqrt(float a) {
-    return (float) StrictMath.sqrt((double) a);
-}
+    @SuppressWarnings({ "NumericCastThatLosesPrecision" })
+    public static float sqrt(float a) {
+        return (float) StrictMath.sqrt((double) a);
+    }
 }

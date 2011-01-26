@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.style;
 
 import org.elacin.pdfextract.content.StyledText;
@@ -32,53 +33,53 @@ import java.util.Map;
 public class TextUtils {
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
-@NotNull
-public static Style findDominatingStyle(@NotNull final Collection<? extends HasPosition> contents) {
+    @NotNull
+    public static Style findDominatingStyle(@NotNull final Collection<? extends HasPosition> contents) {
 
-    if (!listContainsStyledText(contents)) {
-        return Style.NO_STYLE;
-    }
-
-    Map<Style, Integer> letterCountPerStyle = new HashMap<Style, Integer>(10);
-
-    for (HasPosition content : contents) {
-        if (!(content instanceof StyledText)) {
-            continue;
+        if (!listContainsStyledText(contents)) {
+            return Style.NO_STYLE;
         }
 
-        StyledText text = (StyledText) content;
-        final Style style = text.getStyle();
+        Map<Style, Integer> letterCountPerStyle = new HashMap<Style, Integer>(10);
 
-        if (!letterCountPerStyle.containsKey(style)) {
-            letterCountPerStyle.put(style, 0);
+        for (HasPosition content : contents) {
+            if (!(content instanceof StyledText)) {
+                continue;
+            }
+
+            StyledText  text  = (StyledText) content;
+            final Style style = text.getStyle();
+
+            if (!letterCountPerStyle.containsKey(style)) {
+                letterCountPerStyle.put(style, 0);
+            }
+
+            final int numChars = text.getText().length();
+
+            letterCountPerStyle.put(style, letterCountPerStyle.get(style) + numChars);
         }
 
-        final int numChars = text.getText().length();
+        int   highestNumChars = -1;
+        Style style           = null;
 
-        letterCountPerStyle.put(style, letterCountPerStyle.get(style) + numChars);
-    }
-
-    int highestNumChars = -1;
-    Style style = null;
-
-    for (Map.Entry<Style, Integer> entry : letterCountPerStyle.entrySet()) {
-        if (entry.getValue() > highestNumChars) {
-            style = entry.getKey();
-            highestNumChars = entry.getValue();
+        for (Map.Entry<Style, Integer> entry : letterCountPerStyle.entrySet()) {
+            if (entry.getValue() > highestNumChars) {
+                style           = entry.getKey();
+                highestNumChars = entry.getValue();
+            }
         }
+
+        return style;
     }
 
-    return style;
-}
+    public static boolean listContainsStyledText(@NotNull final Collection<? extends HasPosition> list) {
 
-public static boolean listContainsStyledText(@NotNull final Collection<? extends HasPosition> list) {
-
-    for (HasPosition content : list) {
-        if (content instanceof StyledText) {
-            return true;
+        for (HasPosition content : list) {
+            if (content instanceof StyledText) {
+                return true;
+            }
         }
-    }
 
-    return false;
-}
+        return false;
+    }
 }

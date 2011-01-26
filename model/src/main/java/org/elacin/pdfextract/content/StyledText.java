@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.content;
 
 import org.elacin.pdfextract.geom.HasPosition;
@@ -28,7 +29,8 @@ import org.jetbrains.annotations.Nullable;
 public interface StyledText extends HasPosition {
 
 // -------------------------- PUBLIC METHODS --------------------------
-@Nullable Style getStyle();
+    @Nullable
+    Style getStyle();
 
-String getText();
+    String getText();
 }

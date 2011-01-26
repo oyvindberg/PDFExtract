@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.style.Style;
@@ -32,59 +33,59 @@ import java.util.List;
 public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
 
 // ------------------------------ FIELDS ------------------------------
-@NotNull
-public final List<WordNode> words = new ArrayList<WordNode>();
+    @NotNull
+    public final List<WordNode> words = new ArrayList<WordNode>();
 
-/**
- * this contains all the different styles used in the document
- */
-@NotNull
-protected final List<Style> styles = new ArrayList<Style>();
+    /**
+     * this contains all the different styles used in the document
+     */
+    @NotNull
+    protected final List<Style> styles = new ArrayList<Style>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
-public DocumentNode() {
-    setRoot(this);
-}
+    public DocumentNode() {
+        setRoot(this);
+    }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-@NotNull
-public List<Style> getStyles() {
-    return styles;
-}
+    @NotNull
+    public List<Style> getStyles() {
+        return styles;
+    }
 
 // -------------------------- PUBLIC METHODS --------------------------
 
-/**
- * Returns a Comparator which will compare pagenumbers of the pages
- */
-@NotNull
-@Override
-public Comparator<PageNode> getChildComparator() {
+    /**
+     * Returns a Comparator which will compare pagenumbers of the pages
+     */
+    @NotNull
+    @Override
+    public Comparator<PageNode> getChildComparator() {
 
-    return new Comparator<PageNode>() {
+        return new Comparator<PageNode>() {
 
-        public int compare(@NotNull final PageNode o1, @NotNull final PageNode o2) {
+            public int compare(@NotNull final PageNode o1, @NotNull final PageNode o2) {
 
-            if (o1.getPage().getPageNumber() < o2.getPage().getPageNumber()) {
-                return -1;
-            } else if (o1.getPage().getPageNumber() > o2.getPage().getPageNumber()) {
-                return 1;
+                if (o1.getPage().getPageNumber() < o2.getPage().getPageNumber()) {
+                    return -1;
+                } else if (o1.getPage().getPageNumber() > o2.getPage().getPageNumber()) {
+                    return 1;
+                }
+
+                return 0;
             }
-
-            return 0;
-        }
-    };
-}
-
-@Nullable
-public PageNode getPageNumber(final int pageNumber) {
-
-    for (PageNode pageNode : getChildren()) {
-        if (pageNode.getPageNumber() == pageNumber) {
-            return pageNode;
-        }
+        };
     }
 
-    return null;
-}
+    @Nullable
+    public PageNode getPageNumber(final int pageNumber) {
+
+        for (PageNode pageNode : getChildren()) {
+            if (pageNode.getPageNumber() == pageNumber) {
+                return pageNode;
+            }
+        }
+
+        return null;
+    }
 }

@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.content;
 
 import org.elacin.pdfextract.geom.HasPositionAbstract;
@@ -30,102 +31,101 @@ import java.util.Collection;
  */
 public abstract class PhysicalContent extends HasPositionAbstract {
 
-protected PhysicalContent(@NotNull final Collection<? extends PhysicalContent> contents) {}
+    protected PhysicalContent(@NotNull final Collection<? extends PhysicalContent> contents) {}
 
 // --------------------------- CONSTRUCTORS ---------------------------
-public PhysicalContent(final Rectangle pos) {
-    setPos(pos);
-}
+    public PhysicalContent(final Rectangle pos) {
+        setPos(pos);
+    }
 
 // ------------------------ INTERFACE METHODS ------------------------
 // --------------------- Interface HasPosition ---------------------
-public void calculatePos() {
-    assert false;
-}
+    public void calculatePos() {
+        assert false;
+    }
 
 // ------------------------ CANONICAL METHODS ------------------------
-@Override
-@SuppressWarnings({"ALL"})
+    @Override
+    @SuppressWarnings({ "ALL" })
 
 /* generated */
-public boolean equals(@Nullable final Object o)
-{
+    public boolean equals(@Nullable final Object o) {
 
-    if (this == o) {
+        if (this == o) {
+            return true;
+        }
+
+        if ((o == null) || (getClass() != o.getClass())) {
+            return false;
+        }
+
+        final PhysicalContent content = (PhysicalContent) o;
+
+        if (!getPos().equals(content.getPos())) {
+            return false;
+        }
+
         return true;
     }
 
-    if ((o == null) || (getClass() != o.getClass())) {
-        return false;
+    @Override
+    public int hashCode() {
+        return getPos().hashCode();
     }
 
-    final PhysicalContent content = (PhysicalContent) o;
+    @Override
+    public String toString() {
 
-    if (!getPos().equals(content.getPos())) {
-        return false;
+        final StringBuilder sb = new StringBuilder();
+
+        sb.append(getClass().getSimpleName());
+        sb.append("{position=").append(getPos());
+        sb.append('}');
+
+        return sb.toString();
     }
-
-    return true;
-}
-
-@Override
-public int hashCode() {
-    return getPos().hashCode();
-}
-
-@Override
-public String toString() {
-
-    final StringBuilder sb = new StringBuilder();
-
-    sb.append(getClass().getSimpleName());
-    sb.append("{position=").append(getPos());
-    sb.append('}');
-
-    return sb.toString();
-}
 
 // -------------------------- PUBLIC METHODS --------------------------
-@NotNull
-public AssignablePhysicalContent getAssignable() {
-    throw new RuntimeException("not an AssignablePhysicalContent");
-}
+    @NotNull
+    public AssignablePhysicalContent getAssignable() {
+        throw new RuntimeException("not an AssignablePhysicalContent");
+    }
 
-@NotNull
-public GraphicContent getGraphicContent() {
-    throw new RuntimeException(getClass().getSimpleName() + " is not a graphic");
-}
+    @NotNull
+    public GraphicContent getGraphicContent() {
+        throw new RuntimeException(getClass().getSimpleName() + " is not a graphic");
+    }
 
-@NotNull
-public PhysicalText getPhysicalText() {
-    throw new RuntimeException("not a text");
-}
+    @NotNull
+    public PhysicalText getPhysicalText() {
+        throw new RuntimeException("not a text");
+    }
 
-public boolean isAssignable() {
-    return false;
-}
+    public boolean isAssignable() {
+        return false;
+    }
 
-public boolean isFigure() {
-    return false;
-}
+    public boolean isFigure() {
+        return false;
+    }
 
-public boolean isGraphic() {
-    return false;
-}
+    public boolean isGraphic() {
+        return false;
+    }
 
-public boolean isGraphicButNotSeparator() {
-    return false;
-}
+    public boolean isGraphicButNotSeparator() {
+        return false;
+    }
 
-public boolean isPicture() {
-    return false;
-}
+    public boolean isPicture() {
+        return false;
+    }
 
-public boolean isText() {
-    return false;
-}
+    public boolean isText() {
+        return false;
+    }
 
-public boolean isWhitespace() {
-    return false;
-}
+    public boolean isWhitespace() {
+        return false;
+    }
 }

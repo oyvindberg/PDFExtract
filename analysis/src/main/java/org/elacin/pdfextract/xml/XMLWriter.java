@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.xml;
 
 import org.elacin.pdfextract.tree.DocumentNode;
@@ -29,5 +30,5 @@ import java.io.File;
 public interface XMLWriter {
 
 // -------------------------- PUBLIC METHODS --------------------------
-void writeTree(@NotNull DocumentNode root, @NotNull File output);
+    void writeTree(@NotNull DocumentNode root, @NotNull File output);
 }

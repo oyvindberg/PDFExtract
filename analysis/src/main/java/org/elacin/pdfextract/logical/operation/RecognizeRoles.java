@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.logical.operation;
 
 import org.apache.log4j.Logger;
@@ -35,78 +36,76 @@ import java.util.regex.Pattern;
 public class RecognizeRoles implements Operation {
 
 // ------------------------------ FIELDS ------------------------------
-private static final Logger log = Logger.getLogger(RecognizeRoles.class);
+    private static final Logger log = Logger.getLogger(RecognizeRoles.class);
 
 /* these are used to recognize identifiers */
-static final Pattern id                      = Pattern.compile("(?:X\\d{1,2}|\\w{1,2})");
-static final Pattern refWithDotPattern       = Pattern.compile("\\s*(" + id + "\\s*\\.\\s*\\d?).*",
-                                                               Pattern.DOTALL | Pattern.MULTILINE
-);
-static final Pattern numInParenthesisPattern = Pattern.compile("(\\(\\s*" + id + "\\s*\\)).*",
-                                                               Pattern.DOTALL | Pattern.MULTILINE
-);
-@Nullable
-final        Style   breadtext               = null;
-private DocumentNode root;
+    static final Pattern id                = Pattern.compile("(?:X\\d{1,2}|\\w{1,2})");
+    static final Pattern refWithDotPattern = Pattern.compile("\\s*(" + id + "\\s*\\.\\s*\\d?).*",
+                                                 Pattern.DOTALL | Pattern.MULTILINE);
+    static final Pattern numInParenthesisPattern = Pattern.compile("(\\(\\s*" + id + "\\s*\\)).*",
+                                                       Pattern.DOTALL | Pattern.MULTILINE);
+    @Nullable
+    final Style          breadtext = null;
+    private DocumentNode root;
 
 // ------------------------ INTERFACE METHODS ------------------------
 // --------------------- Interface Operation ---------------------
-public void doOperation(@NotNull final DocumentNode root) {
+    public void doOperation(@NotNull final DocumentNode root) {
 
-    if (breadtext == null) {
-        log.error("provide breadtext here");
+        if (breadtext == null) {
+            log.error("provide breadtext here");
 
-        return;
-    }
+            return;
+        }
 
-    this.root = root;
+        this.root = root;
 
-    for (WordNode word : root.words) {
-        checkForIdentifier(word);
-        checkForTopNote(word);
+        for (WordNode word : root.words) {
+            checkForIdentifier(word);
+            checkForTopNote(word);
 
-        // checkForFootNote(word);
-        checkForPageNumber(word);
-    }
-}
-
-// -------------------------- OTHER METHODS --------------------------
-void checkForIdentifier(@NotNull final WordNode word) {
-
-    String mark = null;
-    final String trimmedText = word.text.trim();
-
-    if ("".equals(trimmedText)) {
-        return;
-    }
-
-    // TODO:!
-    if (word.getStyle().equals(breadtext)) {
-        return;
-    }
-
-    final Matcher matcher = numInParenthesisPattern.matcher(word.text);
-
-    if (matcher.matches()) {
-        mark = matcher.group(1);
-    } else {
-        final Matcher matcher2 = refWithDotPattern.matcher(word.text);
-
-        if (matcher2.matches()) {
-            mark = matcher2.group(1);
+            // checkForFootNote(word);
+            checkForPageNumber(word);
         }
     }
 
-    /* if the first character is '*' or '-' set that as mark */
+// -------------------------- OTHER METHODS --------------------------
+    void checkForIdentifier(@NotNull final WordNode word) {
 
-    // final String firstChar = trimmedText.substring(0, 1);
-    // if ("*-".contains(firstChar)) {
-    // mark = firstChar;
-    // }
-    if (mark != null) {
-        word.addRole(Role.IDENTIFIER);
+        String       mark        = null;
+        final String trimmedText = word.text.trim();
+
+        if ("".equals(trimmedText)) {
+            return;
+        }
+
+        // TODO:!
+        if (word.getStyle().equals(breadtext)) {
+            return;
+        }
+
+        final Matcher matcher = numInParenthesisPattern.matcher(word.text);
+
+        if (matcher.matches()) {
+            mark = matcher.group(1);
+        } else {
+            final Matcher matcher2 = refWithDotPattern.matcher(word.text);
+
+            if (matcher2.matches()) {
+                mark = matcher2.group(1);
+            }
+        }
+
+        /* if the first character is '*' or '-' set that as mark */
+
+        // final String firstChar = trimmedText.substring(0, 1);
+        // if ("*-".contains(firstChar)) {
+        // mark = firstChar;
+        // }
+        if (mark != null) {
+            word.addRole(Role.IDENTIFIER);
+        }
     }
-}
 
 //  private void checkForFootNote(final WordNode leafText) {
 //      /* if the following is true for the leafText:
@@ -143,35 +142,35 @@ void checkForIdentifier(@NotNull final WordNode word) {
 //          leafText.addRole(Role.FOOTNOTE, "");
 //      }
 //  }
-private void checkForPageNumber(@NotNull final WordNode word) {
+    private void checkForPageNumber(@NotNull final WordNode word) {
 
-    boolean isNumber = true;
+        boolean isNumber = true;
 
-    if (((word.text.length() < 5) && word.hasRole(Role.FOOTNOTE)) || word.hasRole(Role.HEADNOTE)) {
-        for (int i = 0; i < word.text.length(); i++) {
-            if (!Character.isDigit(word.text.charAt(i))) {
-                isNumber = false;
+        if (((word.text.length() < 5) && word.hasRole(Role.FOOTNOTE)) || word.hasRole(Role.HEADNOTE)) {
+            for (int i = 0; i < word.text.length(); i++) {
+                if (!Character.isDigit(word.text.charAt(i))) {
+                    isNumber = false;
 
-                break;
+                    break;
+                }
+            }
+
+            if (isNumber) {
+                word.addRole(Role.PAGENUMBER);
             }
         }
+    }
 
-        if (isNumber) {
-            word.addRole(Role.PAGENUMBER);
+    private void checkForTopNote(@NotNull final WordNode word) {
+
+        if (word.getPos().y < (word.getPage().getPos().height * 5.0 / 100)) {
+
+            /* then check the font. we either want smaller than breadtext, or same size but different type */
+            if ((word.getStyle().ySize < breadtext.ySize)
+                    || ((word.getStyle().ySize == breadtext.ySize)
+                        &&!word.getStyle().fontName.equals(breadtext.fontName))) {
+                word.addRole(Role.HEADNOTE);
+            }
         }
     }
-}
-
-private void checkForTopNote(@NotNull final WordNode word) {
-
-    if (word.getPos().y < (word.getPage().getPos().height * 5.0 / 100)) {
-
-        /* then check the font. we either want smaller than breadtext, or same size but different type */
-        if ((word.getStyle().ySize < breadtext.ySize)
-            || ((word.getStyle().ySize == breadtext.ySize)
-                && !word.getStyle().fontName.equals(breadtext.fontName))) {
-            word.addRole(Role.HEADNOTE);
-        }
-    }
-}
 }

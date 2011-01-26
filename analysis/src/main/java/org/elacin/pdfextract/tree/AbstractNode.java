@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.tree;
 
 import org.apache.log4j.Logger;
@@ -33,73 +34,73 @@ import java.util.EnumSet;
 public abstract class AbstractNode<ParentType extends AbstractParentNode> extends HasPositionAbstract {
 
 // ------------------------------ FIELDS ------------------------------
-protected static final Logger        log   = Logger.getLogger(AbstractNode.class);
-@NotNull
-protected final        EnumSet<Role> roles = EnumSet.noneOf(Role.class);
-@Nullable
-protected ParentType   parent;
-@Nullable
-protected DocumentNode root;
+    protected static final Logger log   = Logger.getLogger(AbstractNode.class);
+    @NotNull
+    protected final EnumSet<Role> roles = EnumSet.noneOf(Role.class);
+    @Nullable
+    protected ParentType          parent;
+    @Nullable
+    protected DocumentNode        root;
 
 /* a cache of current text */
-@Nullable
-protected String textCache;
+    @Nullable
+    protected String textCache;
 
 /* a cache of current toString-String */
-@Nullable
-protected transient String toStringCache;
+    @Nullable
+    protected transient String toStringCache;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-@Nullable
-public ParentType getParent() {
-    return parent;
-}
-
-@NotNull
-public EnumSet<Role> getRoles() {
-    return roles;
-}
-
-@Nullable
-public DocumentNode getRoot() {
-    return root;
-}
-
-public void setRoot(final DocumentNode root) {
-    this.root = root;
-}
-
-// -------------------------- PUBLIC METHODS --------------------------
-public void addRole(Role r) {
-
-    log.warn(this + " got assigned role " + r);
-    roles.add(r);
-}
-
-@Nullable
-public PageNode getPage() {
-
-    AbstractNode current = this;
-
-    while (current != null) {
-        if (current instanceof PageNode) {
-            return (PageNode) current;
-        }
-
-        current = current.parent;
+    @Nullable
+    public ParentType getParent() {
+        return parent;
     }
 
-    return null;
-}
+    @NotNull
+    public EnumSet<Role> getRoles() {
+        return roles;
+    }
 
-public abstract Style getStyle();
+    @Nullable
+    public DocumentNode getRoot() {
+        return root;
+    }
 
-public abstract String getText();
+    public void setRoot(final DocumentNode root) {
+        this.root = root;
+    }
 
-public boolean hasRole(Role r) {
-    return roles.contains(r);
-}
+// -------------------------- PUBLIC METHODS --------------------------
+    public void addRole(Role r) {
+
+        log.warn(this + " got assigned role " + r);
+        roles.add(r);
+    }
+
+    @Nullable
+    public PageNode getPage() {
+
+        AbstractNode current = this;
+
+        while (current != null) {
+            if (current instanceof PageNode) {
+                return (PageNode) current;
+            }
+
+            current = current.parent;
+        }
+
+        return null;
+    }
+
+    public abstract Style getStyle();
+
+    public abstract String getText();
+
+    public boolean hasRole(Role r) {
+        return roles.contains(r);
+    }
 
 // -------------------------- OTHER METHODS --------------------------
-protected abstract void invalidateThisAndParents();
+    protected abstract void invalidateThisAndParents();
 }

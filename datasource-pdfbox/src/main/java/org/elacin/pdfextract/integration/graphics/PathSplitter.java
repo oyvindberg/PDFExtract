@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 �yvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 
 
 package org.elacin.pdfextract.integration.graphics;
@@ -33,52 +34,52 @@ import static java.awt.geom.PathIterator.*;
 public class PathSplitter {
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
-@NotNull
-public static List<GeneralPath> splitPath(@NotNull final GeneralPath path) {
+    @NotNull
+    public static List<GeneralPath> splitPath(@NotNull final GeneralPath path) {
 
-    List<GeneralPath> subPaths = new ArrayList<GeneralPath>();
-    GeneralPath subPath = new GeneralPath();
-    final PathIterator iterator = path.getPathIterator(null);
-    float[] coords = new float[6];
+        List<GeneralPath>  subPaths = new ArrayList<GeneralPath>();
+        GeneralPath        subPath  = new GeneralPath();
+        final PathIterator iterator = path.getPathIterator(null);
+        float[]            coords   = new float[6];
 
-    while (!iterator.isDone()) {
-        switch (iterator.currentSegment(coords)) {
-            case SEG_MOVETO:
+        while (!iterator.isDone()) {
+            switch (iterator.currentSegment(coords)) {
+            case SEG_MOVETO :
                 subPath.moveTo(coords[0], coords[1]);
 
                 break;
-            case SEG_LINETO:
+            case SEG_LINETO :
                 subPath.lineTo(coords[0], coords[1]);
 
                 break;
-            case SEG_CLOSE:
+            case SEG_CLOSE :
                 subPath.closePath();
                 subPaths.add(subPath);
                 subPath = new GeneralPath();
 
                 break;
-            case SEG_CUBICTO:
+            case SEG_CUBICTO :
                 subPath.curveTo(coords[0], coords[1], coords[2], coords[3], coords[4], coords[5]);
 
                 break;
-            case SEG_QUADTO:
+            case SEG_QUADTO :
                 subPath.quadTo(coords[0], coords[1], coords[2], coords[3]);
 
                 break;
-            default:
+            default :
 
                 /* complain */
                 assert false;
+            }
+
+            iterator.next();
         }
 
-        iterator.next();
-    }
+        /* some times legitimate paths are not closed, so add them anyway. */
+        if (0.0 < subPath.getBounds().getWidth() * subPath.getBounds().getHeight()) {
+            subPaths.add(subPath);
+        }
 
-    /* some times legitimate paths are not closed, so add them anyway. */
-    if (0.0 < subPath.getBounds().getWidth() * subPath.getBounds().getHeight()) {
-        subPaths.add(subPath);
+        return subPaths;
     }
-
-    return subPaths;
-}
 }

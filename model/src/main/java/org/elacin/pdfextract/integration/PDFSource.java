@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.integration;
 
 import org.jetbrains.annotations.NotNull;
@@ -26,9 +27,11 @@ import org.jetbrains.annotations.NotNull;
 public interface PDFSource {
 
 // -------------------------- PUBLIC METHODS --------------------------
-void closeSource();
+    void closeSource();
 
-@NotNull DocumentContent readPages();
+    @NotNull
+    DocumentContent readPages();
 
-@NotNull RenderedPage renderPage(int page);
+    @NotNull
+    RenderedPage renderPage(int page);
 }

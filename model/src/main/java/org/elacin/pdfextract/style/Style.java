@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 �yvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
 
 
 package org.elacin.pdfextract.style;
@@ -30,119 +31,112 @@ import java.io.Serializable;
 public class Style implements Serializable {
 
 // ------------------------------ FIELDS ------------------------------
-@NotNull
-public static final Style GRAPHIC_IMAGE     = new Style("Graphical image", "", -1, -1, "[IMG]", false,
-                                                        false, false
-);
-@NotNull
-public static final Style GRAPHIC_VSEP      = new Style("Graphical vertical separator", "", -1, -1,
-                                                        "[VSEP]", false, false, false
-);
-@NotNull
-public static final Style GRAPHIC_MATH_BAR  = new Style("Graphical math bar", "", -1, -1, "[BAR]",
-                                                        false, false, false
-);
-@NotNull
-public static final Style GRAPHIC_HSEP      = new Style("Graphical horizontal separator", "", -1, -1,
-                                                        "[HSEP]", false, false, false
-);
-@NotNull
-public static final Style GRAPHIC_CONTAINER = new Style("Graphical container", "", -1, -1,
-                                                        "[CONTAINER]", false, false, false
-);
-@NotNull
-public static final Style FORMULA           = new Style("Formula", "", -2, -2, "FORMULA", false, false, true);
-@NotNull
-public static       Style NO_STYLE          = new Style("No style", "", -3, -3, "[NOSTYLE]", false, false,
-                                                        false
-);
-final             boolean bold;
-public final      String  fontName;
-public final      String  id;
-final             boolean italic;
-final             boolean mathFont;
-public final      String  subType;
-private transient String  toStringCache;
-private transient boolean toStringCreated;
-public final      int     xSize, ySize;
+    @NotNull
+    public static final Style GRAPHIC_IMAGE = new Style("Graphical image", "", -1, -1, "[IMG]", false,
+                                                  false, false);
+    @NotNull
+    public static final Style GRAPHIC_VSEP = new Style("Graphical vertical separator", "", -1, -1,
+                                                 "[VSEP]", false, false, false);
+    @NotNull
+    public static final Style GRAPHIC_MATH_BAR = new Style("Graphical math bar", "", -1, -1, "[BAR]",
+                                                     false, false, false);
+    @NotNull
+    public static final Style GRAPHIC_HSEP = new Style("Graphical horizontal separator", "", -1, -1,
+                                                 "[HSEP]", false, false, false);
+    @NotNull
+    public static final Style GRAPHIC_CONTAINER = new Style("Graphical container", "", -1, -1,
+                                                      "[CONTAINER]", false, false, false);
+    @NotNull
+    public static final Style FORMULA = new Style("Formula", "", -2, -2, "FORMULA", false, false, true);
+    @NotNull
+    public static Style NO_STYLE      = new Style("No style", "", -3, -3, "[NOSTYLE]", false, false,
+                                            false);
+    final boolean             bold;
+    public final String       fontName;
+    public final String       id;
+    final boolean             italic;
+    final boolean             mathFont;
+    public final String       subType;
+    private transient String  toStringCache;
+    private transient boolean toStringCreated;
+    public final int          xSize, ySize;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-public Style(final String fontName, final String subType, final int xSize, final int ySize,
-             final String id, final boolean italic, final boolean bold, final boolean mathFont)
-{
+    public Style(final String fontName, final String subType, final int xSize, final int ySize,
+                 final String id, final boolean italic, final boolean bold, final boolean mathFont) {
 
-    this.fontName = fontName;
-    this.subType = subType;
-    this.xSize = xSize;
-    this.ySize = ySize;
-    this.id = id;
-    this.italic = italic;
-    this.bold = bold;
-    this.mathFont = mathFont;
-}
+        this.fontName = fontName;
+        this.subType  = subType;
+        this.xSize    = xSize;
+        this.ySize    = ySize;
+        this.id       = id;
+        this.italic   = italic;
+        this.bold     = bold;
+        this.mathFont = mathFont;
+    }
 
 // ------------------------ CANONICAL METHODS ------------------------
-@Override
-public boolean equals(@Nullable final Object o) {
+    @Override
+    public boolean equals(@Nullable final Object o) {
 
-    if (this == o) {
-        return true;
-    }
-
-    if ((o == null) || (getClass() != o.getClass())) {
-        return false;
-    }
-
-    final Style style = (Style) o;
-
-    return id.equals(style.id);
-}
-
-@Override
-public int hashCode() {
-    return id.hashCode();
-}
-
-@Override
-public String toString() {
-
-    if (!toStringCreated) {
-        final StringBuilder sb = new StringBuilder();
-
-        sb.append("{");
-        sb.append(fontName);
-        sb.append(", size=").append(xSize);
-
-        if (italic) {
-            sb.append(" (italic)");
+        if (this == o) {
+            return true;
         }
 
-        if (bold) {
-            sb.append(" (bold)");
+        if ((o == null) || (getClass() != o.getClass())) {
+            return false;
         }
 
-        if (mathFont) {
-            sb.append(" (math)");
-        }
+        final Style style = (Style) o;
 
-        sb.append('}');
-        toStringCache = sb.toString();
-        toStringCreated = true;
+        return id.equals(style.id);
     }
 
-    return toStringCache;
-}
+    @Override
+    public int hashCode() {
+        return id.hashCode();
+    }
+
+    @Override
+    public String toString() {
+
+        if (!toStringCreated) {
+            final StringBuilder sb = new StringBuilder();
+
+            sb.append("{");
+            sb.append(fontName);
+            sb.append(", size=").append(xSize);
+
+            if (italic) {
+                sb.append(" (italic)");
+            }
+
+            if (bold) {
+                sb.append(" (bold)");
+            }
+
+            if (mathFont) {
+                sb.append(" (math)");
+            }
+
+            sb.append('}');
+            toStringCache   = sb.toString();
+            toStringCreated = true;
+        }
+
+        return toStringCache;
+    }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-public boolean isBold() {
-    return bold;
-}
+    public boolean isBold() {
+        return bold;
+    }
 
-public boolean isItalic() {
-    return italic;
-}
+    public boolean isItalic() {
+        return italic;
+    }
 
-public boolean isMathFont() {
-    return mathFont;
-}
+    public boolean isMathFont() {
+        return mathFont;
+    }
 }

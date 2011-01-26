@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 �yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
+
 
 package org.elacin.pdfextract;
 
@@ -29,42 +31,44 @@ import java.io.PrintStream;
  * use File | Settings | File Templates.
  */
 public abstract class TestLatexComparison {
+
+    @NotNull
+    protected final String ELCXMLFILENAME;
+    protected String       latexDOMString;
+    @NotNull
+    protected final String LATEXFILENAME;
+    protected DocumentNode pdfDOM;
+    @NotNull
+    protected final String PDFFILENAME;
+
 // ------------------------------ FIELDS ------------------------------
-
-protected final String TESTNAME;
-@NotNull
-protected final String PDFFILENAME;
-@NotNull
-protected final String LATEXFILENAME;
-@NotNull
-protected final String XMLFILENAME;
-@NotNull
-protected final String ELCXMLFILENAME;
-
-protected DocumentNode pdfDOM;
-protected String       latexDOMString;
+    protected final String TESTNAME;
+    @NotNull
+    protected final String XMLFILENAME;
 
 // --------------------------- CONSTRUCTORS ---------------------------
+    public TestLatexComparison(String inputname) {
 
-public TestLatexComparison(String inputname) {
-    TESTNAME = inputname;
-    PDFFILENAME = TESTNAME + ".pdf";
-    XMLFILENAME = TESTNAME + ".xml";
-    ELCXMLFILENAME = TESTNAME + ".elc.xml";
-    LATEXFILENAME = TESTNAME + ".tex";
-}
+        TESTNAME       = inputname;
+        PDFFILENAME    = TESTNAME + ".pdf";
+        XMLFILENAME    = TESTNAME + ".xml";
+        ELCXMLFILENAME = TESTNAME + ".elc.xml";
+        LATEXFILENAME  = TESTNAME + ".tex";
+    }
 
 // -------------------------- OTHER METHODS --------------------------
+    protected void printLatexDOMToFile() throws FileNotFoundException {
 
-protected void printLatexDOMToFile() throws FileNotFoundException {
-    PrintStream out = new PrintStream(new File(XMLFILENAME));
-    out.print(latexDOMString);
-    out.close();
-}
+        PrintStream out = new PrintStream(new File(XMLFILENAME));
 
-protected void readFiles() throws IOException {
-    pdfDOM = PDFDocumentLoader.readPDF(PDFFILENAME, ELCXMLFILENAME, 4);
-    latexDOMString = LatexDocumentLoader.readLatex(LATEXFILENAME);
-    printLatexDOMToFile();
-}
+        out.print(latexDOMString);
+        out.close();
+    }
+
+    protected void readFiles() throws IOException {
+
+        pdfDOM         = PDFDocumentLoader.readPDF(PDFFILENAME, ELCXMLFILENAME, 4);
+        latexDOMString = LatexDocumentLoader.readLatex(LATEXFILENAME);
+        printLatexDOMToFile();
+    }
 }

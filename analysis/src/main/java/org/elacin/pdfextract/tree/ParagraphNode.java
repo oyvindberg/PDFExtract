@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.tree;
 
 import org.jetbrains.annotations.NotNull;
@@ -28,41 +29,41 @@ import java.util.Comparator;
 public class ParagraphNode extends AbstractParentNode<LineNode, PageNode> {
 
 // ------------------------------ FIELDS ------------------------------
-private final int seqNo;
+    private final int seqNo;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-public ParagraphNode(final int seqNo) {
-    this.seqNo = seqNo;
-}
+    public ParagraphNode(final int seqNo) {
+        this.seqNo = seqNo;
+    }
 
-public ParagraphNode(@NotNull final LineNode child, final int seqNo) {
+    public ParagraphNode(@NotNull final LineNode child, final int seqNo) {
 
-    super(child);
-    this.seqNo = seqNo;
-}
+        super(child);
+        this.seqNo = seqNo;
+    }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-public int getSeqNo() {
-    return seqNo;
-}
+    public int getSeqNo() {
+        return seqNo;
+    }
 
 // -------------------------- PUBLIC METHODS --------------------------
-@NotNull
-@Override
-public Comparator<LineNode> getChildComparator() {
+    @NotNull
+    @Override
+    public Comparator<LineNode> getChildComparator() {
 
-    return new Comparator<LineNode>() {
+        return new Comparator<LineNode>() {
 
-        public int compare(@NotNull final LineNode o1, @NotNull final LineNode o2) {
+            public int compare(@NotNull final LineNode o1, @NotNull final LineNode o2) {
 
-            if (o1.getPos().y < o2.getPos().y) {
-                return -1;
-            } else if (o1.getPos().y > o2.getPos().y) {
-                return 1;
+                if (o1.getPos().y < o2.getPos().y) {
+                    return -1;
+                } else if (o1.getPos().y > o2.getPos().y) {
+                    return 1;
+                }
+
+                return 0;
             }
-
-            return 0;
-        }
-    };
-}
+        };
+    }
 }

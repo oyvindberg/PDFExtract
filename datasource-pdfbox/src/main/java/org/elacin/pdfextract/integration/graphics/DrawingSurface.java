@@ -15,13 +15,14 @@ import java.util.List;
 public interface DrawingSurface {
 
 // -------------------------- PUBLIC METHODS --------------------------
-void clearSurface();
+    void clearSurface();
 
-void drawImage(Image image, AffineTransform at, Shape clippingPath);
+    void drawImage(Image image, AffineTransform at, Shape clippingPath);
 
-void fill(GeneralPath originalPath, Color color, Shape clippingPath);
+    void fill(GeneralPath originalPath, Color color, Shape clippingPath);
 
-@NotNull List<GraphicContent> getGraphicContents();
+    @NotNull
+    List<GraphicContent> getGraphicContents();
 
-void strokePath(GeneralPath originalPath, Color color, Shape clippingPath);
+    void strokePath(GeneralPath originalPath, Color color, Shape clippingPath);
 }

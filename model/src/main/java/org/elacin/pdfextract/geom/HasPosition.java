@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.geom;
 
 import org.jetbrains.annotations.NotNull;
@@ -27,9 +28,10 @@ import java.io.Serializable;
  */
 public interface HasPosition extends Serializable {
 
-@NotNull Rectangle getPos();
+    @NotNull
+    Rectangle getPos();
 
-void calculatePos();
+    void calculatePos();
 
-void invalidatePos();
+    void invalidatePos();
 }

@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.geom;
 
 import org.elacin.pdfextract.content.PhysicalContent;
@@ -34,111 +35,110 @@ import java.util.PriorityQueue;
 public class Sorting {
 
 // ------------------------------ FIELDS ------------------------------
-@NotNull
-public static final Comparator<HasPosition>  sortByLowerY           = new Comparator<HasPosition>() {
+    @NotNull
+    public static final Comparator<HasPosition> sortByLowerY = new Comparator<HasPosition>() {
 
-    public int compare(@Nullable final HasPosition o1, @Nullable final HasPosition o2) {
+        public int compare(@Nullable final HasPosition o1, @Nullable final HasPosition o2) {
 
-        if (o1 == null) {
-            return 1;
-        }
+            if (o1 == null) {
+                return 1;
+            }
 
-        if (o2 == null) {
-            return -1;
-        }
+            if (o2 == null) {
+                return -1;
+            }
 
-        return Float.compare(o1.getPos().y, o2.getPos().y);
-    }
-};
-@NotNull
-public static final Comparator<HasPosition>  sortByHigherX          = new Comparator<HasPosition>() {
-
-    public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
-        return Float.compare(o2.getPos().x, o1.getPos().x);
-    }
-};
-@NotNull
-public static final Comparator<HasPosition>  sortByLowerYThenLowerX = new Comparator<HasPosition>() {
-
-    public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
-
-        final int compare = Float.compare(o1.getPos().y, o2.getPos().y);
-
-        if (compare != 0) {
-            return compare;
-        }
-
-        return Float.compare(o1.getPos().x, o2.getPos().x);
-    }
-};
-@NotNull
-public static final Comparator<HasPosition>  sortByLowerX           = new Comparator<HasPosition>() {
-
-    public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
-        return Float.compare(o1.getPos().x, o2.getPos().x);
-    }
-};
-@NotNull
-public static final Comparator<HasPosition>  sortBySmallestArea     = new Comparator<HasPosition>() {
-
-    public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
-        return Float.compare(o1.getPos().area(), o2.getPos().area());
-    }
-};
-@NotNull
-public static final Comparator<Style>        sortStylesById         = new Comparator<Style>() {
-
-    public int compare(@NotNull final Style o1, @NotNull final Style o2) {
-        return o1.id.compareTo(o2.id);
-    }
-};
-@NotNull
-public static final Comparator<PhysicalText> sortTextByBaseLine     = new Comparator<PhysicalText>() {
-
-    public int compare(@NotNull final PhysicalText o1, @NotNull final PhysicalText o2) {
-        return Float.compare(o1.getBaseLine(), o2.getBaseLine());
-    }
-};
-@NotNull
-public static final Comparator<HasPosition>  regionComparator       = new Comparator<HasPosition>() {
-
-    public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
-
-        if (o1.getPos().endY < o2.getPos().y) {
-            return -1;
-        }
-
-        if (o1.getPos().y > o2.getPos().endY) {
-            return 1;
-        }
-
-        if (o1.getPos().endX < o2.getPos().x) {
-            return -1;
-        }
-
-        if (o1.getPos().x > o2.getPos().endX) {
-            return 1;
-        }
-
-        if (!MathUtils.isWithinPercent(o1.getPos().y, o2.getPos().y, 4)) {
             return Float.compare(o1.getPos().y, o2.getPos().y);
         }
+    };
+    @NotNull
+    public static final Comparator<HasPosition> sortByHigherX = new Comparator<HasPosition>() {
 
-        return Float.compare(o1.getPos().x, o2.getPos().x);
-    }
-};
+        public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
+            return Float.compare(o2.getPos().x, o1.getPos().x);
+        }
+    };
+    @NotNull
+    public static final Comparator<HasPosition> sortByLowerYThenLowerX = new Comparator<HasPosition>() {
+
+        public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
+
+            final int compare = Float.compare(o1.getPos().y, o2.getPos().y);
+
+            if (compare != 0) {
+                return compare;
+            }
+
+            return Float.compare(o1.getPos().x, o2.getPos().x);
+        }
+    };
+    @NotNull
+    public static final Comparator<HasPosition> sortByLowerX = new Comparator<HasPosition>() {
+
+        public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
+            return Float.compare(o1.getPos().x, o2.getPos().x);
+        }
+    };
+    @NotNull
+    public static final Comparator<HasPosition> sortBySmallestArea = new Comparator<HasPosition>() {
+
+        public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
+            return Float.compare(o1.getPos().area(), o2.getPos().area());
+        }
+    };
+    @NotNull
+    public static final Comparator<Style> sortStylesById = new Comparator<Style>() {
+
+        public int compare(@NotNull final Style o1, @NotNull final Style o2) {
+            return o1.id.compareTo(o2.id);
+        }
+    };
+    @NotNull
+    public static final Comparator<PhysicalText> sortTextByBaseLine = new Comparator<PhysicalText>() {
+
+        public int compare(@NotNull final PhysicalText o1, @NotNull final PhysicalText o2) {
+            return Float.compare(o1.getBaseLine(), o2.getBaseLine());
+        }
+    };
+    @NotNull
+    public static final Comparator<HasPosition> regionComparator = new Comparator<HasPosition>() {
+
+        public int compare(@NotNull final HasPosition o1, @NotNull final HasPosition o2) {
+
+            if (o1.getPos().endY < o2.getPos().y) {
+                return -1;
+            }
+
+            if (o1.getPos().y > o2.getPos().endY) {
+                return 1;
+            }
+
+            if (o1.getPos().endX < o2.getPos().x) {
+                return -1;
+            }
+
+            if (o1.getPos().x > o2.getPos().endX) {
+                return 1;
+            }
+
+            if (!MathUtils.isWithinPercent(o1.getPos().y, o2.getPos().y, 4)) {
+                return Float.compare(o1.getPos().y, o2.getPos().y);
+            }
+
+            return Float.compare(o1.getPos().x, o2.getPos().x);
+        }
+    };
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
-@NotNull
-public static <T extends PhysicalContent> PriorityQueue<T> createSmallestFirstQueue(
-                                                                                           @NotNull final List<T> graphicalRegions)
-{
+    @NotNull
+    public static <T extends PhysicalContent> PriorityQueue<T> createSmallestFirstQueue(
+            @NotNull final List<T> graphicalRegions) {
 
-    final int capacity = Math.max(1, graphicalRegions.size());
-    PriorityQueue<T> queue = new PriorityQueue<T>(capacity, sortBySmallestArea);
+        final int        capacity = Math.max(1, graphicalRegions.size());
+        PriorityQueue<T> queue    = new PriorityQueue<T>(capacity, sortBySmallestArea);
 
-    queue.addAll(graphicalRegions);
+        queue.addAll(graphicalRegions);
 
-    return queue;
-}
+        return queue;
+    }
 }

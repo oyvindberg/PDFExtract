@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.content;
 
 import org.apache.log4j.Logger;
@@ -31,131 +32,131 @@ import java.awt.*;
 public class GraphicContent extends AssignablePhysicalContent {
 
 // ------------------------------ FIELDS ------------------------------
-private static final Logger log = Logger.getLogger(GraphicContent.class);
-private       boolean canBeAssigned;
-private final Color   color;
-private final boolean picture;
+    private static final Logger log = Logger.getLogger(GraphicContent.class);
+    private boolean             canBeAssigned;
+    private final Color         color;
+    private final boolean       picture;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-public GraphicContent(final Rectangle position, boolean picture, Color color) {
+    public GraphicContent(final Rectangle position, boolean picture, Color color) {
 
-    super(position, Style.GRAPHIC_IMAGE);
-    this.picture = picture;
-    this.color = color;
+        super(position, Style.GRAPHIC_IMAGE);
+        this.picture = picture;
+        this.color   = color;
 
-    if (log.isDebugEnabled()) {
-        log.debug("LOG00280:GraphicContent at " + position + ", picture =" + picture);
+        if (log.isDebugEnabled()) {
+            log.debug("LOG00280:GraphicContent at " + position + ", picture =" + picture);
+        }
     }
-}
 
 // ------------------------ CANONICAL METHODS ------------------------
-@Override
-public String toString() {
+    @Override
+    public String toString() {
 
-    final StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
 
-    sb.append("GraphicContent");
-    sb.append("{canBeAssigned=").append(canBeAssigned);
-    sb.append(", picture=").append(picture);
-    sb.append(", pos=").append(getPos());
-    sb.append(", style=").append(getStyle());
-    sb.append('}');
+        sb.append("GraphicContent");
+        sb.append("{canBeAssigned=").append(canBeAssigned);
+        sb.append(", picture=").append(picture);
+        sb.append(", pos=").append(getPos());
+        sb.append(", style=").append(getStyle());
+        sb.append('}');
 
-    return sb.toString();
-}
+        return sb.toString();
+    }
 
 // ------------------------ OVERRIDING METHODS ------------------------
-@NotNull
-@Override
-public GraphicContent getGraphicContent() {
-    return this;
-}
+    @NotNull
+    @Override
+    public GraphicContent getGraphicContent() {
+        return this;
+    }
 
-@Override
-public boolean isAssignable() {
-    return canBeAssigned;
-}
+    @Override
+    public boolean isAssignable() {
+        return canBeAssigned;
+    }
 
-@Override
-public boolean isFigure() {
-    return !picture;
-}
+    @Override
+    public boolean isFigure() {
+        return !picture;
+    }
 
-@Override
-public boolean isGraphic() {
-    return true;
-}
+    @Override
+    public boolean isGraphic() {
+        return true;
+    }
 
-@Override
-public boolean isGraphicButNotSeparator() {
-    return !(isVerticalSeparator() || isHorizontalSeparator());
-}
+    @Override
+    public boolean isGraphicButNotSeparator() {
+        return !(isVerticalSeparator() || isHorizontalSeparator());
+    }
 
-@Override
-public boolean isPicture() {
-    return picture;
-}
+    @Override
+    public boolean isPicture() {
+        return picture;
+    }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-public Color getColor() {
-    return color;
-}
+    public Color getColor() {
+        return color;
+    }
 
-public void setCanBeAssigned(final boolean canBeAssigned) {
-    this.canBeAssigned = canBeAssigned;
-}
+    public void setCanBeAssigned(final boolean canBeAssigned) {
+        this.canBeAssigned = canBeAssigned;
+    }
 
 // -------------------------- PUBLIC METHODS --------------------------
-public boolean canBeCombinedWith(@NotNull final GraphicContent other) {
+    public boolean canBeCombinedWith(@NotNull final GraphicContent other) {
 
-    if (this == other) {
-        return false;
+        if (this == other) {
+            return false;
+        }
+
+        if (picture &&!other.picture) {
+            return false;
+        }
+
+        return getPos().distance(other.getPos()) < 5.0f;
     }
 
-    if (picture && !other.picture) {
-        return false;
+    @NotNull
+    public GraphicContent combineWith(@NotNull final GraphicContent other) {
+
+        Color combinedColor;
+
+        if (isBackgroundColor()) {
+            combinedColor = other.color;
+        } else {
+            combinedColor = color;
+        }
+
+        return new GraphicContent(getPos().union(other.getPos()), picture, combinedColor);
     }
 
-    return getPos().distance(other.getPos()) < 5.0f;
-}
-
-@NotNull
-public GraphicContent combineWith(@NotNull final GraphicContent other) {
-
-    Color combinedColor;
-
-    if (isBackgroundColor()) {
-        combinedColor = other.color;
-    } else {
-        combinedColor = color;
+    public boolean isBackgroundColor() {
+        return color.equals(Color.white);
     }
 
-    return new GraphicContent(getPos().union(other.getPos()), picture, combinedColor);
-}
+    /**
+     * consider the graphic a separator if the aspect ratio is high
+     */
+    public boolean isHorizontalSeparator() {
+        return getStyle().equals(Style.GRAPHIC_HSEP);
+    }
 
-public boolean isBackgroundColor() {
-    return color.equals(Color.white);
-}
+    public boolean isMathBar() {
+        return getStyle().equals(Style.GRAPHIC_MATH_BAR);
+    }
 
-/**
- * consider the graphic a separator if the aspect ratio is high
- */
-public boolean isHorizontalSeparator() {
-    return getStyle().equals(Style.GRAPHIC_HSEP);
-}
+    public boolean isSeparator() {
+        return isVerticalSeparator() || isHorizontalSeparator();
+    }
 
-public boolean isMathBar() {
-    return getStyle().equals(Style.GRAPHIC_MATH_BAR);
-}
-
-public boolean isSeparator() {
-    return isVerticalSeparator() || isHorizontalSeparator();
-}
-
-/**
- * consider the graphic a separator if the aspect ratio is high
- */
-public boolean isVerticalSeparator() {
-    return getStyle().equals(Style.GRAPHIC_VSEP);
-}
+    /**
+     * consider the graphic a separator if the aspect ratio is high
+     */
+    public boolean isVerticalSeparator() {
+        return getStyle().equals(Style.GRAPHIC_VSEP);
+    }
 }

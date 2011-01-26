@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 �yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
+
 
 package org.elacin.pdfextract;
 
@@ -33,50 +35,60 @@ import java.util.ArrayList;
  * template use File | Settings | File Templates.
  */
 public class TestC021004 {
-// ------------------------------ FIELDS ------------------------------
 
-private DocumentNode        doc;
-private ArrayList<LineNode> lines;
-private BufferedReader      reader;
+// ------------------------------ FIELDS ------------------------------
+    private DocumentNode        doc;
+    private ArrayList<LineNode> lines;
+    private BufferedReader      reader;
 
 // -------------------------- PUBLIC METHODS --------------------------
+    @BeforeClass(groups = "TestC021004")
+    public void setUp() throws IOException {
 
-@BeforeClass(groups = "TestC021004")
-public void setUp() throws IOException {
-    doc = PDFDocumentLoader.readPDF("src/test/resources/C02-1004.pdf", "C02-1004_out.xml", 1);
-    lines = DocumentNavigator.getLineNodes(doc);
+        doc   = PDFDocumentLoader.readPDF("src/test/resources/C02-1004.pdf", "C02-1004_out.xml", 1);
+        lines = DocumentNavigator.getLineNodes(doc);
 
-    final URL url = PDFDocumentLoader.class.getClassLoader().getResource("src/test/resources/C021004.txt");
-    reader = new BufferedReader(new FileReader(url.getFile()));
-}
+        final URL url = PDFDocumentLoader.class.getClassLoader().getResource(
+                            "src/test/resources/C021004.txt");
 
-@Test()
-public void testContents() throws IOException {
-    int found = 0, total = 0;
-    while (reader.ready()) {
-        final String line = reader.readLine();
-        if (line.trim().length() != 0) {
-            total++;
-            final LineNode line1 = findLine(line);
-            if (line1 == null) {
-                System.out.println("could not find line = " + line);
-            } else {
-                found++;
+        reader = new BufferedReader(new FileReader(url.getFile()));
+    }
+
+    @Test()
+    public void testContents() throws IOException {
+
+        int found = 0,
+            total = 0;
+
+        while (reader.ready()) {
+            final String line = reader.readLine();
+
+            if (line.trim().length() != 0) {
+                total++;
+
+                final LineNode line1 = findLine(line);
+
+                if (line1 == null) {
+                    System.out.println("could not find line = " + line);
+                } else {
+                    found++;
+                }
             }
         }
+
+        System.out.println("Found " + found + " of " + total);
     }
-    System.out.println("Found " + found + " of " + total);
-}
 
 // -------------------------- OTHER METHODS --------------------------
+    @Nullable
+    private LineNode findLine(final String line) {
 
-@Nullable
-private LineNode findLine(final String line) {
-    for (LineNode lineNode : lines) {
-        if (lineNode.getText().equals(line)) {
-            return lineNode;
+        for (LineNode lineNode : lines) {
+            if (lineNode.getText().equals(line)) {
+                return lineNode;
+            }
         }
+
+        return null;
     }
-    return null;
-}
 }

@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.physical.graphics;
 
 import org.elacin.pdfextract.content.GraphicContent;
@@ -32,47 +33,47 @@ public class CategorizedGraphics {
 // ------------------------------ FIELDS ------------------------------
 
 /* these graphics are considered content */
-@NotNull
-private final List<GraphicContent> contents = new ArrayList<GraphicContent>();
+    @NotNull
+    private final List<GraphicContent> contents = new ArrayList<GraphicContent>();
 
 /* These will be used to split a page into page regions */
-@NotNull
-private final List<GraphicContent> containers = new ArrayList<GraphicContent>();
+    @NotNull
+    private final List<GraphicContent> containers = new ArrayList<GraphicContent>();
 
 /* these are separators which might divide regions of a page */
-@NotNull
-private final List<GraphicContent> verticalSeparators   = new ArrayList<GraphicContent>();
-@NotNull
-private final List<GraphicContent> horizontalSeparators = new ArrayList<GraphicContent>();
+    @NotNull
+    private final List<GraphicContent> verticalSeparators   = new ArrayList<GraphicContent>();
+    @NotNull
+    private final List<GraphicContent> horizontalSeparators = new ArrayList<GraphicContent>();
 
 /*     This contains all the segmented pictures (except those which has been dropped for being too
     big), and is only here for rendering purposes. */
-@NotNull
-private final List<GraphicContent> graphicsToRender = new ArrayList<GraphicContent>();
+    @NotNull
+    private final List<GraphicContent> graphicsToRender = new ArrayList<GraphicContent>();
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-@NotNull
-public List<GraphicContent> getContainers() {
-    return containers;
-}
+    @NotNull
+    public List<GraphicContent> getContainers() {
+        return containers;
+    }
 
-@NotNull
-public List<GraphicContent> getContents() {
-    return contents;
-}
+    @NotNull
+    public List<GraphicContent> getContents() {
+        return contents;
+    }
 
-@NotNull
-public List<GraphicContent> getGraphicsToRender() {
-    return graphicsToRender;
-}
+    @NotNull
+    public List<GraphicContent> getGraphicsToRender() {
+        return graphicsToRender;
+    }
 
-@NotNull
-public List<GraphicContent> getHorizontalSeparators() {
-    return horizontalSeparators;
-}
+    @NotNull
+    public List<GraphicContent> getHorizontalSeparators() {
+        return horizontalSeparators;
+    }
 
-@NotNull
-public List<GraphicContent> getVerticalSeparators() {
-    return verticalSeparators;
-}
+    @NotNull
+    public List<GraphicContent> getVerticalSeparators() {
+        return verticalSeparators;
+    }
 }

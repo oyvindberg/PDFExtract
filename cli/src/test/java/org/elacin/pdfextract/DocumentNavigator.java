@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 �yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
+
 
 package org.elacin.pdfextract;
 
@@ -28,19 +30,23 @@ import java.util.ArrayList;
  * template use File | Settings | File Templates.
  */
 public class DocumentNavigator {
-// -------------------------- PUBLIC STATIC METHODS --------------------------
 
-@NotNull
-public static ArrayList<LineNode> getLineNodes(@NotNull DocumentNode doc) {
-    ArrayList<LineNode> ret = new ArrayList<LineNode>();
-    for (PageNode pageNode : doc.getChildren()) {
-//		for (LayoutRegionNode layoutRegionNode : pageNode.getChildren()) {
-//			for (ParagraphNode paragraphNode : layoutRegionNode.getChildren()) {
-//				ret.addAll(paragraphNode.getChildren());
-//			}
+// -------------------------- PUBLIC STATIC METHODS --------------------------
+    @NotNull
+    public static ArrayList<LineNode> getLineNodes(@NotNull DocumentNode doc) {
+
+        ArrayList<LineNode> ret = new ArrayList<LineNode>();
+
+        for (PageNode pageNode : doc.getChildren()) {
+
+//      for (LayoutRegionNode layoutRegionNode : pageNode.getChildren()) {
+//          for (ParagraphNode paragraphNode : layoutRegionNode.getChildren()) {
+//              ret.addAll(paragraphNode.getChildren());
+//          }
 //
-//		}
+//      }
+        }
+
+        return ret;
     }
-    return ret;
-}
 }

@@ -13,5 +13,6 @@ import java.util.List;
 public interface GraphicSegmentator {
 
 // -------------------------- PUBLIC METHODS --------------------------
-@NotNull CategorizedGraphics categorizeGraphics(List<GraphicContent> graphics, PhysicalPageRegion region);
+    @NotNull
+    CategorizedGraphics categorizeGraphics(List<GraphicContent> graphics, PhysicalPageRegion region);
 }

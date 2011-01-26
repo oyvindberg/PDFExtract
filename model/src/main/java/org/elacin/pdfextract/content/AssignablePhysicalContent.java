@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.content;
 
 import org.elacin.pdfextract.geom.Rectangle;
@@ -28,50 +29,50 @@ import org.jetbrains.annotations.NotNull;
 public abstract class AssignablePhysicalContent extends PhysicalContent {
 
 // ------------------------------ FIELDS ------------------------------
-public static final int BLOCK_NOT_ASSIGNED = -1;
-public              int blockNum           = BLOCK_NOT_ASSIGNED;
-@NotNull
-protected Style style;
+    public static final int BLOCK_NOT_ASSIGNED = -1;
+    public int              blockNum           = BLOCK_NOT_ASSIGNED;
+    @NotNull
+    protected Style         style;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-public AssignablePhysicalContent(final Rectangle position, @NotNull Style style) {
+    public AssignablePhysicalContent(final Rectangle position, @NotNull Style style) {
 
-    super(position);
-    this.style = style;
-}
+        super(position);
+        this.style = style;
+    }
 
 // ------------------------ OVERRIDING METHODS ------------------------
-@NotNull
-@Override
-public AssignablePhysicalContent getAssignable() {
-    return this;
-}
+    @NotNull
+    @Override
+    public AssignablePhysicalContent getAssignable() {
+        return this;
+    }
 
-@Override
-public boolean isAssignable() {
-    return true;
-}
+    @Override
+    public boolean isAssignable() {
+        return true;
+    }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-public int getBlockNum() {
-    return blockNum;
-}
+    public int getBlockNum() {
+        return blockNum;
+    }
 
-public void setBlockNum(final int blockNum) {
-    this.blockNum = blockNum;
-}
+    public void setBlockNum(final int blockNum) {
+        this.blockNum = blockNum;
+    }
 
-@NotNull
-public Style getStyle() {
-    return style;
-}
+    @NotNull
+    public Style getStyle() {
+        return style;
+    }
 
-public void setStyle(@NotNull final Style style) {
-    this.style = style;
-}
+    public void setStyle(@NotNull final Style style) {
+        this.style = style;
+    }
 
 // -------------------------- PUBLIC METHODS --------------------------
-public boolean isAssignedBlock() {
-    return blockNum != BLOCK_NOT_ASSIGNED;
-}
+    public boolean isAssignedBlock() {
+        return blockNum != BLOCK_NOT_ASSIGNED;
+    }
 }

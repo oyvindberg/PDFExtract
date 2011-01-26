@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Ã˜yvind Berg (elacin@gmail.com)
+ * Copyright 2010 ¯yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  *    limitations under the License.
  */
 
+
+
 package org.elacin.pdfextract;
 
 import org.elacin.pdfextract.tree.DocumentNode;
@@ -26,30 +28,30 @@ import java.util.ArrayList;
  * template use File | Settings | File Templates.
  */
 public class TestColumns {
-// ------------------------------ FIELDS ------------------------------
 
-private DocumentNode        doc;
-private ArrayList<LineNode> lines;
+// ------------------------------ FIELDS ------------------------------
+    private DocumentNode        doc;
+    private ArrayList<LineNode> lines;
 
 //@BeforeClass(groups = "TestColumns")
 //public void setUp() throws IOException {
-//	doc = PDFDocumentLoader.readPDF("renderX/columns.pdf", "columns_out.xml", 4);
+//  doc = PDFDocumentLoader.readPDF("renderX/columns.pdf", "columns_out.xml", 4);
 //}
 //
 //@Test(enabled = false)
 //public void testWronglyCombinedLines() {
 //
-//	final List<ParagraphNode> paragraphsOnFirstPage = doc.getChildren().get(0).getChildren();
+//  final List<ParagraphNode> paragraphsOnFirstPage = doc.getChildren().get(0).getChildren();
 //
-//	for (ParagraphNode child : paragraphsOnFirstPage) {
-//		if (child.getPos().getY() == 221.60901f) {
-//			assertEquals(child.getChildren().get(0).getText(), "This is the first page of the document. Its first capital letter T has red color and is 3 picas");
-//			assertEquals(child.getChildren().get(1).getText(), "high.");
-//			assertEquals(child.getChildren().size(), 2);
-//			return;
-//		}
-//	}
-//	fail("Could not fine paragraph");
+//  for (ParagraphNode child : paragraphsOnFirstPage) {
+//      if (child.getPos().getY() == 221.60901f) {
+//          assertEquals(child.getChildren().get(0).getText(), "This is the first page of the document. Its first capital letter T has red color and is 3 picas");
+//          assertEquals(child.getChildren().get(1).getText(), "high.");
+//          assertEquals(child.getChildren().size(), 2);
+//          return;
+//      }
+//  }
+//  fail("Could not fine paragraph");
 //
 //}
 }

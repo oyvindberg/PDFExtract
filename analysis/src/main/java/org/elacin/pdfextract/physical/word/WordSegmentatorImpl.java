@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.physical.word;
 
 import org.apache.log4j.Logger;
@@ -32,322 +33,319 @@ import static org.elacin.pdfextract.geom.MathUtils.isWithinVariance;
 public class WordSegmentatorImpl implements WordSegmentator {
 
 // ------------------------------ FIELDS ------------------------------
-private static final Logger log = Logger.getLogger(WordSegmentatorImpl.class);
+    private static final Logger log = Logger.getLogger(WordSegmentatorImpl.class);
 
 // ------------------------ INTERFACE METHODS ------------------------
 // --------------------- Interface WordSegmentator ---------------------
 
-/**
- * This method will convert the text into PhysicalTexts. <p/> To do this, the text is split on
- * whitespaces, character and word distances are approximated, and words are created based on
- * those
- */
-@NotNull
-public List<PhysicalText> segmentWords(@NotNull final List<PhysicalText> texts) {
-
-    final long t0 = System.currentTimeMillis();
-    List<PhysicalText> ret = new ArrayList<PhysicalText>(texts.size());
-
     /**
-     * iterate through all incoming TextPositions, and process them
-     * in a line by line fashion. We do this to be able to calculate
-     * char and word distances for each line
+     * This method will convert the text into PhysicalTexts. <p/> To do this, the text is split on
+     * whitespaces, character and word distances are approximated, and words are created based on
+     * those
      */
-    List<PhysicalText> line = new ArrayList<PhysicalText>();
+    @NotNull
+    public List<PhysicalText> segmentWords(@NotNull final List<PhysicalText> texts) {
 
-    Collections.sort(texts, Sorting.sortTextByBaseLine);
+        final long         t0  = System.currentTimeMillis();
+        List<PhysicalText> ret = new ArrayList<PhysicalText>(texts.size());
 
-    float baseline = 0.0f;
-    float maxY = Float.MIN_VALUE;
-    float maxX = 0.0f;
-    Style currentStyle = null;
+        /**
+         * iterate through all incoming TextPositions, and process them
+         * in a line by line fashion. We do this to be able to calculate
+         * char and word distances for each line
+         */
+        List<PhysicalText> line = new ArrayList<PhysicalText>();
 
-    for (final PhysicalText text : texts) {
+        Collections.sort(texts, Sorting.sortTextByBaseLine);
 
-        /* if this is the first text in a line */
-        if (line.isEmpty()) {
-            baseline = text.getBaseLine();
-            maxX = text.getPos().endX;
-            currentStyle = text.getStyle();
-        }
+        float baseline     = 0.0f;
+        float maxY         = Float.MIN_VALUE;
+        float maxX         = 0.0f;
+        Style currentStyle = null;
 
-        final boolean stopGrouping = isOnAnotherLine(baseline, text, maxY)
-                                     || isTooFarAwayHorizontally(maxX, text)
-                                     || fontDiffers(currentStyle, text);
+        for (final PhysicalText text : texts) {
 
-        if (stopGrouping) {
-            if (!line.isEmpty()) {
-                ret.addAll(createWordsInLine(line));
-                line.clear();
+            /* if this is the first text in a line */
+            if (line.isEmpty()) {
+                baseline     = text.getBaseLine();
+                maxX         = text.getPos().endX;
+                currentStyle = text.getStyle();
             }
 
-            baseline = text.getBaseLine();
-            maxY = text.getPos().endY;
-            currentStyle = text.getStyle();
+            final boolean stopGrouping = isOnAnotherLine(baseline, text, maxY)
+                                         || isTooFarAwayHorizontally(maxX, text)
+                                         || fontDiffers(currentStyle, text);
+
+            if (stopGrouping) {
+                if (!line.isEmpty()) {
+                    ret.addAll(createWordsInLine(line));
+                    line.clear();
+                }
+
+                baseline     = text.getBaseLine();
+                maxY         = text.getPos().endY;
+                currentStyle = text.getStyle();
+            }
+
+            /* then add the current text to start next line */
+            line.add(text);
+            maxY = Math.max(maxY, text.getPos().endX);
+            maxX = text.getPos().endX;
         }
 
-        /* then add the current text to start next line */
-        line.add(text);
-        maxY = Math.max(maxY, text.getPos().endX);
-        maxX = text.getPos().endX;
-    }
+        if (!line.isEmpty()) {
+            ret.addAll(createWordsInLine(line));
+            line.clear();
+        }
 
-    if (!line.isEmpty()) {
-        ret.addAll(createWordsInLine(line));
-        line.clear();
-    }
+        if (log.isDebugEnabled()) {
+            log.debug("LOG00010:word segmentation took " + (System.currentTimeMillis() - t0) + " ms");
+        }
 
-    if (log.isDebugEnabled()) {
-        log.debug("LOG00010:word segmentation took " + (System.currentTimeMillis() - t0) + " ms");
+        return ret;
     }
-
-    return ret;
-}
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-/**
- * The above methods are generally responsible for grouping text according to line and style;
- * this is the one which will actually do the segmentation. <p/> There are two cases to consider
- * for this process: - whitespace already existing: combine characters into words in the obvious
- * way - whitespace must be found: <p/> First approximate the applied intra-word character
- * spacing. <p/> Then, iterate through the characters in the line from left to right: calculate
- * the real distance between a pair of characters normalize that by subtracting the charspacing
- * if that normalized spacing is bigger than fontSize / 15, consider the space a word boundary
- *
- * @param line
- * @return
- */
-@NotNull
-public static Collection<PhysicalText> createWordsInLine(@NotNull final List<PhysicalText> line) {
-
-    /*
-    *       keep the characters sorted at all times. note that unfinished words are put back into
-    *        this queue, and will this be picked as currentWord below
-    */
-    final Queue<PhysicalText> queue = new PriorityQueue<PhysicalText>(line.size(),
-                                                                      Sorting.sortByLowerX
-    );
-
-    queue.addAll(line);
-
-    /* this list of words will be returned */
-    final Collection<PhysicalText> segmentedWords = new ArrayList<PhysicalText>();
-
-    /* if we already have whitespace information */
-    final boolean containsSpaces = USE_EXISTING_WHITESPACE && containsWhiteSpace(line);
-
-    /* an approximate average charspacing distance */
-    final float charSpacing = approximateCharSpacing(line);
-
-    /* all font sizes are the same. if it is missing just guess 10 */
-    final float fontSize;
-
-    if (line.get(0).getStyle().xSize == 0) {
-        fontSize = 10.0f;
-    } else {
-        fontSize = (float) line.get(0).getStyle().xSize;
-    }
-
-    /*
-    *       this is necessary to keep track of the width of the last character we
-    *       combined into a a word, else it would disappear when combining
-    */
-    float currentWidth = queue.peek().getPos().width;
-
-    if (log.isDebugEnabled()) {
-        printLine(line);
-    }
-
     /**
-     * iterate through all texts from left to right, and combine into words as we go
+     * The above methods are generally responsible for grouping text according to line and style;
+     * this is the one which will actually do the segmentation. <p/> There are two cases to consider
+     * for this process: - whitespace already existing: combine characters into words in the obvious
+     * way - whitespace must be found: <p/> First approximate the applied intra-word character
+     * spacing. <p/> Then, iterate through the characters in the line from left to right: calculate
+     * the real distance between a pair of characters normalize that by subtracting the charspacing
+     * if that normalized spacing is bigger than fontSize / 15, consider the space a word boundary
+     *
+     * @param line
+     * @return
      */
-    while (!queue.isEmpty()) {
-        final PhysicalText currentWord = queue.remove();
-        final PhysicalText nextChar = queue.peek();
+    @NotNull
+    public static Collection<PhysicalText> createWordsInLine(@NotNull final List<PhysicalText> line) {
 
-        /* we have no need for spaces after establishing word boundaries, so skip */
-        if ("".equals(currentWord.getText().trim())) {
-            continue;
+        /*
+         *       keep the characters sorted at all times. note that unfinished words are put back into
+         *        this queue, and will this be picked as currentWord below
+         */
+        final Queue<PhysicalText> queue = new PriorityQueue<PhysicalText>(line.size(),
+                                              Sorting.sortByLowerX);
+
+        queue.addAll(line);
+
+        /* this list of words will be returned */
+        final Collection<PhysicalText> segmentedWords = new ArrayList<PhysicalText>();
+
+        /* if we already have whitespace information */
+        final boolean containsSpaces = USE_EXISTING_WHITESPACE && containsWhiteSpace(line);
+
+        /* an approximate average charspacing distance */
+        final float charSpacing = approximateCharSpacing(line);
+
+        /* all font sizes are the same. if it is missing just guess 10 */
+        final float fontSize;
+
+        if (line.get(0).getStyle().xSize == 0) {
+            fontSize = 10.0f;
+        } else {
+            fontSize = (float) line.get(0).getStyle().xSize;
         }
 
-        /* if it is the last in line */
-        if (nextChar == null) {
-            segmentedWords.add(currentWord);
+        /*
+         *       this is necessary to keep track of the width of the last character we
+         *       combined into a a word, else it would disappear when combining
+         */
+        float currentWidth = queue.peek().getPos().width;
 
-            break;
+        if (log.isDebugEnabled()) {
+            printLine(line);
         }
 
         /**
-         * determine if we found a word boundary or not
+         * iterate through all texts from left to right, and combine into words as we go
          */
-        final boolean isWordBoundary;
+        while (!queue.isEmpty()) {
+            final PhysicalText currentWord = queue.remove();
+            final PhysicalText nextChar    = queue.peek();
 
-        if (containsSpaces) {
-            isWordBoundary = "".equals(nextChar.getText().trim());
-        } else {
-            final float distance = currentWord.getPos().distance(nextChar.getPos());
+            /* we have no need for spaces after establishing word boundaries, so skip */
+            if ("".equals(currentWord.getText().trim())) {
+                continue;
+            }
 
-            isWordBoundary = distance - charSpacing > (fontSize / 8.0f) + charSpacing * 0.5;
+            /* if it is the last in line */
+            if (nextChar == null) {
+                segmentedWords.add(currentWord);
 
+                break;
+            }
+
+            /**
+             * determine if we found a word boundary or not
+             */
+            final boolean isWordBoundary;
+
+            if (containsSpaces) {
+                isWordBoundary = "".equals(nextChar.getText().trim());
+            } else {
+                final float distance = currentWord.getPos().distance(nextChar.getPos());
+
+                isWordBoundary = distance - charSpacing > (fontSize / 8.0f) + charSpacing * 0.5;
+
+                if (log.isDebugEnabled()) {
+                    log.debug(currentWord.getText() + "[" + currentWidth + "] " + distance + " "
+                              + nextChar.getText() + "[" + nextChar.getPos().width
+                              + "]: isWordBoundary=" + isWordBoundary + ", effictive distance:"
+                              + (distance - charSpacing) + ", fontSize:" + (fontSize) + ", charSpacing:"
+                              + charSpacing);
+                }
+            }
+
+            /**
+             * combine characters if necessary
+             */
+            if (isWordBoundary) {
+
+                /* save this word and continue with next */
+                segmentedWords.add(currentWord);
+            } else {
+
+                /* combine the two fragments */
+                PhysicalText combinedWord = currentWord.combineWith(nextChar);
+
+                queue.remove(nextChar);
+                queue.add(combinedWord);
+            }
+
+            currentWidth = nextChar.getPos().width;
+        }
+
+        for (PhysicalText text : segmentedWords) {
             if (log.isDebugEnabled()) {
-                log.debug(currentWord.getText() + "[" + currentWidth + "] " + distance + " "
-                          + nextChar.getText() + "[" + nextChar.getPos().width
-                          + "]: isWordBoundary=" + isWordBoundary + ", effictive distance:"
-                          + (distance - charSpacing) + ", fontSize:" + (fontSize) + ", charSpacing:"
-                          + charSpacing
-                );
+                log.debug("LOG00540: created " + text);
             }
         }
 
-        /**
-         * combine characters if necessary
-         */
-        if (isWordBoundary) {
-
-            /* save this word and continue with next */
-            segmentedWords.add(currentWord);
-        } else {
-
-            /* combine the two fragments */
-            PhysicalText combinedWord = currentWord.combineWith(nextChar);
-
-            queue.remove(nextChar);
-            queue.add(combinedWord);
-        }
-
-        currentWidth = nextChar.getPos().width;
+        return segmentedWords;
     }
-
-    for (PhysicalText text : segmentedWords) {
-        if (log.isDebugEnabled()) {
-            log.debug("LOG00540: created " + text);
-        }
-    }
-
-    return segmentedWords;
-}
 
 // -------------------------- STATIC METHODS --------------------------
 
-/**
- * Tries to find an estimate of the character spacing applied to the given line of characters.
- * <p/> The idea is that font kerning and other local adjustments will contribute relatively
- * little to the observed distance between characters, whereas the more general applied
- * character spacing will make up by far the biggest amount of the space. <p/> These local
- * adjustments will contribute in both directions, so in many cases we will be able to get a
- * somewhat good approximation if we average out a semi-random number of the smallest distances.
- * <p/> To put some numbers to this, say we have character distances varying from 3.5 to 9pt. If
- * we iterate through the first n distances, with distances ranging from 3.5 to 4.5pt (the rest
- * being skipped for being too big), the approximation of the character spacing would thus end
- * up around 4.
- *
- * @param line list of characters in the line. this must be sorted
- * @return an approximate character spacing
- */
-static float approximateCharSpacing(@NotNull List<PhysicalText> line) {
-
     /**
-     * the real lower bound where this algorithm applies might be higher, but
-     *  at least for 0 or 1 distances it would be non-functional
-     */
-    if (line.size() <= 1) {
-        return 0.0f;
-    }
-
-    final float[] distances = calculateDistancesBetweenCharacters(line);
-
-    Arrays.sort(distances);
-
-    /**
-     * This value deserves a special notice. When it was written semi-random above,
-     *  this is essentially what was meant. We start out with the smallest distance,
-     *  and will keep iterating until the numbers start to be bigger. The underlying
-     *  assumption here is that word spacing will never be only 1.5 times the smallest
-     *  space occurring between two characters.
+     * Tries to find an estimate of the character spacing applied to the given line of characters.
+     * <p/> The idea is that font kerning and other local adjustments will contribute relatively
+     * little to the observed distance between characters, whereas the more general applied
+     * character spacing will make up by far the biggest amount of the space. <p/> These local
+     * adjustments will contribute in both directions, so in many cases we will be able to get a
+     * somewhat good approximation if we average out a semi-random number of the smallest distances.
+     * <p/> To put some numbers to this, say we have character distances varying from 3.5 to 9pt. If
+     * we iterate through the first n distances, with distances ranging from 3.5 to 4.5pt (the rest
+     * being skipped for being too big), the approximation of the character spacing would thus end
+     * up around 4.
      *
-     * The 0.6 is a quite random number, it's purpose is to avoid breaking the
-     *  algorithm for negative character distances (which are common and useful),
-     *  and its only properties are that it is too small to ever separate a word, and
-     *  that it is a positive number :)
+     * @param line list of characters in the line. this must be sorted
+     * @return an approximate character spacing
      */
-    final float maxBoundary = Math.max(0.6f, distances[0] * 2f);
-    int counted = 0;
-    float sum = 0.0f;
+    static float approximateCharSpacing(@NotNull List<PhysicalText> line) {
 
-    for (float sortedDistance : distances) {
-        if (sortedDistance > maxBoundary) {
-            break;
+        /**
+         * the real lower bound where this algorithm applies might be higher, but
+         *  at least for 0 or 1 distances it would be non-functional
+         */
+        if (line.size() <= 1) {
+            return 0.0f;
         }
 
-        sum += sortedDistance;
-        counted++;
-    }
+        final float[] distances = calculateDistancesBetweenCharacters(line);
 
-    return sum / (float) counted;
-}
+        Arrays.sort(distances);
 
-/**
- * Calculates a list of distances between the given list of characters in the obvious way.
- *
- * @param line list of characters. this should be sorted!
- * @return
- */
-@NotNull
-private static float[] calculateDistancesBetweenCharacters(@NotNull List<PhysicalText> line) {
+        /**
+         * This value deserves a special notice. When it was written semi-random above,
+         *  this is essentially what was meant. We start out with the smallest distance,
+         *  and will keep iterating until the numbers start to be bigger. The underlying
+         *  assumption here is that word spacing will never be only 1.5 times the smallest
+         *  space occurring between two characters.
+         *
+         * The 0.6 is a quite random number, it's purpose is to avoid breaking the
+         *  algorithm for negative character distances (which are common and useful),
+         *  and its only properties are that it is too small to ever separate a word, and
+         *  that it is a positive number :)
+         */
+        final float maxBoundary = Math.max(0.6f, distances[0] * 2f);
+        int         counted     = 0;
+        float       sum         = 0.0f;
 
-    if (line.size() <= 1) {
-        return new float[0];
-    }
+        for (float sortedDistance : distances) {
+            if (sortedDistance > maxBoundary) {
+                break;
+            }
 
-    final float[] distances = new float[line.size() - 1];
-
-    for (int i = 0; i < line.size() - 1; i++) {
-        final Rectangle leftChar = line.get(i).getPos();
-        final Rectangle rightChar = line.get(i + 1).getPos();
-
-        distances[i] = leftChar.distance(rightChar);
-    }
-
-    return distances;
-}
-
-private static boolean containsWhiteSpace(@NotNull List<PhysicalText> line) {
-
-    for (PhysicalText physicalText : line) {
-        if (" ".equals(physicalText.getText())) {
-            return true;
+            sum += sortedDistance;
+            counted++;
         }
+
+        return sum / (float) counted;
     }
 
-    return false;
-}
+    /**
+     * Calculates a list of distances between the given list of characters in the obvious way.
+     *
+     * @param line list of characters. this should be sorted!
+     * @return
+     */
+    @NotNull
+    private static float[] calculateDistancesBetweenCharacters(@NotNull List<PhysicalText> line) {
 
-private static boolean fontDiffers(@NotNull final Style style, @NotNull final PhysicalText text) {
-    return !style.equals(text.getStyle());
-}
+        if (line.size() <= 1) {
+            return new float[0];
+        }
 
-private static boolean isOnAnotherLine(final float baseline, @NotNull final PhysicalText text,
-                                       final float maxY)
-{
-    return ((baseline != text.getBaseLine()) && (text.getBaseLine() > maxY));
-}
+        final float[] distances = new float[line.size() - 1];
 
-private static boolean isTooFarAwayHorizontally(final float endX, @NotNull final PhysicalText text) {
+        for (int i = 0; i < line.size() - 1; i++) {
+            final Rectangle leftChar  = line.get(i).getPos();
+            final Rectangle rightChar = line.get(i + 1).getPos();
 
-    final float variation = text.getPos().width;
+            distances[i] = leftChar.distance(rightChar);
+        }
 
-    return !isWithinVariance(endX, text.getPos().x, variation);
-}
-
-private static void printLine(@NotNull List<PhysicalText> physicalTexts) {
-
-    StringBuffer sb = new StringBuffer();
-
-    for (PhysicalText physicalText : physicalTexts) {
-        sb.append(physicalText.getText());
+        return distances;
     }
 
-    log.debug("line:" + sb);
-}
+    private static boolean containsWhiteSpace(@NotNull List<PhysicalText> line) {
+
+        for (PhysicalText physicalText : line) {
+            if (" ".equals(physicalText.getText())) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static boolean fontDiffers(@NotNull final Style style, @NotNull final PhysicalText text) {
+        return !style.equals(text.getStyle());
+    }
+
+    private static boolean isOnAnotherLine(final float baseline, @NotNull final PhysicalText text,
+            final float maxY) {
+        return ((baseline != text.getBaseLine()) && (text.getBaseLine() > maxY));
+    }
+
+    private static boolean isTooFarAwayHorizontally(final float endX, @NotNull final PhysicalText text) {
+
+        final float variation = text.getPos().width;
+
+        return !isWithinVariance(endX, text.getPos().x, variation);
+    }
+
+    private static void printLine(@NotNull List<PhysicalText> physicalTexts) {
+
+        StringBuffer sb = new StringBuffer();
+
+        for (PhysicalText physicalText : physicalTexts) {
+            sb.append(physicalText.getText());
+        }
+
+        log.debug("line:" + sb);
+    }
 }

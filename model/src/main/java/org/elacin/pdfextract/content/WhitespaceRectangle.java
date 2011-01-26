@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.content;
 
 import org.elacin.pdfextract.geom.Rectangle;
@@ -26,25 +27,25 @@ import org.elacin.pdfextract.geom.Rectangle;
 public class WhitespaceRectangle extends PhysicalContent {
 
 // ------------------------------ FIELDS ------------------------------
-public int score;
+    public int score;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-public WhitespaceRectangle(final Rectangle bound) {
-    super(bound);
-}
+    public WhitespaceRectangle(final Rectangle bound) {
+        super(bound);
+    }
 
 // ------------------------ OVERRIDING METHODS ------------------------
-@Override
-public boolean isWhitespace() {
-    return true;
-}
+    @Override
+    public boolean isWhitespace() {
+        return true;
+    }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-public int getScore() {
-    return score;
-}
+    public int getScore() {
+        return score;
+    }
 
-public void setScore(int score) {
-    this.score = score;
-}
+    public void setScore(int score) {
+        this.score = score;
+    }
 }

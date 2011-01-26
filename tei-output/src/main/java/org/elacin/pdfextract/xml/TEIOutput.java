@@ -1,5 +1,5 @@
 package org.elacin.pdfextract.xml;    /*
-                                       * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+                                       * Copyright 2010 �yvind Berg (elacin@gmail.com)
                                        *
                                        * Licensed under the Apache License, Version 2.0 (the "License");
                                        * you may not use this file except in compliance with the License.
@@ -35,128 +35,128 @@ import java.io.FileOutputStream;
 public class TEIOutput implements XMLWriter {
 
 // ------------------------------ FIELDS ------------------------------
-private static final Logger log = Logger.getLogger(TEIOutput.class);
+    private static final Logger log = Logger.getLogger(TEIOutput.class);
 
 // ------------------------ INTERFACE METHODS ------------------------
 // --------------------- Interface XMLWriter ---------------------
-public void writeTree(@NotNull DocumentNode root, File destination) {
+    public void writeTree(@NotNull DocumentNode root, File destination) {
 
-    ObjectFactory of = new ObjectFactory();
-    final TEI tei = of.createTEI();
+        ObjectFactory of  = new ObjectFactory();
+        final TEI     tei = of.createTEI();
 
-    addHeader(root, of, tei);
+        addHeader(root, of, tei);
 
-    final Text text = of.createText();
+        final Text text = of.createText();
 
-    addFront(root, of, text);
-    addBody(root, of, text);
-    addBack(root, of, text);
-    tei.setText(text);
+        addFront(root, of, text);
+        addBody(root, of, text);
+        addBack(root, of, text);
+        tei.setText(text);
 
-    try {
-        JAXBContext jaxbContext = JAXBContext.newInstance("org.elacin.pdfextract.teischema");
-        Marshaller marshaller = jaxbContext.createMarshaller();
+        try {
+            JAXBContext jaxbContext = JAXBContext.newInstance("org.elacin.pdfextract.teischema");
+            Marshaller  marshaller  = jaxbContext.createMarshaller();
 
-        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-        marshaller.marshal(tei, new FileOutputStream(destination));
-    } catch (JAXBException e) {
-        log.warn("LOG01140:", e);
-    } catch (FileNotFoundException e) {
-        log.warn("LOG01120:", e);
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            marshaller.marshal(tei, new FileOutputStream(destination));
+        } catch (JAXBException e) {
+            log.warn("LOG01140:", e);
+        } catch (FileNotFoundException e) {
+            log.warn("LOG01120:", e);
+        }
     }
-}
 
 // -------------------------- OTHER METHODS --------------------------
-private void addAbstract(@NotNull ObjectFactory of, @NotNull Front front) {
+    private void addAbstract(@NotNull ObjectFactory of, @NotNull Front front) {
 
-    final Div div = of.createDiv();
+        final Div div = of.createDiv();
 
-    div.setType("abs");
+        div.setType("abs");
 
-    final Head head = of.createHead();
+        final Head head = of.createHead();
 
-    head.getContent().add("ABSTRACT");
-    div.getMeetingsAndBylinesAndDatelines().add(head);
+        head.getContent().add("ABSTRACT");
+        div.getMeetingsAndBylinesAndDatelines().add(head);
 
-    final P p = of.createP();
+        final P p = of.createP();
 
-    p.getContent().add("Hey! I live in ");
+        p.getContent().add("Hey! I live in ");
 
-    final Country country = of.createCountry();
+        final Country country = of.createCountry();
 
-    country.getContent().add("Norway");
-    p.getContent().add(country);
-    p.getContent().add(". :D");
-    div.getMeetingsAndBylinesAndDatelines().add(p);
-    front.getSetsAndProloguesAndEpilogues().add(div);
-}
-
-private void addBack(DocumentNode root, @NotNull ObjectFactory of, @NotNull Text text) {
-
-    final Back back = of.createBack();
-
-    /* references goes here */
-    text.getIndicesAndSpenAndSpanGrps().add(back);
-}
-
-private void addBody(@NotNull DocumentNode root, @NotNull ObjectFactory of, @NotNull Text text) {
-
-    final Body body = of.createBody();
-
-    /* add content here */
-    for (PageNode pageNode : root.getChildren()) {
-        for (ParagraphNode paragraphNode : pageNode.getChildren()) {}
+        country.getContent().add("Norway");
+        p.getContent().add(country);
+        p.getContent().add(". :D");
+        div.getMeetingsAndBylinesAndDatelines().add(p);
+        front.getSetsAndProloguesAndEpilogues().add(div);
     }
 
-    text.getIndicesAndSpenAndSpanGrps().add(body);
-}
+    private void addBack(DocumentNode root, @NotNull ObjectFactory of, @NotNull Text text) {
 
-private void addFront(DocumentNode root, @NotNull ObjectFactory of, @NotNull Text text) {
+        final Back back = of.createBack();
 
-    final Front front = of.createFront();
+        /* references goes here */
+        text.getIndicesAndSpenAndSpanGrps().add(back);
+    }
 
-    addAbstract(of, front);
-    text.getIndicesAndSpenAndSpanGrps().add(front);
-}
+    private void addBody(@NotNull DocumentNode root, @NotNull ObjectFactory of, @NotNull Text text) {
 
-private void addHeader(DocumentNode root, @NotNull ObjectFactory of, @NotNull TEI tei) {
+        final Body body = of.createBody();
 
-    final TeiHeader header = of.createTeiHeader();
-    final FileDesc fileDesc = of.createFileDesc();
+        /* add content here */
+        for (PageNode pageNode : root.getChildren()) {
+            for (ParagraphNode paragraphNode : pageNode.getChildren()) {}
+        }
 
-    /* title, author and editor */
-    final TitleStmt titleStmt = of.createTitleStmt();
-    final Title title = of.createTitle();
+        text.getIndicesAndSpenAndSpanGrps().add(body);
+    }
 
-    title.getContent().add("TITLE! :D");
-    titleStmt.getTitles().add(title);
+    private void addFront(DocumentNode root, @NotNull ObjectFactory of, @NotNull Text text) {
 
-    final Author author = of.createAuthor();
+        final Front front = of.createFront();
 
-    author.getContent().add("meg");
-    author.setRole("author-rolle");
-    titleStmt.getAuthorsAndEditorsAndRespStmts().add(author);
+        addAbstract(of, front);
+        text.getIndicesAndSpenAndSpanGrps().add(front);
+    }
 
-    final Editor editor = of.createEditor();
+    private void addHeader(DocumentNode root, @NotNull ObjectFactory of, @NotNull TEI tei) {
 
-    editor.setBase("editoren");
-    editor.setRole("editor-rolle");
-    titleStmt.getAuthorsAndEditorsAndRespStmts().add(editor);
-    fileDesc.setTitleStmt(titleStmt);
+        final TeiHeader header   = of.createTeiHeader();
+        final FileDesc  fileDesc = of.createFileDesc();
 
-    /* publication details */
-    final PublicationStmt publicationStmt = of.createPublicationStmt();
-    final Address address = of.createAddress();
+        /* title, author and editor */
+        final TitleStmt titleStmt = of.createTitleStmt();
+        final Title     title     = of.createTitle();
 
-    address.setBase("laueveien");
+        title.getContent().add("TITLE! :D");
+        titleStmt.getTitles().add(title);
 
-    final Publisher publisher = of.createPublisher();
+        final Author author = of.createAuthor();
 
-    publisher.setBase("publishern");
-    publicationStmt.getAddressesAndDatesAndPublishers().add(address);
-    publicationStmt.getAddressesAndDatesAndPublishers().add(publisher);
-    fileDesc.setPublicationStmt(publicationStmt);
-    header.setFileDesc(fileDesc);
-    tei.setTeiHeader(header);
-}
+        author.getContent().add("meg");
+        author.setRole("author-rolle");
+        titleStmt.getAuthorsAndEditorsAndRespStmts().add(author);
+
+        final Editor editor = of.createEditor();
+
+        editor.setBase("editoren");
+        editor.setRole("editor-rolle");
+        titleStmt.getAuthorsAndEditorsAndRespStmts().add(editor);
+        fileDesc.setTitleStmt(titleStmt);
+
+        /* publication details */
+        final PublicationStmt publicationStmt = of.createPublicationStmt();
+        final Address         address         = of.createAddress();
+
+        address.setBase("laueveien");
+
+        final Publisher publisher = of.createPublisher();
+
+        publisher.setBase("publishern");
+        publicationStmt.getAddressesAndDatesAndPublishers().add(address);
+        publicationStmt.getAddressesAndDatesAndPublishers().add(publisher);
+        fileDesc.setPublicationStmt(publicationStmt);
+        header.setFileDesc(fileDesc);
+        tei.setTeiHeader(header);
+    }
 }

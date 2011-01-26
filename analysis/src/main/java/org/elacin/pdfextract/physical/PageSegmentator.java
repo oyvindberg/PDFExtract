@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.physical;
 
 import org.apache.log4j.Logger;
@@ -51,298 +52,287 @@ import static org.elacin.pdfextract.physical.PageRegionSplitBySpacing.splitOfTop
 public class PageSegmentator {
 
 // ------------------------------ FIELDS ------------------------------
-@NotNull
-private static final Logger               log                  = Logger.getLogger(
-                                                                                         PageSegmentator.class
-);
-private static final ParagraphSegmentator paragraphSegmentator = new ParagraphSegmentator();
+    @NotNull
+    private static final Logger               log                  = Logger.getLogger(
+                                                                         PageSegmentator.class);
+    private static final ParagraphSegmentator paragraphSegmentator = new ParagraphSegmentator();
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
-public static PageNode analyzePage(@NotNull PhysicalPage page) {
+    public static PageNode analyzePage(@NotNull PhysicalPage page) {
 
-    final PhysicalPageRegion mainRegion = page.getMainRegion();
-    final ParagraphNumberer numberer = new ParagraphNumberer(page.getPageNumber());
-    GraphicSegmentator graphicSegmentator = new GraphicSegmentatorImpl(mainRegion.getPos());
-    final CategorizedGraphics categorizedGraphics = graphicSegmentator.categorizeGraphics(
-                                                                                                 page.getAllGraphics(), mainRegion
-    );
+        final PhysicalPageRegion mainRegion           = page.getMainRegion();
+        final ParagraphNumberer  numberer             = new ParagraphNumberer(page.getPageNumber());
+        GraphicSegmentator       graphicSegmentator   = new GraphicSegmentatorImpl(mainRegion.getPos());
+        final CategorizedGraphics categorizedGraphics = graphicSegmentator.categorizeGraphics(
+                                                            page.getAllGraphics(), mainRegion);
 
-    mainRegion.addContents(categorizedGraphics.getContents());
+        mainRegion.addContents(categorizedGraphics.getContents());
 
-    /* first separate out what is contained by graphics */
-    extractGraphicalRegions(categorizedGraphics, mainRegion);
-    mainRegion.ensureAllContentInLeafNodes();
-    splitOfTopTextOfPage(page, 0.4f);
-    PageRegionSplitBySeparators.splitRegionBySeparators(mainRegion, categorizedGraphics);
+        /* first separate out what is contained by graphics */
+        extractGraphicalRegions(categorizedGraphics, mainRegion);
+        mainRegion.ensureAllContentInLeafNodes();
+        splitOfTopTextOfPage(page, 0.4f);
+        PageRegionSplitBySeparators.splitRegionBySeparators(mainRegion, categorizedGraphics);
 
-    /* This will detect column boundaries and split up all regions */
-    recursivelyDivide(mainRegion, categorizedGraphics);
+        /* This will detect column boundaries and split up all regions */
+        recursivelyDivide(mainRegion, categorizedGraphics);
 
-    /*
-    *  this is to make text ordering work, if it was in the main region it would destroy
-    *   the sorting
-    */
-    mainRegion.ensureAllContentInLeafNodes();
-    divideRegionsByLargeHorizontalBands(mainRegion);
+        /*
+         *  this is to make text ordering work, if it was in the main region it would destroy
+         *   the sorting
+         */
+        mainRegion.ensureAllContentInLeafNodes();
+        divideRegionsByLargeHorizontalBands(mainRegion);
 
-    /* first create the page node which will hold everything */
-    final PageNode ret = new PageNode(page.getPageNumber());
+        /* first create the page node which will hold everything */
+        final PageNode ret = new PageNode(page.getPageNumber());
 
-    if (log.isDebugEnabled()) {
-        StringBuffer sb = new StringBuffer();
+        if (log.isDebugEnabled()) {
+            StringBuffer sb = new StringBuffer();
 
-        printRegions(sb, mainRegion, 0);
-        log.debug("sb");
+            printRegions(sb, mainRegion, 0);
+            log.debug("sb");
+        }
+
+        createParagraphsForRegion(ret, mainRegion, numberer, false);
+
+        if (log.isInfoEnabled()) {
+            log.info("LOG00940:Page had " + ret.getChildren().size() + " paragraphs");
+        }
+
+        return ret;
     }
-
-    createParagraphsForRegion(ret, mainRegion, numberer, false);
-
-    if (log.isInfoEnabled()) {
-        log.info("LOG00940:Page had " + ret.getChildren().size() + " paragraphs");
-    }
-
-    return ret;
-}
 
 // -------------------------- STATIC METHODS --------------------------
-private static void createParagraphsForRegion(final PageNode page, final PhysicalPageRegion region,
-                                              final ParagraphNumberer numberer, boolean wasContainedInGraphic)
-{
+    private static void createParagraphsForRegion(final PageNode page, final PhysicalPageRegion region,
+            final ParagraphNumberer numberer, boolean wasContainedInGraphic) {
 
-    numberer.newRegion();
-    paragraphSegmentator.setMedianVerticalSpacing(region.getMedianOfVerticalDistances());
+        numberer.newRegion();
+        paragraphSegmentator.setMedianVerticalSpacing(region.getMedianOfVerticalDistances());
 
-    final ContentGrouper contentGrouper = new ContentGrouper(region);
-    final List<RectangleCollection> blocks = contentGrouper.findBlocksOfContent();
+        final ContentGrouper            contentGrouper = new ContentGrouper(region);
+        final List<RectangleCollection> blocks         = contentGrouper.findBlocksOfContent();
 
-    Collections.sort(blocks, Sorting.regionComparator);
+        Collections.sort(blocks, Sorting.regionComparator);
 
-    for (RectangleCollection block : blocks) {
+        for (RectangleCollection block : blocks) {
 
-        /**
-         * start by separating all the graphical content in a block.
-         *  This is surely an oversimplification, but it think it should work for our
-         *  purposes. This very late combination of graphics will be used to grab all text
-         *  which is contained within
-         */
-        @Nullable Rectangle graphicBounds = extractBoundOfPlainGraphics(block,
-                                                                        region.getContainingGraphic()
-        );
-        final List<LineNode> lines = LineSegmentator.createLinesFromBlocks(block,
-                                                                           numberer.getPage()
-        );
+            /**
+             * start by separating all the graphical content in a block.
+             *  This is surely an oversimplification, but it think it should work for our
+             *  purposes. This very late combination of graphics will be used to grab all text
+             *  which is contained within
+             */
+            @Nullable Rectangle graphicBounds = extractBoundOfPlainGraphics(block,
+                                                    region.getContainingGraphic());
+            final List<LineNode> lines = LineSegmentator.createLinesFromBlocks(block,
+                                             numberer.getPage());
 
-        /**
-         * separate out everything related to graphics in this part of the page into a single
-         *   paragraph
-         */
-        if (graphicBounds != null) {
-            GraphicsNode graphical = null;
+            /**
+             * separate out everything related to graphics in this part of the page into a single
+             *   paragraph
+             */
+            if (graphicBounds != null) {
+                GraphicsNode graphical = null;
 
-            if (wasContainedInGraphic) {
-                for (GraphicsNode graphicsNode : page.getGraphics()) {
-                    if (graphicBounds.getPos().containedBy(graphicsNode.getPos())) {
-                        graphical = graphicsNode;
+                if (wasContainedInGraphic) {
+                    for (GraphicsNode graphicsNode : page.getGraphics()) {
+                        if (graphicBounds.getPos().containedBy(graphicsNode.getPos())) {
+                            graphical = graphicsNode;
 
-                        break;
+                            break;
+                        }
+                    }
+
+                    if (graphical == null) {
+                        graphical = page.getGraphics().get(page.getGraphics().size() - 1);
+                        graphical.setGraphicsPos(graphical.getGraphicsPos().union(graphicBounds));
+                    }
+                } else {
+                    graphical = new GraphicsNode(graphicBounds);
+                    page.addGraphics(graphical);
+                }
+
+                ParagraphNode paragraph = new ParagraphNode(numberer.getParagraphId(false));
+
+                for (Iterator<LineNode> iterator = lines.iterator(); iterator.hasNext(); ) {
+                    final LineNode line = iterator.next();
+
+                    if (region.isGraphicalRegion() || graphicBounds.intersectsWith(line.getPos())) {
+                        paragraph.addChild(line);
+                        iterator.remove();
                     }
                 }
 
-                if (graphical == null) {
-                    graphical = page.getGraphics().get(page.getGraphics().size() - 1);
-                    graphical.setGraphicsPos(graphical.getGraphicsPos().union(graphicBounds));
-                }
-            } else {
-                graphical = new GraphicsNode(graphicBounds);
-                page.addGraphics(graphical);
-            }
-
-            ParagraphNode paragraph = new ParagraphNode(numberer.getParagraphId(false));
-
-            for (Iterator<LineNode> iterator = lines.iterator(); iterator.hasNext();) {
-                final LineNode line = iterator.next();
-
-                if (region.isGraphicalRegion() || graphicBounds.intersectsWith(line.getPos())) {
-                    paragraph.addChild(line);
-                    iterator.remove();
+                if (!paragraph.getChildren().isEmpty()) {
+                    graphical.addChild(paragraph);
                 }
             }
 
-            if (!paragraph.getChildren().isEmpty()) {
-                graphical.addChild(paragraph);
+            /* then add the rest of the paragraphs */
+            page.addChildren(paragraphSegmentator.segmentParagraphsByStyleAndDistance(lines, numberer));
+        }
+
+        Collections.sort(region.getSubregions(), Sorting.regionComparator);
+
+        for (int i = 0; i < region.getSubregions().size(); i++) {
+            final PhysicalPageRegion subregion = region.getSubregions().get(i);
+
+            createParagraphsForRegion(page, subregion, numberer, region.isGraphicalRegion());
+        }
+    }
+
+    private static void divideRegionsByLargeHorizontalBands(final PhysicalPageRegion region) {
+
+        for (int i = 0; i < region.getSubregions().size(); i++) {
+            final PhysicalPageRegion sub = region.getSubregions().get(i);
+
+            if (PageRegionSplitBySpacing.splitRegionHorizontally(sub)) {
+                PhysicalPageRegion newSub = sub.getSubregions().get(sub.getSubregions().size() - 1);
+
+                sub.removeSubRegion(newSub);
+                region.addSubRegion(newSub);
+                i = -1;
             }
         }
 
-        /* then add the rest of the paragraphs */
-        page.addChildren(paragraphSegmentator.segmentParagraphsByStyleAndDistance(lines, numberer));
-    }
-
-    Collections.sort(region.getSubregions(), Sorting.regionComparator);
-
-    for (int i = 0; i < region.getSubregions().size(); i++) {
-        final PhysicalPageRegion subregion = region.getSubregions().get(i);
-
-        createParagraphsForRegion(page, subregion, numberer, region.isGraphicalRegion());
-    }
-}
-
-private static void divideRegionsByLargeHorizontalBands(final PhysicalPageRegion region) {
-
-    for (int i = 0; i < region.getSubregions().size(); i++) {
-        final PhysicalPageRegion sub = region.getSubregions().get(i);
-
-        if (PageRegionSplitBySpacing.splitRegionHorizontally(sub)) {
-            PhysicalPageRegion newSub = sub.getSubregions().get(sub.getSubregions().size() - 1);
-
-            sub.removeSubRegion(newSub);
-            region.addSubRegion(newSub);
-            i = -1;
+        for (PhysicalPageRegion subRegion : region.getSubregions()) {
+            divideRegionsByLargeHorizontalBands(subRegion);
         }
     }
 
-    for (PhysicalPageRegion subRegion : region.getSubregions()) {
-        divideRegionsByLargeHorizontalBands(subRegion);
-    }
-}
+    @Nullable
+    private static Rectangle extractBoundOfPlainGraphics(final RectangleCollection block,
+            final GraphicContent containingGraphic) {
 
-@Nullable
-private static Rectangle extractBoundOfPlainGraphics(final RectangleCollection block,
-                                                     final GraphicContent containingGraphic)
-{
+        List<PhysicalContent> nontextualContent = new ArrayList<PhysicalContent>();
 
-    List<PhysicalContent> nontextualContent = new ArrayList<PhysicalContent>();
+        for (Iterator<PhysicalContent> iterator = block.getContents().iterator(); iterator.hasNext(); ) {
+            final PhysicalContent content = iterator.next();
 
-    for (Iterator<PhysicalContent> iterator = block.getContents().iterator(); iterator.hasNext();) {
-        final PhysicalContent content = iterator.next();
+            if (!content.isGraphic()) {
+                continue;
+            }
 
-        if (!content.isGraphic()) {
-            continue;
+            final GraphicContent g = content.getGraphicContent();
+
+            if (g.isMathBar() || g.isSeparator()) {
+                continue;
+            }
+
+            nontextualContent.add(content);
+            iterator.remove();
         }
 
-        final GraphicContent g = content.getGraphicContent();
-
-        if (g.isMathBar() || g.isSeparator()) {
-            continue;
+        if (containingGraphic != null) {
+            nontextualContent.add(containingGraphic);
         }
 
-        nontextualContent.add(content);
-        iterator.remove();
-    }
+        @Nullable Rectangle nonTextualBound = null;
 
-    if (containingGraphic != null) {
-        nontextualContent.add(containingGraphic);
-    }
+        if (!nontextualContent.isEmpty()) {
+            nonTextualBound = MathUtils.findBounds(nontextualContent);
+            assert !nonTextualBound.equals(Rectangle.EMPTY_RECTANGLE);
 
-    @Nullable Rectangle nonTextualBound = null;
-
-    if (!nontextualContent.isEmpty()) {
-        nonTextualBound = MathUtils.findBounds(nontextualContent);
-        assert !nonTextualBound.equals(Rectangle.EMPTY_RECTANGLE);
-
-        // wtf?
-        if (nonTextualBound.equals(Rectangle.EMPTY_RECTANGLE)) {
-            nonTextualBound = null;
+            // wtf?
+            if (nonTextualBound.equals(Rectangle.EMPTY_RECTANGLE)) {
+                nonTextualBound = null;
+            }
         }
+
+        return nonTextualBound;
     }
 
-    return nonTextualBound;
-}
+    /**
+     * separate out the content which is contained within a graphic. sort the graphics by smallest,
+     * because they might overlap.
+     *
+     * @param graphics
+     * @param r
+     */
+    private static void extractGraphicalRegions(@NotNull CategorizedGraphics graphics,
+            @NotNull PhysicalPageRegion r) {
 
-/**
- * separate out the content which is contained within a graphic. sort the graphics by smallest,
- * because they might overlap.
- *
- * @param graphics
- * @param r
- */
-private static void extractGraphicalRegions(@NotNull CategorizedGraphics graphics,
-                                            @NotNull PhysicalPageRegion r)
-{
+        PriorityQueue<GraphicContent> queue = createSmallestFirstQueue(graphics.getContainers());
 
-    PriorityQueue<GraphicContent> queue = createSmallestFirstQueue(graphics.getContainers());
+        while (!queue.isEmpty()) {
+            final GraphicContent graphic = queue.remove();
 
-    while (!queue.isEmpty()) {
-        final GraphicContent graphic = queue.remove();
+            try {
+                r.extractSubRegionFromGraphic(graphic, false);
+            } catch (Exception e) {
+                log.info("LOG00320:Could not divide page::" + e.getMessage());
 
-        try {
-            r.extractSubRegionFromGraphic(graphic, false);
-        } catch (Exception e) {
-            log.info("LOG00320:Could not divide page::" + e.getMessage());
+                if (graphic.getPos().area() < r.getPos().area() * 0.4f) {
+                    if (log.isInfoEnabled()) {
+                        log.info("LOG00690:Adding " + graphic + " as content");
+                    }
 
-            if (graphic.getPos().area() < r.getPos().area() * 0.4f) {
-                if (log.isInfoEnabled()) {
-                    log.info("LOG00690:Adding " + graphic + " as content");
+                    graphic.setCanBeAssigned(true);
+                    graphic.setStyle(Style.GRAPHIC_IMAGE);
+                    r.addContent(graphic);
+                } else {
+                    graphics.getGraphicsToRender().remove(graphic);
                 }
-
-                graphic.setCanBeAssigned(true);
-                graphic.setStyle(Style.GRAPHIC_IMAGE);
-                r.addContent(graphic);
-            } else {
-                graphics.getGraphicsToRender().remove(graphic);
             }
         }
     }
-}
 
-private static void printRegions(final StringBuffer sb, final PhysicalPageRegion region,
-                                 final int indent)
-{
+    private static void printRegions(final StringBuffer sb, final PhysicalPageRegion region,
+                                     final int indent) {
 
-    Collections.sort(region.getSubregions(), Sorting.regionComparator);
+        Collections.sort(region.getSubregions(), Sorting.regionComparator);
 
-    for (int i = 0; i < indent; i++) {
-        sb.append(" ");
+        for (int i = 0; i < indent; i++) {
+            sb.append(" ");
+        }
+
+        sb.append("region:").append(region.getPos()).append(", size: ");
+        sb.append(region.getContents().size());
+
+        if (region.isGraphicalRegion()) {
+            sb.append(", graphical ");
+        }
+
+        sb.append("\n");
+
+        for (PhysicalPageRegion sub : region.getSubregions()) {
+            printRegions(sb, sub, indent + 4);
+        }
     }
 
-    sb.append("region:").append(region.getPos()).append(", size: ");
-    sb.append(region.getContents().size());
+    private static void recursivelyDivide(@NotNull PhysicalPageRegion region,
+            CategorizedGraphics graphics) {
 
-    if (region.isGraphicalRegion()) {
-        sb.append(", graphical ");
+        final List<WhitespaceRectangle> whitespaces = WhitespaceFinder.findWhitespace(region);
+
+        region.addWhitespace(whitespaces);
+
+        if (!COLUMNS_ENABLE_COLUMN_DETECTION) {
+            return;
+        }
+
+        final List<WhitespaceRectangle> columnBoundaries = ColumnFinder.extractColumnBoundaries(region,
+                                                               whitespaces);
+
+        for (WhitespaceRectangle columnBoundary : columnBoundaries) {
+            log.info("LOG01050:Region " + region + ", column boundary: " + columnBoundary);
+        }
+
+        region.addWhitespace(columnBoundaries);
+
+        for (PhysicalPageRegion subRegion : region.getSubregions()) {
+            recursivelyDivide(subRegion, graphics);
+        }
+
+        Collections.sort(columnBoundaries, Sorting.sortByHigherX);
+
+        for (WhitespaceRectangle boundary : columnBoundaries) {
+            Rectangle right = new Rectangle(boundary.getPos().getMiddleX(), boundary.getPos().y + 1,
+                                            region.getPos().endX - boundary.getPos().getMiddleX(),
+                                            boundary.getPos().height - 1);
+
+            assert region.extractSubRegionFromBound(right, false);
+        }
     }
-
-    sb.append("\n");
-
-    for (PhysicalPageRegion sub : region.getSubregions()) {
-        printRegions(sb, sub, indent + 4);
-    }
-}
-
-private static void recursivelyDivide(@NotNull PhysicalPageRegion region,
-                                      CategorizedGraphics graphics)
-{
-
-    final List<WhitespaceRectangle> whitespaces = WhitespaceFinder.findWhitespace(region);
-
-    region.addWhitespace(whitespaces);
-
-    if (!COLUMNS_ENABLE_COLUMN_DETECTION) {
-        return;
-    }
-
-    final List<WhitespaceRectangle> columnBoundaries = ColumnFinder.extractColumnBoundaries(region,
-                                                                                            whitespaces
-    );
-
-    for (WhitespaceRectangle columnBoundary : columnBoundaries) {
-        log.info("LOG01050:Region " + region + ", column boundary: " + columnBoundary);
-    }
-
-    region.addWhitespace(columnBoundaries);
-
-    for (PhysicalPageRegion subRegion : region.getSubregions()) {
-        recursivelyDivide(subRegion, graphics);
-    }
-
-    Collections.sort(columnBoundaries, Sorting.sortByHigherX);
-
-    for (WhitespaceRectangle boundary : columnBoundaries) {
-        Rectangle right = new Rectangle(boundary.getPos().getMiddleX(), boundary.getPos().y + 1,
-                                        region.getPos().endX - boundary.getPos().getMiddleX(),
-                                        boundary.getPos().height - 1
-        );
-
-        assert region.extractSubRegionFromBound(right, false);
-    }
-}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 �yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
+
 
 package org.elacin.pdfextract;
 
@@ -28,44 +30,46 @@ import static org.testng.Assert.assertEquals;
  * use File | Settings | File Templates.
  */
 public class TestDocument07050001 extends TestLatexComparison {
-// --------------------------- CONSTRUCTORS ---------------------------
 
-public TestDocument07050001() {
-    super("0705.0001");
-}
+// --------------------------- CONSTRUCTORS ---------------------------
+    public TestDocument07050001() {
+        super("0705.0001");
+    }
 
 // -------------------------- PUBLIC METHODS --------------------------
+    @Test(enabled = false)
+    public void TestMainTitle() {
 
-@Test(enabled = false)
-public void TestMainTitle() {
-    //            final Collection<AbstractNode> maintitles = pdfDOM.getNodesWithRole(Role.MAINTITLE);
-    boolean found = false;
-    //            for (AbstractNode mainTitle : maintitles) {
-    //                if (mainTitle.getText().equals("XMM-Newton observations of the first unidentified TeV gamma-ray source TeV J2032+4130⋆")) {
-    //                    found = true;
-    //                    break;
-    //                }
-    //            }
-    assertEquals(found, true, "Could not find the correct title in " + PDFFILENAME + "!");
-}
+        // final Collection<AbstractNode> maintitles = pdfDOM.getNodesWithRole(Role.MAINTITLE);
+        boolean found = false;
 
-@BeforeClass(groups = "TestDocument07050001")
-public void setUp() throws IOException {
-    readFiles();
-}
+        // for (AbstractNode mainTitle : maintitles) {
+        // if (mainTitle.getText().equals("XMM-Newton observations of the first unidentified TeV gamma-ray source TeV J2032+4130?")) {
+        // found = true;
+        // break;
+        // }
+        // }
+        assertEquals(found, true, "Could not find the correct title in " + PDFFILENAME + "!");
+    }
+
+    @BeforeClass(groups = "TestDocument07050001")
+    public void setUp() throws IOException {
+        readFiles();
+    }
 
 // -------------------------- OTHER METHODS --------------------------
+    @Test(enabled = false)
+    void testTopText() {
 
-@Test(enabled = false)
-void testTopText() {
-    //            final Collection<AbstractNode> sections = pdfDOM.getNodesWithRole(Role.SECTION);
-    boolean found = false;
-    //            for (AbstractNode mainTitle : sections) {
-    //                if (mainTitle.getText().equals("XMM-Newton observations of the first unidentified TeV gamma-ray source TeV J2032+4130⋆")) {
-    //                    found = true;
-    //                    break;
-    //                }
-    //            }
-    assertEquals(found, true, "Could not find the correct title in " + PDFFILENAME + "!");
-}
+        // final Collection<AbstractNode> sections = pdfDOM.getNodesWithRole(Role.SECTION);
+        boolean found = false;
+
+        // for (AbstractNode mainTitle : sections) {
+        // if (mainTitle.getText().equals("XMM-Newton observations of the first unidentified TeV gamma-ray source TeV J2032+4130?")) {
+        // found = true;
+        // break;
+        // }
+        // }
+        assertEquals(found, true, "Could not find the correct title in " + PDFFILENAME + "!");
+    }
 }

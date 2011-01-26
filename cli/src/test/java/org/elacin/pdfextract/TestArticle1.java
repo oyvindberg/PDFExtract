@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 √òyvind Berg (elacin@gmail.com)
+ * Copyright 2010 Øyvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  *    limitations under the License.
  */
 
+
+
 package org.elacin.pdfextract;
 
 /**
@@ -21,6 +23,7 @@ package org.elacin.pdfextract;
  * template use File | Settings | File Templates.
  */
 public class TestArticle1 {
+
 //private DocumentNode        doc;
 //private ArrayList<LineNode> lines;
 //
@@ -28,40 +31,40 @@ public class TestArticle1 {
 //
 //@BeforeClass(groups = "TestArticle1")
 //public void setUp() throws IOException {
-//	doc = PDFDocumentLoader.readPDF("article1.pdf", "article1_out.xml", 6);
-//	lines = DocumentNavigator.getLineNodes(doc);
+//  doc = PDFDocumentLoader.readPDF("article1.pdf", "article1_out.xml", 6);
+//  lines = DocumentNavigator.getLineNodes(doc);
 //}
 //
 //@Test()
 //public void test1() {
-//	assertExistsLineWithText("[DP *(Det) gaml-e Roma]vart √∏ydelagt av barbar-a-ne.");
-//	//kapitul√©r her... for now! :)
-//	//	assertExistsLineWithText("[DP *(Det) gaml-e Roma] vart √∏ydelagt av barbar-a-ne.");
+//  assertExistsLineWithText("[DP *(Det) gaml-e Roma]vart øydelagt av barbar-a-ne.");
+//  //kapitulér her... for now! :)
+//  //  assertExistsLineWithText("[DP *(Det) gaml-e Roma] vart øydelagt av barbar-a-ne.");
 //}
 //
 //@Test()
 //public void test2() {
-//	assertExistsLineWithText("[DP *(Gli) elefanti di colorebianco] sono estinti.");
+//  assertExistsLineWithText("[DP *(Gli) elefanti di colorebianco] sono estinti.");
 //}
 //
 //@Test()
 //public void test3() {
-//	assertExistsLineWithText("projections Œ±P. Above the Œ±P projections is the projection that hosts");
+//  assertExistsLineWithText("projections ?P. Above the ?P projections is the projection that hosts");
 //}
 //
 //@Test()
 //public void test4() {
-//	assertExistsLineWithText("de-n ny-e forst√•-ing-a hennar av seg sj√∏lv");
+//  assertExistsLineWithText("de-n ny-e forstå-ing-a hennar av seg sjølv");
 //}
 //
 //
 //
 //private void assertExistsLineWithText(final String text) {
-//	for (LineNode line : lines) {
-//		if (line.getText().equals(text)) {
-//			return;
-//		}
-//	}
-//	fail("Line \"" + text + "\" was not found");
+//  for (LineNode line : lines) {
+//      if (line.getText().equals(text)) {
+//          return;
+//      }
+//  }
+//  fail("Line \"" + text + "\" was not found");
 //}
 }

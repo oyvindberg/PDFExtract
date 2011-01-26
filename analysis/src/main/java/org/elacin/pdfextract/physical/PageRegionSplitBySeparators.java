@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.physical;
 
 import org.apache.log4j.Logger;
@@ -36,83 +37,81 @@ import java.util.List;
 public class PageRegionSplitBySeparators {
 
 // ------------------------------ FIELDS ------------------------------
-private static final Logger log = Logger.getLogger(PageRegionSplitBySeparators.class);
+    private static final Logger log = Logger.getLogger(PageRegionSplitBySeparators.class);
 
 // -------------------------- STATIC METHODS --------------------------
-static boolean splitRegionAtY(final PhysicalPageRegion r, final float splitAt) {
+    static boolean splitRegionAtY(final PhysicalPageRegion r, final float splitAt) {
 
-    Rectangle rpos = r.getPos();
-    boolean ret = true;
-    Rectangle above = new Rectangle(rpos.x, 0.0f, rpos.width + 1, splitAt);
+        Rectangle rpos  = r.getPos();
+        boolean   ret   = true;
+        Rectangle above = new Rectangle(rpos.x, 0.0f, rpos.width + 1, splitAt);
 
-    ret &= r.extractSubRegionFromBound(above, false);
+        ret &= r.extractSubRegionFromBound(above, false);
 
-    Rectangle under = new Rectangle(rpos.x, splitAt, rpos.width + 1, rpos.endY - splitAt);
+        Rectangle under = new Rectangle(rpos.x, splitAt, rpos.width + 1, rpos.endY - splitAt);
 
-    ret &= r.extractSubRegionFromBound(under, false);
+        ret &= r.extractSubRegionFromBound(under, false);
 
-    return ret;
-}
+        return ret;
+    }
 
-/**
- * Divide the region r by horizontal and vertical separators
- *
- * @param r
- * @param graphics
- */
-static void splitRegionBySeparators(@NotNull PhysicalPageRegion r,
-                                    @NotNull CategorizedGraphics graphics)
-{
+    /**
+     * Divide the region r by horizontal and vertical separators
+     *
+     * @param r
+     * @param graphics
+     */
+    static void splitRegionBySeparators(@NotNull PhysicalPageRegion r,
+            @NotNull CategorizedGraphics graphics) {
 
-    List<GraphicContent> toRemove = new ArrayList<GraphicContent>();
+        List<GraphicContent> toRemove = new ArrayList<GraphicContent>();
 
-    for (GraphicContent hsep : graphics.getHorizontalSeparators()) {
-        float splitAt = hsep.getPos().y;
+        for (GraphicContent hsep : graphics.getHorizontalSeparators()) {
+            float splitAt = hsep.getPos().y;
 
-        if ((hsep.getPos().width < r.getPos().width * 0.6f) || (splitAt <= 0)
-            || (splitAt >= r.getPos().endY)) {
-            continue;
-        }
+            if ((hsep.getPos().width < r.getPos().width * 0.6f) || (splitAt <= 0)
+                    || (splitAt >= r.getPos().endY)) {
+                continue;
+            }
 
-        /* search to see if this separator does not intersect with anything */
-        Rectangle search = new Rectangle(0, splitAt, r.getWidth(),
-                                         hsep.getPos().height
-        );
-        final List<PhysicalContent> list = r.findContentsIntersectingWith(search);
+            /* search to see if this separator does not intersect with anything */
+            Rectangle search                 = new Rectangle(0, splitAt, r.getWidth(),
+                                                   hsep.getPos().height);
+            final List<PhysicalContent> list = r.findContentsIntersectingWith(search);
 
-        if (list.contains(hsep)) {
-            list.remove(hsep);
-        }
+            if (list.contains(hsep)) {
+                list.remove(hsep);
+            }
 
-        for (Iterator<PhysicalContent> iterator = list.iterator(); iterator.hasNext();) {
-            final PhysicalContent content = iterator.next();
+            for (Iterator<PhysicalContent> iterator = list.iterator(); iterator.hasNext(); ) {
+                final PhysicalContent content = iterator.next();
 
-            if (hsep.getPos().contains(content.getPos())) {
-                iterator.remove();
+                if (hsep.getPos().contains(content.getPos())) {
+                    iterator.remove();
+                }
+            }
+
+            if (list.isEmpty()) {
+                if (log.isInfoEnabled()) {
+                    log.info("LOG00880:split/hsep: splitting " + hsep);
+                }
+
+                splitRegionAtY(r, splitAt);
+
+                // r.addContent(hsep);
+                toRemove.add(hsep);
+            } else {
+
+                /* just add this for now */
+                r.addContent(hsep);
             }
         }
 
-        if (list.isEmpty()) {
-            if (log.isInfoEnabled()) {
-                log.info("LOG00880:split/hsep: splitting " + hsep);
-            }
+        graphics.getHorizontalSeparators().removeAll(toRemove);
 
-            splitRegionAtY(r, splitAt);
-
-            // r.addContent(hsep);
-            toRemove.add(hsep);
-        } else {
-
-            /* just add this for now */
-            r.addContent(hsep);
+        // TODO: do something with vsep
+        for (GraphicContent vsep : graphics.getVerticalSeparators()) {
+            r.addContent(vsep);
         }
     }
-
-    graphics.getHorizontalSeparators().removeAll(toRemove);
-
-    // TODO: do something with vsep
-    for (GraphicContent vsep : graphics.getVerticalSeparators()) {
-        r.addContent(vsep);
-    }
-}
 }

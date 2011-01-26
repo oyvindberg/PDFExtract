@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Ã˜yvind Berg (elacin@gmail.com)
+ * Copyright 2010 ¯yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  *    limitations under the License.
  */
 
+
+
 package org.elacin.pdfextract;
 
 import org.jetbrains.annotations.NotNull;
@@ -25,39 +27,40 @@ import java.io.IOException;
  * use File | Settings | File Templates.
  */
 public class LatexDocumentLoader {
-// -------------------------- PUBLIC STATIC METHODS --------------------------
 
-@NotNull
-public static String readLatex(String filename) throws IOException {
-    //        /* Create vanilla SnuggleEngine and new SnuggleSession */
-    //        SnuggleEngine engine = new SnuggleEngine();
-    //        SnuggleSession session = engine.createSession();
-    //
-    //        /* Parse some LaTeX input */
-    //        SnuggleInput input = new SnuggleInput(new File(filename));
-    //        session.parseInput(input);
-    //
-    //        /* Specify how we want the resulting XML */
-    //        XMLStringOutputOptions options = new XMLStringOutputOptions();
-    //        options.setSerializationMethod(SerializationMethod.XHTML);
-    //        options.setIndenting(true);
-    //        options.setEncoding("UTF-8");
-    //        options.setAddingMathSourceAnnotations(true);
-    //        if (engine.getStylesheetManager().supportsXSLT20()) {
-    //            /* Caller has an XSLT 2.0 processor, so let's output named entities for readability */
-    //            options.setUsingNamedEntities(true);
-    //        }
-    //        /**
-    //         * Caused by: uk.ac.ed.ph.snuggletex.SnuggleRuntimeException: SerializatonMethod.XHTML requires an XSLT 2.0 processor.
-    //         * Your TransformerFactoryChooser uk.ac.ed.ph.snuggletex.utilities.DefaultTransformerFactoryChooser@69f94884 could not
-    //         *  provide such a processor. Please check that an XSLT 2.0 processor (e.g. Saxon) is available and your
-    //         * TransformerFactoryChooser is configured to provide this
-    //
-    //         */
-    //
-    //        /* Convert the results to an XML String, which in this case will
-    //         * be a single MathML <math>...</math> element. */
-    //        return session.buildXMLString(options);
-    return "enable Snuggle in dependencies and rebuild :)";
-}
+// -------------------------- PUBLIC STATIC METHODS --------------------------
+    @NotNull
+    public static String readLatex(String filename) throws IOException {
+
+        // /* Create vanilla SnuggleEngine and new SnuggleSession */
+        // SnuggleEngine engine = new SnuggleEngine();
+        // SnuggleSession session = engine.createSession();
+        //
+        // /* Parse some LaTeX input */
+        // SnuggleInput input = new SnuggleInput(new File(filename));
+        // session.parseInput(input);
+        //
+        // /* Specify how we want the resulting XML */
+        // XMLStringOutputOptions options = new XMLStringOutputOptions();
+        // options.setSerializationMethod(SerializationMethod.XHTML);
+        // options.setIndenting(true);
+        // options.setEncoding("UTF-8");
+        // options.setAddingMathSourceAnnotations(true);
+        // if (engine.getStylesheetManager().supportsXSLT20()) {
+        // /* Caller has an XSLT 2.0 processor, so let's output named entities for readability */
+        // options.setUsingNamedEntities(true);
+        // }
+        // /**
+        // * Caused by: uk.ac.ed.ph.snuggletex.SnuggleRuntimeException: SerializatonMethod.XHTML requires an XSLT 2.0 processor.
+        // * Your TransformerFactoryChooser uk.ac.ed.ph.snuggletex.utilities.DefaultTransformerFactoryChooser@69f94884 could not
+        // *  provide such a processor. Please check that an XSLT 2.0 processor (e.g. Saxon) is available and your
+        // * TransformerFactoryChooser is configured to provide this
+        //
+        // */
+        //
+        // /* Convert the results to an XML String, which in this case will
+        // * be a single MathML <math>...</math> element. */
+        // return session.buildXMLString(options);
+        return "enable Snuggle in dependencies and rebuild :)";
+    }
 }

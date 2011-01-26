@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 �yvind Berg (elacin@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 
 
 package org.elacin.pdfextract.xml;
@@ -33,28 +34,27 @@ import java.io.StringWriter;
 public class PrettyPrinter {
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
-public static String prettyFormat(String input) {
-    return prettyFormat(input, 4);
-}
+    public static String prettyFormat(String input) {
+        return prettyFormat(input, 4);
+    }
 
 // -------------------------- STATIC METHODS --------------------------
-private static String prettyFormat(String input, int indent) {
+    private static String prettyFormat(String input, int indent) {
 
-    try {
-        Source xmlInput = new StreamSource(new StringReader(input));
-        StringWriter stringWriter = new StringWriter();
-        StreamResult xmlOutput = new StreamResult(stringWriter);
-        Transformer transformer = TransformerFactory.newInstance().newTransformer();
+        try {
+            Source       xmlInput     = new StreamSource(new StringReader(input));
+            StringWriter stringWriter = new StringWriter();
+            StreamResult xmlOutput    = new StreamResult(stringWriter);
+            Transformer  transformer  = TransformerFactory.newInstance().newTransformer();
 
-        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount",
-                                      String.valueOf(indent)
-        );
-        transformer.transform(xmlInput, xmlOutput);
+            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+            transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount",
+                                          String.valueOf(indent));
+            transformer.transform(xmlInput, xmlOutput);
 
-        return stringWriter.toString();
-    } catch (Exception e) {
-        throw new RuntimeException(e);
+            return stringWriter.toString();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
-}
 }

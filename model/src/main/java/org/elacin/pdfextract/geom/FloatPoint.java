@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.geom;
 
 /**
@@ -23,40 +24,40 @@ package org.elacin.pdfextract.geom;
 public class FloatPoint {
 
 // ------------------------------ FIELDS ------------------------------
-float x, y;
+    float x, y;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-public FloatPoint(final float x, final float y) {
-    setPosition(x, y);
-}
+    public FloatPoint(final float x, final float y) {
+        setPosition(x, y);
+    }
 
 // ------------------------ CANONICAL METHODS ------------------------
-@Override
-public String toString() {
+    @Override
+    public String toString() {
 
-    final StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
 
-    sb.append("Point");
-    sb.append(", x=").append(x);
-    sb.append(", y=").append(y);
-    sb.append('}');
+        sb.append("Point");
+        sb.append(", x=").append(x);
+        sb.append(", y=").append(y);
+        sb.append('}');
 
-    return sb.toString();
-}
+        return sb.toString();
+    }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-public float getX() {
-    return x;
-}
+    public float getX() {
+        return x;
+    }
 
-public float getY() {
-    return y;
-}
+    public float getY() {
+        return y;
+    }
 
 // -------------------------- PUBLIC METHODS --------------------------
-public final void setPosition(float x, float y) {
+    public final void setPosition(float x, float y) {
 
-    this.x = x;
-    this.y = y;
-}
+        this.x = x;
+        this.y = y;
+    }
 }

@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.physical;
 
 /**
@@ -24,50 +25,50 @@ package org.elacin.pdfextract.physical;
 public final class ParagraphNumberer {
 
 // ------------------------------ FIELDS ------------------------------
-private int page  = 0,
-        region    = 0,
-        paragraph = 0;
+    private int page      = 0,
+                region    = 0,
+                paragraph = 0;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-public ParagraphNumberer(final int pageNumber) {
-    setPage(pageNumber);
-}
+    public ParagraphNumberer(final int pageNumber) {
+        setPage(pageNumber);
+    }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-public int getPage() {
-    return page;
-}
+    public int getPage() {
+        return page;
+    }
 
 // -------------------------- PUBLIC METHODS --------------------------
-public int getParagraphId(boolean graphic) {
+    public int getParagraphId(boolean graphic) {
 
-    return (region * 1000 + paragraph) + (graphic
-                                                  ? 1000000
-                                                  : 0);
-}
+        return (region * 1000 + paragraph) + (graphic
+                ? 1000000
+                : 0);
+    }
 
-public void newPage() {
+    public void newPage() {
 
-    page++;
-    region = 0;
-    paragraph = 0;
-}
+        page++;
+        region    = 0;
+        paragraph = 0;
+    }
 
-public void newParagraph() {
-    paragraph++;
-}
+    public void newParagraph() {
+        paragraph++;
+    }
 
-public void newRegion() {
+    public void newRegion() {
 
-    region++;
-    paragraph = 0;
-}
+        region++;
+        paragraph = 0;
+    }
 
 // -------------------------- OTHER METHODS --------------------------
-private void setPage(final int page) {
+    private void setPage(final int page) {
 
-    this.page = page;
-    region = 0;
-    paragraph = 0;
-}
+        this.page = page;
+        region    = 0;
+        paragraph = 0;
+    }
 }

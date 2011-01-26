@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.logical.operation;
 
 import org.elacin.pdfextract.tree.DocumentNode;
@@ -26,5 +27,5 @@ import org.elacin.pdfextract.tree.DocumentNode;
 public interface Operation {
 
 // -------------------------- PUBLIC METHODS --------------------------
-void doOperation(DocumentNode root);
+    void doOperation(DocumentNode root);
 }

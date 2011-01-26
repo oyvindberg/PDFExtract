@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 �yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
+
 
 package org.elacin.pdfextract;
 
@@ -28,17 +30,21 @@ import java.net.URL;
  * template use File | Settings | File Templates.
  */
 public class PDFDocumentLoader {
+
 // -------------------------- PUBLIC STATIC METHODS --------------------------
+    @NotNull
+    public static DocumentNode readPDF(String filename, final String outFile, final int endPage)
+            throws IOException {
 
-@NotNull
-public static DocumentNode readPDF(String filename,
-                                   final String outFile,
-                                   final int endPage) throws IOException {
-    final URL url = PDFDocumentLoader.class.getClassLoader().getResource(filename);
+        final URL url                           = PDFDocumentLoader.class.getClassLoader().getResource(
+                                                      filename);
+        final DocumentAnalyzer DocumentAnalyzer = new DocumentAnalyzer(new File(url.getFile()),
+                                                      new File(outFile), "", -1, endPage);
 
-    final DocumentAnalyzer DocumentAnalyzer = new DocumentAnalyzer(new File(url.getFile()), new File(outFile), "", -1, endPage);
-    DocumentAnalyzer.processFile();
-    final DocumentNode documentNode = DocumentAnalyzer.getRoot();
-    return documentNode;
-}
+        DocumentAnalyzer.processFile();
+
+        final DocumentNode documentNode = DocumentAnalyzer.getRoot();
+
+        return documentNode;
+    }
 }

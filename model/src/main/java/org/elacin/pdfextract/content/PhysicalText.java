@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.content;
 
 import org.elacin.pdfextract.geom.Rectangle;
@@ -27,76 +28,75 @@ import org.jetbrains.annotations.NotNull;
  */
 public class PhysicalText extends AssignablePhysicalContent implements StyledText {
 
-private final float baseLine;
+    private final float baseLine;
 
 // ------------------------------ FIELDS ------------------------------
-public       float  charSpacing;
-public final String text;
+    public float        charSpacing;
+    public final String text;
 
-public PhysicalText(final String text, final Style style, final Rectangle position, float baseLine) {
+    public PhysicalText(final String text, final Style style, final Rectangle position, float baseLine) {
 
-    super(position, style);
-    this.text = text;
-    this.baseLine = baseLine;
-}
+        super(position, style);
+        this.text     = text;
+        this.baseLine = baseLine;
+    }
 
 // --------------------------- CONSTRUCTORS ---------------------------
-public PhysicalText(final String text, final Style style, final float x, final float y,
-                    final float width, final float height, float baseLine)
-{
-    this(text, style, new Rectangle(x, y, width, height), baseLine);
-}
+    public PhysicalText(final String text, final Style style, final float x, final float y,
+                        final float width, final float height, float baseLine) {
+        this(text, style, new Rectangle(x, y, width, height), baseLine);
+    }
 
 // ------------------------ INTERFACE METHODS ------------------------
 // --------------------- Interface StyledText ---------------------
-public String getText() {
-    return text;
-}
+    public String getText() {
+        return text;
+    }
 
 // ------------------------ CANONICAL METHODS ------------------------
-@Override
-public String toString() {
+    @Override
+    public String toString() {
 
-    final StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder();
 
-    sb.append("Text");
-    sb.append("{'").append(text).append('\'');
-    sb.append(", style=").append(style);
-    sb.append(", pos=").append(getPos());
-    sb.append(", charSpacing=").append(charSpacing);
-    sb.append('}');
+        sb.append("Text");
+        sb.append("{'").append(text).append('\'');
+        sb.append(", style=").append(style);
+        sb.append(", pos=").append(getPos());
+        sb.append(", charSpacing=").append(charSpacing);
+        sb.append('}');
 
-    return sb.toString();
-}
+        return sb.toString();
+    }
 
 // ------------------------ OVERRIDING METHODS ------------------------
-@NotNull
-@Override
-public PhysicalText getPhysicalText() {
-    return this;
-}
+    @NotNull
+    @Override
+    public PhysicalText getPhysicalText() {
+        return this;
+    }
 
-@Override
-public boolean isText() {
-    return true;
-}
+    @Override
+    public boolean isText() {
+        return true;
+    }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-public float getBaseLine() {
-    return baseLine;
-}
+    public float getBaseLine() {
+        return baseLine;
+    }
 
 // -------------------------- PUBLIC METHODS --------------------------
-@NotNull
-public PhysicalText combineWith(@NotNull final PhysicalText next) {
-    return new PhysicalText(text + next.text, style, getPos().union(next.getPos()), baseLine);
-}
+    @NotNull
+    public PhysicalText combineWith(@NotNull final PhysicalText next) {
+        return new PhysicalText(text + next.text, style, getPos().union(next.getPos()), baseLine);
+    }
 
-public float getAverageCharacterWidth() {
-    return getPos().width / (float) text.length();
-}
+    public float getAverageCharacterWidth() {
+        return getPos().width / (float) text.length();
+    }
 
-public boolean isSameStyleAs(@NotNull final PhysicalText next) {
-    return getStyle().equals(next.getStyle());
-}
+    public boolean isSameStyleAs(@NotNull final PhysicalText next) {
+        return getStyle().equals(next.getStyle());
+    }
 }

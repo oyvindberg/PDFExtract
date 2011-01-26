@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.content.StyledText;
@@ -37,84 +38,83 @@ import org.jetbrains.annotations.NotNull;
  */
 public class WordNode extends AbstractNode<LineNode> implements StyledText {
 
-private final   float     charSpacing;
-private final   int       pageNum;
-protected final Rectangle position;
-protected final Style     style;
+    private final float       charSpacing;
+    private final int         pageNum;
+    protected final Rectangle position;
+    protected final Style     style;
 
 // ------------------------------ FIELDS ------------------------------
-public final String text;
+    public final String text;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-public WordNode(final Rectangle position, final int pageNum, final Style style, final String text,
-                final float charSpacing)
-{
+    public WordNode(final Rectangle position, final int pageNum, final Style style, final String text,
+                    final float charSpacing) {
 
-    setPos(position);
-    this.position = position;
-    this.pageNum = pageNum;
-    this.style = style;
-    this.text = text;
-    this.charSpacing = charSpacing;
-}
+        setPos(position);
+        this.position    = position;
+        this.pageNum     = pageNum;
+        this.style       = style;
+        this.text        = text;
+        this.charSpacing = charSpacing;
+    }
 
 // ------------------------ INTERFACE METHODS ------------------------
 // --------------------- Interface HasPosition ---------------------
-public void calculatePos() {
-    assert false;
-}
+    public void calculatePos() {
+        assert false;
+    }
 
 // --------------------- Interface StyledText ---------------------
-@Override
-@NotNull
-public String getText() {
-    return text;
-}
+    @Override
+    @NotNull
+    public String getText() {
+        return text;
+    }
 
-@Override
-@NotNull
-public Style getStyle() {
-    return style;
-}
+    @Override
+    @NotNull
+    public Style getStyle() {
+        return style;
+    }
 
 // ------------------------ CANONICAL METHODS ------------------------
-@NotNull
-@Override
-public String toString() {
+    @NotNull
+    @Override
+    public String toString() {
 
-    if (toStringCache == null) {
-        toStringCache = "WordNode{text='" + text + '\'' + ", position=" + position + ", style="
-                        + style + '}';
+        if (toStringCache == null) {
+            toStringCache = "WordNode{text='" + text + '\'' + ", position=" + position + ", style="
+                            + style + '}';
+        }
+
+        return toStringCache;
     }
-
-    return toStringCache;
-}
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-public float getCharSpacing() {
-    return charSpacing;
-}
+    public float getCharSpacing() {
+        return charSpacing;
+    }
 
-public int getPageNum() {
-    return pageNum;
-}
+    public int getPageNum() {
+        return pageNum;
+    }
 
 // -------------------------- PUBLIC METHODS --------------------------
-public boolean isPartOfSameWordAs(@NotNull final WordNode nextNode) {
+    public boolean isPartOfSameWordAs(@NotNull final WordNode nextNode) {
 
-    float distance = nextNode.position.x - position.endX;
+        float distance = nextNode.position.x - position.endX;
 
-    return distance <= charSpacing;    // * 1.01f;
-}
+        return distance <= charSpacing;    // * 1.01f;
+    }
 
 // -------------------------- OTHER METHODS --------------------------
-protected void invalidateThisAndParents() {
+    protected void invalidateThisAndParents() {
 
-    textCache = null;
-    toStringCache = null;
+        textCache     = null;
+        toStringCache = null;
 
-    if (getParent() != null) {
-        getParent().invalidateThisAndParents();
+        if (getParent() != null) {
+            getParent().invalidateThisAndParents();
+        }
     }
-}
 }

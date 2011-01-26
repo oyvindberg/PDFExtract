@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.physical;
 
 import org.apache.log4j.Logger;
@@ -40,116 +41,112 @@ import java.util.Set;
 public class PageRegionSplitBySpacing {
 
 // ------------------------------ FIELDS ------------------------------
-private static final Logger log = Logger.getLogger(PageRegionSplitBySpacing.class);
+    private static final Logger log = Logger.getLogger(PageRegionSplitBySpacing.class);
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
-@NotNull
-public static boolean splitOfTopTextOfPage(@NotNull PhysicalPage page, float fractionToConsider) {
+    @NotNull
+    public static boolean splitOfTopTextOfPage(@NotNull PhysicalPage page, float fractionToConsider) {
 
-    PhysicalPageRegion r = page.getMainRegion();
-    final Rectangle realDims = r.getPage().getPageDimensions();
-    final int minimumDistanceToSplit = 10;
+        PhysicalPageRegion r                      = page.getMainRegion();
+        final Rectangle    realDims               = r.getPage().getPageDimensions();
+        final int          minimumDistanceToSplit = 10;
 
-    return tryHorizontalSplit(r, realDims, fractionToConsider, minimumDistanceToSplit);
-}
+        return tryHorizontalSplit(r, realDims, fractionToConsider, minimumDistanceToSplit);
+    }
 
-@NotNull
-public static boolean splitRegionHorizontally(@NotNull PhysicalPageRegion region) {
+    @NotNull
+    public static boolean splitRegionHorizontally(@NotNull PhysicalPageRegion region) {
 
-    final int minimumDistanceToSplit = 20;
+        final int minimumDistanceToSplit = 20;
 
-    return tryHorizontalSplit(region, region.getPos(), 1.0f, minimumDistanceToSplit);
-}
+        return tryHorizontalSplit(region, region.getPos(), 1.0f, minimumDistanceToSplit);
+    }
 
 // -------------------------- STATIC METHODS --------------------------
-private static boolean sameStyleOverAndUnderHorizontalLine(final PhysicalPageRegion r,
-                                                           final float y, final Set<PhysicalContent> over)
-{
+    private static boolean sameStyleOverAndUnderHorizontalLine(final PhysicalPageRegion r,
+            final float y, final Set<PhysicalContent> over) {
 
-    List<PhysicalContent> under = new ArrayList<PhysicalContent>();
-    float yIndex = y;
+        List<PhysicalContent> under  = new ArrayList<PhysicalContent>();
+        float                 yIndex = y;
 
-    while (under.isEmpty() && (yIndex < r.getPos().endY)) {
-        under.addAll(r.findContentAtYIndex(yIndex));
-        yIndex += 1.0f;
+        while (under.isEmpty() && (yIndex < r.getPos().endY)) {
+            under.addAll(r.findContentAtYIndex(yIndex));
+            yIndex += 1.0f;
+        }
+
+        final Style styleOver  = TextUtils.findDominatingStyle(over);
+        final Style styleUnder = TextUtils.findDominatingStyle(under);
+
+        return StyleComparator.styleCompare(styleOver, styleUnder) == StyleDifference.SAME_STYLE;
     }
 
-    final Style styleOver = TextUtils.findDominatingStyle(over);
-    final Style styleUnder = TextUtils.findDominatingStyle(under);
+    private static boolean tryHorizontalSplit(final PhysicalPageRegion r, final Rectangle dims,
+            final float fractionToConsider, final int minimumDistanceToSplit) {
 
-    return StyleComparator.styleCompare(styleOver, styleUnder) == StyleDifference.SAME_STYLE;
-}
+        final float          startY       = dims.y;
+        final float          endY         = Math.min(r.getPos().endY,
+                                                startY + dims.height * fractionToConsider);
+        float                lastBoundary = -1000.0f;
+        float                minX         = Float.MAX_VALUE,
+                             maxX         = Float.MIN_VALUE;
+        PhysicalPageRegion   activeRegion = r;
+        Set<PhysicalContent> workingSet   = new HashSet<PhysicalContent>();
 
-private static boolean tryHorizontalSplit(final PhysicalPageRegion r, final Rectangle dims,
-                                          final float fractionToConsider, final int minimumDistanceToSplit)
-{
-
-    final float startY = dims.y;
-    final float endY = Math.min(r.getPos().endY,
-                                startY + dims.height * fractionToConsider
-    );
-    float lastBoundary = -1000.0f;
-    float minX = Float.MAX_VALUE,
-            maxX = Float.MIN_VALUE;
-    PhysicalPageRegion activeRegion = r;
-    Set<PhysicalContent> workingSet = new HashSet<PhysicalContent>();
-
-    for (float y = startY; y <= endY; y++) {
-        if (y < activeRegion.getPos().y) {
-            continue;
-        }
-
-        final List<PhysicalContent> row = activeRegion.findContentAtYIndex(y);
-
-        workingSet.addAll(row);
-
-        for (PhysicalContent content : row) {
-            minX = Math.min(content.getPos().x, minX);
-            maxX = Math.max(content.getPos().endX, maxX);
-        }
-
-        if (row.isEmpty()) {
-            if (!TextUtils.listContainsStyledText(workingSet)) {
+        for (float y = startY; y <= endY; y++) {
+            if (y < activeRegion.getPos().y) {
                 continue;
             }
 
-            if ((y - lastBoundary < minimumDistanceToSplit)) {
-                continue;
+            final List<PhysicalContent> row = activeRegion.findContentAtYIndex(y);
+
+            workingSet.addAll(row);
+
+            for (PhysicalContent content : row) {
+                minX = Math.min(content.getPos().x, minX);
+                maxX = Math.max(content.getPos().endX, maxX);
             }
 
-            if (sameStyleOverAndUnderHorizontalLine(activeRegion, y, workingSet)) {
-                continue;
+            if (row.isEmpty()) {
+                if (!TextUtils.listContainsStyledText(workingSet)) {
+                    continue;
+                }
+
+                if ((y - lastBoundary < minimumDistanceToSplit)) {
+                    continue;
+                }
+
+                if (sameStyleOverAndUnderHorizontalLine(activeRegion, y, workingSet)) {
+                    continue;
+                }
+
+                if (log.isInfoEnabled()) {
+                    log.info(String.format("LOG00530:split/hor at y=%s for %s ", y, activeRegion));
+                }
+
+                boolean success = PageRegionSplitBySeparators.splitRegionAtY(activeRegion, y);
+
+                if (!success) {
+                    break;
+                }
+
+                PhysicalPageRegion lowerNewSubRegion = activeRegion.getSubregions().get(
+                                                           activeRegion.getSubregions().size() - 1);
+
+                activeRegion = lowerNewSubRegion;
+
+                // tryHorizontalSplit(lowerNewSubRegion, dims, fractionToConsider, minimumDistanceToSplit);
+                // return r.extractSubRegionFromContent(workingSet);
+                workingSet.clear();
+                lastBoundary = y;
+
+                /* only extract once */
+
+                // return true;
+            } else {
+                lastBoundary = y;
             }
-
-            if (log.isInfoEnabled()) {
-                log.info(String.format("LOG00530:split/hor at y=%s for %s ", y, activeRegion));
-            }
-
-            boolean success = PageRegionSplitBySeparators.splitRegionAtY(activeRegion, y);
-
-            if (!success) {
-                break;
-            }
-
-            PhysicalPageRegion lowerNewSubRegion = activeRegion.getSubregions().get(
-                                                                                           activeRegion.getSubregions().size() - 1
-            );
-
-            activeRegion = lowerNewSubRegion;
-
-            // tryHorizontalSplit(lowerNewSubRegion, dims, fractionToConsider, minimumDistanceToSplit);
-            // return r.extractSubRegionFromContent(workingSet);
-            workingSet.clear();
-            lastBoundary = y;
-
-            /* only extract once */
-
-            // return true;
-        } else {
-            lastBoundary = y;
         }
+
+        return false;
     }
-
-    return false;
-}
 }

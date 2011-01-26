@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.integration;
 
 import java.awt.image.BufferedImage;
@@ -26,28 +27,28 @@ import java.awt.image.BufferedImage;
 public class RenderedPage {
 
 // ------------------------------ FIELDS ------------------------------
-final BufferedImage rendering;
-final float         xScale, yScale;
+    final BufferedImage rendering;
+    final float         xScale, yScale;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-public RenderedPage(BufferedImage rendering, float xScale, float yScale) {
+    public RenderedPage(BufferedImage rendering, float xScale, float yScale) {
 
-    this.yScale = yScale;
-    this.rendering = rendering;
-    this.xScale = xScale;
-}
+        this.yScale    = yScale;
+        this.rendering = rendering;
+        this.xScale    = xScale;
+    }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-public BufferedImage getRendering() {
-    return rendering;
-}
+    public BufferedImage getRendering() {
+        return rendering;
+    }
 
 // -------------------------- PUBLIC METHODS --------------------------
-public float getXScale() {
-    return xScale;
-}
+    public float getXScale() {
+        return xScale;
+    }
 
-public float getYScale() {
-    return yScale;
-}
+    public float getYScale() {
+        return yScale;
+    }
 }

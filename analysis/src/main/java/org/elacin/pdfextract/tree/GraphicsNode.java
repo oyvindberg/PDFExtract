@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.geom.Rectangle;
@@ -29,66 +30,66 @@ import java.util.Comparator;
 public class GraphicsNode extends AbstractParentNode<ParagraphNode, PageNode> {
 
 // ------------------------------ FIELDS ------------------------------
-@NotNull
-private Rectangle graphicsPos;
+    @NotNull
+    private Rectangle graphicsPos;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-public GraphicsNode(final Rectangle graphicsPos) {
+    public GraphicsNode(final Rectangle graphicsPos) {
 
-    setPos(graphicsPos);
-    this.graphicsPos = graphicsPos;
-}
+        setPos(graphicsPos);
+        this.graphicsPos = graphicsPos;
+    }
 
 // ------------------------ INTERFACE METHODS ------------------------
 // --------------------- Interface HasPosition ---------------------
-@Override
-public void calculatePos() {
+    @Override
+    public void calculatePos() {
 
-    super.calculatePos();
-    setPos(getPos().union(graphicsPos));
-}
+        super.calculatePos();
+        setPos(getPos().union(graphicsPos));
+    }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-public Rectangle getGraphicsPos() {
-    return graphicsPos;
-}
+    public Rectangle getGraphicsPos() {
+        return graphicsPos;
+    }
 
-public void setGraphicsPos(final Rectangle graphicsPos) {
-    this.graphicsPos = graphicsPos;
-}
+    public void setGraphicsPos(final Rectangle graphicsPos) {
+        this.graphicsPos = graphicsPos;
+    }
 
 // -------------------------- PUBLIC METHODS --------------------------
-@NotNull
-@Override
-public Comparator<ParagraphNode> getChildComparator() {
+    @NotNull
+    @Override
+    public Comparator<ParagraphNode> getChildComparator() {
 
-    return new Comparator<ParagraphNode>() {
+        return new Comparator<ParagraphNode>() {
 
-        public int compare(final ParagraphNode o1, final ParagraphNode o2) {
+            public int compare(final ParagraphNode o1, final ParagraphNode o2) {
 
-            final int thisRegion = o1.getSeqNo() / 1000;
-            final int thatRegion = o2.getSeqNo() / 1000;
+                final int thisRegion = o1.getSeqNo() / 1000;
+                final int thatRegion = o2.getSeqNo() / 1000;
 
-            if (thisRegion < thatRegion) {
-                return -1;
-            } else if (thisRegion > thatRegion) {
-                return 1;
-            }
-
-            if (o1.getSeqNo() == o2.getSeqNo()) {
-                if (o1.getPos().y < o2.getPos().y) {
+                if (thisRegion < thatRegion) {
                     return -1;
-                } else {
-                    return 0;
-                }
-            } else {
-                if (o1.getPos().y < o2.getPos().y) {
-                    return -1;
-                } else {
+                } else if (thisRegion > thatRegion) {
                     return 1;
                 }
+
+                if (o1.getSeqNo() == o2.getSeqNo()) {
+                    if (o1.getPos().y < o2.getPos().y) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                } else {
+                    if (o1.getPos().y < o2.getPos().y) {
+                        return -1;
+                    } else {
+                        return 1;
+                    }
+                }
             }
-        }
-    };
-}
+        };
+    }
 }

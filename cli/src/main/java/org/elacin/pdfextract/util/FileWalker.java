@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010 ?yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
  *    See the License for the specific language governing permissions and
  *    limitations under the License.
  */
+
+
 
 package org.elacin.pdfextract.util;
 
@@ -30,56 +32,67 @@ import java.util.List;
  * template use File | Settings | File Templates.
  */
 public class FileWalker {
+
 // -------------------------- PUBLIC STATIC METHODS --------------------------
 
-/**
- * Recursively walk a directory tree and return a List of all Files found; the List is sorted using
- * File.compareTo().
- *
- * @param aStartingDir is a valid directory, which can be read.
- * @param extension    asd
- */
-@NotNull
-public static List<File> getFileListing(@NotNull final File aStartingDir,
-                                        final String extension) throws FileNotFoundException {
-    validateDirectory(aStartingDir);
-    List<File> result = getFileListingNoSort(aStartingDir, extension);
-    Collections.sort(result);
-    return result;
-}
+    /**
+     * Recursively walk a directory tree and return a List of all Files found; the List is sorted using
+     * File.compareTo().
+     *
+     * @param aStartingDir is a valid directory, which can be read.
+     * @param extension    asd
+     */
+    @NotNull
+    public static List<File> getFileListing(@NotNull final File aStartingDir, final String extension)
+            throws FileNotFoundException {
+
+        validateDirectory(aStartingDir);
+
+        List<File> result = getFileListingNoSort(aStartingDir, extension);
+
+        Collections.sort(result);
+
+        return result;
+    }
 
 // -------------------------- STATIC METHODS --------------------------
+    @NotNull
+    static List<File> getFileListingNoSort(@NotNull File aStartingDir, final String extension) {
 
-@NotNull
-static List<File> getFileListingNoSort(@NotNull File aStartingDir, final String extension) {
-    List<File> ret = new ArrayList<File>();
+        List<File> ret = new ArrayList<File>();
 
-    for (File file : aStartingDir.listFiles()) {
-        if (file.getName().endsWith(extension)) {
-            ret.add(file);
+        for (File file : aStartingDir.listFiles()) {
+            if (file.getName().endsWith(extension)) {
+                ret.add(file);
+            }
+
+            if (file.isDirectory()) {
+                ret.addAll(getFileListingNoSort(file, extension));
+            }
         }
-        if (file.isDirectory()) {
-            ret.addAll(getFileListingNoSort(file, extension));
+
+        return ret;
+    }
+
+    /**
+     * Directory is valid if it exists, does not represent a file, and can be read.
+     */
+    static void validateDirectory(@Nullable final File aDirectory) throws FileNotFoundException {
+
+        if (aDirectory == null) {
+            throw new IllegalArgumentException("Directory should not be null.");
+        }
+
+        if (!aDirectory.exists()) {
+            throw new FileNotFoundException("Directory does not exist: " + aDirectory);
+        }
+
+        if (!aDirectory.isDirectory()) {
+            throw new IllegalArgumentException("Is not a directory: " + aDirectory);
+        }
+
+        if (!aDirectory.canRead()) {
+            throw new IllegalArgumentException("Directory cannot be read: " + aDirectory);
         }
     }
-    return ret;
-}
-
-/**
- * Directory is valid if it exists, does not represent a file, and can be read.
- */
-static void validateDirectory(@Nullable final File aDirectory) throws FileNotFoundException {
-    if (aDirectory == null) {
-        throw new IllegalArgumentException("Directory should not be null.");
-    }
-    if (!aDirectory.exists()) {
-        throw new FileNotFoundException("Directory does not exist: " + aDirectory);
-    }
-    if (!aDirectory.isDirectory()) {
-        throw new IllegalArgumentException("Is not a directory: " + aDirectory);
-    }
-    if (!aDirectory.canRead()) {
-        throw new IllegalArgumentException("Directory cannot be read: " + aDirectory);
-    }
-}
 }

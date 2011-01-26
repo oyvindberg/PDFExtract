@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.style;
 
 /**

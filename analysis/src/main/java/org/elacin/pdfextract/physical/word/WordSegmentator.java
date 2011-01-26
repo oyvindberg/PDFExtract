@@ -15,6 +15,7 @@
  */
 
 
+
 package org.elacin.pdfextract.physical.word;
 
 import org.elacin.pdfextract.content.PhysicalText;
@@ -29,5 +30,6 @@ import java.util.List;
 public interface WordSegmentator {
 
 // -------------------------- PUBLIC METHODS --------------------------
-@NotNull List<PhysicalText> segmentWords(List<PhysicalText> text);
+    @NotNull
+    List<PhysicalText> segmentWords(List<PhysicalText> text);
 }
