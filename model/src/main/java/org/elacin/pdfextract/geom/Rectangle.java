@@ -255,22 +255,22 @@ public Rectangle intersection(@NotNull Rectangle that) {
     return new Rectangle(minX, minY, maxX - minX, maxY - minY);
 }
 
-public boolean intersectsExclusiveWith(@NotNull Rectangle that) {
+public boolean intersectsAdmittingOverlap(@NotNull Rectangle that, final float overlap) {
 
     if (isEmpty()) {
         return false;
     }
 
-    if (that.endX <= x) {
+    if (that.endX < x + overlap) {
         return false;
     }
-    if (that.x >= endX) {
+    if (that.x >= endX - overlap) {
         return false;
     }
-    if (that.y >= endY) {
+    if (that.y >= endY - overlap) {
         return false;
     }
-    return that.endY >= y;
+    return that.endY >= y + overlap;
 }
 
 public boolean intersectsWith(@NotNull Rectangle that) {

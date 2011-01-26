@@ -129,7 +129,8 @@ static HasPosition choosePivot(QueueEntry entry) {
 
     for (int i = 0; i < entry.numObstacles; i++) {
         HasPosition obstacle = entry.obstacles[i];
-        final float distance = obstacle.getPos().distance(centrePoint);
+        final float distance
+                = obstacle.getPos().distance(centrePoint) * 100.0f / obstacle.getPos().height;
         if (distance < minDistance) {
             minDistance = distance;
             closestToCentre = obstacle;
@@ -262,7 +263,6 @@ WhitespaceRectangle findNextWhitespace() {
 
 final boolean isNextToWhitespaceOrEdge(final WhitespaceRectangle newWhitespace) {
     /* accept this rectangle if it is adjacent to the edge of the page */
-    //noinspection FloatingPointEquality
     final float l = WHITESPACE_OBSTACLE_OVERLAP;
 
     Rectangle wPos = newWhitespace.getPos();
@@ -275,7 +275,7 @@ final boolean isNextToWhitespaceOrEdge(final WhitespaceRectangle newWhitespace) 
     /* also accept if it borders one of the already identified whitespaces */
     for (int i = 0; i < foundWhitespaceCount; i++) {
         final WhitespaceRectangle existing = foundWhitespace[i];
-        if (wPos.distance(existing.getPos()) < 0.01f) {
+        if (wPos.distance(existing.getPos()) <= WHITESPACE_OBSTACLE_OVERLAP) {
             return true;
         }
     }
@@ -450,15 +450,13 @@ QueueEntry[] splitSearchAreaAround(final QueueEntry current, final HasPosition p
         if (left != null && obstaclePos.x < adjustedSplitX) {
             leftObs[leftIndex++] = obstacle;
         }
-
-        if (above != null && obstaclePos.y < adjustedSplitY) {
-            aboveObs[aboveIndex++] = obstacle;
-        }
-
         if (right != null && obstaclePos.endX > adjustedSplitEndX) {
             rightObs[rightIndex++] = obstacle;
         }
 
+        if (above != null && obstaclePos.y < adjustedSplitY) {
+            aboveObs[aboveIndex++] = obstacle;
+        }
         if (below != null && obstaclePos.endY > adjustedSplitEndY) {
             belowObs[belowIndex++] = obstacle;
         }
@@ -477,12 +475,14 @@ QueueEntry[] splitSearchAreaAround(final QueueEntry current, final HasPosition p
  * queue entry was added to the queue, overlaps with the area of this queue entry, and if so adds
  * them to this list of obstacles .
  */
+
 void updateObstacleListForQueueEntry(final QueueEntry entry) {
     int numNewestObstaclesToCheck = foundWhitespaceCount - entry.numberOfWhitespaceFound;
 
     for (int i = 0; i < numNewestObstaclesToCheck; i++) {
         final HasPosition obstacle = foundWhitespace[foundWhitespaceCount - 1 - i];
-        if (entry.bound.intersectsExclusiveWith(obstacle.getPos())) {
+        if (entry.bound.intersectsAdmittingOverlap(obstacle.getPos(),
+                                                   WHITESPACE_OBSTACLE_OVERLAP)) {
             entry.addObstacle(obstacle);
         }
         entry.numberOfWhitespaceFound = foundWhitespaceCount;
@@ -491,7 +491,7 @@ void updateObstacleListForQueueEntry(final QueueEntry entry) {
 
 // -------------------------- INNER CLASSES --------------------------
 
-private static class QueueEntry implements Comparable<QueueEntry> {
+static class QueueEntry implements Comparable<QueueEntry> {
     final Rectangle     bound;
     final HasPosition[] obstacles;
     final float         quality;
