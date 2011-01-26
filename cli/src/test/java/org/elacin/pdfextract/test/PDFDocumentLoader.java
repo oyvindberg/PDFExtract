@@ -16,37 +16,37 @@
 
 
 
-package org.elacin.pdfextract;
+package org.elacin.pdfextract.test;
 
+import org.elacin.pdfextract.DocumentAnalyzer;
 import org.elacin.pdfextract.tree.DocumentNode;
-import org.elacin.pdfextract.tree.LineNode;
-import org.elacin.pdfextract.tree.PageNode;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: May 9, 2010 Time: 12:31:16 AM To change this
+ * Created by IntelliJ IDEA. User: elacin Date: May 9, 2010 Time: 12:19:56 AM To change this
  * template use File | Settings | File Templates.
  */
-public class DocumentNavigator {
+class PDFDocumentLoader {
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
     @NotNull
-    public static ArrayList<LineNode> getLineNodes(@NotNull DocumentNode doc) {
+    public static DocumentNode readPDF(String filename, final String outFile, final int endPage)
+            throws IOException {
 
-        ArrayList<LineNode> ret = new ArrayList<LineNode>();
+        final URL url = PDFDocumentLoader.class.getClassLoader().getResource(filename);
 
-        for (PageNode pageNode : doc.getChildren()) {
+        //
+        final DocumentAnalyzer DocumentAnalyzer = new DocumentAnalyzer(new File(url.getFile()),
+                                                      new File(outFile), "", -1, endPage);
 
-//      for (LayoutRegionNode layoutRegionNode : pageNode.getChildren()) {
-//          for (ParagraphNode paragraphNode : layoutRegionNode.getChildren()) {
-//              ret.addAll(paragraphNode.getChildren());
-//          }
-//
-//      }
-        }
+        DocumentAnalyzer.processFile();
 
-        return ret;
+        final DocumentNode documentNode = DocumentAnalyzer.getRoot();
+
+        return documentNode;
     }
 }

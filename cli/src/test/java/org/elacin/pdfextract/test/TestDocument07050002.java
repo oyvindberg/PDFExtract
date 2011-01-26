@@ -15,8 +15,7 @@
  */
 
 
-
-package org.elacin.pdfextract;
+package org.elacin.pdfextract.test;
 
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 ¯yvind Berg (elacin@gmail.com)
+ * Copyright 2010 ï¿½yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,8 +15,7 @@
  */
 
 
-
-package org.elacin.pdfextract;
+package org.elacin.pdfextract.test;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: May 26, 2010 Time: 5:47:50 AM To change this
@@ -37,9 +36,9 @@ public class TestArticle1 {
 //
 //@Test()
 //public void test1() {
-//  assertExistsLineWithText("[DP *(Det) gaml-e Roma]vart ¿ydelagt av barbar-a-ne.");
-//  //kapitulŽr her... for now! :)
-//  //  assertExistsLineWithText("[DP *(Det) gaml-e Roma] vart ¿ydelagt av barbar-a-ne.");
+//  assertExistsLineWithText("[DP *(Det) gaml-e Roma]vart ï¿½ydelagt av barbar-a-ne.");
+//  //kapitulï¿½r her... for now! :)
+//  //  assertExistsLineWithText("[DP *(Det) gaml-e Roma] vart ï¿½ydelagt av barbar-a-ne.");
 //}
 //
 //@Test()
@@ -54,7 +53,7 @@ public class TestArticle1 {
 //
 //@Test()
 //public void test4() {
-//  assertExistsLineWithText("de-n ny-e forstŒ-ing-a hennar av seg sj¿lv");
+//  assertExistsLineWithText("de-n ny-e forstï¿½-ing-a hennar av seg sjï¿½lv");
 //}
 //
 //

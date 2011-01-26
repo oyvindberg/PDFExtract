@@ -15,8 +15,7 @@
  */
 
 
-
-package org.elacin.pdfextract;
+package org.elacin.pdfextract.test;
 
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.LineNode;
