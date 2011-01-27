@@ -94,7 +94,7 @@ public class Formulas {
                 final char c = word.getText().charAt(i);
 
                 if (Character.getType(c) == (int) Character.MATH_SYMBOL) {
-                    looksLikeMath += 5;
+                    looksLikeMath += 3;
                 } else if (Character.isDigit(c)) {
                     looksLikeMath += 1;
                 }

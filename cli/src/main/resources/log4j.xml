@@ -95,6 +95,10 @@
         <level value="INFO"/>
     </logger>
 
+    <logger name="org.elacin.pdfextract.physical.column">
+        <level value="DEBUG"/>
+    </logger>
+
     <logger name="org.elacin.pdfextract.physical">
         <level value="INFO"/>
     </logger>
