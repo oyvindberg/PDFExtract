@@ -1,17 +1,17 @@
 /*
- * Copyright 2010 ?yvind Berg (elacin@gmail.com)
+ * Copyright 2010 Øyvind Berg (elacin@gmail.com)
  *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- *        http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 
@@ -32,16 +32,18 @@ import static org.elacin.pdfextract.Constants.RECTANGLE_COLLECTION_CACHE_ENABLED
  */
 public class RectangleCollection extends PhysicalContent {
 
-/* calculating all the intersections while searching is expensive, so keep this cached.
-will be pruned on update */
+// ------------------------------ FIELDS ------------------------------
+
+    /*
+     *  calculating all the intersections while searching is expensive, so keep this cached.
+     * will be pruned on update
+     */
     @NotNull
     private final Map<Integer, List<PhysicalContent>> yCache = new HashMap<Integer,
                                                                    List<PhysicalContent>>();
     @NotNull
     private final Map<Integer, List<PhysicalContent>> xCache = new HashMap<Integer,
                                                                    List<PhysicalContent>>();
-
-// ------------------------------ FIELDS ------------------------------
     @NotNull
     private final List<PhysicalContent> contents;
     @Nullable
@@ -55,20 +57,6 @@ will be pruned on update */
         this.parent = parent;
         contents    = new ArrayList<PhysicalContent>(newContents.size());
         contents.addAll(newContents);
-    }
-
-// -------------------------- ENUMERATIONS --------------------------
-    public enum Direction {
-        N(0, 1), NE(1, 1), E(1, 0), SE(1, -1), S(0, -1), SW(-1, -1), W(-1, 0), NW(-1, 1);
-
-        float xDiff;
-        float yDiff;
-
-        Direction(final float xDiff, final float yDiff) {
-
-            this.xDiff = xDiff;
-            this.yDiff = yDiff;
-        }
     }
 
 // ------------------------ INTERFACE METHODS ------------------------
@@ -170,14 +158,6 @@ will be pruned on update */
         return ret;
     }
 
-    public float getHeight() {
-        return getPos().height;
-    }
-
-    public float getWidth() {
-        return getPos().width;
-    }
-
     public void removeContent(PhysicalContent toRemove) {
 
         if (!contents.remove(toRemove)) {
@@ -216,5 +196,19 @@ will be pruned on update */
         yCache.clear();
         xCache.clear();
         invalidatePos();
+    }
+
+// -------------------------- ENUMERATIONS --------------------------
+    public enum Direction {
+        N(0, 1), NE(1, 1), E(1, 0), SE(1, -1), S(0, -1), SW(-1, -1), W(-1, 0), NW(-1, 1);
+
+        float xDiff;
+        float yDiff;
+
+        Direction(final float xDiff, final float yDiff) {
+
+            this.xDiff = xDiff;
+            this.yDiff = yDiff;
+        }
     }
 }

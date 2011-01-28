@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 ?yvind Berg (elacin@gmail.com)
+ * Copyright 2010 Øyvind Berg (elacin@gmail.com)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ public class PageRegionSplitBySeparators {
             }
 
             /* search to see if this separator does not intersect with anything */
-            Rectangle search                 = new Rectangle(0, splitAt, r.getWidth(),
+            Rectangle search                 = new Rectangle(0, splitAt, r.getPos().width,
                                                    hsep.getPos().height);
             final List<PhysicalContent> list = r.findContentsIntersectingWith(search);
 
