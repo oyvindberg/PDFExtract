@@ -33,7 +33,6 @@
         <module>../model</module>
         <module>../analysis</module>
         <module>../xml-output</module>
-        <module>../tei-p5-schema</module>
         <module>../tei-output</module>
         <module>../cli</module>
     </modules>
