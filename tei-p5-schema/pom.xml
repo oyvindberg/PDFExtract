@@ -19,15 +19,16 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>PDFExtract-parent</artifactId>
+        <artifactId>pdfextract-parent</artifactId>
         <groupId>org.elacin</groupId>
         <version>${minversion}</version>
+        <relativePath>../parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>PDFExtract: TEI XML-schema for Java</name>
     <artifactId>tei-p5-schema</artifactId>
-    <version>${minversion}</version>
+    <version>1.0</version>
 
     <build>
         <plugins>
@@ -48,7 +49,6 @@
                     <bindingFiles>bind.xjb</bindingFiles>
                     <extension>true</extension>
                     <schemaFiles>tei_all.xsd</schemaFiles>
-                    <!--<verbose>true</verbose>-->
                     <relaxng>true</relaxng>
                 </configuration>
                 <executions>

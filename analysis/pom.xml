@@ -19,22 +19,21 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>PDFExtract-parent</artifactId>
+        <artifactId>pdfextract-parent</artifactId>
         <groupId>org.elacin</groupId>
         <version>${minversion}</version>
+        <relativePath>../parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>PDFExtract: Physical and logical analysis and segmentation</name>
     <artifactId>analysis</artifactId>
-    <version>${minversion}</version>
-
 
     <dependencies>
         <dependency>
-            <groupId>org.elacin</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>model</artifactId>
-            <version>${minversion}</version>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

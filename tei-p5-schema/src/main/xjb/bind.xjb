@@ -23,7 +23,7 @@
 
     <jxb:bindings schemaLocation="../xsd/tei_all.xsd" node="/xs:schema">
         <jxb:schemaBindings>
-            <jxb:package name="org.elacin.pdfextract.teischema"/>
+            <jxb:package name="org.elacin.teischema"/>
             <!--<jxb:nameXmlTransform>-->
             <!--<jxb:elementName suffix="Element"/>-->
             <!--<jxb:typeName suffix="Type"/>-->

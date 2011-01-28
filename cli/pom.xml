@@ -19,40 +19,39 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>PDFExtract-parent</artifactId>
+        <artifactId>pdfextract-parent</artifactId>
         <groupId>org.elacin</groupId>
         <version>${minversion}</version>
+        <relativePath>../parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>PDFExtract: Command line interface</name>
     <artifactId>cli</artifactId>
-    <version>${minversion}</version>
 
     <dependencies>
-
         <dependency>
-            <groupId>org.elacin</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>datasource-pdfbox</artifactId>
-            <version>${minversion}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.elacin</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>analysis</artifactId>
-            <version>${minversion}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.elacin</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>tei-output</artifactId>
-            <version>${minversion}</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
-            <groupId>org.elacin</groupId>
+            <groupId>${project.groupId}</groupId>
             <artifactId>xml-output</artifactId>
-            <version>${minversion}</version>
+            <version>${project.version}</version>
         </dependency>
 
 
