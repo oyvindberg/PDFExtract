@@ -24,7 +24,7 @@
         <artifactId>pdfextract-parent</artifactId>
         <groupId>org.elacin</groupId>
         <version>${minversion}</version>
-        <relativePath>../parent</relativePath>
+        <relativePath>../parent/pom.xml</relativePath>
     </parent>
 
     <name>PDFExtract: Physical data model</name>
