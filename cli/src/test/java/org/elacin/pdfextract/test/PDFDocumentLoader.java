@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 �yvind Berg (elacin@gmail.com)
+ * Copyright 2010 Øyvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@
 
 package org.elacin.pdfextract.test;
 
-import org.elacin.pdfextract.DocumentAnalyzer;
+import org.elacin.pdfextract.ProcessDocument;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,13 +40,10 @@ class PDFDocumentLoader {
         final URL url = PDFDocumentLoader.class.getClassLoader().getResource(filename);
 
         //
-        final DocumentAnalyzer DocumentAnalyzer = new DocumentAnalyzer(new File(url.getFile()),
+        final ProcessDocument processDocument = new ProcessDocument(new File(url.getFile()),
                                                       new File(outFile), "", -1, endPage);
 
-        DocumentAnalyzer.processFile();
 
-        final DocumentNode documentNode = DocumentAnalyzer.getRoot();
-
-        return documentNode;
+        return processDocument.processFile();
     }
 }

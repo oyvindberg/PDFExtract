@@ -79,7 +79,7 @@
         <level value="WARN"/>
     </logger>
 
-    <logger name="org.elacin.pdfextract.integration.pdfbox">
+    <logger name="org.elacin.pdfextract.datasource.pdfbox">
         <level value="WARN"/>
     </logger>
 

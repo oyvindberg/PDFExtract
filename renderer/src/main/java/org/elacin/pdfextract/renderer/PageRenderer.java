@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 ?yvind Berg (elacin@gmail.com)
+ * Copyright 2010 Øyvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -23,15 +23,14 @@ import org.elacin.pdfextract.Constants;
 import org.elacin.pdfextract.content.PhysicalPage;
 import org.elacin.pdfextract.content.PhysicalPageRegion;
 import org.elacin.pdfextract.content.WhitespaceRectangle;
+import org.elacin.pdfextract.datasource.DocumentContent;
+import org.elacin.pdfextract.datasource.PDFSource;
+import org.elacin.pdfextract.datasource.PageContent;
+import org.elacin.pdfextract.datasource.RenderedPage;
 import org.elacin.pdfextract.geom.HasPosition;
 import org.elacin.pdfextract.geom.Rectangle;
-import org.elacin.pdfextract.integration.DocumentContent;
-import org.elacin.pdfextract.integration.PDFSource;
-import org.elacin.pdfextract.integration.PageContent;
-import org.elacin.pdfextract.integration.RenderedPage;
 import org.elacin.pdfextract.tree.*;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -49,28 +48,25 @@ import static org.elacin.pdfextract.Constants.*;
 public class PageRenderer {
 
 // ------------------------------ FIELDS ------------------------------
-    private static final Logger  log               = Logger.getLogger(PageRenderer.class);
+    private static final Logger log               = Logger.getLogger(PageRenderer.class);
     @NotNull
-    private static final Color   TRANSPARENT_WHITE = new Color(255, 255, 255, 0);
+    private static final Color  TRANSPARENT_WHITE = new Color(255, 255, 255, 0);
     @NotNull
-    private static final Color   DONT_DRAW         = new Color(254, 254, 254, 0);
-    private int                  paragraphCounter  = 1;
-    private final DocumentNode   documentNode;
-    private Graphics2D           graphics;
-    private final PhysicalPage[] physicalPages;
-    private final int            resolution;
-    private final PDFSource      source;
-    private float                xScale;
-    private float                yScale;
+    private static final Color  DONT_DRAW         = new Color(254, 254, 254, 0);
+    private int                 paragraphCounter  = 1;
+    private final DocumentNode  documentNode;
+    private Graphics2D          graphics;
+    private final int           resolution;
+    private final PDFSource     source;
+    private float               xScale;
+    private float               yScale;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-    public PageRenderer(final PDFSource source, final DocumentNode documentNode, final int resolution,
-                        final PhysicalPage[] physicalPages) {
+    public PageRenderer(final PDFSource source, final DocumentNode documentNode, final int resolution) {
 
-        this.source        = source;
-        this.documentNode  = documentNode;
-        this.resolution    = resolution;
-        this.physicalPages = physicalPages;
+        this.source       = source;
+        this.documentNode = documentNode;
+        this.resolution   = resolution;
     }
 
 // -------------------------- STATIC METHODS --------------------------
@@ -171,16 +167,13 @@ public class PageRenderer {
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         /* render graphics and whitespace, both are left in the physical page */
-        final PhysicalPage physicalPage = findPhysicalPage(pageNode);
+        final PhysicalPage physicalPage = pageNode.getPhysicalPage();
 
         if (physicalPage != null) {
-
-            // for (GraphicContent graphic : physicalPage.getAllGraphics()) {
-            // drawRectangle(graphic);
-            // }
-            drawTree(pageNode);
             drawRegionAndWhitespace(physicalPage.getMainRegion(), 0);
         }
+
+        drawTree(pageNode);
 
         /* write to file */
         try {
@@ -196,22 +189,6 @@ public class PageRenderer {
     }
 
 // -------------------------- OTHER METHODS --------------------------
-    @Nullable
-    private PhysicalPage findPhysicalPage(final PageNode pageNode) {
-
-        for (PhysicalPage physicalPage : physicalPages) {
-            if (physicalPage == null) {
-                continue;
-            }
-
-            if (physicalPage.getPageNumber() == pageNode.getPageNumber()) {
-                return physicalPage;
-            }
-        }
-
-        return null;
-    }
-
     @SuppressWarnings({ "NumericCastThatLosesPrecision" })
     private void drawRectangle(@NotNull final HasPosition object) {
 

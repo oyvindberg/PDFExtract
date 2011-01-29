@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 ?yvind Berg (elacin@gmail.com)
+ * Copyright 2010 Øyvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -116,10 +116,10 @@ public class TextExtractor {
 
         for (File pdfFile : pdfFiles) {
             try {
-                DocumentAnalyzer DocumentAnalyzer = new DocumentAnalyzer(pdfFile, destination, password,
+                ProcessDocument processDocument = new ProcessDocument(pdfFile, destination, password,
                                                         startPage, endPage);
 
-                DocumentAnalyzer.processFile();
+                processDocument.processFile();
             } catch (Exception e) {
                 log.error("Error while processing PDF:", e);
             }

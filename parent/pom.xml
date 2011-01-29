@@ -37,6 +37,8 @@
         <module>../xmlout-simple</module>
         <module>../xmlout-tei-p5</module>
         <module>../cli</module>
+        <module>../datasource</module>
+        <module>../renderer</module>
     </modules>
 
     <groupId>org.elacin</groupId>

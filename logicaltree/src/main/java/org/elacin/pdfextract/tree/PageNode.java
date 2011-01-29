@@ -18,6 +18,7 @@
 
 package org.elacin.pdfextract.tree;
 
+import org.elacin.pdfextract.content.PhysicalPage;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
 // ------------------------------ FIELDS ------------------------------
     private final List<GraphicsNode> graphics = new ArrayList<GraphicsNode>();
     private final int                pageNumber;
+    private PhysicalPage             physicalPage;
 
 // --------------------------- CONSTRUCTORS ---------------------------
     public PageNode(int pageNumber) {
@@ -46,6 +48,14 @@ public class PageNode extends AbstractParentNode<ParagraphNode, DocumentNode> {
 
     public int getPageNumber() {
         return pageNumber;
+    }
+
+    public PhysicalPage getPhysicalPage() {
+        return physicalPage;
+    }
+
+    public void setPhysicalPage(final PhysicalPage physicalPage) {
+        this.physicalPage = physicalPage;
     }
 
 // -------------------------- PUBLIC METHODS --------------------------
