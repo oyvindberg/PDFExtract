@@ -29,13 +29,14 @@
 
 
     <modules>
-        <module>../datasource-pdfbox</module>
         <module>../model</module>
+        <module>../datasource-pdfbox</module>
         <module>../analysis</module>
-        <module>../xml-output</module>
-        <module>../tei-output</module>
-        <module>../cli</module>
         <module>../logicaltree</module>
+        <module>../xmlout</module>
+        <module>../xmlout-simple</module>
+        <module>../xmlout-tei-p5</module>
+        <module>../cli</module>
     </modules>
 
     <groupId>org.elacin</groupId>

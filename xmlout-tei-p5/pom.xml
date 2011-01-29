@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <name>PDFExtract: TEI output module</name>
-    <artifactId>tei-output</artifactId>
+    <artifactId>xmlout-tei-p5</artifactId>
 
     <dependencies>
         <dependency>
@@ -35,10 +35,9 @@
             <artifactId>tei-p5-schema</artifactId>
             <version>0.1</version>
         </dependency>
-
         <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>logicaltree</artifactId>
+            <groupId>org.elacin</groupId>
+            <artifactId>xmlout</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
