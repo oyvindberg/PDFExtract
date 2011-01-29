@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 ?yvind Berg (elacin@gmail.com)
+ * Copyright 2010 Øyvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ package org.elacin.pdfextract.tree;
 
 import org.apache.log4j.Logger;
 import org.elacin.pdfextract.geom.HasPositionAbstract;
-import org.elacin.pdfextract.logical.text.Role;
 import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

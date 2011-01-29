@@ -38,7 +38,7 @@
 
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>analysis</artifactId>
+            <artifactId>logicaltree</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

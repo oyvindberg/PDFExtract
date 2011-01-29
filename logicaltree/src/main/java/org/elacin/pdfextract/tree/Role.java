@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 ?yvind Berg (elacin@gmail.com)
+ * Copyright 2010 Øyvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -15,8 +15,7 @@
  */
 
 
-
-package org.elacin.pdfextract.logical.text;
+package org.elacin.pdfextract.tree;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Mar 18, 2010 Time: 2:32:32 PM To change this
