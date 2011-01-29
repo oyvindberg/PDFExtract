@@ -1,17 +1,17 @@
 /*
- * Copyright 2010 ?yvind Berg (elacin@gmail.com)
+ * Copyright 2010 Øyvind Berg (elacin@gmail.com)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *        http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
 
 
@@ -22,9 +22,9 @@ import org.apache.log4j.Logger;
 import org.elacin.pdfextract.content.GraphicContent;
 import org.elacin.pdfextract.content.PhysicalContent;
 import org.elacin.pdfextract.content.PhysicalPageRegion;
+import org.elacin.pdfextract.formula.Formulas;
 import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.geom.Sorting;
-import org.elacin.pdfextract.logical.Formulas;
 import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
 
