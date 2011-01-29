@@ -30,15 +30,15 @@
 
     <modules>
         <module>../model</module>
+        <module>../datasource</module>
         <module>../datasource-pdfbox</module>
         <module>../analysis</module>
         <module>../logicaltree</module>
         <module>../xmlout</module>
         <module>../xmlout-simple</module>
         <module>../xmlout-tei-p5</module>
-        <module>../cli</module>
-        <module>../datasource</module>
         <module>../renderer</module>
+        <module>../pdfextract-cli</module>
     </modules>
 
     <groupId>org.elacin</groupId>
