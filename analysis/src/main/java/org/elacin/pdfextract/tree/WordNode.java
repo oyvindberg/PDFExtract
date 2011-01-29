@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 ?yvind Berg (elacin@gmail.com)
+ * Copyright 2010 Øyvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -39,20 +39,16 @@ import org.jetbrains.annotations.NotNull;
 public class WordNode extends AbstractNode<LineNode> implements StyledText {
 
     private final float       charSpacing;
-    private final int         pageNum;
-    protected final Rectangle position;
     protected final Style     style;
 
 // ------------------------------ FIELDS ------------------------------
     public final String text;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-    public WordNode(final Rectangle position, final int pageNum, final Style style, final String text,
+    public WordNode(final Rectangle position, final Style style, final String text,
                     final float charSpacing) {
 
         setPos(position);
-        this.position    = position;
-        this.pageNum     = pageNum;
         this.style       = style;
         this.text        = text;
         this.charSpacing = charSpacing;
@@ -83,7 +79,7 @@ public class WordNode extends AbstractNode<LineNode> implements StyledText {
     public String toString() {
 
         if (toStringCache == null) {
-            toStringCache = "WordNode{text='" + text + '\'' + ", position=" + position + ", style="
+            toStringCache = "WordNode{text='" + text + '\'' + ", position=" + getPos() + ", style="
                             + style + '}';
         }
 
@@ -91,18 +87,11 @@ public class WordNode extends AbstractNode<LineNode> implements StyledText {
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-    public float getCharSpacing() {
-        return charSpacing;
-    }
-
-    public int getPageNum() {
-        return pageNum;
-    }
 
 // -------------------------- PUBLIC METHODS --------------------------
     public boolean isPartOfSameWordAs(@NotNull final WordNode nextNode) {
 
-        float distance = nextNode.position.x - position.endX;
+        float distance = nextNode.getPos().x - getPos().endX;
 
         return distance <= charSpacing;    // * 1.01f;
     }

@@ -1,17 +1,17 @@
 /*
- * Copyright 2010 ?yvind Berg (elacin@gmail.com)
+ * Copyright 2010 Øyvind Berg (elacin@gmail.com)
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *        http://www.apache.org/licenses/LICENSE-2.0
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
  */
 
 
@@ -43,7 +43,7 @@ public class LineSegmentator {
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
     @NotNull
-    public static List<LineNode> createLinesFromBlocks(RectangleCollection block, int pageNum) {
+    public static List<LineNode> createLinesFromBlocks(RectangleCollection block) {
 
         /* compile paragraphs of text based on the assigned block numbers */
         int minY = Integer.MAX_VALUE,
@@ -97,9 +97,9 @@ public class LineSegmentator {
                     content.getAssignable().setBlockNum(1);
 
                     if (content.isText()) {
-                        currentLine.addChild(createWordNode(content.getPhysicalText(), pageNum));
+                        currentLine.addChild(createWordNode(content.getPhysicalText()));
                     } else {
-                        currentLine.addChild(createWordNodeFromGraphic(pageNum, content));
+                        currentLine.addChild(createWordNodeFromGraphic(content));
                     }
                 }
             }
@@ -116,13 +116,13 @@ public class LineSegmentator {
     }
 
     @NotNull
-    public static WordNode createWordNode(@NotNull final PhysicalText text, int pageNumber) {
-        return new WordNode(text.getPos(), pageNumber, text.getStyle(), text.text, text.charSpacing);
+    public static WordNode createWordNode(@NotNull final PhysicalText text) {
+        return new WordNode(text.getPos(), text.getStyle(), text.text, text.charSpacing);
     }
 
-    public static WordNode createWordNodeFromGraphic(final int pageNum, final PhysicalContent content) {
+    public static WordNode createWordNodeFromGraphic(final PhysicalContent content) {
 
-        return new WordNode(content.getPos(), pageNum, content.getGraphicContent().getStyle(),
+        return new WordNode(content.getPos(), content.getGraphicContent().getStyle(),
                             content.getGraphicContent().getStyle().id, -1);
     }
 
