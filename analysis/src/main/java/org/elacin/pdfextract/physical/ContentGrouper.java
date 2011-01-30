@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010-2011 Øyvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -233,18 +233,19 @@ public class ContentGrouper {
             @NotNull final List<PhysicalContent> line) {
 
         final int currentIndex = line.indexOf(current);
-        boolean   continue_    = true;
 
         /* left/up */
-        for (int index = currentIndex - 1; (index >= 0) && continue_; index--) {
-            continue_ &= markEverythingConnectedFrom(line.get(index));
+        for (int index = currentIndex - 1; (index >= 0); index--) {
+            if (!markEverythingConnectedFrom(line.get(index))){
+                break;
+            }
         }
 
         /* right / down */
-        continue_ = true;
-
-        for (int index = currentIndex + 1; (index < line.size()) && continue_; index++) {
-            continue_ &= markEverythingConnectedFrom(line.get(index));
+        for (int index = currentIndex + 1; (index < line.size()); index++) {
+            if (!markEverythingConnectedFrom(line.get(index))){
+                break;
+            }
         }
     }
 
