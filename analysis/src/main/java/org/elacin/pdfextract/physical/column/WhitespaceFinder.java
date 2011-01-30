@@ -173,7 +173,6 @@ public final class WhitespaceFinder {
     }
 
 // -------------------------- OTHER METHODS --------------------------
-    @SuppressWarnings({ "ObjectAllocationInLoop" })
     WhitespaceRectangle findNextWhitespace() {
 
         queue.addAll(holdList);
@@ -416,14 +415,19 @@ public final class WhitespaceFinder {
          *   so this is quite optimized to avoid too many float point comparisons and needless
          *   object creations. This cut execution time by some 90ish % :)
          */
-        int           missingRectangles = wantedWhitespaces - foundWhitespaceCount;
-        final float   splitX            = pivot.getPos().x,
-                      splitEndX         = pivot.getPos().endX,
-                      splitY            = pivot.getPos().y,
-                      splitEndY         = pivot.getPos().endY,
-                      leftWidth         = splitX - current.bound.x;
-        Rectangle     left              = null;
-        HasPosition[] leftObs           = null;
+        int         missingRectangles = wantedWhitespaces - foundWhitespaceCount;
+        final float splitX            = pivot.getPos().x,
+                    splitEndX         = pivot.getPos().endX,
+                    splitY            = pivot.getPos().y,
+                    splitEndY         = pivot.getPos().endY;
+
+        /*
+         *  check which of the four possible subrectangles we want to create,
+         * and their dimensions
+         */
+        Rectangle     left      = null;
+        HasPosition[] leftObs   = null;
+        final float   leftWidth = splitX - current.bound.x;
 
         if ((splitX > current.bound.x) && (leftWidth > minWidth)) {
             left    = new Rectangle(current.bound.x, current.bound.y, leftWidth, current.bound.height);
