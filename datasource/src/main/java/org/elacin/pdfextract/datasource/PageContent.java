@@ -22,13 +22,14 @@ import org.elacin.pdfextract.content.GraphicContent;
 import org.elacin.pdfextract.content.PhysicalText;
 import org.elacin.pdfextract.geom.Rectangle;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: 15.01.11 Time: 19.47 To change this template use
  * File | Settings | File Templates.
  */
-public class PageContent {
+public class PageContent implements Serializable {
 
 // ------------------------------ FIELDS ------------------------------
     final List<PhysicalText>   characters;

@@ -21,6 +21,7 @@ package org.elacin.pdfextract.datasource;
 import org.elacin.pdfextract.style.Style;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -29,7 +30,7 @@ import java.util.List;
  * Created by IntelliJ IDEA. User: elacin Date: 15.01.11 Time: 20.37 To change this template use
  * File | Settings | File Templates.
  */
-public class DocumentContent {
+public class DocumentContent implements Serializable {
 
 // ------------------------------ FIELDS ------------------------------
     @NotNull
@@ -53,7 +54,7 @@ public class DocumentContent {
         pages.add(page);
     }
 
-    public void setStyles(Collection<Style> newStyles) {
+    public void setStyles(@NotNull Collection<Style> newStyles) {
         styles.addAll(newStyles);
     }
 }

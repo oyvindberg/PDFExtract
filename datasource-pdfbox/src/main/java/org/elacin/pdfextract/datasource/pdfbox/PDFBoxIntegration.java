@@ -32,6 +32,7 @@ package org.elacin.pdfextract.datasource.pdfbox;
 import org.apache.fontbox.util.BoundingBox;
 import org.apache.log4j.Logger;
 import org.apache.log4j.MDC;
+import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.pdfviewer.PageDrawer;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -811,4 +812,8 @@ the direction of right to left text, such as Arabic and Hebrew. */
             MDC.remove("page");
         }
     }
+
+@Override public void SHFill(final COSName ShadingName) throws IOException {
+    super.SHFill(ShadingName);
+}
 }
