@@ -46,29 +46,32 @@ public final class WhitespaceFinder {
     private static final Logger log                  = Logger.getLogger(WhitespaceFinder.class);
     private int                 foundWhitespaceCount = 0;
 
-/*     this holds a list of all queue entries which are not yet accepted. Upon finding a new
-    * whitespace rectangle, these are added back to the queue. */
+    /*
+     *      this holds a list of all queue entries which are not yet accepted. Upon finding a new
+     * whitespace rectangle, these are added back to the queue.
+     */
     private final List<QueueEntry> holdList = new ArrayList<QueueEntry>();
 
     /**
      * State while working follows below
      */
 
-/* this holds all the whitespace rectangles we have found */
+    /* this holds all the whitespace rectangles we have found */
     private final WhitespaceRectangle[] foundWhitespace;
 
-/* min[Height|Width] are the thinnest rectangles we will accept */
-    private final float minHeight;
-    private final float minWidth;
+    /* min[Height|Width] are the thinnest rectangles we will accept */
+    private final float minHeight, minWidth;
 
-/* a queue which will give us the biggest/best rectangles first */
+    /* a queue which will give us the biggest/best rectangles first */
     private final PriorityQueue<QueueEntry> queue;
 
-/*  all the obstacles in the algorithm are found here, and are initially all the
-     words on the page */
+    /*
+     *   all the obstacles in the algorithm are found here, and are initially all the
+     * words on the page
+     */
     protected final RectangleCollection region;
 
-/* the number of whitespace we want to find */
+    /* the number of whitespace we want to find */
     private final int wantedWhitespaces;
 
 // --------------------------- CONSTRUCTORS ---------------------------
@@ -138,8 +141,8 @@ public final class WhitespaceFinder {
         if (Constants.WHITESPACE_FUZZY_EMPTY_CHECK && (whitespaceCandidate.numObstacles != 0)) {
 
             /* accept a small intersection */
-            float       intersectSum   = 0.0f;
-            float       whitespaceArea = whitespaceCandidate.bound.area();
+            float       intersectSum   = 0.0f,
+                        whitespaceArea = whitespaceCandidate.bound.area();
             final float intersectLimit = whitespaceArea * WHITESPACE_FUZZINESS;
 
             for (int i = 0; i < whitespaceCandidate.numObstacles; i++) {
@@ -274,8 +277,8 @@ public final class WhitespaceFinder {
 
         /* accept this rectangle if it is adjacent to the edge of the page */
         final float l    = WHITESPACE_OBSTACLE_OVERLAP;
-        Rectangle   wPos = newWhitespace.getPos();
-        Rectangle   rPos = region.getPos();
+        Rectangle   wPos = newWhitespace.getPos(),
+                    rPos = region.getPos();
 
         if ((wPos.x <= rPos.x + l) || (wPos.y <= rPos.y + l) || (wPos.endX >= rPos.endX - l)
                 || (wPos.endY >= rPos.endY - l)) {
@@ -305,11 +308,10 @@ public final class WhitespaceFinder {
         if (foundWhitespaceCount == 0) {
 
             /* first add the whole page (all its contents as obstacle)s to the priority queue */
-            queue.add(
-                new QueueEntry(
-                    region.getPos(),
-                    region.getContents().toArray(new HasPosition[region.getContents().size()]),
-                    region.getContents().size(), 0));
+            int           obstacleCount = region.getContents().size();
+            HasPosition[] obstacles     = region.getContents().toArray(new HasPosition[obstacleCount]);
+
+            queue.add(new QueueEntry(region.getPos(), obstacles, obstacleCount, 0));
 
             /* continue looking for whitespace until we have the wanted number or we run out */
             while (foundWhitespaceCount < wantedWhitespaces) {
@@ -415,13 +417,13 @@ public final class WhitespaceFinder {
          *   object creations. This cut execution time by some 90ish % :)
          */
         int           missingRectangles = wantedWhitespaces - foundWhitespaceCount;
-        final float   splitX            = pivot.getPos().x;
-        final float   splitEndX         = pivot.getPos().endX;
-        final float   splitY            = pivot.getPos().y;
-        final float   splitEndY         = pivot.getPos().endY;
+        final float   splitX            = pivot.getPos().x,
+                      splitEndX         = pivot.getPos().endX,
+                      splitY            = pivot.getPos().y,
+                      splitEndY         = pivot.getPos().endY,
+                      leftWidth         = splitX - current.bound.x;
         Rectangle     left              = null;
         HasPosition[] leftObs           = null;
-        final float   leftWidth         = splitX - current.bound.x;
 
         if ((splitX > current.bound.x) && (leftWidth > minWidth)) {
             left    = new Rectangle(current.bound.x, current.bound.y, leftWidth, current.bound.height);
@@ -463,10 +465,10 @@ public final class WhitespaceFinder {
                     aboveIndex        = 0,
                     rightIndex        = 0,
                     belowIndex        = 0;
-        final float adjustedSplitX    = splitX - WHITESPACE_OBSTACLE_OVERLAP;
-        final float adjustedSplitY    = splitY - WHITESPACE_OBSTACLE_OVERLAP;
-        final float adjustedSplitEndX = splitEndX + WHITESPACE_OBSTACLE_OVERLAP;
-        final float adjustedSplitEndY = splitEndY + WHITESPACE_OBSTACLE_OVERLAP;
+        final float adjustedSplitX    = splitX - WHITESPACE_OBSTACLE_OVERLAP,
+                    adjustedSplitY    = splitY - WHITESPACE_OBSTACLE_OVERLAP,
+                    adjustedSplitEndX = splitEndX + WHITESPACE_OBSTACLE_OVERLAP,
+                    adjustedSplitEndY = splitEndY + WHITESPACE_OBSTACLE_OVERLAP;
 
         for (int i = 0; i < current.numObstacles; i++) {
             HasPosition     obstacle    = current.obstacles[i];
@@ -531,8 +533,7 @@ public final class WhitespaceFinder {
     static class QueueEntry implements Comparable<QueueEntry> {
 
         final Rectangle     bound;
-        int                 numberOfWhitespaceFound;
-        int                 numObstacles;
+        int                 numberOfWhitespaceFound, numObstacles;
         final HasPosition[] obstacles;
         final float         quality;
 
