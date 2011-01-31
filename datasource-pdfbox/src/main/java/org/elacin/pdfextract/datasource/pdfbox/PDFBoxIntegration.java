@@ -388,18 +388,18 @@ the direction of right to left text, such as Arabic and Hebrew. */
             return;
         }
 
-        java.awt.Rectangle javapos = new java.awt.Rectangle((int) text.getPos().x,
-                                         (int) text.getPos().y, (int) text.getPos().width,
-                                         (int) text.getPos().height);
-
-        if (!getGraphicsState().getCurrentClippingPath().intersects(javapos)) {
-            if (log.isDebugEnabled()) {
-                log.debug("LOG01090:Dropping text \"" + text.getCharacter() + "\" because it "
-                          + "was outside clipping path");
-            }
-
-            return;
-        }
+//        java.awt.Rectangle javapos = new java.awt.Rectangle((int) text.getPos().x,
+//                                         (int) text.getPos().y, (int) text.getPos().width,
+//                                         (int) text.getPos().height);
+//
+//        if (!getGraphicsState().getCurrentClippingPath().intersects(javapos)) {
+//            if (log.isDebugEnabled()) {
+//                log.debug("LOG01090:Dropping text \"" + text.getCharacter() + "\" because it "
+//                          + "was outside clipping path");
+//            }
+//
+//            return;
+//        }
 
         if (!textAlreadyRenderedAtSamePlace(text)) {
             if (log.isDebugEnabled()) {
@@ -572,7 +572,7 @@ the direction of right to left text, such as Arabic and Hebrew. */
             if (isMonoSpacedFont(fontObj)) {
                 x = pos.x;
             } else {
-                float leftOfText = text.getX() - (adjust * fontBB.getLowerLeftX());
+                float leftOfText = text.getX() - (adjust * fontBB.getWidth());
 
                 x = leftOfText + adjust * character.getLowerLeftX();
             }
@@ -595,7 +595,12 @@ the direction of right to left text, such as Arabic and Hebrew. */
                 characterHeight = character.getHeight();
             }
 
-            final float h = adjust * characterHeight;
+            float h = adjust * characterHeight;
+
+            /* correct if the NO_DESCENDERS hack made this character have no height*/
+            if (NO_DESCENDERS && h < 0.1f){
+                h = pos.height;
+            }
 
             newPos = new Rectangle(x, yStart, w, h);
         } else {
@@ -789,6 +794,8 @@ the direction of right to left text, such as Arabic and Hebrew. */
 
             /* this is used to 'draw' images on during pdf parsing */
             graphicsDrawer.clearSurface();
+            setGraphicsState(null);
+            resetEngine();
             processStream(page, page.findResources(), content);
             filterOutBadFonts(charactersForPage);
 

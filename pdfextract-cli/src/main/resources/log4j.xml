@@ -79,12 +79,16 @@
         <level value="WARN"/>
     </logger>
 
+    <logger name="org.elacin.pdfextract.content">
+        <level value="WARN"/>
+    </logger>
+
     <logger name="org.elacin.pdfextract.datasource.pdfbox">
         <level value="WARN"/>
     </logger>
 
     <logger name="org.elacin.pdfextract.physical.word">
-        <level value="WARN"/>
+        <level value="WANR"/>
     </logger>
 
     <logger name="org.elacin.pdfextract.physical.graphics">
@@ -92,23 +96,23 @@
     </logger>
 
     <logger name="org.elacin.pdfextract.physical.paragraph">
-        <level value="INFO"/>
+        <level value="WARN"/>
     </logger>
 
     <logger name="org.elacin.pdfextract.physical.column">
-        <level value="DEBUG"/>
+        <level value="WARN"/>
     </logger>
 
     <logger name="org.elacin.pdfextract.physical">
-        <level value="INFO"/>
+        <level value="WARN"/>
     </logger>
 
     <logger name="org.elacin.pdfextract.style">
-        <level value="INFO"/>
+        <level value="WARN"/>
     </logger>
 
     <logger name="org.apache.pdfbox" additivity="false">
-        <level value="ERROR"/>
+        <level value="INFO"/>
         <appender-ref ref="pdfbox"/>
         <appender-ref ref="console"/>
     </logger>

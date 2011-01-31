@@ -314,8 +314,10 @@ public class PageSegmentator {
         final List<WhitespaceRectangle> columnBoundaries = ColumnFinder.extractColumnBoundaries(region,
                                                                whitespaces);
 
-        for (WhitespaceRectangle columnBoundary : columnBoundaries) {
-            log.info("LOG01050:Region " + region + ", column boundary: " + columnBoundary);
+        for (WhitespaceRectangle column : columnBoundaries) {
+            if (log.isInfoEnabled()) {
+                log.info("LOG01050:Column boundary at " + column + " found for region " + region);
+            }
         }
 
         region.addWhitespace(columnBoundaries);

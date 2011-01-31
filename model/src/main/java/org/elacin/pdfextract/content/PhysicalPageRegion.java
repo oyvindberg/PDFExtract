@@ -216,7 +216,7 @@ public class PhysicalPageRegion extends RectangleCollection {
             findAndSetFontInformation();
         }
 
-        return (float) getMedianOfVerticalDistances();    // * 0.8f;
+        return (float) getMedianOfVerticalDistances() * 1.1f;    // * 0.8f;
 
         // return _shortestText * 1.2f;
         //
@@ -318,7 +318,7 @@ public class PhysicalPageRegion extends RectangleCollection {
             newRegion.subregions.add(subRegionToMove);
         }
 
-        log.warn("LOG00890:Extracted PPR:" + newRegion + " from " + this);
+        log.info("LOG00890:Extracted PPR:" + newRegion + " from " + this);
         removeContents(subContents);
         addContents(saveWhitespace);
 

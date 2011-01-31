@@ -98,8 +98,10 @@ public final class WhitespaceFinder {
         final List<WhitespaceRectangle> ret  = finder.findWhitespace();
         final long                      time = System.currentTimeMillis() - t0;
 
-        log.warn(String.format("LOG00380:%d of %d whitespaces for %s in %d ms", ret.size(),
-                               numWhitespaces, region, time));
+        log.info(String.format("LOG00380:%d of %d whitespaces for %s in %d ms", ret.size(),
+                               numWhitespaces, region, time
+        )
+        );
 
         return ret;
     }
@@ -392,10 +394,11 @@ public final class WhitespaceFinder {
                 averageHeight /= (float) counted;
 
                 float u       = Math.max(((PhysicalPageRegion) region).getMinimumRowSpacing(),
-                                         averageHeight);
-                final float v = (WHITESPACE_OBSTACLE_OVERLAP + 1f * u) * (1 + WHITESPACE_FUZZINESS);
+                                         averageHeight
+                );
+//                final float v = (WHITESPACE_OBSTACLE_OVERLAP + 1f * u) * (1 + WHITESPACE_FUZZINESS);
 
-                if (v > newWhitespace.getPos().height) {
+                if (u > newWhitespace.getPos().height) {
                     return true;
                 }
             }
