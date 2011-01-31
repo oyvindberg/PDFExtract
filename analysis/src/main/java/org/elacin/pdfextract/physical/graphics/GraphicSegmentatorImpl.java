@@ -217,13 +217,12 @@ public class GraphicSegmentatorImpl implements GraphicSegmentator {
             for (int i = 1; i < sepList.size(); i++) {
                 GraphicContent graphicPart = sepList.get(i);
 
-//              if (newlyCombined.getPos().distance(graphicPart.getPos()) > 50.0f) {
-//                  combinedGraphics.add(newlyCombined);
-//                  newlyCombined = graphicPart;
-//              } else {
-                newlyCombined = newlyCombined.combineWith(graphicPart);
-
-//              }
+                if (newlyCombined.getPos().distance(graphicPart.getPos()) > 50.0f) {
+                    combinedGraphics.add(newlyCombined);
+                    newlyCombined = graphicPart;
+                } else {
+                    newlyCombined = newlyCombined.combineWith(graphicPart);
+                }
             }
 
             combinedGraphics.add(newlyCombined);

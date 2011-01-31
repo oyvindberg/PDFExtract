@@ -42,7 +42,7 @@
 
 
     <logger name="org.elacin.pdfextract" additivity="false">
-        <level value="DEBUG"/>
+        <level value="WARN"/>
         <appender-ref ref="pdfExtract"/>
         <appender-ref ref="console"/>
     </logger>
@@ -50,7 +50,7 @@
 
     <logger name="org.apache.pdfbox" additivity="false">
         <!-- set this to DEBUG if PDFBox' logging is wanted -->
-        <level value="DEBUG"/>
+        <level value="WARN"/>
         <appender-ref ref="pdfExtract"/>
         <appender-ref ref="console"/>
     </logger>

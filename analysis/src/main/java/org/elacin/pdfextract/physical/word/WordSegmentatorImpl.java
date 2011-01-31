@@ -33,7 +33,8 @@ import static org.elacin.pdfextract.geom.MathUtils.isWithinVariance;
 public class WordSegmentatorImpl implements WordSegmentator {
 
 // ------------------------------ FIELDS ------------------------------
-    private static final Logger log = Logger.getLogger(WordSegmentatorImpl.class);
+    private static final Logger log                   = Logger.getLogger(WordSegmentatorImpl.class);
+    public static final float         fontDenom             = 8.0f;
 
 // ------------------------ INTERFACE METHODS ------------------------
 // --------------------- Interface WordSegmentator ---------------------
@@ -186,9 +187,9 @@ public class WordSegmentatorImpl implements WordSegmentator {
             if (containsSpaces) {
                 isWordBoundary = "".equals(nextChar.getText().trim());
             } else {
-                final float distance = currentWord.getPos().distance(nextChar.getPos());
+                final float   distance = currentWord.getPos().distance(nextChar.getPos());;
 
-                isWordBoundary = distance - charSpacing > (fontSize / 8.0f) + charSpacing * 0.5;
+                isWordBoundary = distance - charSpacing > 0.6f * fontSize / fontDenom;
 
                 if (log.isDebugEnabled()) {
                     log.debug(currentWord.getText() + "[" + currentWidth + "] " + distance + " "
@@ -265,12 +266,12 @@ public class WordSegmentatorImpl implements WordSegmentator {
          *  assumption here is that word spacing will never be only 1.5 times the smallest
          *  space occurring between two characters.
          *
-         * The 0.6 is a quite random number, it's purpose is to avoid breaking the
+         * The fontDenom is a quite random number, it's purpose is to avoid breaking the
          *  algorithm for negative character distances (which are common and useful),
          *  and its only properties are that it is too small to ever separate a word, and
          *  that it is a positive number :)
          */
-        final float maxBoundary = Math.max(0.6f, distances[0] * 2f);
+        final float maxBoundary = Math.max(fontDenom, distances[0] * 2f);
         int         counted     = 0;
         float       sum         = 0.0f;
 

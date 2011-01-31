@@ -46,15 +46,18 @@ public class ProcessDocument {
     public final File           pdfFile;
     @NotNull
     private final File          destination;
-    @NotNull
-    private final PDFSource     source;
+    public String               password;
+    public int                  startPage;
+    public int                  endPage;
 
 // --------------------------- CONSTRUCTORS ---------------------------
     public ProcessDocument(File pdfFile, File destination, String password, int startPage, int endPage) {
 
         this.destination = destination;
         this.pdfFile     = pdfFile;
-        source           = new PDFBoxSource(this.pdfFile, startPage, endPage, password);
+        this.password    = password;
+        this.startPage   = startPage;
+        this.endPage     = endPage;
     }
 
 // -------------------------- STATIC METHODS --------------------------
@@ -103,26 +106,35 @@ public class ProcessDocument {
 // -------------------------- PUBLIC METHODS --------------------------
     public DocumentNode processFile() {
 
-        final DocumentContent content      = source.readPages();
+        PDFSource    source = null;
+        DocumentNode documentNode;
 
-        DocumentNode          documentNode = DocumentAnalyzer.analyzeDocument(content);
+        try {
+            source = new PDFBoxSource(this.pdfFile, startPage, endPage, password);
 
-        if (SIMPLE_OUTPUT_ENABLED) {
-            new SimpleXMLOutput().writeTree(documentNode,
-                                            getOutputFile(destination, pdfFile,
-                                                SIMPLE_OUTPUT_EXTENSION));
+            final DocumentContent content = source.readPages();
+
+            documentNode = DocumentAnalyzer.analyzeDocument(content);
+
+            if (SIMPLE_OUTPUT_ENABLED) {
+                new SimpleXMLOutput().writeTree(documentNode,
+                                                getOutputFile(destination, pdfFile,
+                                                    SIMPLE_OUTPUT_EXTENSION));
+            }
+
+            if (TEI_OUTPUT_ENABLED) {
+                new TEIOutput().writeTree(documentNode,
+                                          getOutputFile(destination, pdfFile, TEI_OUTPUT_EXTENSION));
+            }
+
+            if (RENDER_ENABLED) {
+                renderPDF(source, documentNode, getOutputFile(destination, pdfFile, ".%d.%p.png"));
+            }
+        } finally {
+            if (source != null) {
+                source.closeSource();
+            }
         }
-
-        if (TEI_OUTPUT_ENABLED) {
-            new TEIOutput().writeTree(documentNode,
-                                      getOutputFile(destination, pdfFile, TEI_OUTPUT_EXTENSION));
-        }
-
-        if (RENDER_ENABLED) {
-            renderPDF(source, documentNode, getOutputFile(destination, pdfFile, ".%d.%p.png"));
-        }
-
-        source.closeSource();
 
         return documentNode;
     }

@@ -43,7 +43,7 @@ import static org.elacin.pdfextract.geom.RectangleCollection.Direction.W;
  */
 public class ColumnFinder {
 
-    private static String chars = "()[]abcdef123456789o.? ";
+    private static String chars = "()[]abcdef1234567890o.?* ";
 
 // ------------------------------ FIELDS ------------------------------
     public static final float   DEFAULT_COLUMN_WIDTH = 2.0f;
