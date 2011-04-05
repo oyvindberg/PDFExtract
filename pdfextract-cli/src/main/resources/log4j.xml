@@ -76,7 +76,7 @@
     </logger>
 
     <logger name="org.elacin.pdfextract.tree">
-        <level value="WARN"/>
+        <level value="INFO"/>
     </logger>
 
     <logger name="org.elacin.pdfextract.content">
@@ -101,6 +101,10 @@
 
     <logger name="org.elacin.pdfextract.physical.column">
         <level value="WARN"/>
+    </logger>
+
+    <logger name="org.elacin.pdfextract.logical.operation">
+        <level value="INFO"/>
     </logger>
 
     <logger name="org.elacin.pdfextract.physical">

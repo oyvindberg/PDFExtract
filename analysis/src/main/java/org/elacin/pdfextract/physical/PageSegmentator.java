@@ -53,8 +53,9 @@ public class PageSegmentator {
 
 // ------------------------------ FIELDS ------------------------------
     @NotNull
-    private static final Logger               log                  = Logger.getLogger(
-                                                                         PageSegmentator.class);
+    private static final Logger log = Logger.getLogger(PageSegmentator.class);
+
+    /* */
     private static final ParagraphSegmentator paragraphSegmentator = new ParagraphSegmentator();
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
@@ -75,7 +76,7 @@ public class PageSegmentator {
         PageRegionSplitBySeparators.splitRegionBySeparators(mainRegion, categorizedGraphics);
 
         /* This will detect column boundaries and split up all regions */
-        recursivelyDivide(mainRegion, categorizedGraphics);
+        recursivelyDivide(mainRegion);
 
         /*
          *  this is to make text ordering work, if it was in the main region it would destroy
@@ -300,8 +301,7 @@ public class PageSegmentator {
         }
     }
 
-    private static void recursivelyDivide(@NotNull PhysicalPageRegion region,
-            CategorizedGraphics graphics) {
+    private static void recursivelyDivide(@NotNull PhysicalPageRegion region) {
 
         final List<WhitespaceRectangle> whitespaces = WhitespaceFinder.findWhitespace(region);
 
@@ -323,7 +323,7 @@ public class PageSegmentator {
         region.addWhitespace(columnBoundaries);
 
         for (PhysicalPageRegion subRegion : region.getSubregions()) {
-            recursivelyDivide(subRegion, graphics);
+            recursivelyDivide(subRegion);
         }
 
         Collections.sort(columnBoundaries, Sorting.sortByHigherX);

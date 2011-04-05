@@ -152,6 +152,24 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode,
         }
     }
 
+    public void removeChild(ChildType child) {
+
+        child.invalidateThisAndParents();
+        children.remove(child);
+        child.parent = null;
+    }
+
+    public void removeChildren(List<ChildType> childrenToRemove) {
+
+
+        for (ChildType child : childrenToRemove) {
+            child.invalidateThisAndParents();
+            children.remove(child);
+            child.parent = null;
+        }
+    }
+
+
 // -------------------------- INNER CLASSES --------------------------
 
     /**

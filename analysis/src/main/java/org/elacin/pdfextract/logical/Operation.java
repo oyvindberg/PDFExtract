@@ -15,13 +15,16 @@
  */
 
 
-package org.elacin.pdfextract.tree;
+package org.elacin.pdfextract.logical;
+
+import org.elacin.pdfextract.tree.DocumentNode;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Mar 18, 2010 Time: 2:32:32 PM To change this
+ * Created by IntelliJ IDEA. User: elacin Date: Mar 23, 2010 Time: 3:09:37 AM To change this
  * template use File | Settings | File Templates.
  */
-public enum Role {
-    DIV1, DIV2, DIV3, FOOTNOTE, HEADNOTE, PAGENUMBER, EMPHASIS, NORMAL, UNKNOWN,
-    INDEXNUMBER, TITLE, IDENTIFIER;
+public interface Operation {
+
+// -------------------------- PUBLIC METHODS --------------------------
+    void doOperation(DocumentNode root);
 }

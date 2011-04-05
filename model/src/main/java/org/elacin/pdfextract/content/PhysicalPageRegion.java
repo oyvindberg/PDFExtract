@@ -24,14 +24,12 @@ import org.elacin.pdfextract.geom.HasPosition;
 import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.geom.RectangleCollection;
 import org.elacin.pdfextract.style.Style;
-import org.elacin.pdfextract.style.TextUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Nov 8, 2010 Time: 7:44:41 PM To change this template
@@ -40,35 +38,35 @@ import java.util.Set;
 public class PhysicalPageRegion extends RectangleCollection {
 
 // ------------------------------ FIELDS ------------------------------
-    private static final Logger             log        = Logger.getLogger(PhysicalPageRegion.class);
+    private static final Logger log = Logger.getLogger(PhysicalPageRegion.class);
+
+    /* content */
     @NotNull
     private final List<PhysicalPageRegion>  subregions = new ArrayList<PhysicalPageRegion>();
     @NotNull
     private final List<WhitespaceRectangle> whitespace = new ArrayList<WhitespaceRectangle>();
-    private transient float                 _avgFontSizeX;
-    private transient float                 _avgFontSizeY;
-    private transient int                   _medianOfVerticalDistances;
-    @Nullable
-    private transient Style                 _mostCommonStyle;
-    private transient boolean               _posSet;
-    private transient float                 _shortestText;
-    @Nullable
-    private GraphicContent                  containingGraphic;
 
-/* average font sizes for this page region */
-    private transient boolean fontInfoFound;
-    private transient boolean medianFound;
-
-/* the physical page containing this region */
+    /* the physical page containing this region */
     @NotNull
     private final PhysicalPage page;
 
+    /* the graphics containing this region */
+    @Nullable
+    private GraphicContent containingGraphic;
+
+    /* average font sizes for this page region */
+    private transient float   _avgFontSizeX;
+    private transient float   _avgFontSizeY;
+    private transient int     _medianOfVerticalDistances;
+    private transient boolean fontInfoFound;
+    private transient boolean medianFound;
+
+// --------------------------- CONSTRUCTORS ---------------------------
     public PhysicalPageRegion(@NotNull final List<? extends PhysicalContent> contents,
                               @NotNull PhysicalPage page) {
         this(contents, null, page);
     }
 
-// --------------------------- CONSTRUCTORS ---------------------------
     public PhysicalPageRegion(@NotNull final Collection<? extends PhysicalContent> contents,
                               @Nullable final PhysicalPageRegion parent, @NotNull PhysicalPage page) {
 
@@ -99,7 +97,6 @@ public class PhysicalPageRegion extends RectangleCollection {
         super.clearCache();
         fontInfoFound = false;
         medianFound   = false;
-        _posSet       = false;
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
@@ -124,6 +121,12 @@ public class PhysicalPageRegion extends RectangleCollection {
     }
 
 // -------------------------- PUBLIC METHODS --------------------------
+    public void addSubRegion(final PhysicalPageRegion newSub) {
+
+        addContent(newSub);
+        subregions.add(newSub);
+    }
+
     public void addWhitespace(final Collection<WhitespaceRectangle> whitespace) {
 
         this.whitespace.addAll(whitespace);
@@ -154,10 +157,6 @@ public class PhysicalPageRegion extends RectangleCollection {
         final List<PhysicalContent> subContents = findContentsIntersectingWith(bound.getPos());
 
         return doExtractSubRegion(subContents, bound, null, addToParent);
-    }
-
-    public boolean extractSubRegionFromContent(final Set<PhysicalContent> set, boolean addToParent) {
-        return doExtractSubRegion(set, null, null, addToParent);
     }
 
     /**
@@ -216,24 +215,17 @@ public class PhysicalPageRegion extends RectangleCollection {
             findAndSetFontInformation();
         }
 
-        return (float) getMedianOfVerticalDistances() * 1.1f;    // * 0.8f;
-
-        // return _shortestText * 1.2f;
-        //
-    }
-
-    @Nullable
-    public Style getMostCommonStyle() {
-
-        if (!fontInfoFound) {
-            findAndSetFontInformation();
-        }
-
-        return _mostCommonStyle;
+        return (float) getMedianOfVerticalDistances() * 1.1f;
     }
 
     public boolean isGraphicalRegion() {
         return containingGraphic != null;
+    }
+
+    public void removeSubRegion(final PhysicalPageRegion newSub) {
+
+        removeContent(newSub);
+        subregions.remove(newSub);
     }
 
     public void setContainingGraphic(@Nullable GraphicContent containingGraphic) {
@@ -337,7 +329,6 @@ public class PhysicalPageRegion extends RectangleCollection {
         float xFontSizeSum  = 0.0f,
               yFontSizeSum  = 0.0f;
         int   numCharsFound = 0;
-        float shortestText  = Float.MAX_VALUE;
 
         for (PhysicalContent content : getContents()) {
             if (content.isText()) {
@@ -347,20 +338,15 @@ public class PhysicalPageRegion extends RectangleCollection {
                 xFontSizeSum  += (float) (style.xSize * length);
                 yFontSizeSum  += (float) (style.ySize * length);
                 numCharsFound += length;
-                shortestText  = Math.min(shortestText, content.getPos().height);
             }
         }
 
         if (numCharsFound == 0) {
-            _avgFontSizeX    = Float.MIN_VALUE;
-            _avgFontSizeY    = Float.MIN_VALUE;
-            _mostCommonStyle = null;
-            _shortestText    = 0.0f;
+            _avgFontSizeX = Float.MIN_VALUE;
+            _avgFontSizeY = Float.MIN_VALUE;
         } else {
-            _avgFontSizeX    = xFontSizeSum / (float) numCharsFound;
-            _avgFontSizeY    = yFontSizeSum / (float) numCharsFound;
-            _mostCommonStyle = TextUtils.findDominatingStyle(getContents());
-            _shortestText    = shortestText;
+            _avgFontSizeX = xFontSizeSum / (float) numCharsFound;
+            _avgFontSizeY = yFontSizeSum / (float) numCharsFound;
         }
 
         fontInfoFound = true;
@@ -403,23 +389,11 @@ public class PhysicalPageRegion extends RectangleCollection {
             }
         }
 
-        float temp = Math.max(index, (int) (getAvgFontSizeY() * 0.5f));
+        float temp = (float) Math.max(index, (int) (getAvgFontSizeY() * 0.5f));
 
         _medianOfVerticalDistances = (int) (temp + Math.max(1.0f, temp * 0.1f));
         medianFound                = true;
 
         return _medianOfVerticalDistances;
-    }
-
-    public void addSubRegion(final PhysicalPageRegion newSub) {
-
-        addContent(newSub);
-        subregions.add(newSub);
-    }
-
-    public void removeSubRegion(final PhysicalPageRegion newSub) {
-
-        removeContent(newSub);
-        subregions.remove(newSub);
     }
 }

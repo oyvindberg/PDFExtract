@@ -72,7 +72,7 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> extend
 // -------------------------- PUBLIC METHODS --------------------------
     public void addRole(Role r) {
 
-        log.warn(this + " got assigned role " + r);
+        log.info(this + " got assigned role " + r);
         roles.add(r);
     }
 

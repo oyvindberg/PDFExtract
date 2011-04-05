@@ -43,10 +43,10 @@ public class DocumentAnalyzer {
 
     public static DocumentNode analyzeDocument(final DocumentContent content) {
 
-        DocumentNode documentNode = new DocumentNode();
+        DocumentNode root = new DocumentNode();
         final long   t0           = System.currentTimeMillis();
 
-        documentNode.getStyles().addAll(content.getStyles());
+        root.getStyles().addAll(content.getStyles());
 
         for (int i = 0; i < content.getPages().size(); i++) {
             final PageContent inputPage = content.getPages().get(i);
@@ -72,7 +72,7 @@ public class DocumentAnalyzer {
                 pageNode.setPhysicalPage(pp);
             }
 
-            documentNode.addChild(pageNode);
+            root.addChild(pageNode);
         }
 
         MDC.remove("page");
@@ -81,6 +81,6 @@ public class DocumentAnalyzer {
 
         log.info("Analyzed " + content.getPages().size() + " pages in " + td + "ms");
 
-        return documentNode;
+        return root;
     }
 }

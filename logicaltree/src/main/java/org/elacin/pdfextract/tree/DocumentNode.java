@@ -33,14 +33,17 @@ import java.util.List;
 public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
 
 // ------------------------------ FIELDS ------------------------------
-    @NotNull
-    public final List<WordNode> words = new ArrayList<WordNode>();
 
     /**
      * this contains all the different styles used in the document
      */
     @NotNull
-    protected final List<Style> styles = new ArrayList<Style>();
+    protected final List<Style>       styles = new ArrayList<Style>();
+    @NotNull
+    private final List<WordNode>      words  = new ArrayList<WordNode>();
+    private ParagraphNode             abstractParagraph;
+    private ParagraphNode             title;
+    final private List<ParagraphNode> references = new ArrayList<ParagraphNode>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
     public DocumentNode() {
@@ -48,9 +51,53 @@ public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
+    public ParagraphNode getAbstractParagraph() {
+        return abstractParagraph;
+    }
+
+    public void setAbstractParagraph(final ParagraphNode abstractParagraph) {
+        this.abstractParagraph = abstractParagraph;
+    }
+
+    public List<ParagraphNode> getReferences() {
+        return references;
+    }
+
     @NotNull
     public List<Style> getStyles() {
         return styles;
+    }
+
+    public ParagraphNode getTitle() {
+        return title;
+    }
+
+    public void setTitle(final ParagraphNode title) {
+        this.title = title;
+    }
+
+    @NotNull
+    public List<WordNode> getWords() {
+
+        if (words.isEmpty()) {
+            for (PageNode page : getChildren()) {
+                for (ParagraphNode paragraph : page.getChildren()) {
+                    for (LineNode line : paragraph.getChildren()) {
+                        words.addAll(line.getChildren());
+                    }
+                }
+
+//            for (GraphicsNode graphics : page.getGraphics()) {
+//                for (ParagraphNode paragraph : graphics.getChildren()) {
+//                    for (LineNode line : paragraph.getChildren()) {
+//                        words.addAll(line.getChildren());
+//                    }
+//                }
+//            }
+            }
+        }
+
+        return words;
     }
 
 // -------------------------- PUBLIC METHODS --------------------------

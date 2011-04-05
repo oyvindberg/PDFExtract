@@ -14,14 +14,11 @@
  *    limitations under the License.
  */
 
-
-package org.elacin.pdfextract.tree;
+package org.elacin.pdfextract;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Mar 18, 2010 Time: 2:32:32 PM To change this
- * template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: 31.01.11 Time: 10.46 To change this template use
+ * File | Settings | File Templates.
  */
-public enum Role {
-    DIV1, DIV2, DIV3, FOOTNOTE, HEADNOTE, PAGENUMBER, EMPHASIS, NORMAL, UNKNOWN,
-    INDEXNUMBER, TITLE, IDENTIFIER;
+public class TreeNavigator {
 }

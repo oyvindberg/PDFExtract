@@ -106,42 +106,42 @@ public class ContentGrouper {
 
 // -------------------------- OTHER METHODS --------------------------
     @SuppressWarnings({ "NumericCastThatLosesPrecision" })
-    private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent current) {
+    private boolean markEverythingConnectedFrom(@NotNull final PhysicalContent content) {
 
-        if (!current.isAssignable()) {
+        if (!content.isAssignable()) {
             return false;
         }
 
-        if (current.getAssignable().isAssignedBlock()) {
+        if (content.getAssignable().isAssignedBlock()) {
             return false;
         }
 
-        if (current.isGraphic() && current.getGraphicContent().isSeparator()) {
+        if (content.isGraphic() && content.getGraphicContent().isSeparator()) {
 
-            // current.getAssignable().setBlockNum(allBlocks.size());
+            // content.getAssignable().setBlockNum(allBlocks.size());
             return false;
         }
 
-        current.getAssignable().setBlockNum(allBlocks.size());
-        currentBlock.addContent(current);
+        content.getAssignable().setBlockNum(allBlocks.size());
+        currentBlock.addContent(content);
 
-        if (current.isGraphic()) {
+        if (content.isGraphic()) {
             return false;
         }
 
         /* try searching for texts in all directions */
-        int startY = (int) Math.max(rpos.y, current.getPos().y);
-        int endY   = (int) Math.min(rpos.endY, current.getPos().endY);
+        int startY = (int) Math.max(rpos.y, content.getPos().y);
+        int endY   = (int) Math.min(rpos.endY, content.getPos().endY);
 
         for (int y = startY + 1; y < endY; y++) {
-            markBothWaysFromCurrent(current, region.findContentAtYIndex(y));
+            markBothWaysFromCurrent(content, region.findContentAtYIndex(y));
         }
 
-        int startX = 1 + (int) Math.max(rpos.x, current.getPos().x);
-        int endX   = -1 + (int) Math.min(rpos.endX, current.getPos().endX);
+        int startX = 1 + (int) Math.max(rpos.x, content.getPos().x);
+        int endX   = -1 + (int) Math.min(rpos.endX, content.getPos().endX);
 
         for (int x = startX; x < endX - 1; x++) {
-            markBothWaysFromCurrent(current, region.findContentAtXIndex(x));
+            markBothWaysFromCurrent(content, region.findContentAtXIndex(x));
         }
 
         return true;

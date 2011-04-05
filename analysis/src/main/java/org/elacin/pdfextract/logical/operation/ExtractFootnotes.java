@@ -18,14 +18,19 @@
 
 package org.elacin.pdfextract.logical.operation;
 
+import org.elacin.pdfextract.logical.Operation;
 import org.elacin.pdfextract.tree.DocumentNode;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Mar 23, 2010 Time: 3:09:37 AM To change this
- * template use File | Settings | File Templates.
+ * Created by IntelliJ IDEA. User: elacin Date: 30.03.11 Time: 05.13 To change this template use
+ * File | Settings | File Templates.
  */
-public interface Operation {
+public class ExtractFootnotes implements Operation {
+    public void doOperation(final DocumentNode root) {
 
-// -------------------------- PUBLIC METHODS --------------------------
-    void doOperation(DocumentNode root);
+
+
+
+
+    }
 }

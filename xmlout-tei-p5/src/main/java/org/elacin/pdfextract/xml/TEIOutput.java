@@ -19,9 +19,8 @@
 package org.elacin.pdfextract.xml;
 
 import org.apache.log4j.Logger;
-import org.elacin.pdfextract.tree.DocumentNode;
-import org.elacin.pdfextract.tree.PageNode;
-import org.elacin.pdfextract.tree.ParagraphNode;
+import org.elacin.pdfextract.tree.*;
+import org.elacin.pdfextract.tree.Role;
 import org.elacin.teischema.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,6 +30,9 @@ import javax.xml.bind.Marshaller;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.lang.String;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: 14.01.11 Time: 17.02 To change this template use
@@ -58,7 +60,7 @@ public class TEIOutput implements XMLWriter {
         tei.setText(text);
 
         try {
-            JAXBContext jaxbContext = JAXBContext.newInstance("org.elacin.pdfextract.teischema");
+            JAXBContext jaxbContext = JAXBContext.newInstance("org.elacin.teischema");
             Marshaller  marshaller  = jaxbContext.createMarshaller();
 
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
@@ -71,7 +73,11 @@ public class TEIOutput implements XMLWriter {
     }
 
 // -------------------------- OTHER METHODS --------------------------
-    private void addAbstract(@NotNull ObjectFactory of, @NotNull Front front) {
+    private void addAbstract(final DocumentNode root, @NotNull ObjectFactory of, @NotNull Front front) {
+
+        if (root.getAbstractParagraph() == null) {
+            return;
+        }
 
         final Div div = of.createDiv();
 
@@ -84,13 +90,14 @@ public class TEIOutput implements XMLWriter {
 
         final P p = of.createP();
 
-        p.getContent().add("Hey! I live in ");
+        for (LineNode lineNode : root.getAbstractParagraph().getChildren()) {
+            addLineToP(p, lineNode);
+        }
 
-        final Country country = of.createCountry();
-
-        country.getContent().add("Norway");
-        p.getContent().add(country);
-        p.getContent().add(". :D");
+//        if (!p.getContent().isEmpty()) {
+//            p.getContent().remove(p.getContent().size() - 1);
+//        }
+//
         div.getMeetingsAndBylinesAndDatelines().add(p);
         front.getSetsAndProloguesAndEpilogues().add(div);
     }
@@ -99,31 +106,191 @@ public class TEIOutput implements XMLWriter {
 
         final Back back = of.createBack();
 
+//        for (PageNode page : root.getChildren()) {
+//            for (ParagraphNode prf : page.getChildren()) {
+//                if (prf.hasRole(Role.FOOTNOTE)){
+//                    FloatingText floatingText = of.createFloatingText();
+//
+//                    P p = addTextToP(of, prf);
+//
+//                    floatingText.getIndicesAndSpenAndSpanGrps().add(p);
+//                    back.getSetsAndProloguesAndEpilogues().add(floatingText);
+//                }
+//            }
+//        }
+//
+
         /* references goes here */
         text.getIndicesAndSpenAndSpanGrps().add(back);
     }
 
+    Div          currentDiv  = null;
+    Div1         currentDiv1 = null;
+    Div2         currentDiv2 = null;
+    int          divLevel    = 0;
+    List<Object> currentContent;
+
     private void addBody(@NotNull DocumentNode root, @NotNull ObjectFactory of, @NotNull Text text) {
 
-        final Body body = of.createBody();
+        final Body          body = of.createBody();
+        List<ParagraphNode> prfs = new ArrayList<ParagraphNode>();
 
-        /* add content here */
         for (PageNode pageNode : root.getChildren()) {
-            for (ParagraphNode paragraphNode : pageNode.getChildren()) {}
+            prfs.addAll(pageNode.getChildren());
         }
 
+        divLevel   = 0;
+        currentDiv = of.createDiv();
+        body.getIndicesAndSpenAndSpanGrps().add(currentDiv);
+        currentContent = currentDiv.getMeetingsAndBylinesAndDatelines();
+
+        boolean createNewP = false;
+        P       currentP   = of.createP();
+
+        currentContent.add(currentP);
+
+        for (ParagraphNode prf : prfs) {
+            boolean isHead = false;
+
+            if (prf.hasRole(Role.DIV1)) {
+                divLevel    = 1;
+                currentDiv1 = of.createDiv1();
+                body.getIndicesAndSpenAndSpanGrps().add(currentDiv1);
+                currentContent = currentDiv1.getMeetingsAndBylinesAndDatelines();
+                isHead         = true;
+                createNewP     = true;
+            } else if (prf.hasRole(Role.DIV2)) {
+                divLevel    = 2;
+                currentDiv2 = of.createDiv2();
+                currentDiv1.getMeetingsAndBylinesAndDatelines().add(currentDiv2);
+                currentContent = currentDiv2.getMeetingsAndBylinesAndDatelines();
+                isHead         = true;
+                createNewP     = true;
+            }
+
+            if (prf.hasRole(Role.FOOTNOTE)) {
+                FloatingText floatingText = of.createFloatingText();
+                Body         floatBody    = of.createBody();
+                Div          floatDiv     = of.createDiv();
+                P            p            = of.createP();
+
+                LineNode firstLine = prf.getChildren().get(0);
+
+                floatingText.setType("footnote");
+                WordNode firstWord = firstLine.getChildren().get(0);
+                firstLine.removeChild(firstWord);
+                floatingText.setId("footnote" + firstWord.getText());
+
+                addTextToP(of, prf, p);
+                floatDiv.getMeetingsAndBylinesAndDatelines().add(p);
+                floatBody.getIndicesAndSpenAndSpanGrps().add(floatDiv);
+                floatingText.getIndicesAndSpenAndSpanGrps().add(floatBody);
+                body.getIndicesAndSpenAndSpanGrps().add(floatingText);
+
+
+                continue;
+            }
+
+            if (isHead) {
+                Head     head      = of.createHead();
+                LineNode firstLine = prf.getChildren().get(0);
+                String   divName   = "sec" + firstLine.getChildren().get(0).getText();
+
+                head.setId(divName);
+                firstLine.removeChild(firstLine.getChildren().get(0));
+                head.getContent().add(prf.getText());
+                currentContent.add(head);
+            } else {
+                if (createNewP) {
+                    currentP = of.createP();
+                    currentContent.add(currentP);
+                    createNewP = false;
+                }
+
+                for (LineNode line : prf.getChildren()) {
+                    if (!currentP.getContent().isEmpty() && line.isIndented()) {
+                        currentP = of.createP();
+                        currentContent.add(currentP);
+                    }
+
+                    addLineToP(currentP, line);
+                }
+            }
+        }
+
+
+        for (PageNode pageNode : root.getChildren()) {
+            for (GraphicsNode graphicsNode : pageNode.getGraphics()) {
+
+                Figure figure = of.createFigure();
+
+                Body         figureBody    = of.createBody();
+                Div          figureDiv     = of.createDiv();
+                P            p            = of.createP();
+
+                for (ParagraphNode paragraphNode : graphicsNode.getChildren()) {
+                    addTextToP(of, paragraphNode, p);
+                }
+
+//                figureDiv.getMeetingsAndBylinesAndDatelines().add(p);
+//                figureBody.getIndicesAndSpenAndSpanGrps().add(figureDiv);
+
+                figure.getHeadsAndPSAndAbs().add(p);
+                body.getIndicesAndSpenAndSpanGrps().add(figure);
+
+            }
+        }
+
+
+
         text.getIndicesAndSpenAndSpanGrps().add(body);
+    }
+
+private void addLineToP(final P currentP, final LineNode line) {
+    String content = line.getText();
+
+    if (!currentP.getContent().isEmpty()) {
+        String former = (String) currentP.getContent().get(currentP.getContent().size() - 1);
+
+        if (former.endsWith("-")) {
+            String combined = former.substring(0, former.length() - 1) + content;
+
+            currentP.getContent().remove(currentP.getContent().size() - 1);
+            currentP.getContent().add(combined);
+
+            return;
+        }
+    }
+
+    currentP.getContent().add(content);
+}
+
+private void addTextToP(final ObjectFactory of, final ParagraphNode prf, P p) {
+
+        for (LineNode line : prf.getChildren()) {
+            addLineToP(p, line);
+        }
+
+//        if (!p.getContent().isEmpty()) {
+//            p.getContent().remove(p.getContent().size() - 1);
+//        }
     }
 
     private void addFront(DocumentNode root, @NotNull ObjectFactory of, @NotNull Text text) {
 
         final Front front = of.createFront();
 
-        addAbstract(of, front);
+        addAbstract(root, of, front);
         text.getIndicesAndSpenAndSpanGrps().add(front);
     }
 
     private void addHeader(DocumentNode root, @NotNull ObjectFactory of, @NotNull TEI tei) {
+
+        ParagraphNode title1 = root.getTitle();
+
+        if (title1 == null) {
+            return;
+        }
 
         final TeiHeader header   = of.createTeiHeader();
         final FileDesc  fileDesc = of.createFileDesc();
@@ -132,34 +299,40 @@ public class TEIOutput implements XMLWriter {
         final TitleStmt titleStmt = of.createTitleStmt();
         final Title     title     = of.createTitle();
 
-        title.getContent().add("TITLE! :D");
+        for (LineNode lineNode : title1.getChildren()) {
+            title.getContent().add(lineNode.getText());
+        }
+
         titleStmt.getTitles().add(title);
 
-        final Author author = of.createAuthor();
-
-        author.getContent().add("meg");
-        author.setRole("author-rolle");
-        titleStmt.getAuthorsAndEditorsAndRespStmts().add(author);
-
-        final Editor editor = of.createEditor();
-
-        editor.setBase("editoren");
-        editor.setRole("editor-rolle");
-        titleStmt.getAuthorsAndEditorsAndRespStmts().add(editor);
+//        final Author author = of.createAuthor();
+//
+//        author.getContent().add("meg");
+//        author.setRole("author-rolle");
+//        titleStmt.getAuthorsAndEditorsAndRespStmts().add(author);
+//
+//        final Editor editor = of.createEditor();
+//
+//        editor.setBase("editoren");
+//        editor.setRole("editor-rolle");
+//        titleStmt.getAuthorsAndEditorsAndRespStmts().add(editor);
+//
+//
+//        /* publication details */
+//        final PublicationStmt publicationStmt = of.createPublicationStmt();
+//        final Address         address         = of.createAddress();
+//
+//        address.setBase("laueveien");
+//
+//        final Publisher publisher = of.createPublisher();
+//
+//        publisher.setBase("publishern");
+//        publicationStmt.getAddressesAndDatesAndPublishers().add(address);
+//        publicationStmt.getAddressesAndDatesAndPublishers().add(publisher);
+//
         fileDesc.setTitleStmt(titleStmt);
 
-        /* publication details */
-        final PublicationStmt publicationStmt = of.createPublicationStmt();
-        final Address         address         = of.createAddress();
-
-        address.setBase("laueveien");
-
-        final Publisher publisher = of.createPublisher();
-
-        publisher.setBase("publishern");
-        publicationStmt.getAddressesAndDatesAndPublishers().add(address);
-        publicationStmt.getAddressesAndDatesAndPublishers().add(publisher);
-        fileDesc.setPublicationStmt(publicationStmt);
+//        fileDesc.setPublicationStmt(publicationStmt);
         header.setFileDesc(fileDesc);
         tei.setTeiHeader(header);
     }

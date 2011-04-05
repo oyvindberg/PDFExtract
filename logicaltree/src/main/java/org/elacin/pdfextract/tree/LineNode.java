@@ -46,9 +46,9 @@ public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
 
         StringBuilder sb = new StringBuilder();
 
-        if (isIndented()) {
-            sb.append("    ");
-        }
+//        if (isIndented()) {
+//            sb.append("    ");
+//        }
 
         for (int i = 0; i < getChildren().size(); i++) {
             final WordNode word = getChildren().get(i);
@@ -127,7 +127,7 @@ public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
     }
 
 // -------------------------- OTHER METHODS --------------------------
-    private boolean isIndented() {
+    public boolean isIndented() {
 
         if (getParent() == null) {
             return false;

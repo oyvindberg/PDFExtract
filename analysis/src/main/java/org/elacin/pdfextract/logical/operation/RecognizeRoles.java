@@ -19,6 +19,7 @@
 package org.elacin.pdfextract.logical.operation;
 
 import org.apache.log4j.Logger;
+import org.elacin.pdfextract.logical.Operation;
 import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.Role;
@@ -60,7 +61,7 @@ public class RecognizeRoles implements Operation {
 
         this.root = root;
 
-        for (WordNode word : root.words) {
+        for (WordNode word : root.getWords()) {
             checkForIdentifier(word);
             checkForTopNote(word);
 

@@ -22,6 +22,8 @@ import org.apache.log4j.Logger;
 import org.elacin.pdfextract.datasource.DocumentContent;
 import org.elacin.pdfextract.datasource.PDFSource;
 import org.elacin.pdfextract.datasource.pdfbox.PDFBoxSource;
+import org.elacin.pdfextract.logical.operation.ExtractAbstract;
+import org.elacin.pdfextract.logical.operation.TagText;
 import org.elacin.pdfextract.renderer.PageRenderer;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.xml.SimpleXMLOutput;
@@ -122,13 +124,17 @@ public class ProcessDocument {
                                                     SIMPLE_OUTPUT_EXTENSION));
             }
 
-            if (TEI_OUTPUT_ENABLED) {
-                new TEIOutput().writeTree(documentNode,
-                                          getOutputFile(destination, pdfFile, TEI_OUTPUT_EXTENSION));
-            }
+            new ExtractAbstract().doOperation(documentNode);
+            new TagText().doOperation(documentNode);
+
 
             if (RENDER_ENABLED) {
                 renderPDF(source, documentNode, getOutputFile(destination, pdfFile, ".%d.%p.png"));
+            }
+
+            if (TEI_OUTPUT_ENABLED) {
+                new TEIOutput().writeTree(documentNode,
+                                          getOutputFile(destination, pdfFile, TEI_OUTPUT_EXTENSION));
             }
         } finally {
             if (source != null) {
