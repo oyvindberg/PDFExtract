@@ -98,7 +98,7 @@ public class PageRenderer {
             return Color.BLUE;
         }
 
-        if (!RENDER_REAL_PAGE && o.getClass().equals(WordNode.class)) {
+        if (RENDER_WORD_NODES && o.getClass().equals(WordNode.class)) {
             return Color.ORANGE;
         }
 

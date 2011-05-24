@@ -194,7 +194,7 @@ public class WordSegmentatorImpl implements WordSegmentator {
                 if (log.isDebugEnabled()) {
                     log.debug(currentWord.getText() + "[" + currentWidth + "] " + distance + " "
                               + nextChar.getText() + "[" + nextChar.getPos().width
-                              + "]: isWordBoundary=" + isWordBoundary + ", effictive distance:"
+                              + "]: isWordBoundary=" + isWordBoundary + ", effective distance:"
                               + (distance - charSpacing) + ", fontSize:" + (fontSize) + ", charSpacing:"
                               + charSpacing);
                 }

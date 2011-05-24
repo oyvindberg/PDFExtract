@@ -22,6 +22,7 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.MDC;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
+import org.elacin.pdfextract.Constants;
 import org.elacin.pdfextract.datasource.DocumentContent;
 import org.elacin.pdfextract.datasource.PDFSource;
 import org.elacin.pdfextract.datasource.RenderedPage;
@@ -91,13 +92,13 @@ public class PDFBoxSource implements PDFSource {
         final BufferedImage image;
 
         try {
-            image = page.convertToImage();
+            image = page.convertToImage(8, Constants.RENDER_DPI);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
 
-        float xScale = (float) image.getWidth() / page.getArtBox().getWidth();
-        float yScale = (float) image.getHeight() / page.getArtBox().getHeight();
+        float xScale = (float) image.getWidth() / page.findMediaBox().getWidth();
+        float yScale = (float) image.getHeight() / page.findMediaBox().getHeight();
 
         return new RenderedPage(image, xScale, yScale);
     }
