@@ -14,6 +14,8 @@
  *    limitations under the License.
  */
 
+
+
 package org.elacin.pdfextract.geom;
 
 import org.jetbrains.annotations.Nullable;
@@ -28,14 +30,15 @@ public abstract class HasPositionAbstract implements HasPosition {
     @Nullable
     private Rectangle pos;
 
+// --------------------------- CONSTRUCTORS ---------------------------
     protected HasPositionAbstract() {}
 
-// --------------------------- CONSTRUCTORS ---------------------------
     protected HasPositionAbstract(final Rectangle pos) {
         this.pos = pos;
     }
 
-// --------------------- GETTER / SETTER METHODS ---------------------
+// ------------------------ INTERFACE METHODS ------------------------
+// --------------------- Interface HasPosition ---------------------
     public final Rectangle getPos() {
 
         if (pos == null) {
@@ -45,12 +48,12 @@ public abstract class HasPositionAbstract implements HasPosition {
         return pos;
     }
 
-    protected void setPos(@Nullable final Rectangle pos) {
-        this.pos = pos;
-    }
-
-// -------------------------- PUBLIC METHODS --------------------------
     public final void invalidatePos() {
         pos = null;
+    }
+
+// --------------------- GETTER / SETTER METHODS ---------------------
+    protected void setPos(@Nullable final Rectangle pos) {
+        this.pos = pos;
     }
 }

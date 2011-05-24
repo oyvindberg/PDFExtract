@@ -23,6 +23,7 @@ import org.elacin.pdfextract.datasource.DocumentContent;
 import org.elacin.pdfextract.datasource.PDFSource;
 import org.elacin.pdfextract.datasource.pdfbox.PDFBoxSource;
 import org.elacin.pdfextract.logical.operation.ExtractAbstract;
+import org.elacin.pdfextract.logical.operation.RemovePageNumbers;
 import org.elacin.pdfextract.logical.operation.TagText;
 import org.elacin.pdfextract.renderer.PageRenderer;
 import org.elacin.pdfextract.tree.DocumentNode;
@@ -47,19 +48,19 @@ public class ProcessDocument {
     private static final Logger log = Logger.getLogger(DocumentAnalyzer.class);
     public final File           pdfFile;
     @NotNull
-    private final File          destination;
+    private final File          dest;
     public String               password;
     public int                  startPage;
     public int                  endPage;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-    public ProcessDocument(File pdfFile, File destination, String password, int startPage, int endPage) {
+    public ProcessDocument(File pdfFile, File dest, String password, int startPage, int endPage) {
 
-        this.destination = destination;
-        this.pdfFile     = pdfFile;
-        this.password    = password;
-        this.startPage   = startPage;
-        this.endPage     = endPage;
+        this.dest      = dest;
+        this.pdfFile   = pdfFile;
+        this.password  = password;
+        this.startPage = startPage;
+        this.endPage   = endPage;
     }
 
 // -------------------------- STATIC METHODS --------------------------
@@ -112,29 +113,30 @@ public class ProcessDocument {
         DocumentNode documentNode;
 
         try {
-            source = new PDFBoxSource(this.pdfFile, startPage, endPage, password);
+            source = new PDFBoxSource(pdfFile, startPage, endPage, password);
 
             final DocumentContent content = source.readPages();
 
             documentNode = DocumentAnalyzer.analyzeDocument(content);
 
             if (SIMPLE_OUTPUT_ENABLED) {
-                new SimpleXMLOutput().writeTree(documentNode,
-                                                getOutputFile(destination, pdfFile,
-                                                    SIMPLE_OUTPUT_EXTENSION));
+                File xmlOutFile = getOutputFile(dest, pdfFile, SIMPLE_OUTPUT_EXTENSION);
+
+                new SimpleXMLOutput().writeTree(documentNode, xmlOutFile);
             }
 
+            new RemovePageNumbers().doOperation(documentNode);
             new ExtractAbstract().doOperation(documentNode);
             new TagText().doOperation(documentNode);
 
-
             if (RENDER_ENABLED) {
-                renderPDF(source, documentNode, getOutputFile(destination, pdfFile, ".%d.%p.png"));
+                renderPDF(source, documentNode, getOutputFile(dest, pdfFile, ".%d.%p.png"));
             }
 
             if (TEI_OUTPUT_ENABLED) {
-                new TEIOutput().writeTree(documentNode,
-                                          getOutputFile(destination, pdfFile, TEI_OUTPUT_EXTENSION));
+                File teiOutFile = getOutputFile(dest, pdfFile, TEI_OUTPUT_EXTENSION);
+
+                new TEIOutput().writeTree(documentNode, teiOutFile);
             }
         } finally {
             if (source != null) {

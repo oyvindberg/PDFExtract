@@ -37,19 +37,18 @@ import static org.elacin.pdfextract.geom.RectangleCollection.Direction.E;
 import static org.elacin.pdfextract.geom.RectangleCollection.Direction.W;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: Jun 23, 2010 Time: 13:05:06 PM
+ * Created by IntelliJ IDEA. User: elacin Date: Jun 23, 2010 Time: 13:05:06
  */
 public final class WhitespaceFinder {
 
 // ------------------------------ FIELDS ------------------------------
-    private static final Logger log                  = Logger.getLogger(WhitespaceFinder.class);
-    private int                 foundWhitespaceCount = 0;
+    private static final Logger log = Logger.getLogger(WhitespaceFinder.class);
 
     /* min[Height|Width] are the thinnest rectangles we will accept */
     private final float minHeight, minWidth;
 
-    /* all the obstacles in the algorithm are found here, and are initially all the
-     * words on the page */
+    /* all the obstacles in the algorithm are found here, and are initially all
+        the words on the page */
     protected final RectangleCollection region;
 
     /**
@@ -65,6 +64,7 @@ public final class WhitespaceFinder {
 
     /* this holds all the whitespace rectangles we have found */
     private final WhitespaceRectangle[] foundWhitespace;
+    private int                         foundWhitespaceCount = 0;
 
     /* the number of whitespace we want to find */
     private final int wantedWhitespaces;
@@ -164,10 +164,10 @@ public final class WhitespaceFinder {
 
 // -------------------------- OTHER METHODS --------------------------
 
-/**
- *  The main algorithm. Finds the next whitespace rectangle
- * @return A new identified whitespace rectangle
- */
+    /**
+     *  The main algorithm. Finds the next whitespace rectangle
+     * @return A new identified whitespace rectangle
+     */
     WhitespaceRectangle findNextWhitespace() {
 
         queue.addAll(holdList);
@@ -403,11 +403,9 @@ public final class WhitespaceFinder {
      */
     QueueEntry[] splitSearchAreaAround(final QueueEntry current, final HasPosition pivot) {
 
-        /*
-         *  Everything inside here was the definitely most expensive parts of the implementation,
+        /* Everything inside here was the definitely most expensive parts of the implementation,
          *   so this is quite optimized to avoid too many float point comparisons and needless
-         *   object creations. This cut execution time by some 90ish % :)
-         */
+         *   object creations. This cut execution time by some 90ish % :) */
         final int       missingRectangles = wantedWhitespaces - foundWhitespaceCount;
         final float     splitX            = pivot.getPos().x,
                         splitEndX         = pivot.getPos().endX,
@@ -415,10 +413,7 @@ public final class WhitespaceFinder {
                         splitEndY         = pivot.getPos().endY;
         final Rectangle bound             = current.bound;
 
-        /*
-         *  check which of the four possible subrectangles we want to create,
-         * and their dimensions
-         */
+        /* check which of the four possible subrectangles we want to create, and their dimensions */
         Rectangle     left      = null;
         HasPosition[] leftObs   = null;
         final float   leftWidth = splitX - bound.x;

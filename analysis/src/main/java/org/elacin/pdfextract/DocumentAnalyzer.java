@@ -44,13 +44,11 @@ public class DocumentAnalyzer {
     public static DocumentNode analyzeDocument(final DocumentContent content) {
 
         DocumentNode root = new DocumentNode();
-        final long   t0           = System.currentTimeMillis();
+        final long   t0   = System.currentTimeMillis();
 
         root.getStyles().addAll(content.getStyles());
 
-        for (int i = 0; i < content.getPages().size(); i++) {
-            final PageContent inputPage = content.getPages().get(i);
-
+        for (final PageContent inputPage : content.getPages()) {
             MDC.put("page", inputPage.getPageNum());
 
             if (inputPage.getCharacters().isEmpty()) {
