@@ -33,7 +33,7 @@
         <dependency>
             <groupId>org.elacin</groupId>
             <artifactId>tei-p5-schema</artifactId>
-            <version>0.1</version>
+            <version>0.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.elacin</groupId>
