@@ -23,7 +23,7 @@
     <parent>
         <artifactId>pdfextract-parent</artifactId>
         <groupId>org.elacin</groupId>
-        <version>${minversion}</version>
+        <version>M3-SNAPSHOT</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
 

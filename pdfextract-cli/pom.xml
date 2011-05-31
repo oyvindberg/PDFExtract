@@ -21,13 +21,38 @@
     <parent>
         <artifactId>pdfextract-parent</artifactId>
         <groupId>org.elacin</groupId>
-        <version>${minversion}</version>
+        <version>M3-SNAPSHOT</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>PDFExtract: Command line interface</name>
     <artifactId>pdfextract-cli</artifactId>
+
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.2-beta-5</version>
+                <configuration>
+                    <descriptors>
+                        <descriptor>src/assembly/bin.xml</descriptor>
+                    </descriptors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+        </plugins>
+    </build>
 
     <dependencies>
         <dependency>
