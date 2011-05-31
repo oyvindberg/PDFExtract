@@ -19,18 +19,24 @@
 package org.elacin.pdfextract.xml;
 
 import org.apache.log4j.Logger;
+
 import org.elacin.pdfextract.tree.*;
 import org.elacin.pdfextract.tree.Role;
+
 import org.jetbrains.annotations.NotNull;
+
 import org.tei_c.*;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+
 import java.lang.String;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,27 +47,27 @@ import java.util.List;
 public class TEIOutput implements XMLWriter {
 
 // ------------------------------ FIELDS ------------------------------
-    private static final Logger log = Logger.getLogger(TEIOutput.class);
+    private static final Logger        log            = Logger.getLogger(TEIOutput.class);
+    private static final ObjectFactory OBJECT_FACTORY = new ObjectFactory();
 
 // ------------------------ INTERFACE METHODS ------------------------
 // --------------------- Interface XMLWriter ---------------------
     public void writeTree(@NotNull DocumentNode root, File destination) {
 
-        long          t0  = System.currentTimeMillis();
-        ObjectFactory of  = new ObjectFactory();
-        final TEI     tei = of.createTEI();
+        long      t0  = System.currentTimeMillis();
+        final TEI tei = OBJECT_FACTORY.createTEI();
 
-        addHeader(root, of, tei);
+        addHeader(root, tei);
 
-        final Text text = of.createText();
+        final Text text = OBJECT_FACTORY.createText();
 
-        addFront(root, of, text);
-        addBody(root, of, text);
-        addBack(root, of, text);
+        addFront(root, text);
+        addBody(root, text);
+        addBack(root, text);
         tei.setText(text);
 
         try {
-            JAXBContext jaxbContext = JAXBContext.newInstance("org.elacin.teischema");
+            JAXBContext jaxbContext = JAXBContext.newInstance("org.tei_c");
             Marshaller  marshaller  = jaxbContext.createMarshaller();
 
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
@@ -84,62 +90,45 @@ public class TEIOutput implements XMLWriter {
     }
 
 // -------------------------- OTHER METHODS --------------------------
-    private void addAbstract(final DocumentNode root, @NotNull ObjectFactory of, @NotNull Front front) {
+    private void addAbstract(final DocumentNode root, @NotNull Front front) {
 
         if (root.getAbstractParagraph() == null) {
             return;
         }
 
-        final Div div = of.createDiv();
+        final Div  div  = OBJECT_FACTORY.createDiv();
+        final Head head = OBJECT_FACTORY.createHead();
+        final P    p    = OBJECT_FACTORY.createP();
 
         div.setType("abs");
-
-        final Head head = of.createHead();
-
         head.getContent().add("ABSTRACT");
         div.getMeetingsAndBylinesAndDatelines().add(head);
 
-        final P p = of.createP();
-
         for (LineNode lineNode : root.getAbstractParagraph().getChildren()) {
-            addLineToP(p, lineNode);
+            addLineToContent(p.getContent(), lineNode);
         }
 
         div.getMeetingsAndBylinesAndDatelines().add(p);
         front.getSetsAndProloguesAndEpilogues().add(div);
     }
 
-    private void addBack(DocumentNode root, @NotNull ObjectFactory of, @NotNull Text text) {
+    private void addBack(DocumentNode root, @NotNull Text text) {
 
-        final Back back = of.createBack();
-
-//        for (PageNode page : root.getChildren()) {
-//            for (ParagraphNode prf : page.getChildren()) {
-//                if (prf.hasRole(Role.FOOTNOTE)){
-//                    FloatingText floatingText = of.createFloatingText();
-//
-//                    P p = addTextToP(of, prf);
-//
-//                    floatingText.getIndicesAndSpenAndSpanGrps().add(p);
-//                    back.getSetsAndProloguesAndEpilogues().add(floatingText);
-//                }
-//            }
-//        }
-//
+        final Back back = OBJECT_FACTORY.createBack();
 
         /* references goes here */
         text.getIndicesAndSpenAndSpanGrps().add(back);
     }
 
-    Div          currentDiv  = null;
-    Div1         currentDiv1 = null;
-    Div2         currentDiv2 = null;
-    int          divLevel    = 0;
+    Div          currentDiv;
+    Div1         currentDiv1;
+    Div2         currentDiv2;
+    int          divLevel;
     List<Object> currentContent;
 
-    private void addBody(@NotNull DocumentNode root, @NotNull ObjectFactory of, @NotNull Text text) {
+    private void addBody(@NotNull DocumentNode root, @NotNull Text text) {
 
-        final Body          body = of.createBody();
+        final Body          body = OBJECT_FACTORY.createBody();
         List<ParagraphNode> prfs = new ArrayList<ParagraphNode>();
 
         for (PageNode pageNode : root.getChildren()) {
@@ -147,12 +136,12 @@ public class TEIOutput implements XMLWriter {
         }
 
         divLevel   = 0;
-        currentDiv = of.createDiv();
+        currentDiv = OBJECT_FACTORY.createDiv();
         body.getIndicesAndSpenAndSpanGrps().add(currentDiv);
         currentContent = currentDiv.getMeetingsAndBylinesAndDatelines();
 
         boolean createNewP = false;
-        P       currentP   = of.createP();
+        P       currentP   = OBJECT_FACTORY.createP();
 
         currentContent.add(currentP);
 
@@ -161,14 +150,14 @@ public class TEIOutput implements XMLWriter {
 
             if (prf.hasRole(Role.DIV1)) {
                 divLevel    = 1;
-                currentDiv1 = of.createDiv1();
-                body.getIndicesAndSpenAndSpanGrps().add(currentDiv1);
+                currentDiv1 = OBJECT_FACTORY.createDiv1();
+                body.withIndicesAndSpenAndSpanGrps(currentDiv1);
                 currentContent = currentDiv1.getMeetingsAndBylinesAndDatelines();
                 isHead         = true;
                 createNewP     = true;
             } else if (prf.hasRole(Role.DIV2)) {
                 divLevel    = 2;
-                currentDiv2 = of.createDiv2();
+                currentDiv2 = OBJECT_FACTORY.createDiv2();
                 currentDiv1.getMeetingsAndBylinesAndDatelines().add(currentDiv2);
                 currentContent = currentDiv2.getMeetingsAndBylinesAndDatelines();
                 isHead         = true;
@@ -176,70 +165,63 @@ public class TEIOutput implements XMLWriter {
             }
 
             if (prf.hasRole(Role.FOOTNOTE)) {
-
-                Note note = of.createNote();
-//                note.set
-                FloatingText floatingText = of.createFloatingText();
-                Body         floatBody    = of.createBody();
-                Div          floatDiv     = of.createDiv();
-                P            p            = of.createP();
-                LineNode     firstLine    = prf.getChildren().get(0);
-
-                floatingText.setType("footnote");
-
+                LineNode firstLine = prf.getChildren().get(0);
                 WordNode firstWord = firstLine.getChildren().get(0);
+                Note     note      = OBJECT_FACTORY.createNote();
 
                 firstLine.removeChild(firstWord);
-                floatingText.setId("footnote" + firstWord.getText());
-                addTextToP(of, prf, p);
-                floatDiv.getMeetingsAndBylinesAndDatelines().add(p);
-                floatBody.getIndicesAndSpenAndSpanGrps().add(floatDiv);
-                floatingText.getIndicesAndSpenAndSpanGrps().add(floatBody);
-                body.getIndicesAndSpenAndSpanGrps().add(floatingText);
+                addParagraphToContent(note.getContent(), prf);
+                note.withPlaces("below").withNS(firstWord.getText());
+//                currentContent.add(note);
+                body.withIndicesAndSpenAndSpanGrps(note);
 
                 continue;
             }
 
             if (isHead) {
-                Head     head      = of.createHead();
                 LineNode firstLine = prf.getChildren().get(0);
                 String   divName   = "sec" + firstLine.getChildren().get(0).getText();
+                Head     head      = OBJECT_FACTORY.createHead().withId(divName);
 
-                head.setId(divName);
                 firstLine.removeChild(firstLine.getChildren().get(0));
-                head.getContent().add(prf.getText());
+                addParagraphToContent(head.getContent(), prf);
                 currentContent.add(head);
             } else {
                 if (createNewP) {
-                    currentP = of.createP();
+                    currentP = OBJECT_FACTORY.createP();
                     currentContent.add(currentP);
                     createNewP = false;
                 }
 
                 for (LineNode line : prf.getChildren()) {
-                    if (!currentP.getContent().isEmpty() && line.isIndented()) {
-                        currentP = of.createP();
+                    boolean indented = line.isIndented();
+
+                    if (!currentP.getContent().isEmpty() && indented) {
+                        currentP = OBJECT_FACTORY.createP();
                         currentContent.add(currentP);
                     }
 
-                    addLineToP(currentP, line);
+                    addLineToContent(currentP.getContent(), line);
                 }
             }
         }
 
         for (PageNode pageNode : root.getChildren()) {
             for (GraphicsNode graphicsNode : pageNode.getGraphics()) {
-                Figure figure     = of.createFigure();
-                Body   figureBody = of.createBody();
-                Div    figureDiv  = of.createDiv();
-                P      p          = of.createP();
-
-                for (ParagraphNode paragraphNode : graphicsNode.getChildren()) {
-                    addTextToP(of, paragraphNode, p);
+                if (graphicsNode.getText().isEmpty()){
+                    continue;
                 }
 
-//                figureDiv.getMeetingsAndBylinesAndDatelines().add(p);
-//                figureBody.getIndicesAndSpenAndSpanGrps().add(figureDiv);
+                Figure figure     = OBJECT_FACTORY.createFigure();
+                Body   figureBody = OBJECT_FACTORY.createBody();
+                Div    figureDiv  = OBJECT_FACTORY.createDiv();
+                P      p          = OBJECT_FACTORY.createP();
+
+
+                for (ParagraphNode paragraphNode : graphicsNode.getChildren()) {
+                    addParagraphToContent(p.getContent(), paragraphNode);
+                }
+
                 figure.getHeadsAndPSAndAbs().add(p);
                 body.getIndicesAndSpenAndSpanGrps().add(figure);
             }
@@ -248,46 +230,42 @@ public class TEIOutput implements XMLWriter {
         text.getIndicesAndSpenAndSpanGrps().add(body);
     }
 
-    private void addLineToP(final P currentP, final LineNode line) {
+    private void addLineToContent(final List<Object> contentList, final LineNode line) {
 
         String content = line.getText();
 
-        if (!currentP.getContent().isEmpty()) {
-            String former = (String) currentP.getContent().get(currentP.getContent().size() - 1);
+        if (!contentList.isEmpty()) {
+            String former = (String) contentList.get(contentList.size() - 1);
 
             if (former.endsWith("-")) {
                 String combined = former.substring(0, former.length() - 1) + content;
 
-                currentP.getContent().remove(currentP.getContent().size() - 1);
-                currentP.getContent().add(combined);
+                contentList.remove(contentList.size() - 1);
+                contentList.add(combined);
 
                 return;
             }
         }
 
-        currentP.getContent().add(content);
+        contentList.add(content);
     }
 
-    private void addTextToP(final ObjectFactory of, final ParagraphNode prf, P p) {
+    private void addParagraphToContent(final List<Object> content, final ParagraphNode prf) {
 
         for (LineNode line : prf.getChildren()) {
-            addLineToP(p, line);
+            addLineToContent(content, line);
         }
-
-//        if (!p.getContent().isEmpty()) {
-//            p.getContent().remove(p.getContent().size() - 1);
-//        }
     }
 
-    private void addFront(DocumentNode root, @NotNull ObjectFactory of, @NotNull Text text) {
+    private void addFront(DocumentNode root, @NotNull Text text) {
 
-        final Front front = of.createFront();
+        final Front front = OBJECT_FACTORY.createFront();
 
-        addAbstract(root, of, front);
+        addAbstract(root, front);
         text.getIndicesAndSpenAndSpanGrps().add(front);
     }
 
-    private void addHeader(DocumentNode root, @NotNull ObjectFactory of, @NotNull TEI tei) {
+    private void addHeader(DocumentNode root, @NotNull TEI tei) {
 
         ParagraphNode title1 = root.getTitle();
 
@@ -295,12 +273,12 @@ public class TEIOutput implements XMLWriter {
             return;
         }
 
-        final TeiHeader header   = of.createTeiHeader();
-        final FileDesc  fileDesc = of.createFileDesc();
+        final TeiHeader header   = OBJECT_FACTORY.createTeiHeader();
+        final FileDesc  fileDesc = OBJECT_FACTORY.createFileDesc();
 
         /* title, author and editor */
-        final TitleStmt titleStmt = of.createTitleStmt();
-        final Title     title     = of.createTitle();
+        final TitleStmt titleStmt = OBJECT_FACTORY.createTitleStmt();
+        final Title     title     = OBJECT_FACTORY.createTitle();
 
         for (LineNode lineNode : title1.getChildren()) {
             title.getContent().add(lineNode.getText());
