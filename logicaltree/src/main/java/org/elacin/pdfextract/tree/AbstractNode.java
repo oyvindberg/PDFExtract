@@ -19,18 +19,23 @@
 package org.elacin.pdfextract.tree;
 
 import org.apache.log4j.Logger;
+
+import org.elacin.pdfextract.content.StyledText;
 import org.elacin.pdfextract.geom.HasPositionAbstract;
 import org.elacin.pdfextract.style.Style;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.EnumSet;
 
 /**
  * Created by IntelliJ IDEA. User: elacin Date: Mar 23, 2010 Time: 7:44:33 AM To change this
  * template use File | Settings | File Templates.
  */
-public abstract class AbstractNode<ParentType extends AbstractParentNode> extends HasPositionAbstract {
+public abstract class AbstractNode<ParentType extends AbstractParentNode> extends HasPositionAbstract
+        implements StyledText {
 
 // ------------------------------ FIELDS ------------------------------
     protected static final Logger log   = Logger.getLogger(AbstractNode.class);
@@ -41,13 +46,6 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> extend
     @Nullable
     protected DocumentNode        root;
 
-/* a cache of current text */
-    @Nullable
-    protected String textCache;
-
-/* a cache of current toString-String */
-    @Nullable
-    protected transient String toStringCache;
 
 // --------------------- GETTER / SETTER METHODS ---------------------
     @Nullable
@@ -56,23 +54,14 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> extend
     }
 
     @NotNull
-    public EnumSet<Role> getRoles() {
+    public Collection<Role> getRoles() {
         return roles;
     }
 
-    @Nullable
-    public DocumentNode getRoot() {
-        return root;
-    }
-
-    public void setRoot(final DocumentNode root) {
-        this.root = root;
-    }
 
 // -------------------------- PUBLIC METHODS --------------------------
     public void addRole(Role r) {
-
-        log.info(this + " got assigned role " + r);
+        log.info(r + ": " + this);
         roles.add(r);
     }
 
@@ -98,6 +87,10 @@ public abstract class AbstractNode<ParentType extends AbstractParentNode> extend
 
     public boolean hasRole(Role r) {
         return roles.contains(r);
+    }
+
+    public boolean hasRole() {
+        return !roles.isEmpty();
     }
 
 // -------------------------- OTHER METHODS --------------------------

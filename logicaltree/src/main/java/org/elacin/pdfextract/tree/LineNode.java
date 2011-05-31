@@ -46,10 +46,6 @@ public class LineNode extends AbstractParentNode<WordNode, ParagraphNode> {
 
         StringBuilder sb = new StringBuilder();
 
-//        if (isIndented()) {
-//            sb.append("    ");
-//        }
-
         for (int i = 0; i < getChildren().size(); i++) {
             final WordNode word = getChildren().get(i);
 

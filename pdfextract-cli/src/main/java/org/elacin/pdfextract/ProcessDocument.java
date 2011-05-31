@@ -19,21 +19,24 @@
 package org.elacin.pdfextract;
 
 import org.apache.log4j.Logger;
+
 import org.elacin.pdfextract.datasource.DocumentContent;
 import org.elacin.pdfextract.datasource.PDFSource;
 import org.elacin.pdfextract.datasource.pdfbox.PDFBoxSource;
-import org.elacin.pdfextract.logical.operation.ExtractAbstract;
-import org.elacin.pdfextract.logical.operation.RemovePageNumbers;
-import org.elacin.pdfextract.logical.operation.TagText;
+import org.elacin.pdfextract.logical.LogicalAnalysis;
+import org.elacin.pdfextract.physical.GeometricAnalysis;
 import org.elacin.pdfextract.renderer.PageRenderer;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.xml.SimpleXMLOutput;
 import org.elacin.pdfextract.xml.TEIOutput;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+
 import java.util.Date;
 
 import static org.elacin.pdfextract.Constants.*;
@@ -45,22 +48,26 @@ import static org.elacin.pdfextract.Constants.*;
 public class ProcessDocument {
 
 // ------------------------------ FIELDS ------------------------------
-    private static final Logger log = Logger.getLogger(DocumentAnalyzer.class);
+    private static final Logger log = Logger.getLogger(ProcessDocument.class);
+    @NotNull
     public final File           pdfFile;
     @NotNull
     private final File          dest;
     public String               password;
     public int                  startPage;
     public int                  endPage;
+    final boolean               arc;
 
 // --------------------------- CONSTRUCTORS ---------------------------
-    public ProcessDocument(File pdfFile, File dest, String password, int startPage, int endPage) {
+    public ProcessDocument(File pdfFile, File dest, String password, int startPage, int endPage,
+                           final boolean arc) {
 
         this.dest      = dest;
         this.pdfFile   = pdfFile;
         this.password  = password;
         this.startPage = startPage;
         this.endPage   = endPage;
+        this.arc       = arc;
     }
 
 // -------------------------- STATIC METHODS --------------------------
@@ -81,8 +88,10 @@ public class ProcessDocument {
 
     static void renderPDF(PDFSource source, @NotNull DocumentNode root, @NotNull File destination) {
 
-        long               t0       = System.currentTimeMillis();
-        final PageRenderer renderer = new PageRenderer(source, root, RENDER_RESOLUTION);
+        long               t0         = System.currentTimeMillis();
+        final PageRenderer renderer   = new PageRenderer(source, root, RENDER_RESOLUTION);
+        DateFormat         dateFormat = new SimpleDateFormat("MMddHHmm");
+        Date               date       = new Date();
 
         for (int i = 0; i < root.getChildren().size(); i++) {
 
@@ -93,10 +102,7 @@ public class ProcessDocument {
             String path = destination.getAbsolutePath();
 
             path = path.replace("%p", String.valueOf(pageNum));
-
-            DateFormat dateFormat = new SimpleDateFormat("MMddHHmm");
-
-            path = path.replace("%d", dateFormat.format(new Date()));
+            path = path.replace("%d", dateFormat.format(date));
 
             final File outputFile = new File(path);
 
@@ -117,7 +123,7 @@ public class ProcessDocument {
 
             final DocumentContent content = source.readPages();
 
-            documentNode = DocumentAnalyzer.analyzeDocument(content);
+            documentNode = GeometricAnalysis.analyzeDocument(content);
 
             if (SIMPLE_OUTPUT_ENABLED) {
                 File xmlOutFile = getOutputFile(dest, pdfFile, SIMPLE_OUTPUT_EXTENSION);
@@ -125,9 +131,7 @@ public class ProcessDocument {
                 new SimpleXMLOutput().writeTree(documentNode, xmlOutFile);
             }
 
-            new RemovePageNumbers().doOperation(documentNode);
-            new ExtractAbstract().doOperation(documentNode);
-            new TagText().doOperation(documentNode);
+            LogicalAnalysis.analyzeDocument(documentNode, arc);
 
             if (RENDER_ENABLED) {
                 renderPDF(source, documentNode, getOutputFile(dest, pdfFile, ".%d.%p.png"));

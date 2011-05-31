@@ -20,11 +20,14 @@ package org.elacin.pdfextract;
 
 import org.apache.commons.cli.*;
 import org.apache.log4j.Logger;
+
 import org.elacin.pdfextract.util.FileWalker;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,16 +44,18 @@ public class TextExtractor {
     private final String       password;
     private final List<File>   pdfFiles;
     private final int          startPage;
+    private final boolean      arc;
 
 // --------------------------- CONSTRUCTORS ---------------------------
     public TextExtractor(final List<File> pdfFiles, final File destination, final int startPage,
-                         final int endPage, final String password) {
+                         final int endPage, final String password, final boolean arc) {
 
         this.pdfFiles    = pdfFiles;
         this.destination = destination;
         this.startPage   = startPage;
         this.endPage     = endPage;
         this.password    = password;
+        this.arc         = arc;
     }
 
 // -------------------------- STATIC METHODS --------------------------
@@ -83,6 +88,7 @@ public class TextExtractor {
         options.addOption("p", "password", true, "Password for decryption of document");
         options.addOption("s", "startpage", true, "First page to parse");
         options.addOption("e", "endpage", true, "Last page to parse");
+        options.addOption("a", "arc", false, "Activate ARC extensions");
 
         return options;
     }
@@ -117,7 +123,7 @@ public class TextExtractor {
         for (File pdfFile : pdfFiles) {
             try {
                 ProcessDocument processDocument = new ProcessDocument(pdfFile, destination, password,
-                                                        startPage, endPage);
+                                                      startPage, endPage, arc);
 
                 processDocument.processFile();
             } catch (Exception e) {
@@ -157,6 +163,9 @@ public class TextExtractor {
             password = cmd.getOptionValue("password");
         }
 
+
+        final boolean arc = cmd.hasOption("arc");
+
         List<File> pdfFiles    = findAllPdfFilesUnderDirectory(cmd.getArgs()[0]);
         final File destination = new File(cmd.getArgs()[1]);
 
@@ -179,7 +188,7 @@ public class TextExtractor {
         }
 
         final TextExtractor textExtractor = new TextExtractor(pdfFiles, destination, startPage, endPage,
-                                                password);
+                                                password, arc);
 
         textExtractor.processFiles();
     }

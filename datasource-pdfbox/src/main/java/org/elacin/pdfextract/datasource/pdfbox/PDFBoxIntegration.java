@@ -255,7 +255,7 @@ the direction of right to left text, such as Arabic and Hebrew. */
 
             // todo, handle horizontal displacement
             // get the width and height of this character in text units
-            float fontWidth = font.getFontWidth(string, i, codeLength);
+            float fontWidth = font.getFontWidth(string, i, codeLength) *0.95f;
 
             if (fontWidth == 0.0f) {
                 fontWidth = spaceWidthDisp;
@@ -557,11 +557,9 @@ the direction of right to left text, such as Arabic and Hebrew. */
             final float spaceUnderChar     = Math.min(fontBB.getLowerLeftY(), character.getLowerLeftY());
             final float spaceOverChar      = fontBB.getUpperRightY() - character.getUpperRightY();
             final float fontHeight         = fontBB.getHeight();
-            final float beforeRoomForGlyph = pos.endY - adjust * Math.max(fontHeight, pos.height);
 
             /* calculate the upper left corner of the rendered glyph */
-            float yStart = beforeRoomForGlyph;
-
+            float yStart = pos.endY - adjust * fontHeight;
             yStart += adjust * spaceOverChar;
             yStart -= adjust * spaceUnderChar;
             yStart -= pos.height;
@@ -572,9 +570,10 @@ the direction of right to left text, such as Arabic and Hebrew. */
             if (isMonoSpacedFont(fontObj)) {
                 x = pos.x;
             } else {
-                float leftOfText = text.getX() - (adjust * fontBB.getWidth());
-
-                x = leftOfText + adjust * character.getLowerLeftX();
+//                float leftOfText = text.getX() - (adjust * fontBB.getWidth());
+//
+//                x = leftOfText + adjust * character.getLowerLeftX();
+                x = pos.x;
             }
 
             /*
@@ -595,7 +594,7 @@ the direction of right to left text, such as Arabic and Hebrew. */
                 characterHeight = character.getHeight();
             }
 
-            float h = adjust * characterHeight;
+            float h = adjust * (characterHeight);
 
             /* correct if the NO_DESCENDERS hack made this character have no height*/
             if (NO_DESCENDERS && h < 0.1f){
@@ -611,7 +610,7 @@ the direction of right to left text, such as Arabic and Hebrew. */
              */
             float h      = pos.height;
             float w      = pos.width;
-            float startY = pos.y - h * 0.8f;
+            float startY = pos.y - h;// * 0.8f;
 
             if (fontObj instanceof PDType3Font) {
 
@@ -746,7 +745,7 @@ the direction of right to left text, such as Arabic and Hebrew. */
             return areFontsMonospaced.get(fontObj);
         }
 
-        List<Float> widths     = (List<Float>) fontObj.getWidths();
+        List<Float> widths     = fontObj.getWidths();
         boolean     monospaced = true;
 
         if (widths == null) {

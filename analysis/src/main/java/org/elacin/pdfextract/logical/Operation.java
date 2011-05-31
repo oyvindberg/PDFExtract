@@ -26,5 +26,5 @@ import org.elacin.pdfextract.tree.DocumentNode;
 public interface Operation {
 
 // -------------------------- PUBLIC METHODS --------------------------
-    void doOperation(DocumentNode root);
+    void doOperation(DocumentNode root, final DocumentMetadata metadata);
 }

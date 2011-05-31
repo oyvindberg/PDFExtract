@@ -49,8 +49,8 @@ public class Style implements Serializable {
     @NotNull
     public static final Style FORMULA = new Style("Formula", "", -2, -2, "FORMULA", false, false, true);
     @NotNull
-    public static Style NO_STYLE      = new Style("No style", "", -3, -3, "[NOSTYLE]", false, false,
-                                            false);
+    public static final Style NO_STYLE      = new Style("No style", "", -3, -3, "[NOSTYLE]", false, false,
+                                                        false);
     final boolean             bold;
     public final String       fontName;
     public final String       id;

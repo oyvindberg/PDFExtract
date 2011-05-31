@@ -19,6 +19,7 @@
 package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.style.Style;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,9 +47,7 @@ public class DocumentNode extends AbstractParentNode<PageNode, DocumentNode> {
     final private List<ParagraphNode> references = new ArrayList<ParagraphNode>();
 
 // --------------------------- CONSTRUCTORS ---------------------------
-    public DocumentNode() {
-        setRoot(this);
-    }
+    public DocumentNode() {}
 
 // --------------------- GETTER / SETTER METHODS ---------------------
     public ParagraphNode getAbstractParagraph() {

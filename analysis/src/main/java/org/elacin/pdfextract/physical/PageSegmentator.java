@@ -19,6 +19,7 @@
 package org.elacin.pdfextract.physical;
 
 import org.apache.log4j.Logger;
+
 import org.elacin.pdfextract.content.*;
 import org.elacin.pdfextract.geom.MathUtils;
 import org.elacin.pdfextract.geom.Rectangle;
@@ -36,6 +37,7 @@ import org.elacin.pdfextract.tree.GraphicsNode;
 import org.elacin.pdfextract.tree.LineNode;
 import org.elacin.pdfextract.tree.PageNode;
 import org.elacin.pdfextract.tree.ParagraphNode;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -55,7 +57,7 @@ public class PageSegmentator {
     @NotNull
     private static final Logger log = Logger.getLogger(PageSegmentator.class);
 
-    /* */
+    /*  */
     private static final ParagraphSegmentator paragraphSegmentator = new ParagraphSegmentator();
 
 // -------------------------- PUBLIC STATIC METHODS --------------------------
@@ -92,7 +94,7 @@ public class PageSegmentator {
             StringBuffer sb = new StringBuffer();
 
             printRegions(sb, mainRegion, 0);
-            log.debug("sb");
+            log.debug(sb);
         }
 
         createParagraphsForRegion(ret, mainRegion, numberer, false);
@@ -333,7 +335,7 @@ public class PageSegmentator {
                                             region.getPos().endX - boundary.getPos().getMiddleX(),
                                             boundary.getPos().height - 1);
 
-            assert region.extractSubRegionFromBound(right, false);
+            region.extractSubRegionFromBound(right, false);
         }
     }
 }

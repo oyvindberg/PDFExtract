@@ -20,6 +20,7 @@ package org.elacin.pdfextract.style;
 
 import org.elacin.pdfextract.content.StyledText;
 import org.elacin.pdfextract.geom.HasPosition;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;

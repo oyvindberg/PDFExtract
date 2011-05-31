@@ -252,14 +252,14 @@ public class GraphicSegmentatorImpl implements GraphicSegmentator {
                 graphic.setCanBeAssigned(true);
                 graphic.setStyle(Style.GRAPHIC_MATH_BAR);
                 ret.getContents().add(graphic);
-            } else if (canBeConsideredHorizontalSeparator(graphic)) {
-                graphic.setCanBeAssigned(true);
-                graphic.setStyle(Style.GRAPHIC_HSEP);
-                ret.getHorizontalSeparators().add(graphic);
-            } else if (canBeConsideredVerticalSeparator(graphic)) {
-                graphic.setCanBeAssigned(true);
-                graphic.setStyle(Style.GRAPHIC_VSEP);
-                ret.getVerticalSeparators().add(graphic);
+//            } else if (canBeConsideredHorizontalSeparator(graphic)) {
+//                graphic.setCanBeAssigned(true);
+//                graphic.setStyle(Style.GRAPHIC_HSEP);
+//                ret.getHorizontalSeparators().add(graphic);
+//            } else if (canBeConsideredVerticalSeparator(graphic)) {
+//                graphic.setCanBeAssigned(true);
+//                graphic.setStyle(Style.GRAPHIC_VSEP);
+//                ret.getVerticalSeparators().add(graphic);
 
                 // } else if (canBeConsideredCharacterInRegion(graphic, region)) {
                 // graphic.setStyle(Style.GRAPHIC_CHARACTER);

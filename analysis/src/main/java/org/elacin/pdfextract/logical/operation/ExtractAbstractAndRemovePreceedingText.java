@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010-2011 �yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@
 package org.elacin.pdfextract.logical.operation;
 
 import org.apache.log4j.Logger;
+
+import org.elacin.pdfextract.logical.DocumentMetadata;
 import org.elacin.pdfextract.logical.Operation;
 import org.elacin.pdfextract.style.StyleDifference;
 import org.elacin.pdfextract.tree.DocumentNode;
@@ -30,14 +32,21 @@ import java.util.List;
 import static org.elacin.pdfextract.style.StyleComparator.styleCompare;
 
 /**
- * Created by IntelliJ IDEA. User: elacin Date: 31.01.11 Time: 10.41 To change this template use
- * File | Settings | File Templates.
+ * Recognizes a heading with the name abstract, and the subsequent paragraphs of text until the next
+ *  header-like element.
+ *
+ *  Also removes all content before this abstract, so it is essential that ExtractTitle be ran
+ *  before this.
+ *
  */
-public class ExtractAbstract implements Operation {
+public class ExtractAbstractAndRemovePreceedingText implements Operation {
 
-    private static final Logger log = Logger.getLogger(ExtractAbstract.class);
+// ------------------------------ FIELDS ------------------------------
+    private static final Logger log = Logger.getLogger(ExtractAbstractAndRemovePreceedingText.class);
 
-    public void doOperation(final DocumentNode root) {
+// ------------------------ INTERFACE METHODS ------------------------
+// --------------------- Interface Operation ---------------------
+    public void doOperation(final DocumentNode root, final DocumentMetadata metadata) {
 
         if (root.getWords().isEmpty() || root.getChildren().isEmpty()) {
             throw new RuntimeException("tried to analyze empty document");
@@ -51,7 +60,7 @@ public class ExtractAbstract implements Operation {
 
             if (absTitlePrf.getText().trim().toLowerCase().equals("abstract")
                     && (i + 1 != prfs.size())) {
-                ParagraphNode abstractParagraph = prfs.get(++i);
+                ParagraphNode abstractPrf = prfs.get(++i);
 
                 i++;
 
@@ -61,22 +70,30 @@ public class ExtractAbstract implements Operation {
                     }
 
                     ParagraphNode   next = prfs.get(i);
-                    StyleDifference diff = styleCompare(next.getStyle(), abstractParagraph.getStyle());
+                    StyleDifference diff = styleCompare(next.getStyle(), abstractPrf.getStyle());
 
                     if (diff != StyleDifference.SAME_STYLE) {
                         break;
                     }
 
-                    abstractParagraph.addChildren(next.getChildren());
+                    abstractPrf.addChildren(next.getChildren());
                     prfs.remove(i);
                 }
 
-                root.setAbstractParagraph(abstractParagraph);
-                prfs.remove(abstractParagraph);
+                /* set the newly created paragraph as the special abstract paragraph in the tree,
+                 and remove it from the original position*  */
+                root.setAbstractParagraph(abstractPrf);
+                prfs.remove(abstractPrf);
                 prfs.remove(absTitlePrf);
 
+                /* then remove all preceeding content */
+                for (int j = 0; j < i -2; j++){
+                    prfs.remove(0);
+                }
+
+
                 if (log.isInfoEnabled()) {
-                    String t    = abstractParagraph.getText();
+                    String t    = abstractPrf.getText();
                     String text = t.substring(0, Math.min(30, t.length()));
 
                     log.info("LOG01460:Found abstract with text " + text);

@@ -15,16 +15,15 @@
  */
 
 
-
-package org.elacin.pdfextract;
+package org.elacin.pdfextract.physical;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.MDC;
+import org.elacin.pdfextract.Constants;
 import org.elacin.pdfextract.content.PhysicalPage;
 import org.elacin.pdfextract.content.PhysicalText;
 import org.elacin.pdfextract.datasource.DocumentContent;
 import org.elacin.pdfextract.datasource.PageContent;
-import org.elacin.pdfextract.physical.PageSegmentator;
 import org.elacin.pdfextract.physical.word.WordSegmentator;
 import org.elacin.pdfextract.physical.word.WordSegmentatorImpl;
 import org.elacin.pdfextract.tree.DocumentNode;
@@ -36,9 +35,9 @@ import java.util.List;
  * Created by IntelliJ IDEA. User: elacin Date: 29.01.11 Time: 20.09 To change this template use
  * File | Settings | File Templates.
  */
-public class DocumentAnalyzer {
+public class GeometricAnalysis {
 
-    private static final Logger         log             = Logger.getLogger(DocumentAnalyzer.class);
+    private static final Logger         log             = Logger.getLogger(GeometricAnalysis.class);
     public static final WordSegmentator wordSegmentator = new WordSegmentatorImpl();
 
     public static DocumentNode analyzeDocument(final DocumentContent content) {

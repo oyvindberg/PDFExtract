@@ -1,5 +1,5 @@
 /*
- * Copyright 2010-2011 Øyvind Berg (elacin@gmail.com)
+ * Copyright 2010-2011 �yvind Berg (elacin@gmail.com)
  *
  *    Licensed under the Apache License, Version 2.0 (the "License");
  *    you may not use this file except in compliance with the License.
@@ -19,11 +19,14 @@
 package org.elacin.pdfextract.logical.operation;
 
 import org.apache.log4j.Logger;
+
+import org.elacin.pdfextract.logical.DocumentMetadata;
 import org.elacin.pdfextract.logical.Operation;
 import org.elacin.pdfextract.style.Style;
 import org.elacin.pdfextract.tree.DocumentNode;
 import org.elacin.pdfextract.tree.Role;
 import org.elacin.pdfextract.tree.WordNode;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,12 +49,11 @@ public class RecognizeRoles implements Operation {
     static final Pattern numInParenthesisPattern = Pattern.compile("(\\(\\s*" + id + "\\s*\\)).*",
                                                        Pattern.DOTALL | Pattern.MULTILINE);
     @Nullable
-    final Style          breadtext = null;
-    private DocumentNode root;
+    final Style breadtext = null;
 
 // ------------------------ INTERFACE METHODS ------------------------
 // --------------------- Interface Operation ---------------------
-    public void doOperation(@NotNull final DocumentNode root) {
+    public void doOperation(@NotNull final DocumentNode root, final DocumentMetadata metadata) {
 
         if (breadtext == null) {
             log.error("provide breadtext here");
@@ -59,13 +61,9 @@ public class RecognizeRoles implements Operation {
             return;
         }
 
-        this.root = root;
-
         for (WordNode word : root.getWords()) {
             checkForIdentifier(word);
             checkForTopNote(word);
-
-            // checkForFootNote(word);
             checkForPageNumber(word);
         }
     }
@@ -108,41 +106,6 @@ public class RecognizeRoles implements Operation {
         }
     }
 
-//  private void checkForFootNote(final WordNode leafText) {
-//      /* if the following is true for the leafText:
-//          - is in the bottom 50% of a page
-//
-//          - the previous was a footnote OR
-//          - ALL the remaining fragments on the page have a style which is smaller than the breadtext
-//       */
-//
-//      if (leafText.getPos().getY() < (leafText.getPage().getPageFormat().getHeight() / 2)) {
-//          return;
-//      }
-//
-//      boolean isFootnote = false;
-//
-//      if (leafText.getPrevious().hasRole(Role.FOOTNOTE)) {
-//          isFootnote = true;
-//      }
-//
-//
-//      WordNode current = leafText;
-//      while (!isFootnote) {
-//          /* if we are at the end of page or document */
-//          if (current == null || current.getPage() !asdasd= leafText.getPage()) {
-//              isFootnote = true;
-//              break;
-//          } else if (current.getStyle().ySize >= breadtext.ySize) {
-//              break;
-//          }
-//          current = current.getNext();
-//      }
-//
-//      if (isFootnote) {
-//          leafText.addRole(Role.FOOTNOTE, "");
-//      }
-//  }
     private void checkForPageNumber(@NotNull final WordNode word) {
 
         boolean isNumber = true;
@@ -164,7 +127,7 @@ public class RecognizeRoles implements Operation {
 
     private void checkForTopNote(@NotNull final WordNode word) {
 
-        if (word.getPos().y < (word.getPage().getPos().height * 5.0 / 100)) {
+        if (word.getPos().y < (word.getPage().getPos().height * 5.0f / 100)) {
 
             /* then check the font. we either want smaller than breadtext, or same size but different type */
             if ((word.getStyle().ySize < breadtext.ySize)

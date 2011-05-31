@@ -21,6 +21,7 @@ package org.elacin.pdfextract.tree;
 import org.elacin.pdfextract.content.StyledText;
 import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.style.Style;
+
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -36,10 +37,10 @@ import org.jetbrains.annotations.NotNull;
  * the textual representation. <p/> Note that all whitespace characters will have been stripped from
  * the text.
  */
-public class WordNode extends AbstractNode<LineNode> implements StyledText {
+public class WordNode extends AbstractNode<LineNode> {
 
-    private final float       charSpacing;
-    protected final Style     style;
+    private final float   charSpacing;
+    protected final Style style;
 
 // ------------------------------ FIELDS ------------------------------
     public final String text;
@@ -77,17 +78,10 @@ public class WordNode extends AbstractNode<LineNode> implements StyledText {
     @NotNull
     @Override
     public String toString() {
-
-        if (toStringCache == null) {
-            toStringCache = "WordNode{text='" + text + '\'' + ", position=" + getPos() + ", style="
-                            + style + '}';
-        }
-
-        return toStringCache;
+        return "WordNode{text='" + text + '\'' + ", position=" + getPos() + ", style=" + style;
     }
 
 // --------------------- GETTER / SETTER METHODS ---------------------
-
 // -------------------------- PUBLIC METHODS --------------------------
     public boolean isPartOfSameWordAs(@NotNull final WordNode nextNode) {
 
@@ -98,9 +92,6 @@ public class WordNode extends AbstractNode<LineNode> implements StyledText {
 
 // -------------------------- OTHER METHODS --------------------------
     protected void invalidateThisAndParents() {
-
-        textCache     = null;
-        toStringCache = null;
 
         if (getParent() != null) {
             getParent().invalidateThisAndParents();

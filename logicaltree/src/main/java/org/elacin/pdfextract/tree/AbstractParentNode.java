@@ -20,9 +20,13 @@ package org.elacin.pdfextract.tree;
 
 import org.elacin.pdfextract.geom.MathUtils;
 import org.elacin.pdfextract.style.Style;
+import org.elacin.pdfextract.style.TextUtils;
+
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
+
 import java.util.*;
 
 /**
@@ -34,7 +38,15 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode,
 
 // ------------------------------ FIELDS ------------------------------
 
-/* children nodes */
+    /* caches */
+    @Nullable
+    protected transient String textCache;
+    @Nullable
+    protected transient Style  styleCache;
+    @Nullable
+    protected transient String toStringCache;
+
+    /* children nodes */
     @NotNull
     private final List<ChildType> children = new ArrayList<ChildType>();
 
@@ -49,6 +61,38 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode,
 // --------------------- Interface HasPosition ---------------------
     public void calculatePos() {
         setPos(MathUtils.findBounds(children));
+    }
+
+// --------------------- Interface StyledText ---------------------
+    @NotNull
+    public Style getStyle() {
+
+        if (styleCache == null) {
+            styleCache = TextUtils.findDominatingStyle(children);
+        }
+
+        return styleCache;
+    }
+
+    @NotNull
+    @Override
+    public String getText() {
+
+        if (textCache == null) {
+            StringBuilder sb = new StringBuilder();
+
+            if (!children.isEmpty()) {
+                for (ChildType child : children) {
+                    sb.append(child.getText()).append(" ");
+                }
+
+                sb.setLength(sb.length() - 1);
+            }
+
+            textCache = sb.toString();
+        }
+
+        return textCache;
     }
 
 // ------------------------ CANONICAL METHODS ------------------------
@@ -67,9 +111,7 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode,
     }
 
 // ------------------------ OVERRIDING METHODS ------------------------
-    @SuppressWarnings({ "unchecked" })
-
-/* someone explain me how to avoid this  and i would be happy! */
+    @SuppressWarnings({ "unchecked" })    /* wtf */
     @NotNull
     public EnumSet<Role> getRoles() {
 
@@ -96,7 +138,6 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode,
         child.parent = this;
         child.invalidateThisAndParents();
         Collections.sort(children, getChildComparator());
-        child.setRoot(getRoot());
     }
 
     public final void addChildren(@NotNull final List<ChildType> newChildren) {
@@ -105,7 +146,6 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode,
             child.invalidateThisAndParents();
             children.add(child);
             child.parent = this;
-            child.setRoot(getRoot());
         }
 
         Collections.sort(children, getChildComparator());
@@ -114,43 +154,6 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode,
 
     @NotNull
     public abstract Comparator<ChildType> getChildComparator();
-
-    public Style getStyle() {
-
-        /* keep the value from last child */
-        return children.get(children.size() - 1).getStyle();
-    }
-
-    @NotNull
-    @Override
-    public String getText() {
-
-        if (textCache == null) {
-            StringBuilder sb = new StringBuilder();
-
-            if (!children.isEmpty()) {
-                for (ChildType child : children) {
-                    sb.append(child.getText());
-                }
-            }
-
-            textCache = sb.toString();
-        }
-
-        return textCache;
-    }
-
-// -------------------------- OTHER METHODS --------------------------
-    protected void invalidateThisAndParents() {
-
-        invalidatePos();
-        textCache     = null;
-        toStringCache = null;
-
-        if (getParent() != null) {
-            getParent().invalidateThisAndParents();
-        }
-    }
 
     public void removeChild(ChildType child) {
 
@@ -161,7 +164,6 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode,
 
     public void removeChildren(List<ChildType> childrenToRemove) {
 
-
         for (ChildType child : childrenToRemove) {
             child.invalidateThisAndParents();
             children.remove(child);
@@ -169,6 +171,18 @@ public abstract class AbstractParentNode<ChildType extends AbstractNode,
         }
     }
 
+// -------------------------- OTHER METHODS --------------------------
+    protected void invalidateThisAndParents() {
+
+        invalidatePos();
+        textCache     = null;
+        toStringCache = null;
+        styleCache    = null;
+
+        if (getParent() != null) {
+            getParent().invalidateThisAndParents();
+        }
+    }
 
 // -------------------------- INNER CLASSES --------------------------
 

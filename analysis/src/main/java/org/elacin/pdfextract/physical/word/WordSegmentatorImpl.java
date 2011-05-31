@@ -19,22 +19,27 @@
 package org.elacin.pdfextract.physical.word;
 
 import org.apache.log4j.Logger;
+
 import org.elacin.pdfextract.content.PhysicalText;
 import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.geom.Sorting;
 import org.elacin.pdfextract.style.Style;
+import org.elacin.pdfextract.style.StyleComparator;
+import org.elacin.pdfextract.style.StyleDifference;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 import static org.elacin.pdfextract.Constants.USE_EXISTING_WHITESPACE;
 import static org.elacin.pdfextract.geom.MathUtils.isWithinVariance;
+import static org.elacin.pdfextract.style.StyleDifference.*;
 
 public class WordSegmentatorImpl implements WordSegmentator {
 
 // ------------------------------ FIELDS ------------------------------
-    private static final Logger log                   = Logger.getLogger(WordSegmentatorImpl.class);
-    public static final float         fontDenom             = 8.0f;
+    private static final Logger log       = Logger.getLogger(WordSegmentatorImpl.class);
+    public static final float   fontDenom = 5.0f;
 
 // ------------------------ INTERFACE METHODS ------------------------
 // --------------------- Interface WordSegmentator ---------------------
@@ -187,9 +192,9 @@ public class WordSegmentatorImpl implements WordSegmentator {
             if (containsSpaces) {
                 isWordBoundary = "".equals(nextChar.getText().trim());
             } else {
-                final float   distance = currentWord.getPos().distance(nextChar.getPos());;
+                final float distance = currentWord.getPos().distance(nextChar.getPos());
 
-                isWordBoundary = distance - charSpacing > 0.6f * fontSize / fontDenom;
+                isWordBoundary = distance - charSpacing > 0.7f * fontSize / fontDenom;
 
                 if (log.isDebugEnabled()) {
                     log.debug(currentWord.getText() + "[" + currentWidth + "] " + distance + " "
@@ -324,7 +329,10 @@ public class WordSegmentatorImpl implements WordSegmentator {
     }
 
     private static boolean fontDiffers(@NotNull final Style style, @NotNull final PhysicalText text) {
-        return !style.equals(text.getStyle());
+
+        StyleDifference diff = StyleComparator.styleCompare(text.getStyle(), style);
+
+        return diff.equals(BIG_DIFFERENCE) || diff.equals(SPLIT);
     }
 
     private static boolean isOnAnotherLine(final float baseline, @NotNull final PhysicalText text,

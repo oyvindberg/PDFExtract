@@ -41,7 +41,7 @@ class PDFDocumentLoader {
 
         //
         final ProcessDocument processDocument = new ProcessDocument(new File(url.getFile()),
-                                                      new File(outFile), "", -1, endPage);
+                                                      new File(outFile), "", -1, endPage, false);
 
 
         return processDocument.processFile();
