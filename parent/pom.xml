@@ -33,6 +33,7 @@
         <module>../model</module>
         <module>../datasource</module>
         <module>../datasource-pdfbox</module>
+        <!--<module>../datasource-poppler</module>-->
         <module>../analysis</module>
         <module>../logicaltree</module>
         <module>../xmlout</module>

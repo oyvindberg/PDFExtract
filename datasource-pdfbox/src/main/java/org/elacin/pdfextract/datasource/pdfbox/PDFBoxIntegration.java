@@ -61,6 +61,8 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
+import static org.elacin.pdfextract.Constants.USE_EXISTING_WHITESPACE;
+
 public class PDFBoxIntegration extends PageDrawer {
 
 // ------------------------------ FIELDS ------------------------------
@@ -376,7 +378,7 @@ the direction of right to left text, such as Arabic and Hebrew. */
             return;
         }
 
-        if (!Constants.USE_EXISTING_WHITESPACE && "".equals(text.getCharacter().trim())) {
+        if (!USE_EXISTING_WHITESPACE && "".equals(text.getCharacter().trim())) {
             return;
         }
 

@@ -194,12 +194,13 @@ public class WordSegmentatorImpl implements WordSegmentator {
             } else {
                 final float distance = currentWord.getPos().distance(nextChar.getPos());
 
-                isWordBoundary = distance - charSpacing > 0.7f * fontSize / fontDenom;
+                final float limit = 0.8f * fontSize / fontDenom;
+                isWordBoundary = distance - charSpacing > limit;
 
                 if (log.isDebugEnabled()) {
                     log.debug(currentWord.getText() + "[" + currentWidth + "] " + distance + " "
                               + nextChar.getText() + "[" + nextChar.getPos().width
-                              + "]: isWordBoundary=" + isWordBoundary + ", effective distance:"
+                              + "]: limit=" + limit + ", effective distance:"
                               + (distance - charSpacing) + ", fontSize:" + (fontSize) + ", charSpacing:"
                               + charSpacing);
                 }

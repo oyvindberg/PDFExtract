@@ -19,12 +19,14 @@
 package org.elacin.pdfextract.physical.column;
 
 import org.apache.log4j.Logger;
+
 import org.elacin.pdfextract.content.PhysicalContent;
 import org.elacin.pdfextract.content.PhysicalPageRegion;
 import org.elacin.pdfextract.content.WhitespaceRectangle;
 import org.elacin.pdfextract.geom.MathUtils;
 import org.elacin.pdfextract.geom.Rectangle;
 import org.elacin.pdfextract.geom.Sorting;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,7 +45,7 @@ import static org.elacin.pdfextract.geom.RectangleCollection.Direction.W;
  */
 public class ColumnFinder {
 
-    private static String chars = "()[]abcdef1234567890o.?* ";
+    private static final String chars = "()[]abcdef1234567890o.?* ";
 
 // ------------------------------ FIELDS ------------------------------
     public static final float   DEFAULT_COLUMN_WIDTH = 2.0f;
@@ -156,8 +158,8 @@ public class ColumnFinder {
             return null;
         }
 
-        final Rectangle adjusted = new Rectangle(boundaryStartX, realBoundaryY + 2.0F, 1.0f,
-                                       Math.max(0.1f, realBoundaryEndY - realBoundaryY - 3.0F));
+        final Rectangle adjusted = new Rectangle(boundaryStartX, realBoundaryY + 0.5f, 1.0f,
+                                       Math.max(0.1f, realBoundaryEndY - realBoundaryY - 0.5F));
         final WhitespaceRectangle newBoundary = new WhitespaceRectangle(adjusted);
 
         newBoundary.setScore(1000);
@@ -191,15 +193,9 @@ public class ColumnFinder {
             final WhitespaceRectangle right  = adjustColumn(region, boundary, rightX, rightEndX);
 
             /* then choose the tallest */
-            final float lHeight = ((left == null)
-                                   ? -1.0f
-                                   : left.getPos().height);
-            final float mHeight = ((middle == null)
-                                   ? -1.0f
-                                   : middle.getPos().height);
-            final float rHeight = ((right == null)
-                                   ? -1.0f
-                                   : right.getPos().height);
+            final float lHeight = ((left == null) ? -1.0f : left.getPos().height);
+            final float mHeight = ((middle == null) ? -1.0f : middle.getPos().height);
+            final float rHeight = ((right == null) ? -1.0f : right.getPos().height);
 
             //
             @Nullable final WhitespaceRectangle adjusted;
@@ -277,6 +273,7 @@ public class ColumnFinder {
     private static void filter(final PhysicalPageRegion r, final List<WhitespaceRectangle> boundaries) {
 
         List<WhitespaceRectangle> toRemove = new ArrayList<WhitespaceRectangle>();
+        StringBuilder sb = new StringBuilder();
 
         Collections.sort(boundaries, Sorting.sortByLowerX);
 
@@ -289,13 +286,13 @@ public class ColumnFinder {
                 continue;
             }
 
-            final float boundaryToTheLeft;
+            final float boundaryToTheLeft = 20;
 
-            if (i == 0) {
-                boundaryToTheLeft = r.getPos().x;
-            } else {
-                boundaryToTheLeft = boundaries.get(i - 1).getPos().endX;
-            }
+//            if (i == 0) {
+//                boundaryToTheLeft = r.getPos().x;
+//            } else {
+//                boundaryToTheLeft = boundaries.get(i - 1).getPos().endX;
+//            }
 
             final Rectangle bpos        = boundary.getPos();
             final float     searchWidth = bpos.x - boundaryToTheLeft;
@@ -317,7 +314,7 @@ public class ColumnFinder {
                 continue;
             }
 
-            StringBuffer sb = new StringBuffer();
+            sb.setLength(0);
 
             for (PhysicalContent content : contentToTheLeft) {
                 if (content.isText()) {
