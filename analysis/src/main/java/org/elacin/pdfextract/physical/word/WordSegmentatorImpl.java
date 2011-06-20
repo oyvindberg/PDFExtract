@@ -128,14 +128,11 @@ public class WordSegmentatorImpl implements WordSegmentator {
     @NotNull
     public static Collection<PhysicalText> createWordsInLine(@NotNull final List<PhysicalText> line) {
 
+        /* unfinished words are put back into this queue, and will this be picked as currentWord below */
         /*
-         *       keep the characters sorted at all times. note that unfinished words are put back into
-         *        this queue, and will this be picked as currentWord below
-         */
-        final Queue<PhysicalText> queue = new PriorityQueue<PhysicalText>(line.size(),
-                                              Sorting.sortByLowerX);
-
-        queue.addAll(line);
+        * Note, sorting this by lower X-coords breaks because of bad information for many documents
+        * */
+        final List<PhysicalText> queue = line;
 
         /* this list of words will be returned */
         final Collection<PhysicalText> segmentedWords = new ArrayList<PhysicalText>();
@@ -159,7 +156,7 @@ public class WordSegmentatorImpl implements WordSegmentator {
          *       this is necessary to keep track of the width of the last character we
          *       combined into a a word, else it would disappear when combining
          */
-        float currentWidth = queue.peek().getPos().width;
+        float currentWidth = queue.get(0).getPos().width;
 
         if (log.isDebugEnabled()) {
             printLine(line);
@@ -169,8 +166,8 @@ public class WordSegmentatorImpl implements WordSegmentator {
          * iterate through all texts from left to right, and combine into words as we go
          */
         while (!queue.isEmpty()) {
-            final PhysicalText currentWord = queue.remove();
-            final PhysicalText nextChar    = queue.peek();
+            final PhysicalText currentWord = queue.remove(0);
+            final PhysicalText nextChar    = queue.isEmpty() ? null : queue.get(0);
 
             /* we have no need for spaces after establishing word boundaries, so skip */
             if ("".equals(currentWord.getText().trim())) {
@@ -193,16 +190,15 @@ public class WordSegmentatorImpl implements WordSegmentator {
                 isWordBoundary = "".equals(nextChar.getText().trim());
             } else {
                 final float distance = currentWord.getPos().distance(nextChar.getPos());
+                final float limit    = 0.8f * fontSize / fontDenom;
 
-                final float limit = 0.8f * fontSize / fontDenom;
                 isWordBoundary = distance - charSpacing > limit;
 
                 if (log.isDebugEnabled()) {
                     log.debug(currentWord.getText() + "[" + currentWidth + "] " + distance + " "
-                              + nextChar.getText() + "[" + nextChar.getPos().width
-                              + "]: limit=" + limit + ", effective distance:"
-                              + (distance - charSpacing) + ", fontSize:" + (fontSize) + ", charSpacing:"
-                              + charSpacing);
+                              + nextChar.getText() + "[" + nextChar.getPos().width + "]: limit=" + limit
+                              + ", effective distance:" + (distance - charSpacing) + ", fontSize:"
+                              + (fontSize) + ", charSpacing:" + charSpacing);
                 }
             }
 
@@ -219,7 +215,7 @@ public class WordSegmentatorImpl implements WordSegmentator {
                 PhysicalText combinedWord = currentWord.combineWith(nextChar);
 
                 queue.remove(nextChar);
-                queue.add(combinedWord);
+                queue.add(0, combinedWord);
             }
 
             currentWidth = nextChar.getPos().width;
