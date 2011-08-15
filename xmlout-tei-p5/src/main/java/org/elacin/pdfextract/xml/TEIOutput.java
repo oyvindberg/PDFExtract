@@ -104,7 +104,7 @@ public class TEIOutput implements XMLWriter {
             addLineToContent(p.getContent(), lineNode);
         }
 
-        front.withDivGensAndTitlePagesAndHeads(div);
+        front.withSetsAndProloguesAndEpilogues(div);
     }
 
     private void addBack(DocumentNode root, @NotNull Text text) {
@@ -112,7 +112,7 @@ public class TEIOutput implements XMLWriter {
         final Back back = new Back();
 
         /* references goes here */
-        text.withIndicesAndMilestonesAndPbs(back);
+        text.withIndicesAndSpenAndSpanGrps(back);
     }
 
     Div          currentDiv;
@@ -132,7 +132,7 @@ public class TEIOutput implements XMLWriter {
 
         divLevel   = 0;
         currentDiv = new Div();
-        body.withIndicesAndMilestonesAndPbs(currentDiv);
+        body.withIndicesAndSpenAndSpanGrps(currentDiv);
         currentContent = currentDiv.getMeetingsAndBylinesAndDatelines();
 
         boolean createNewP = false;
@@ -146,7 +146,7 @@ public class TEIOutput implements XMLWriter {
             if (prf.hasRole(Role.DIV1)) {
                 divLevel    = 1;
                 currentDiv1 = new Div1();
-                body.withIndicesAndMilestonesAndPbs(currentDiv1);
+                body.withIndicesAndSpenAndSpanGrps(currentDiv1);
                 currentContent = currentDiv1.getMeetingsAndBylinesAndDatelines();
                 isHead         = true;
                 createNewP     = true;
@@ -169,7 +169,7 @@ public class TEIOutput implements XMLWriter {
                 note.withPlaces("below").withNS(firstWord.getText());
 
 //                currentContent.add(note);
-                body.withIndicesAndMilestonesAndPbs(note);
+                body.withIndicesAndSpenAndSpanGrps(note);
 
                 continue;
             }
@@ -219,7 +219,7 @@ public class TEIOutput implements XMLWriter {
             }
         }
 
-        text.withIndicesAndMilestonesAndPbs(body);
+        text.withIndicesAndSpenAndSpanGrps(body);
     }
 
     private void addLineToContent(final List<Object> contentList, final LineNode line) {
@@ -254,7 +254,7 @@ public class TEIOutput implements XMLWriter {
         final Front front = new Front();
 
         addAbstract(root, front);
-        text.withIndicesAndMilestonesAndPbs(front);
+        text.withIndicesAndSpenAndSpanGrps(front);
     }
 
     private void addHeader(DocumentNode root, @NotNull TEI tei) {
