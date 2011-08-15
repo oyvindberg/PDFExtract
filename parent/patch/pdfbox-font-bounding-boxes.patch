@@ -1,7 +1,7 @@
-Index: ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDSimpleFont.java
+Index: pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDSimpleFont.java
 ===================================================================
---- ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDSimpleFont.java	(revision 1085755)
-+++ ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDSimpleFont.java	(revision )
+--- pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDSimpleFont.java	(revision 1085755)
++++ pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDSimpleFont.java	(revision )
 @@ -27,11 +27,13 @@
  
  import java.util.HashMap;
@@ -76,10 +76,10 @@ Index: ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/
      /**
       * This will draw a string on a canvas using the font.
       *
-Index: ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDCIDFont.java
+Index: pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDCIDFont.java
 ===================================================================
---- ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDCIDFont.java	(revision 1085755)
-+++ ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDCIDFont.java	(revision )
+--- pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDCIDFont.java	(revision 1085755)
++++ pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDCIDFont.java	(revision )
 @@ -23,6 +23,7 @@
  
  import org.apache.commons.logging.Log;
@@ -105,10 +105,10 @@ Index: ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/
      protected void determineEncoding()
      {
          String cidSystemInfo = getCIDSystemInfo();
-Index: ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDType1Font.java
+Index: pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDType1Font.java
 ===================================================================
---- ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDType1Font.java	(revision 1085916)
-+++ ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDType1Font.java	(revision )
+--- pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDType1Font.java	(revision 1085916)
++++ pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDType1Font.java	(revision )
 @@ -28,6 +28,7 @@
  import org.apache.commons.logging.Log;
  import org.apache.commons.logging.LogFactory;
@@ -175,10 +175,10 @@ Index: ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/
 +        return ret;
 +    }
 +}
-Index: ../../../src/PDFBox/trunk/fontbox/src/main/java/org/apache/fontbox/afm/FontMetric.java
+Index: fontbox/src/main/java/org/apache/fontbox/afm/FontMetric.java
 ===================================================================
---- ../../../src/PDFBox/trunk/fontbox/src/main/java/org/apache/fontbox/afm/FontMetric.java	(revision 905016)
-+++ ../../../src/PDFBox/trunk/fontbox/src/main/java/org/apache/fontbox/afm/FontMetric.java	(revision )
+--- fontbox/src/main/java/org/apache/fontbox/afm/FontMetric.java	(revision 905016)
++++ fontbox/src/main/java/org/apache/fontbox/afm/FontMetric.java	(revision )
 @@ -70,7 +70,8 @@
      private float standardVerticalWidth;
  
@@ -257,10 +257,10 @@ Index: ../../../src/PDFBox/trunk/fontbox/src/main/java/org/apache/fontbox/afm/Fo
      }
  
      /** Getter for property trackKern.
-Index: ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDFont.java
+Index: pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDFont.java
 ===================================================================
---- ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDFont.java	(revision 1151382)
-+++ ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDFont.java	(revision )
+--- pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDFont.java	(revision 1151382)
++++ pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDFont.java	(revision )
 @@ -21,6 +21,7 @@
  import org.apache.fontbox.cmap.CMapParser;
  import org.apache.fontbox.cmap.CMap;
@@ -291,10 +291,10 @@ Index: ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/
       * This will get the average font width for all characters.
       *
       * @return The width is in 1000 unit of text space, ie 333 or 777
-Index: ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDType1CFont.java
+Index: pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDType1CFont.java
 ===================================================================
---- ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDType1CFont.java	(revision 1075455)
-+++ ../../../src/PDFBox/trunk/pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDType1CFont.java	(revision )
+--- pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDType1CFont.java	(revision 1075455)
++++ pdfbox/src/main/java/org/apache/pdfbox/pdmodel/font/PDType1CFont.java	(revision )
 @@ -38,6 +38,7 @@
  import org.apache.commons.logging.LogFactory;
  
