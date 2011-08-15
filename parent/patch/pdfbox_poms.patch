@@ -1,0 +1,153 @@
+Index: ../../../src/PDFBox/trunk/xmpbox/pom.xml
+===================================================================
+--- ../../../src/PDFBox/trunk/xmpbox/pom.xml	(revision 1154449)
++++ ../../../src/PDFBox/trunk/xmpbox/pom.xml	(revision )
+@@ -33,7 +33,7 @@
+   <parent>
+     <groupId>org.apache.pdfbox</groupId>
+     <artifactId>pdfbox-parent</artifactId>
+-    <version>1.7.0-SNAPSHOT</version>
++    <version>1.7.0-SNAPSHOT-elc</version>
+     <relativePath>../parent/pom.xml</relativePath>
+   </parent>
+ 
+Index: ../../../src/PDFBox/trunk/preflight/pom.xml
+===================================================================
+--- ../../../src/PDFBox/trunk/preflight/pom.xml	(revision 1154449)
++++ ../../../src/PDFBox/trunk/preflight/pom.xml	(revision )
+@@ -33,7 +33,7 @@
+   <parent>
+     <groupId>org.apache.pdfbox</groupId>
+     <artifactId>pdfbox-parent</artifactId>
+-    <version>1.7.0-SNAPSHOT</version>
++    <version>1.7.0-SNAPSHOT-elc</version>
+     <relativePath>../parent/pom.xml</relativePath>
+   </parent>
+ 
+Index: ../../../src/PDFBox/trunk/app/pom.xml
+===================================================================
+--- ../../../src/PDFBox/trunk/app/pom.xml	(revision 1140777)
++++ ../../../src/PDFBox/trunk/app/pom.xml	(revision )
+@@ -23,7 +23,7 @@
+   <parent>
+     <groupId>org.apache.pdfbox</groupId>
+     <artifactId>pdfbox-parent</artifactId>
+-    <version>1.7.0-SNAPSHOT</version>
++    <version>1.7.0-SNAPSHOT-elc</version>
+     <relativePath>../parent/pom.xml</relativePath>
+   </parent>
+ 
+Index: ../../../src/PDFBox/trunk/parent/pom.xml
+===================================================================
+--- ../../../src/PDFBox/trunk/parent/pom.xml	(revision 1140777)
++++ ../../../src/PDFBox/trunk/parent/pom.xml	(revision )
+@@ -29,7 +29,7 @@
+ 
+   <groupId>org.apache.pdfbox</groupId>
+   <artifactId>pdfbox-parent</artifactId>
+-  <version>1.7.0-SNAPSHOT</version>
++  <version>1.7.0-SNAPSHOT-elc</version>
+   <packaging>pom</packaging>
+ 
+   <name>PDFBox parent</name>
+Index: ../../../src/PDFBox/trunk/lucene/pom.xml
+===================================================================
+--- ../../../src/PDFBox/trunk/lucene/pom.xml	(revision 1140777)
++++ ../../../src/PDFBox/trunk/lucene/pom.xml	(revision )
+@@ -23,7 +23,7 @@
+   <parent>
+     <groupId>org.apache.pdfbox</groupId>
+     <artifactId>pdfbox-parent</artifactId>
+-    <version>1.7.0-SNAPSHOT</version>
++    <version>1.7.0-SNAPSHOT-elc</version>
+     <relativePath>../parent/pom.xml</relativePath>
+   </parent>
+ 
+Index: ../../../src/PDFBox/trunk/pdfbox/pom.xml
+===================================================================
+--- ../../../src/PDFBox/trunk/pdfbox/pom.xml	(revision 1140777)
++++ ../../../src/PDFBox/trunk/pdfbox/pom.xml	(revision )
+@@ -23,7 +23,7 @@
+   <parent>
+     <groupId>org.apache.pdfbox</groupId>
+     <artifactId>pdfbox-parent</artifactId>
+-    <version>1.7.0-SNAPSHOT</version>
++    <version>1.7.0-SNAPSHOT-elc</version>
+     <relativePath>../parent/pom.xml</relativePath>
+   </parent>
+ 
+Index: ../../../src/PDFBox/trunk/pom.xml
+===================================================================
+--- ../../../src/PDFBox/trunk/pom.xml	(revision 1150427)
++++ ../../../src/PDFBox/trunk/pom.xml	(revision )
+@@ -23,7 +23,7 @@
+   <parent>
+     <groupId>org.apache.pdfbox</groupId>
+     <artifactId>pdfbox-parent</artifactId>
+-    <version>1.7.0-SNAPSHOT</version>
++    <version>1.7.0-SNAPSHOT-elc</version>
+     <relativePath>parent/pom.xml</relativePath>
+   </parent>
+ 
+@@ -46,9 +46,7 @@
+     <module>parent</module>
+     <module>fontbox</module>
+     <module>jempbox</module>
+-    <module>xmpbox</module>
+     <module>pdfbox</module>
+-    <module>preflight</module>
+     <module>lucene</module>
+     <module>ant</module>
+     <module>war</module>
+Index: ../../../src/PDFBox/trunk/jempbox/pom.xml
+===================================================================
+--- ../../../src/PDFBox/trunk/jempbox/pom.xml	(revision 1140777)
++++ ../../../src/PDFBox/trunk/jempbox/pom.xml	(revision )
+@@ -21,7 +21,7 @@
+   <parent>
+     <groupId>org.apache.pdfbox</groupId>
+     <artifactId>pdfbox-parent</artifactId>
+-    <version>1.7.0-SNAPSHOT</version>
++    <version>1.7.0-SNAPSHOT-elc</version>
+     <relativePath>../parent/pom.xml</relativePath>
+   </parent>
+ 
+Index: ../../../src/PDFBox/trunk/fontbox/pom.xml
+===================================================================
+--- ../../../src/PDFBox/trunk/fontbox/pom.xml	(revision 1140777)
++++ ../../../src/PDFBox/trunk/fontbox/pom.xml	(revision )
+@@ -21,7 +21,7 @@
+   <parent>
+     <groupId>org.apache.pdfbox</groupId>
+     <artifactId>pdfbox-parent</artifactId>
+-    <version>1.7.0-SNAPSHOT</version>
++    <version>1.7.0-SNAPSHOT-elc</version>
+     <relativePath>../parent/pom.xml</relativePath>
+   </parent>
+ 
+Index: ../../../src/PDFBox/trunk/ant/pom.xml
+===================================================================
+--- ../../../src/PDFBox/trunk/ant/pom.xml	(revision 1140777)
++++ ../../../src/PDFBox/trunk/ant/pom.xml	(revision )
+@@ -23,7 +23,7 @@
+   <parent>
+     <groupId>org.apache.pdfbox</groupId>
+     <artifactId>pdfbox-parent</artifactId>
+-    <version>1.7.0-SNAPSHOT</version>
++    <version>1.7.0-SNAPSHOT-elc</version>
+     <relativePath>../parent/pom.xml</relativePath>
+   </parent>
+ 
+Index: ../../../src/PDFBox/trunk/war/pom.xml
+===================================================================
+--- ../../../src/PDFBox/trunk/war/pom.xml	(revision 1140777)
++++ ../../../src/PDFBox/trunk/war/pom.xml	(revision )
+@@ -23,7 +23,7 @@
+   <parent>
+     <groupId>org.apache.pdfbox</groupId>
+     <artifactId>pdfbox-parent</artifactId>
+-    <version>1.7.0-SNAPSHOT</version>
++    <version>1.7.0-SNAPSHOT-elc</version>
+     <relativePath>../parent/pom.xml</relativePath>
+   </parent>
+ 
