@@ -40,3 +40,5 @@ mvn -DskipTests=true assembly:assembly #yes, some cleanup of tests is in order
 
 
 
+
+Join the chat at https://gitter.im/elacin/PDFExtract
